@@ -5,6 +5,7 @@ import base64
 import re
 import secrets
 from urllib.parse import urlencode
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -19,8 +20,9 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from . import payments as pay
 from .analysis import run_analysis
 from .catalog import DEGREE_CHOICES, Catalog, parse_cutoffs
-from .config import STATIC_DIR, payment_mode, settings
+from .config import STATIC_DIR, payment_mode, settings, validate_settings
 from .db import db, init_db
+from .security import SecurityMiddleware, client_ip, limiter
 from .licensing import COOKIE_NAME, find_active_license, from_iso, utcnow
 from .payments import admin_stats
 from .scoring import QUOTAS, Profile, parse_interests, quota_key
@@ -30,6 +32,9 @@ APP_DIR = Path(__file__).resolve().parent
 TEMPLATES_DIR = APP_DIR / "templates"
 MAX_CUTOFF_UPLOAD = 2_000_000
 _ICON_CACHE: dict[str, str] = {}
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+log = logging.getLogger("rz")
 
 catalog = Catalog()
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -66,12 +71,24 @@ templates.env.globals.update({"icon": icon})
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    validate_settings()
     init_db()
     yield
 
 
 app = FastAPI(title="رشته‌یار", docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
+app.add_middleware(SecurityMiddleware)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
+# جدول‌ها همیشه قبل از اولین درخواست وجود دارند (حتی بدون اجرای lifespan، مثلاً در تست‌ها)
+init_db()
+
+
+def _rate_limit(request: Request, bucket: str, limit: int, window: int) -> None:
+    ip = client_ip(request.scope)
+    if not limiter.hit(f"{bucket}:{ip}", limit, window):
+        log.warning("rate limit bucket=%s ip=%s", bucket, ip)
+        raise HTTPException(status_code=429, detail="تعداد درخواست‌ها زیاد است؛ کمی بعد دوباره تلاش کنید.")
 
 
 # ---------------------------------------------------------------- کمکی‌ها
@@ -121,6 +138,7 @@ def _license_cookie(response: Response, code: str) -> Response:
 def require_admin(request: Request) -> None:
     if not settings.admin_password:
         raise HTTPException(status_code=503, detail="ADMIN_PASSWORD تنظیم نشده است؛ پنل مدیریت غیرفعال است.")
+    _rate_limit(request, "admin", limit=30, window=900)
     header = request.headers.get("authorization", "")
     if header.lower().startswith("basic "):
         try:
@@ -131,6 +149,7 @@ def require_admin(request: Request) -> None:
         ok_pass = secrets.compare_digest(password.encode(), settings.admin_password.encode())
         if ok_user and ok_pass:
             return
+    log.warning("failed admin login ip=%s", client_ip(request.scope))
     raise HTTPException(status_code=401, detail="نیاز به ورود مدیر", headers={"WWW-Authenticate": 'Basic realm="admin"'})
 
 
@@ -205,7 +224,9 @@ def premium_page(request: Request, error: str = ""):
 
 # ---------------------------------------------------------------- پرداخت
 @app.post("/premium/checkout")
-def premium_checkout(request: Request, plan: str = Form(...), mobile: str = Form(""), email: str = Form("")):
+def premium_checkout(request: Request, plan: str = Form(..., max_length=40),
+                     mobile: str = Form("", max_length=20), email: str = Form("", max_length=120)):
+    _rate_limit(request, "checkout", limit=20, window=600)
     mobile_v = to_latin_digits(mobile)
     email_v = email.strip()
     p = pay.find_plan(catalog.plans, plan)
@@ -237,7 +258,9 @@ def premium_checkout(request: Request, plan: str = Form(...), mobile: str = Form
 
 
 @app.get("/premium/callback")
-def premium_callback(Authority: str = "", Status: str = ""):
+def premium_callback(Authority: str = Query("", max_length=64), Status: str = Query("", max_length=10)):
+    if not Authority:
+        raise HTTPException(status_code=400, detail="پارامترهای بازگشت از درگاه ناقص است.")
     try:
         gateway = pay.get_gateway()
     except pay.PaymentError:
@@ -279,9 +302,12 @@ def mock_gateway_page(request: Request, authority: str):
 
 
 @app.post("/premium/mock/{authority}")
-def mock_gateway_submit(authority: str, outcome: str = Form("OK")):
-    if payment_mode() != "mock" or not authority.startswith("MOCK"):
+def mock_gateway_submit(request: Request, authority: str, outcome: str = Form("OK", max_length=10)):
+    if payment_mode() != "mock" or not authority.startswith("MOCK") or len(authority) > 64:
         raise HTTPException(status_code=404, detail="صفحه پیدا نشد.")
+    _rate_limit(request, "mock", limit=60, window=600)
+    with db() as conn:
+        pay.mock_confirm(conn, authority, approve=(outcome == "OK"))
     status = "OK" if outcome == "OK" else "NOK"
     return RedirectResponse(f"/premium/callback?Authority={authority}&Status={status}", status_code=303)
 
@@ -295,7 +321,8 @@ def account_page(request: Request, error: str = "", info: str = ""):
 
 
 @app.post("/account/activate")
-def account_activate(request: Request, code: str = Form(...)):
+def account_activate(request: Request, code: str = Form(..., max_length=40)):
+    _rate_limit(request, "activate", limit=10, window=600)
     with db() as conn:
         row = find_active_license(conn, code)
     if row is None:
@@ -347,16 +374,17 @@ async def admin_upload_cutoffs(file: UploadFile = File(...)):
 
 # ---------------------------------------------------------------- API
 class AnalyzeIn(BaseModel):
+    model_config = {"extra": "forbid"}
     gpa: float | None = Field(default=None, ge=0, le=20)
-    pct: dict[str, float | None] = Field(default_factory=dict)
-    coef: dict[str, float | None] = Field(default_factory=dict)
+    pct: dict[str, float | None] = Field(default_factory=dict, max_length=20)
+    coef: dict[str, float | None] = Field(default_factory=dict, max_length=20)
     rank_no_quota: int | None = Field(default=None, ge=1, le=10_000_000)
     rank_quota: int | None = Field(default=None, ge=1, le=10_000_000)
-    quota: str = "none"
-    province: str | None = None
+    quota: str = Field(default="none", max_length=60)
+    province: str | None = Field(default=None, max_length=40)
     univ_types: list[str] = Field(default_factory=list, max_length=12)
     interests: str = Field(default="", max_length=300)
-    degree: str | None = None
+    degree: str | None = Field(default=None, max_length=20)
 
     @field_validator("pct")
     @classmethod
@@ -364,6 +392,14 @@ class AnalyzeIn(BaseModel):
         for v in value.values():
             if v is not None and not 0 <= v <= 100:
                 raise ValueError("درصد باید بین ۰ و ۱۰۰ باشد")
+        return value
+
+    @field_validator("pct", "coef")
+    @classmethod
+    def _keys_known(cls, value: dict) -> dict:
+        for k in value:
+            if not isinstance(k, str) or len(k) > 40:
+                raise ValueError("نام درس نامعتبر است")
         return value
 
     @field_validator("coef")
@@ -397,7 +433,8 @@ def api_analyze(request: Request, slug: str, body: AnalyzeIn):
 
 
 @app.get("/api/fields")
-def api_fields(q: str = "", group: str | None = None, degree: str | None = None,
+def api_fields(q: str = Query("", max_length=100), group: str | None = Query(None, max_length=60),
+               degree: str | None = Query(None, max_length=20),
                offset: int = Query(0, ge=0), limit: int = Query(40, ge=1, le=100)):
     key = None
     if group:
@@ -409,8 +446,10 @@ def api_fields(q: str = "", group: str | None = None, degree: str | None = None,
 
 
 @app.get("/api/universities")
-def api_universities(q: str = "", utype: str | None = Query(None, alias="type"),
-                     province: str | None = None, group: str | None = None,
+def api_universities(q: str = Query("", max_length=100),
+                     utype: str | None = Query(None, alias="type", max_length=60),
+                     province: str | None = Query(None, max_length=40),
+                     group: str | None = Query(None, max_length=60),
                      mode: str = Query("all", pattern="^(all|related|specialized)$"),
                      offset: int = Query(0, ge=0), limit: int = Query(40, ge=1, le=100)):
     key = None

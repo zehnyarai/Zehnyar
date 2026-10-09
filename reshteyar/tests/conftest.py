@@ -20,3 +20,23 @@ os.environ.pop("ALLOW_MOCK_PAYMENTS", None)
 from app.db import init_db  # noqa: E402  (پس از تنظیم متغیرهای محیطی)
 
 init_db()
+
+import pytest  # noqa: E402
+
+from app.security import limiter  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limits():
+    limiter.reset()
+    yield
+    limiter.reset()
+
+
+@pytest.fixture(autouse=True)
+def _clean_payment_tables():
+    from app.db import db
+    with db() as conn:
+        conn.execute("DELETE FROM licenses")
+        conn.execute("DELETE FROM payments")
+    yield

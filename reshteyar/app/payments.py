@@ -9,9 +9,12 @@
 """
 from __future__ import annotations
 
+import logging
 import re
 import secrets
 import sqlite3
+from contextlib import contextmanager
+from typing import Iterator
 
 import httpx
 
@@ -22,6 +25,24 @@ ZARINPAL_PRODUCTION = "https://payment.zarinpal.com"
 ZARINPAL_SANDBOX = "https://sandbox.zarinpal.com"
 MOBILE_RE = re.compile(r"^09\d{9}$")
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+log = logging.getLogger("rz.payments")
+
+MOCK_APPROVED = "mock_approved"
+
+
+@contextmanager
+def transaction(conn: sqlite3.Connection) -> Iterator[sqlite3.Connection]:
+    """قفل نوشتن از ابتدا (BEGIN IMMEDIATE) تا دو callback هم‌زمان دو کد صادر نکنند."""
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        yield conn
+    except BaseException:
+        conn.execute("ROLLBACK")
+        raise
+    else:
+        conn.execute("COMMIT")
 
 
 class PaymentError(Exception):
@@ -119,6 +140,7 @@ class MockGateway:
         return GatewayRequest(authority, f"/premium/mock/{authority}")
 
     def verify(self, *, amount_toman: int, authority: str) -> VerifyResult:
+        # فقط وقتی فراخوانی می‌شود که handle_callback تأیید کاربر در دیتابیس را دیده باشد
         return VerifyResult(True, "MOCK-" + authority[-8:], 100, "پرداخت آزمایشی تایید شد (بدون پول واقعی).")
 
 
@@ -155,47 +177,74 @@ def create_payment(conn: sqlite3.Connection, gateway, plan: dict, *, mobile: str
     return req.redirect_url, token
 
 
+def mock_confirm(conn: sqlite3.Connection, authority: str, approve: bool) -> bool:
+    """ثبت تصمیم کاربر در صفحه‌ی درگاه آزمایشی. فقط برای پرداخت‌های در وضعیت created."""
+    status = MOCK_APPROVED if approve else "canceled"
+    cur = conn.execute(
+        "UPDATE payments SET status = ?, message = ? WHERE authority = ? AND gateway = 'mock' AND status = 'created'",
+        (status, "تایید در درگاه آزمایشی" if approve else "لغو در درگاه آزمایشی", authority),
+    )
+    return cur.rowcount == 1
+
+
 def handle_callback(conn: sqlite3.Connection, gateway, plans: list[dict], authority: str,
                     status: str) -> dict:
     """
     پاسخ درگاه (Authority, Status) را پردازش می‌کند.
-    مبلغ همیشه از دیتابیس خوانده می‌شود، نه از پارامترهای بازگشتی درگاه.
+
+    قواعد امنیتی:
+      * مبلغ همیشه از دیتابیس خوانده می‌شود، نه از پارامترهای بازگشتی.
+      * در حالت آزمایشی، پارامتر Status نادیده گرفته می‌شود و فقط تصمیم ثبت‌شده در دیتابیس معتبر است.
+      * کد لایسنس فقط یک‌بار صادر می‌شود؛ callback تکراری همان کد را برمی‌گرداند.
     """
-    row = conn.execute("SELECT * FROM payments WHERE authority = ?", (authority,)).fetchone()
-    if row is None:
-        return {"state": "unknown", "token": None, "code": None}
-    base = {"token": row["result_token"], "payment_id": row["id"]}
+    with transaction(conn):
+        row = conn.execute("SELECT * FROM payments WHERE authority = ?", (authority,)).fetchone()
+        if row is None:
+            return {"state": "unknown", "token": None, "code": None}
+        base = {"token": row["result_token"], "payment_id": row["id"]}
 
-    if row["status"] == "paid":
-        code = conn.execute("SELECT code FROM licenses WHERE payment_id = ?", (row["id"],)).fetchone()
-        return {**base, "state": "paid", "code": code["code"] if code else None}
+        if row["status"] == "paid":
+            code = conn.execute("SELECT code FROM licenses WHERE payment_id = ?", (row["id"],)).fetchone()
+            return {**base, "state": "paid", "code": code["code"] if code else None}
 
-    if (status or "").upper() != "OK":
-        conn.execute("UPDATE payments SET status = 'canceled', message = ? WHERE id = ?",
-                     ("پرداخت توسط کاربر لغو شد یا ناموفق بود.", row["id"]))
-        return {**base, "state": "canceled", "code": None}
+        if gateway.name == "mock":
+            if row["status"] == "canceled":
+                return {**base, "state": "canceled", "code": None}
+            if row["status"] != MOCK_APPROVED:
+                # هنوز کاربر در صفحه‌ی آزمایشی تأیید نکرده؛ هیچ کدی صادر نمی‌شود
+                return {**base, "state": "pending", "code": None,
+                        "message": "پرداخت هنوز توسط کاربر تایید نشده است."}
+        else:
+            if (status or "").upper() != "OK":
+                conn.execute("UPDATE payments SET status = 'canceled', message = ? WHERE id = ?",
+                             ("پرداخت توسط کاربر لغو شد یا ناموفق بود.", row["id"]))
+                log.info("payment %s canceled by user/gateway", row["id"])
+                return {**base, "state": "canceled", "code": None}
 
-    plan = find_plan(plans, row["plan_id"])
-    if plan is None:
-        return {**base, "state": "failed", "code": None}
+        plan = find_plan(plans, row["plan_id"])
+        if plan is None:
+            return {**base, "state": "failed", "code": None}
 
-    try:
-        result = gateway.verify(amount_toman=row["amount_toman"], authority=authority)
-    except PaymentError as exc:
-        conn.execute("UPDATE payments SET message = ? WHERE id = ?", (str(exc), row["id"]))
-        return {**base, "state": "pending", "code": None, "message": str(exc)}
+        try:
+            result = gateway.verify(amount_toman=row["amount_toman"], authority=authority)
+        except PaymentError as exc:
+            conn.execute("UPDATE payments SET message = ? WHERE id = ?", (str(exc), row["id"]))
+            log.warning("payment %s verify error: %s", row["id"], exc)
+            return {**base, "state": "pending", "code": None, "message": str(exc)}
 
-    if not result.ok:
-        conn.execute("UPDATE payments SET status = 'failed', message = ? WHERE id = ?",
-                     (result.message, row["id"]))
-        return {**base, "state": "failed", "code": None, "message": result.message}
+        if not result.ok:
+            conn.execute("UPDATE payments SET status = 'failed', message = ? WHERE id = ?",
+                         (result.message, row["id"]))
+            log.warning("payment %s verify failed code=%s", row["id"], result.code)
+            return {**base, "state": "failed", "code": None, "message": result.message}
 
-    code = issue_license(conn, row["id"], plan["id"], plan["days"])
-    conn.execute(
-        "UPDATE payments SET status = 'paid', ref_id = ?, paid_at = ?, message = ? WHERE id = ?",
-        (result.ref_id, to_iso(utcnow()), result.message, row["id"]),
-    )
-    return {**base, "state": "paid", "code": code}
+        code = issue_license(conn, row["id"], plan["id"], plan["days"])
+        conn.execute(
+            "UPDATE payments SET status = 'paid', ref_id = ?, paid_at = ?, message = ? WHERE id = ?",
+            (result.ref_id, to_iso(utcnow()), result.message, row["id"]),
+        )
+        log.info("payment %s paid plan=%s", row["id"], plan["id"])
+        return {**base, "state": "paid", "code": code}
 
 
 def payment_by_token(conn: sqlite3.Connection, token: str) -> sqlite3.Row | None:

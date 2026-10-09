@@ -78,19 +78,4 @@
   </section>
 </div>
 {% endblock %}
-{% block scripts %}
-<script>
-  (function () {
-    var radios = document.querySelectorAll('.plan-radio input[type="radio"]');
-    function sync() {
-      radios.forEach(function (r) {
-        var card = r.closest('.plan-radio').querySelector('.plan');
-        card.style.outline = r.checked ? '2px solid #0ea5e9' : '';
-        card.style.outlineOffset = r.checked ? '3px' : '';
-      });
-    }
-    radios.forEach(function (r) { r.addEventListener('change', sync); });
-    sync();
-  })();
-</script>
-{% endblock %}
+{% block scripts %}<script src="/static/js/premium.js" defer></script>{% endblock %}
