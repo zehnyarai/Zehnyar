@@ -41,7 +41,7 @@ jobs:
           INPUT_URL: ${{ inputs.url }}
           VAR_URL: ${{ vars.RZ_URL }}
         run: |
-          URL="${INPUT_URL:-${VAR_URL:-https://8000-incuteince6ngpchcmq04.e2b.app}}"  # TEMP-PREVIEW
+          URL="${INPUT_URL:-$VAR_URL}"
           if [[ "$URL" != https://* ]]; then
             echo "::error::آدرس HTTPS سایت تنظیم نشده است. متغیر RZ_URL را در Settings > Variables بگذارید یا ورودی url را پر کنید."
             exit 1
