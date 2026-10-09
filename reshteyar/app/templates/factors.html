@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}عوامل مؤثر در انتخاب رشته{% endblock %}
+{% block description %}همه‌ی عوامل مؤثر در انتخاب رشته و قبولی کنکور: سوابق، آزمون، ضرایب، رتبه، سهمیه، دانشگاه، شهریه، علاقه و بازار کار.{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-head" style="margin-top:22px">
+    <div>
+      <p class="eyebrow">راهنمای جامع</p>
+      <h1>همه‌ی عوامل مؤثر در انتخاب رشته</h1>
+    </div>
+    <p>هر عاملی که روی انتخاب رشته و احتمال قبولی اثر دارد، همراه با دلیل اهمیت و محل پیدا کردن آن. عوامل بر اساس اهمیت در تصمیم کنار هم آمده‌اند.</p>
+  </div>
+
+  <section>
+    <div class="grid grid-3">
+      {% for f in factors %}
+      <article class="card factor-card">
+        <div class="group-icon">{{ icon(f.icon) }}</div>
+        <h3>{{ f.title }}</h3>
+        <p class="small muted">{{ f.summary }}</p>
+        <dl>
+          <dt>چرا مهم است؟</dt>
+          <dd>{{ f.why }}</dd>
+          <dt>کجا پیدا می‌شود؟</dt>
+          <dd>{{ f.where }}</dd>
+        </dl>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section>
+    <h2>وزن سوابق و آزمون در هر گروه</h2>
+    <p class="muted small">اعداد بر اساس اعلام سازمان سنجش برای ۱۴۰۴ است. برای گروه‌های «تقریبی»، پیش از تصمیم، دفترچه‌ی همان سال را بررسی کنید.</p>
+    <div class="table-wrap">
+      <table class="simple">
+        <thead>
+          <tr><th>گروه</th><th>سهم سوابق</th><th>سهم آزمون</th><th>دروس اختصاصی و ضرایب</th><th>وضعیت داده</th></tr>
+        </thead>
+        <tbody>
+          {% for g in nav_groups %}
+          <tr>
+            <td><a href="/groups/{{ g.slug }}"><b>{{ g.title }}</b></a></td>
+            <td>{{ g.school_weight|fa }}٪</td>
+            <td>{{ g.exam_weight|fa }}٪</td>
+            <td>{% for s in g.exam_subjects %}{{ s.label }} ({{ s.coef|fa }}){% if not loop.last %}، {% endif %}{% endfor %}</td>
+            <td>{% if g.coef_status == 'verified' %}<span class="chip chip-green">تأیید شده</span>{% else %}<span class="chip chip-amber">نیاز به بررسی</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:26px">
+    <h3>{{ icon('circle-alert') }} یادآوری مهم</h3>
+    <p class="small">ضرایب و سهم‌بندی‌ها می‌توانند هر سال تغییر کنند. رشته‌یار راهنمای تحلیلی است و جایگزین دفترچه‌ی رسمی سازمان سنجش و مشاوره‌ی تحصیلی نیست.</p>
+  </section>
+</div>
+{% endblock %}

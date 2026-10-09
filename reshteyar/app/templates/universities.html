@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}فهرست کامل دانشگاه‌ها{% endblock %}
+{% block description %}فهرست کامل دانشگاه‌ها و موسسات آموزش عالی ایران با نوع، استان و گروه مرتبط.{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-head" style="margin-top:22px">
+    <div>
+      <p class="eyebrow">فهرست کامل</p>
+      <h1>همه‌ی دانشگاه‌ها و موسسات</h1>
+    </div>
+    <p>{{ total|num }} دانشگاه، موسسه و شعبه‌ی دارای مدرک در ایران. شعبه‌ها و پردیس‌ها جدا فهرست شده‌اند. داده‌ها از فهرست منابع باز تهیه شده‌اند.</p>
+  </div>
+
+  <div class="card">
+    <div class="list-tools wide">
+      <label>جستجو
+        <span class="input-wrap"><input type="text" id="u-q" placeholder="نام دانشگاه یا شهر"></span>
+      </label>
+      <label>نوع
+        <span class="input-wrap">
+          <select id="u-type">
+            <option value="">همه‌ی انواع</option>
+            {% for t in uni_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+          </select>
+        </span>
+      </label>
+      <label>استان
+        <span class="input-wrap">
+          <select id="u-province">
+            <option value="">همه‌ی استان‌ها</option>
+            {% for p in provinces %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+          </select>
+        </span>
+      </label>
+      <label>گروه آزمایشی
+        <span class="input-wrap">
+          <select id="u-group">
+            <option value="">همه</option>
+            {% for g in groups %}<option value="{{ g.slug }}" {% if preset_group == g.slug %}selected{% endif %}>{{ g.title }}</option>{% endfor %}
+          </select>
+        </span>
+      </label>
+      <button class="btn btn-ghost" id="u-reset" type="button">پاک کردن</button>
+    </div>
+    <p class="hint" style="margin:0 0 10px">اگر گروه آزمایشی را انتخاب کنید، دانشگاه‌های تخصصی آن گروه بالاتر نمایش داده می‌شوند.</p>
+    <p class="list-count" id="u-count"></p>
+    <div class="items-grid" id="u-list"></div>
+    <div class="more-row"><button class="btn btn-primary" id="u-more" type="button" hidden>نمایش بیشتر</button></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/js/lists.js" defer></script>{% endblock %}

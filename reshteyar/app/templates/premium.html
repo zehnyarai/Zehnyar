@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}پرمیوم و پرداخت{% endblock %}
+{% block description %}اشتراک پرمیوم رشته‌یار: نمایش کامل پیشنهادها، شانس قبولی و گزارش قابل چاپ، با پرداخت به تومان.{% endblock %}
+{% block content %}
+<div class="container">
+  <section class="hero" style="padding-top:22px">
+    <div>
+      <p class="eyebrow">دسترسی کامل</p>
+      <h1>گزارش کامل انتخاب رشته، بدون محدودیت</h1>
+      <p class="lead">نسخه‌ی رایگان ۵ مورد اول هر فهرست را نشان می‌دهد. با اشتراک، همه‌ی رشته‌ها و دانشگاه‌های مرتبط، فیلتر کامل و گزارش قابل چاپ در اختیار شماست.</p>
+      {% if license %}
+        <div class="notice notice-ok">{{ icon('badge-check') }} اشتراک شما فعال است ({{ license.plan_title }}) تا <b>{{ license.expires_at|jiso }}</b>. <a href="/account">مدیریت کد</a></div>
+      {% endif %}
+    </div>
+    <div class="hero-panel">
+      <h3>{{ icon('crown') }} چه چیزی در اشتراک است؟</h3>
+      <ul style="padding:0;margin:10px 0 0;list-style:none;display:grid;gap:8px;position:relative;z-index:1">
+        <li>{{ icon('circle-check') }} فهرست کامل رشته‌های پیشنهادی</li>
+        <li>{{ icon('circle-check') }} همه‌ی دانشگاه‌های مرتبط با فیلتر استان و نوع</li>
+        <li>{{ icon('circle-check') }} تحلیل شانس قبولی (با داده‌ی رسمی رتبه‌ها)</li>
+        <li>{{ icon('circle-check') }} گزارش قابل ذخیره و چاپ (PDF)</li>
+      </ul>
+    </div>
+  </section>
+
+  {% if error %}<div class="notice notice-bad" style="margin-top:14px">{{ icon('circle-alert') }} {{ error }}</div>{% endif %}
+
+  <section>
+    <div class="page-head">
+      <div>
+        <p class="eyebrow">انتخاب طرح</p>
+        <h2>طرح مناسب خود را انتخاب کنید</h2>
+      </div>
+      <p class="small">قیمت‌ها به <b>تومان</b> است و یک‌بار پرداخت می‌شوند؛ تمدید خودکار ندارند.</p>
+    </div>
+
+    <form method="post" action="/premium/checkout" id="checkout-form">
+      <div class="plans">
+        {% for p in plans %}
+        <label class="plan-radio" style="cursor:pointer;display:block">
+          <input type="radio" name="plan" value="{{ p.id }}" {% if loop.index == 2 or (plans|length == 1) %}checked{% endif %} style="position:absolute;opacity:0;pointer-events:none">
+          <article class="plan {% if p.badge %}is-featured{% endif %}" style="height:100%">
+            {% if p.badge %}<span class="badge badge-pos">{{ p.badge }}</span>{% endif %}
+            <h2 style="margin:0;font-size:1.2rem">{{ p.title }}</h2>
+            <p class="muted small" style="margin:0">{{ p.description }}</p>
+            <div class="price">{{ p.price_toman|num }} <small>تومان</small></div>
+            <p class="small muted" style="margin:0">اعتبار: {{ p.days|fa }} روز</p>
+            <ul>
+              {% for f in p.features %}<li>{{ icon('circle-check') }} <span>{{ f }}</span></li>{% endfor %}
+            </ul>
+            <span class="btn btn-ghost btn-sm" style="justify-self:start" aria-hidden="true">انتخاب این طرح</span>
+          </article>
+        </label>
+        {% endfor %}
+      </div>
+
+      <div class="card checkout" style="margin-top:22px">
+        <label>موبایل (اختیاری)
+          <span class="input-wrap"><input type="tel" name="mobile" dir="ltr" placeholder="09123456789" autocomplete="tel" pattern="09[0-9]{9}"></span>
+        </label>
+        <label>ایمیل (اختیاری)
+          <span class="input-wrap"><input type="email" name="email" dir="ltr" placeholder="you@example.com" autocomplete="email"></span>
+        </label>
+        <div>
+          <button class="btn btn-primary btn-block" type="submit" {% if not allow_checkout %}disabled{% endif %}>
+            {{ icon('credit-card') }}
+            {% if mode == 'zarinpal' %}پرداخت امن با زرین‌پال{% else %}ادامه‌ی پرداخت (آزمایشی){% endif %}
+          </button>
+          <p class="hint" style="text-align:center;margin:8px 0 0">پس از پرداخت، کد فعال‌سازی نمایش داده می‌شود و روی همین مرورگر ذخیره می‌شود.</p>
+        </div>
+      </div>
+    </form>
+    <p class="hint" style="margin-top:12px">
+      با خرید، با <a href="/about">شرایط و روش محاسبه</a> موافقت می‌کنید. این سامانه جای مشاوره‌ی تحصیلی یا تضمین قبولی را نمی‌گیرد.
+      برای بازگشت وجه در صورت خطای پرداخت، طبق مقررات درگاه پرداخت عمل می‌شود.
+    </p>
+    <p class="small" style="margin-top:8px">کد فعال‌سازی دارید؟ <a href="/account"><b>فعال‌سازی با کد</b></a></p>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    var radios = document.querySelectorAll('.plan-radio input[type="radio"]');
+    function sync() {
+      radios.forEach(function (r) {
+        var card = r.closest('.plan-radio').querySelector('.plan');
+        card.style.outline = r.checked ? '2px solid #0ea5e9' : '';
+        card.style.outlineOffset = r.checked ? '3px' : '';
+      });
+    }
+    radios.forEach(function (r) { r.addEventListener('change', sync); });
+    sync();
+  })();
+</script>
+{% endblock %}

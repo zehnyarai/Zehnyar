@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}خطا {{ code }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="card center-card">
+    <div class="status-icon status-bad">{{ icon('circle-alert') }}</div>
+    <p class="eyebrow">کد خطا {{ code }}</p>
+    <h1>{{ message if message is string else 'صفحه پیدا نشد' }}</h1>
+    <div class="hero-actions" style="justify-content:center;margin-top:16px">
+      <a class="btn btn-primary" href="/">بازگشت به خانه</a>
+      <a class="btn btn-ghost" href="/factors">عوامل مؤثر</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

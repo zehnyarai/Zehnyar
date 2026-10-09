@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}درگاه آزمایشی{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="card center-card">
+    <div class="status-icon status-wait">{{ icon('hourglass') }}</div>
+    <p class="eyebrow">درگاه آزمایشی رشته‌یار</p>
+    <h1>شبیه‌سازی پرداخت</h1>
+    <p class="muted">این صفحه فقط برای آزمایش جریان خرید است و هیچ پولی جابه‌جا نمی‌شود. در محیط واقعی، کاربر به درگاه زرین‌پال منتقل می‌شود.</p>
+    <div class="kv">
+      <div><span>طرح</span><b>{{ plan.title if plan else '—' }}</b></div>
+      <div><span>مبلغ</span><b>{{ payment.amount_toman|toman }}</b></div>
+    </div>
+    <form method="post" action="/premium/mock/{{ authority }}" class="hero-actions" style="justify-content:center;margin-top:20px">
+      <button class="btn btn-primary" name="outcome" value="OK" type="submit">{{ icon('circle-check') }} پرداخت موفق (شبیه‌سازی)</button>
+      <button class="btn btn-ghost" name="outcome" value="NOK" type="submit">{{ icon('circle-x') }} انصراف یا ناموفق</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

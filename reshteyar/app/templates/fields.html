@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}فهرست کامل رشته‌ها{% endblock %}
+{% block description %}فهرست کامل رشته‌های کاردانی، کارشناسی و دکتری عمومی ایران، با گروه آزمایشی مرتبط.{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-head" style="margin-top:22px">
+    <div>
+      <p class="eyebrow">فهرست کامل</p>
+      <h1>همه‌ی رشته‌ها</h1>
+    </div>
+    <p>{{ total|num }} رشته از کاردانی تا دکتری عمومی. هر رشته به یک یا چند گروه آزمایشی تعلق دارد؛ نگاشت تقریبی است.</p>
+  </div>
+
+  <div class="card">
+    <div class="list-tools wide">
+      <label>جستجو
+        <span class="input-wrap"><input type="text" id="f-q" placeholder="نام رشته یا دسته‌ی آن"></span>
+      </label>
+      <label>گروه آزمایشی
+        <span class="input-wrap">
+          <select id="f-group">
+            <option value="">همه‌ی گروه‌ها</option>
+            {% for g in groups %}<option value="{{ g.slug }}" {% if preset_group == g.slug %}selected{% endif %}>{{ g.title }}</option>{% endfor %}
+          </select>
+        </span>
+      </label>
+      <label>مقطع
+        <span class="input-wrap">
+          <select id="f-degree">
+            <option value="">همه‌ی مقاطع</option>
+            {% for d in degrees %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+          </select>
+        </span>
+      </label>
+      <button class="btn btn-ghost" id="f-reset" type="button">پاک کردن</button>
+    </div>
+    <p class="list-count" id="f-count"></p>
+    <div class="items-grid" id="f-list"></div>
+    <div class="more-row"><button class="btn btn-primary" id="f-more" type="button" hidden>نمایش بیشتر</button></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/js/lists.js" defer></script>{% endblock %}

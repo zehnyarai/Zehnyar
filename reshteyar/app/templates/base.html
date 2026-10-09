@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}رشته‌یار{% endblock %} · رشته‌یار</title>
+  <meta name="description" content="{% block description %}راهنمای انتخاب رشته‌ی کنکور: گروه‌های آزمایشی، ضرایب و سهم سوابق، فهرست رشته‌ها و دانشگاه‌های ایران و تحلیل تخمینی.{% endblock %}">
+  <meta name="theme-color" content="#7dd3fc">
+  <link rel="preload" href="/static/fonts/Vazirmatn-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<a class="skip" href="#main">رفتن به محتوای اصلی</a>
+
+{% if mode == 'mock' %}
+  <div class="mode-banner">حالت آزمایشی: هیچ پرداخت واقعی انجام نمی‌شود. برای پرداخت واقعی، مرچنت زرین‌پال را در تنظیمات قرار دهید.</div>
+{% elif mode == 'unavailable' %}
+  <div class="mode-banner">خرید اشتراک پرمیوم فعلاً در دسترس نیست.</div>
+{% endif %}
+
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a class="brand" href="/">
+      <span class="brand-mark">{{ icon('graduation-cap') }}</span>
+      <span>رشته‌یار</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="باز کردن منو">{{ icon('menu') }}</button>
+    <nav id="site-nav" class="nav" aria-label="منوی اصلی">
+      <a href="/" class="{{ 'is-active' if active == 'home' or active == 'groups' }}">خانه و گروه‌ها</a>
+      <a href="/fields" class="{{ 'is-active' if active == 'fields' }}">همه‌ی رشته‌ها</a>
+      <a href="/universities" class="{{ 'is-active' if active == 'universities' }}">همه‌ی دانشگاه‌ها</a>
+      <a href="/factors" class="{{ 'is-active' if active == 'factors' }}">عوامل مؤثر</a>
+      <a href="/account" class="{{ 'is-active' if active == 'account' }}">حساب من</a>
+      <a href="/premium" class="nav-cta {{ 'is-active' if active == 'premium' }}">{{ icon('crown') }} پرمیوم{% if premium %} · فعال{% endif %}</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <h4>رشته‌یار</h4>
+      <p>راهنمای تخمینی انتخاب رشته‌ی کنکور بر اساس گروه‌های آزمایشی، دروس و ضرایب، سهم سوابق و آزمون، و فهرست رشته‌ها و دانشگاه‌های ایران.</p>
+      <p class="small">آخرین ساخت داده: {{ meta.generated_at[:10] if meta and meta.generated_at else '—' }}</p>
+    </div>
+    <div>
+      <h4>دسترسی سریع</h4>
+      <ul>
+        <li><a href="/">گروه‌های آزمایشی</a></li>
+        <li><a href="/factors">عوامل مؤثر در انتخاب رشته</a></li>
+        <li><a href="/about">درباره‌ی داده‌ها و روش محاسبه</a></li>
+        <li><a href="/premium">پرمیوم و پرداخت</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>مرجع رسمی</h4>
+      <p>مرجع نهایی همیشه دفترچه‌ی انتخاب رشته‌ی سازمان سنجش آموزش کشور در همان سال است. نتایج این سامانه تضمین قبولی نیست.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="/static/js/app.js" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

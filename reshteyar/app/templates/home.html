@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}انتخاب رشته‌ی کنکور{% endblock %}
+{% block content %}
+<div class="container">
+  <section class="hero">
+    <div>
+      <p class="eyebrow">راهنمای انتخاب رشته‌ی کنکور</p>
+      <h1>رشته‌ای را پیدا کنید که با <span style="color:var(--sky-600)">علاقه، رتبه و توان شما</span> هم‌خوان است</h1>
+      <p class="lead">معدل، درصد هر درس و ضریب آن، رتبه‌ی کل و رتبه‌ی سهمیه، استان و نوع دانشگاه؛ همه‌ی عوامل مؤثر در یک مسیر روشن کنار هم قرار می‌گیرند.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#groups">{{ icon('calculator') }} شروع با انتخاب گروه</a>
+        <a class="btn btn-ghost" href="/factors">{{ icon('layers') }} عوامل مؤثر در انتخاب</a>
+      </div>
+    </div>
+    <div class="hero-panel">
+      <h3>{{ icon('sparkles') }} داده‌های این سامانه</h3>
+      <p class="muted small">فهرست‌ها از منابع باز تهیه شده و به‌روزرسانی می‌شوند.</p>
+      <div class="stat-row">
+        <div class="stat"><b>{{ totals.groups|fa }}</b><span>گروه آزمایشی</span></div>
+        <div class="stat"><b>{{ totals.fields|num }}</b><span>رشته</span></div>
+        <div class="stat"><b>{{ totals.universities|num }}</b><span>دانشگاه و موسسه</span></div>
+      </div>
+      <p class="small muted" style="margin-top:12px;position:relative;z-index:1">محاسبه‌ها تخمینی است و با دفترچه‌ی رسمی همان سال تطبیق داده شود.</p>
+    </div>
+  </section>
+
+  <section id="groups">
+    <div class="page-head">
+      <div>
+        <p class="eyebrow">گروه‌های آزمایشی</p>
+        <h2>گروه خود را انتخاب کنید</h2>
+      </div>
+      <p>هر گروه، دروس و ضرایب، سهم سوابق و آزمون، رشته‌ها و دانشگاه‌های مرتبط را جداگانه نشان می‌دهد.</p>
+    </div>
+    <div class="grid grid-3">
+      {% for c in cards %}
+      <a class="card group-card" href="/groups/{{ c.slug }}">
+        <div class="group-icon">{{ icon(c.icon) }}</div>
+        <h3>{{ c.title }}</h3>
+        <p class="muted small">{{ c.tagline }}</p>
+        <div class="weight-bar" role="img" aria-label="سوابق {{ c.school_weight }} درصد، آزمون {{ c.exam_weight }} درصد">
+          <span class="w-school" style="width: {{ c.school_weight }}%">سوابق {{ c.school_weight|fa }}٪</span>
+          <span class="w-exam" style="width: {{ c.exam_weight }}%">آزمون {{ c.exam_weight|fa }}٪</span>
+        </div>
+        <div class="meta">
+          <span>{{ icon('file-text') }} {{ c.stats.fields|num }} رشته</span>
+          <span>{{ icon('landmark') }} {{ c.stats.universities_specialized|num }} دانشگاه تخصصی</span>
+        </div>
+        <span class="go">ورود به گروه {{ icon('arrow-left') }}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section>
+    <div class="grid grid-3">
+      <div class="card">
+        <div class="group-icon">{{ icon('sliders-horizontal') }}</div>
+        <h3 style="margin-top:12px">۱. ورودی‌ها را وارد کنید</h3>
+        <p class="small muted">معدل، درصد هر درس، رتبه‌ی کل و سهمیه و ترجیحات شما (استان، نوع دانشگاه، علاقه‌مندی).</p>
+      </div>
+      <div class="card">
+        <div class="group-icon">{{ icon('target') }}</div>
+        <h3 style="margin-top:12px">۲. نمره و پیشنهاد را ببینید</h3>
+        <p class="small muted">نمره‌ی ترکیبی تخمینی، فهرست رشته‌های مرتبط و دانشگاه‌های هم‌خوان با گروه شما.</p>
+      </div>
+      <div class="card">
+        <div class="group-icon">{{ icon('shield-check') }}</div>
+        <h3 style="margin-top:12px">۳. با دفترچه تطبیق دهید</h3>
+        <p class="small muted">پیش از تصمیم، ضرایب و شرایط سهمیه‌ها را با دفترچه‌ی رسمی همان سال بررسی کنید.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="card" style="display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap">
+      <div>
+        <p class="eyebrow">پرمیوم رشته‌یار</p>
+        <h2 style="margin:0">لیست کامل پیشنهادها، بدون محدودیت</h2>
+        <p class="muted small" style="margin:6px 0 0">نسخه‌ی رایگان ۵ مورد اول هر فهرست را نشان می‌دهد؛ با اشتراک، همه‌ی موارد و گزارش قابل چاپ در دسترس است.</p>
+      </div>
+      <a class="btn btn-primary" href="/premium">{{ icon('crown') }} مشاهده‌ی طرح‌ها</a>
+    </div>
+  </section>
+</div>
+{% endblock %}

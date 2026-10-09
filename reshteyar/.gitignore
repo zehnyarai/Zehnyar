@@ -1,0 +1,13 @@
+# داده‌ی محلی و پایگاه داده (نباید وارد گیت شود)
+data/app.db
+data/app.db-*
+data/cutoffs.csv
+scripts/.cache/
+
+# محیط پایتون و کش‌ها
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env

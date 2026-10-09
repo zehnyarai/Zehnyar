@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}نتیجه‌ی پرداخت{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="card center-card">
+    {% if payment.status == 'paid' %}
+      <div class="status-icon status-ok">{{ icon('circle-check') }}</div>
+      <h1>پرداخت انجام شد</h1>
+      <p>اشتراک «{{ plan.title if plan else 'پرمیوم' }}» فعال شد. کد فعال‌سازی شما:</p>
+      <div class="code-box">
+        <span>{{ license.code if license else '—' }}</span>
+        {% if license %}<button class="btn btn-ghost btn-sm" type="button" data-copy="{{ license.code }}">کپی</button>{% endif %}
+      </div>
+      <p class="small muted">این کد روی همین مرورگر ذخیره شده است. برای ورود روی دستگاه‌های دیگر، آن را در صفحه‌ی «حساب من» وارد کنید.</p>
+      <div class="kv">
+        <div><span>مبلغ</span><b>{{ payment.amount_toman|toman }}</b></div>
+        <div><span>اعتبار تا</span><b>{{ license.expires_at|jiso if license else '—' }}</b></div>
+        <div><span>شماره‌ی پیگیری</span><b dir="ltr">{{ payment.ref_id or '—' }}</b></div>
+        <div><span>زمان پرداخت</span><b>{{ payment.paid_at|jisodt }}</b></div>
+      </div>
+      <div class="hero-actions" style="justify-content:center;margin-top:20px">
+        <a class="btn btn-primary" href="/groups/riazi">{{ icon('calculator') }} رفتن به ماشین‌حساب</a>
+        <a class="btn btn-ghost" href="/">بازگشت به خانه</a>
+      </div>
+    {% elif payment.status == 'canceled' %}
+      <div class="status-icon status-bad">{{ icon('circle-x') }}</div>
+      <h1>پرداخت انجام نشد</h1>
+      <p class="muted">{{ payment.message or 'پرداخت لغو شد.' }}</p>
+      <div class="hero-actions" style="justify-content:center;margin-top:16px">
+        <a class="btn btn-primary" href="/premium">تلاش دوباره</a>
+      </div>
+    {% elif payment.status == 'failed' %}
+      <div class="status-icon status-bad">{{ icon('circle-alert') }}</div>
+      <h1>خطا در تایید پرداخت</h1>
+      <p class="muted">{{ payment.message or 'پرداخت تایید نشد.' }}</p>
+      <p class="small">اگر مبلغی از حساب شما کسر شده، شماره‌ی پیگیری را نگه دارید و با پشتیبانی تماس بگیرید. شماره‌ی سفارش: <span dir="ltr">#{{ payment.id }}</span></p>
+      <div class="hero-actions" style="justify-content:center;margin-top:16px">
+        <a class="btn btn-primary" href="/premium">بازگشت به طرح‌ها</a>
+      </div>
+    {% else %}
+      <div class="status-icon status-wait">{{ icon('hourglass') }}</div>
+      <h1>پرداخت در انتظار تایید</h1>
+      <p class="muted">{{ payment.message or 'وضعیت پرداخت هنوز نهایی نشده است.' }}</p>
+      <p class="small">اگر پرداخت را انجام داده‌اید، چند دقیقه بعد همین صفحه را دوباره باز کنید.</p>
+      <div class="hero-actions" style="justify-content:center;margin-top:16px">
+        <a class="btn btn-ghost" href="/premium">بازگشت به طرح‌ها</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

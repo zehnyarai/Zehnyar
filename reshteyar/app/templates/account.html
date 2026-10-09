@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}حساب من{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-head" style="margin-top:22px">
+    <div>
+      <p class="eyebrow">حساب کاربری</p>
+      <h1>اشتراک و کد فعال‌سازی</h1>
+    </div>
+  </div>
+
+  {% if info == 'activated' %}<div class="notice notice-ok" style="margin-bottom:14px">{{ icon('circle-check') }} کد با موفقیت فعال شد.</div>{% endif %}
+  {% if error %}<div class="notice notice-bad" style="margin-bottom:14px">{{ icon('circle-alert') }} {{ error }}</div>{% endif %}
+
+  <div class="grid grid-2">
+    <div class="card">
+      {% if license %}
+        <span class="chip chip-green">{{ icon('badge-check') }} اشتراک فعال</span>
+        <h3 style="margin-top:14px">{{ license.plan_title }}</h3>
+        <div class="kv">
+          <div><span>کد فعال‌سازی</span><b dir="ltr">{{ license.code }}</b></div>
+          <div><span>اعتبار تا</span><b>{{ license.expires_at|jiso }}</b></div>
+        </div>
+        <form method="post" action="/account/logout" style="margin-top:16px">
+          <button class="btn btn-ghost" type="submit">{{ icon('log-out') }} خروج از این دستگاه</button>
+        </form>
+      {% else %}
+        <span class="chip chip-muted">بدون اشتراک فعال</span>
+        <p style="margin-top:12px">اگر کد فعال‌سازی دارید، آن را در کادر روبه‌رو وارد کنید. کد را بعد از پرداخت در صفحه‌ی نتیجه می‌بینید.</p>
+        <p><a class="btn btn-primary btn-sm" href="/premium">{{ icon('crown') }} مشاهده‌ی طرح‌ها</a></p>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h3>فعال‌سازی با کد</h3>
+      <form method="post" action="/account/activate">
+        <label>کد فعال‌سازی
+          <span class="input-wrap"><input type="text" name="code" dir="ltr" placeholder="RZ-XXXX-XXXX-XXXX-XXXX" required autocomplete="off" spellcheck="false"></span>
+        </label>
+        <button class="btn btn-primary" type="submit" style="margin-top:12px">{{ icon('key-round') }} فعال‌سازی</button>
+      </form>
+      <p class="hint" style="margin-top:12px">برای استفاده روی دستگاه دیگر، همین کد را وارد کنید. کد را جایی امن نگه دارید.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

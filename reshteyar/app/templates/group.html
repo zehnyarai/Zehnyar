@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% block title %}{{ group.title }}{% endblock %}
+{% block description %}گروه آزمایشی {{ group.title }}: دروس و ضرایب، سهم سوابق و آزمون، رشته‌ها، دانشگاه‌های مرتبط و ماشین‌حساب تخمینی نمره.{% endblock %}
+{% block content %}
+<div class="container" data-group="{{ group.slug }}" data-key="{{ group.data_key }}" data-free-limit="{{ free_limit }}" data-premium="{{ 'yes' if premium else 'no' }}">
+  <nav class="small muted" aria-label="مسیر صفحه" style="margin-top:14px">
+    <a href="/">خانه</a> <span aria-hidden="true">›</span> <span>{{ group.title }}</span>
+  </nav>
+
+  <section class="card group-hero" style="margin-top:12px">
+    <div class="group-icon">{{ icon(group.icon) }}</div>
+    <div>
+      <p class="eyebrow">گروه آزمایشی {{ group.konkur_name }}</p>
+      <h1>{{ group.title }}</h1>
+      <p class="lead">{{ group.description }}</p>
+      <div class="chips subject-chips" style="margin:12px 0">
+        {% for s in group.exam_subjects %}
+          <span class="chip">{{ s.label }} <b>ضریب {{ s.coef|fa }}</b></span>
+        {% endfor %}
+      </div>
+      <div class="weight-bar" role="img" aria-label="سوابق {{ group.school_weight }} درصد، آزمون {{ group.exam_weight }} درصد">
+        <span class="w-school" style="width: {{ group.school_weight }}%">سوابق {{ group.school_weight|fa }}٪</span>
+        <span class="w-exam" style="width: {{ group.exam_weight }}%">آزمون {{ group.exam_weight|fa }}٪</span>
+      </div>
+      <p class="hint" style="margin-top:8px">
+        سهم‌بندی نمره‌ی نهایی برای {{ group.title }}: سوابق {{ group.school_weight|fa }}٪ و آزمون اختصاصی {{ group.exam_weight|fa }}٪.
+        {% if group.weights_status != 'verified' %}<span class="chip chip-amber">تقریبی</span>{% endif %}
+      </p>
+    </div>
+  </section>
+
+  <nav class="tabs" role="tablist" aria-label="بخش‌های گروه">
+    <button class="tab" role="tab" type="button" aria-selected="true" data-tab="calc">{{ icon('calculator') }} ماشین‌حساب و پیشنهاد</button>
+    <button class="tab" role="tab" type="button" aria-selected="false" data-tab="fields">{{ icon('file-text') }} رشته‌های گروه ({{ stats.fields|num }})</button>
+    <button class="tab" role="tab" type="button" aria-selected="false" data-tab="unis">{{ icon('landmark') }} دانشگاه‌های مرتبط</button>
+    <button class="tab" role="tab" type="button" aria-selected="false" data-tab="factors">{{ icon('layers') }} عوامل مؤثر</button>
+  </nav>
+
+  <!-- ماشین‌حساب و پیشنهاد -->
+  <section class="panel is-active" data-panel="calc" role="tabpanel">
+    <div class="calc-layout">
+      <form id="calc-form" class="card" novalidate>
+        <div class="notice notice-info small">{{ icon('info') }} ورودی‌ها فقط برای محاسبه به سرور ارسال می‌شوند و روی همین مرورگر ذخیره می‌شوند؛ اطلاعات شخصی در سرور نگهداری نمی‌شود.</div>
+
+        {% if group.coef_status != 'verified' %}
+          <div class="notice notice-warn small">{{ icon('circle-alert') }} {{ group.coef_note }}</div>
+        {% endif %}
+
+        <fieldset class="form-block">
+          <legend>سوابق تحصیلی</legend>
+          <label>معدل کل سوابق (از ۲۰)
+            <span class="input-wrap"><input type="number" name="gpa" min="0" max="20" step="0.01" inputmode="decimal" placeholder="مثلاً ۱۸٫۵۰"></span>
+            <span class="hint">میانگین نمرات امتحانات نهایی پایه‌های یازدهم و دوازدهم.</span>
+          </label>
+        </fieldset>
+
+        <fieldset class="form-block">
+          <legend>دروس آزمون اختصاصی</legend>
+          <p class="hint" style="margin-top:0">درصد هر درس را از ۰ تا ۱۰۰ وارد کنید. ضریب‌ها پیش‌فرض دوره‌ی ۱۴۰۴ هستند و قابل تغییرند.</p>
+          {% for s in group.exam_subjects %}
+            <div class="subject-row">
+              <span class="subject-name">{{ s.label }}</span>
+              <label>درصد
+                <span class="input-wrap"><input type="number" name="pct_{{ s.key }}" min="0" max="100" step="0.01" inputmode="decimal"></span>
+              </label>
+              <label>ضریب
+                <span class="input-wrap"><input type="number" name="coef_{{ s.key }}" value="{{ s.coef }}" min="0" max="20" step="0.5" inputmode="decimal"></span>
+              </label>
+            </div>
+          {% endfor %}
+        </fieldset>
+
+        <fieldset class="form-block">
+          <legend>رتبه و سهمیه</legend>
+          <div class="field-grid">
+            <label>رتبه‌ی کل (بدون سهمیه)
+              <span class="input-wrap"><input type="number" name="rank_no_quota" min="1" step="1" inputmode="numeric"></span>
+            </label>
+            <label>رتبه‌ی با سهمیه
+              <span class="input-wrap"><input type="number" name="rank_quota" min="1" step="1" inputmode="numeric"></span>
+            </label>
+          </div>
+          <label style="margin-top:12px">سهمیه‌ی شما
+            <span class="input-wrap">
+              <select name="quota">
+                {% for key, label in quotas %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+              </select>
+            </span>
+            <span class="hint">رتبه‌ی با سهمیه فقط برای همان سهمیه معتبر است.</span>
+          </label>
+        </fieldset>
+
+        <fieldset class="form-block">
+          <legend>ترجیحات</legend>
+          <div class="field-grid">
+            <label>استان محل سکونت
+              <span class="input-wrap">
+                <select name="province">
+                  <option value="">— انتخاب کنید —</option>
+                  {% for p in provinces %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+                </select>
+              </span>
+            </label>
+            <label>مقطع
+              <span class="input-wrap">
+                <select name="degree">
+                  <option value="">همه‌ی مقاطع</option>
+                  {% for d in degrees %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+                </select>
+              </span>
+            </label>
+          </div>
+          <p class="label" style="margin:14px 0 8px;font-weight:600;color:var(--ink-soft)">نوع دانشگاه مورد نظر <span class="hint">(اختیاری)</span></p>
+          <div class="chips">
+            {% for t in uni_types %}
+              <label class="check"><input type="checkbox" name="univ_type" value="{{ t }}"> {{ t }}</label>
+            {% endfor %}
+          </div>
+          <label style="margin-top:14px">علاقه‌مندی‌ها
+            <span class="input-wrap"><input type="text" name="interests" maxlength="300" placeholder="مثلاً: برنامه‌نویسی، طراحی، پزشکی"></span>
+            <span class="hint">با ویرگول جدا کنید. رشته‌هایی که با علاقه‌ی شما هم‌خوان‌ترند بالاتر نشان داده می‌شوند.</span>
+          </label>
+        </fieldset>
+
+        <button class="btn btn-primary btn-block" type="submit">{{ icon('wand-sparkles') }} محاسبه و پیشنهاد رشته</button>
+        <p class="hint" style="text-align:center;margin:10px 0 0">نتیجه تخمینی است؛ مرجع نهایی دفترچه‌ی سازمان سنجش است.</p>
+      </form>
+
+      <div class="card sticky-card" id="calc-results" aria-live="polite">
+        <div class="results-empty">
+          {{ icon('target') }}
+          <h3>نتیجه‌ی شما اینجا نمایش داده می‌شود</h3>
+          <p class="small">معدل و درصدهای خود را وارد کنید تا نمره‌ی تخمینی، رشته‌ها و دانشگاه‌های هم‌خوان و در صورت وجود داده، شانس قبولی نشان داده شود.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- رشته‌های گروه -->
+  <section class="panel" data-panel="fields" role="tabpanel" hidden>
+    <div class="card">
+      <div class="list-tools two">
+        <label>جستجو در رشته‌ها
+          <span class="input-wrap"><input type="text" id="gf-q" placeholder="مثلاً مهندسی برق"></span>
+        </label>
+        <label>مقطع
+          <span class="input-wrap">
+            <select id="gf-degree">
+              <option value="">همه</option>
+              {% for d in degrees %}<option value="{{ d }}">{{ d }}</option>{% endfor %}
+            </select>
+          </span>
+        </label>
+        <button class="btn btn-ghost" id="gf-reset" type="button">پاک کردن فیلتر</button>
+      </div>
+      <p class="list-count" id="gf-count"></p>
+      <div class="items-grid" id="gf-list"></div>
+      <div class="more-row"><button class="btn btn-ghost" id="gf-more" type="button" hidden>نمایش بیشتر</button></div>
+    </div>
+    <p class="hint">نگاشت رشته به گروه تقریبی است و بر اساس نام و نوع رشته تعیین شده؛ برای برخی رشته‌ها ممکن است چند گروه ذکر شود. پیش از انتخاب، شرایط رشته را در دفترچه‌ی همان سال بررسی کنید.</p>
+  </section>
+
+  <!-- دانشگاه‌های مرتبط -->
+  <section class="panel" data-panel="unis" role="tabpanel" hidden>
+    <div class="card">
+      <div class="list-tools wide">
+        <label>جستجو
+          <span class="input-wrap"><input type="text" id="gu-q" placeholder="نام دانشگاه یا شهر"></span>
+        </label>
+        <label>نوع دانشگاه
+          <span class="input-wrap">
+            <select id="gu-type">
+              <option value="">همه‌ی انواع</option>
+              {% for t in uni_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+            </select>
+          </span>
+        </label>
+        <label>استان
+          <span class="input-wrap">
+            <select id="gu-province">
+              <option value="">همه‌ی استان‌ها</option>
+              {% for p in provinces %}<option value="{{ p }}">{{ p }}</option>{% endfor %}
+            </select>
+          </span>
+        </label>
+        <label>نمایش
+          <span class="input-wrap">
+            <select id="gu-mode">
+              <option value="related">مرتبط با گروه (تخصصی + عمومی)</option>
+              <option value="specialized">فقط تخصصی همین گروه</option>
+              <option value="all">همه‌ی دانشگاه‌ها</option>
+            </select>
+          </span>
+        </label>
+        <button class="btn btn-ghost" id="gu-reset" type="button">پاک کردن</button>
+      </div>
+      <p class="list-count" id="gu-count"></p>
+      <div class="items-grid" id="gu-list"></div>
+      <div class="more-row"><button class="btn btn-ghost" id="gu-more" type="button" hidden>نمایش بیشتر</button></div>
+    </div>
+    <p class="hint">برچسب «تخصصی» یعنی نام دانشگاه نشانه‌ی این گروه است (مثلاً علوم پزشکی برای تجربی)؛ دانشگاه‌های «عمومی» چندرشته‌ای‌اند. این برچسب‌گذاری تقریبی و بر اساس نام است.</p>
+  </section>
+
+  <!-- عوامل مؤثر -->
+  <section class="panel" data-panel="factors" role="tabpanel" hidden>
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>{{ icon('info') }} نکات مهم این گروه</h3>
+        <ul style="padding-inline-start:20px;margin:8px 0 0">
+          {% for note in group.factor_notes %}<li style="margin-bottom:6px">{{ note }}</li>{% endfor %}
+        </ul>
+        {% if group.coef_note %}<p class="hint" style="margin-top:10px">{{ group.coef_note }}</p>{% endif %}
+      </div>
+      <div class="card">
+        <h3>{{ icon('layers') }} عوامل دیگر مؤثر</h3>
+        <p class="small muted">این عوامل برای همه‌ی گروه‌ها مهم‌اند؛ توضیح کامل هرکدام را در صفحه‌ی عوامل مؤثر ببینید.</p>
+        <div class="chips">
+          {% for f in factors %}
+            {% if f.key != 'art_test' or group.slug == 'honar' %}<span class="chip">{{ f.title }}</span>{% endif %}
+          {% endfor %}
+        </div>
+        <p style="margin-top:14px"><a class="btn btn-ghost btn-sm" href="/factors">{{ icon('layers') }} راهنمای کامل عوامل</a></p>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/js/group.js" defer></script>{% endblock %}

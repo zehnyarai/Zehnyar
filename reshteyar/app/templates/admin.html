@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}پنل مدیریت{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="page-head" style="margin-top:22px">
+    <div>
+      <p class="eyebrow">پنل مدیریت</p>
+      <h1>فروش و داده‌ها</h1>
+    </div>
+    <span class="chip">حالت پرداخت: {{ 'زرین‌پال' if mode == 'zarinpal' else ('آزمایشی' if mode == 'mock' else 'غیرفعال') }}</span>
+  </div>
+
+  {% if msg %}
+    <div class="notice {{ 'notice-bad' if msg_type == 'error' else 'notice-ok' }}" style="margin-bottom:14px">{{ msg }}</div>
+  {% endif %}
+
+  <div class="stat-grid">
+    <div class="card"><span>پرداخت موفق</span><b>{{ stats.paid_count|num }}</b></div>
+    <div class="card"><span>درآمد کل</span><b>{{ stats.revenue_toman|toman }}</b></div>
+    <div class="card"><span>اشتراک‌های فعال</span><b>{{ stats.active_licenses|num }}</b></div>
+    <div class="card"><span>ردیف رتبه‌ی قبولی</span><b>{{ cutoffs_count|num }}</b></div>
+  </div>
+
+  <section class="grid grid-2">
+    <div class="card">
+      <h2>بارگذاری رتبه‌های قبولی</h2>
+      <p class="small muted">فایل CSV (UTF-8) با ستون‌های <code dir="ltr">year,group,university,field,quota,last_rank</code> و در صورت نیاز <code dir="ltr">capacity</code>. مقدار group می‌تواند slug گروه (مثل riazi) یا نام آن (مثل ریاضی) باشد. quota از کلیدهای none, martyr, basij, local, disabled, needy, other یا عنوان فارسی آن‌ها استفاده کند.</p>
+      <p class="small muted">مسیر ذخیره: <code dir="ltr">{{ cutoffs_path }}</code></p>
+      <form method="post" action="/admin/cutoffs" enctype="multipart/form-data" style="margin-top:12px">
+        <input type="file" name="file" accept=".csv,text/csv" required>
+        <button class="btn btn-primary" type="submit" style="margin-top:12px">{{ icon('upload') }} ثبت فایل</button>
+      </form>
+      {% if cutoff_errors %}
+        <div class="notice notice-warn" style="margin-top:12px">
+          <b>خطاهای فایل فعلی ({{ cutoff_errors|length|fa }} مورد نمایش داده شده):</b>
+          <ul>{% for e in cutoff_errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="card">
+      <h2>طرح‌ها و قیمت‌ها</h2>
+      <div class="table-wrap" style="box-shadow:none">
+        <table class="simple">
+          <thead><tr><th>طرح</th><th>قیمت (تومان)</th><th>مدت</th></tr></thead>
+          <tbody>
+            {% for p in plans %}<tr><td>{{ p.title }}</td><td>{{ p.price_toman|num }}</td><td>{{ p.days|fa }} روز</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="hint" style="margin-top:10px">قیمت‌ها در فایل data/plans.json تنظیم می‌شوند.</p>
+      <p class="small muted">وضعیت پرداخت‌ها: {% for k, v in stats.by_status.items() %}<span class="chip chip-muted">{{ k }}: {{ v|fa }}</span> {% else %}—{% endfor %}</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>آخرین پرداخت‌ها</h2>
+    <div class="table-wrap">
+      <table class="simple">
+        <thead>
+          <tr><th>#</th><th>زمان ثبت</th><th>طرح</th><th>مبلغ (تومان)</th><th>وضعیت</th><th>شماره‌ی پیگیری</th><th>کد فعال‌سازی</th><th>موبایل</th></tr>
+        </thead>
+        <tbody>
+          {% for r in stats.recent %}
+          <tr>
+            <td dir="ltr">{{ r.id|fa }}</td>
+            <td>{{ r.created_at|jisodt }}</td>
+            <td>{{ r.plan_id }}</td>
+            <td>{{ r.amount_toman|num }}</td>
+            <td>
+              {% if r.status == 'paid' %}<span class="chip chip-green">پرداخت شد</span>
+              {% elif r.status == 'failed' %}<span class="chip chip-red">ناموفق</span>
+              {% elif r.status == 'canceled' %}<span class="chip chip-muted">لغو شد</span>
+              {% else %}<span class="chip chip-amber">{{ r.status }}</span>{% endif %}
+            </td>
+            <td dir="ltr">{{ r.ref_id or '—' }}</td>
+            <td dir="ltr">{{ r.license_code or '—' }}</td>
+            <td dir="ltr">{{ r.buyer_mobile or '—' }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="8" class="muted">هنوز پرداختی ثبت نشده است.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

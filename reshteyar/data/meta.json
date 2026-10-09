@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-10-09T06:27:32+00:00",
+  "universities_total": 2922,
+  "universities_by_type": {
+    "جامع علمی‌کاربردی": 1011,
+    "آزاد اسلامی": 520,
+    "غیرانتفاعی": 433,
+    "فنی و حرفه‌ای": 281,
+    "پیام نور": 265,
+    "دولتی": 169,
+    "وابسته": 117,
+    "فرهنگیان": 115,
+    "سایر": 11
+  },
+  "fields_total": 1192,
+  "fields_by_group": {
+    "ریاضی": 525,
+    "انسانی": 456,
+    "تجربی": 184,
+    "هنر": 157,
+    "معارف": 61,
+    "زبان": 30
+  },
+  "fields_by_source": {
+    "mdabagh": 1176,
+    "manual": 16
+  },
+  "sources": [
+    "https://github.com/farhadmpr/List-of-universities (داده‌ی فهرست موسسات وزارت علوم، msrt.ir)",
+    "https://github.com/mdabagh/List-of-universities-and-academic-fields-in-Iran"
+  ]
+}
