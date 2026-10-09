@@ -2,3 +2,7 @@ build/
 .gradle/
 local.properties
 *.apk
+# تولیدشده از داده‌ی پروژه (scripts/sync_assets.py)
+app/src/main/assets/www/data/
+app/src/main/assets/www/fonts/
+app/src/main/assets/www/icon.png

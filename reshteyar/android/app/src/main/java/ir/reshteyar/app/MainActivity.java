@@ -5,18 +5,19 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.webkit.CookieManager;
+import android.view.KeyEvent;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 /**
- * پوسته‌ی WebView برای رشته‌یار.
- * فقط دامنه‌ی سایت و درگاه زرین‌پال داخل برنامه باز می‌شوند؛ بقیه‌ی لینک‌ها در مرورگر خارجی.
+ * پوسته‌ی آفلاین رشته‌یار: صفحات و داده‌ها داخل خود برنامه (assets/www) هستند و نیازی به اینترنت نیست.
+ * لینک‌های بیرونی (http/https) در مرورگر باز می‌شوند؛ بقیه‌ی صفحه داخل برنامه می‌ماند.
  */
 public class MainActivity extends Activity {
 
+    private static final String START_URL = "file:///android_asset/www/index.html";
     private WebView web;
 
     @Override
@@ -28,53 +29,47 @@ public class MainActivity extends Activity {
 
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
-        s.setDomStorageEnabled(true);
-        s.setAllowFileAccess(false);
+        s.setDomStorageEnabled(false);
+        s.setAllowFileAccess(true);       // فقط برای خواندن assets همین برنامه
         s.setAllowContentAccess(false);
-        s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
-        CookieManager.getInstance().setAcceptCookie(true);
+        s.setAllowFileAccessFromFileURLs(false);
+        s.setAllowUniversalAccessFromFileURLs(false);
+        s.setBuiltInZoomControls(false);
+        s.setSupportZoom(false);
 
         web.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                return openExternally(request.getUrl());
+                Uri uri = request.getUrl();
+                String scheme = uri.getScheme();
+                if ("file".equals(scheme)) {
+                    return false;
+                }
+                if ("http".equals(scheme) || "https".equals(scheme)) {
+                    openInBrowser(uri);
+                }
+                return true;
             }
         });
 
         if (savedInstanceState != null) {
             web.restoreState(savedInstanceState);
         } else {
-            web.loadUrl(BuildConfig.RZ_URL);
+            web.loadUrl(START_URL);
         }
     }
 
-    private boolean isAllowedInside(Uri uri) {
-        if (uri == null || !"https".equals(uri.getScheme()) || uri.getHost() == null) {
-            return false;
-        }
-        String host = uri.getHost();
-        String siteHost = Uri.parse(BuildConfig.RZ_URL).getHost();
-        return host.equals(siteHost)
-                || host.equals("payment.zarinpal.com")
-                || host.equals("sandbox.zarinpal.com");
-    }
-
-    /** true برمی‌گرداند یعنی WebView بارگذاری نکند. */
-    private boolean openExternally(Uri uri) {
-        if (isAllowedInside(uri)) {
-            return false;
-        }
+    private void openInBrowser(Uri uri) {
         try {
             startActivity(new Intent(Intent.ACTION_VIEW, uri));
         } catch (ActivityNotFoundException ignored) {
-            // هیچ برنامه‌ای برای این لینک نصب نیست؛ کاری نمی‌کنیم.
+            // مرورگری نصب نیست؛ کاری نمی‌کنیم.
         }
-        return true;
     }
 
     @Override
-    public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
-        if (keyCode == android.view.KeyEvent.KEYCODE_BACK && web != null && web.canGoBack()) {
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && web != null && web.canGoBack()) {
             web.goBack();
             return true;
         }
@@ -84,6 +79,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        web.saveState(outState);
+        if (web != null) {
+            web.saveState(outState);
+        }
     }
 }
