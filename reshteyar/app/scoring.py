@@ -180,11 +180,21 @@ def field_suggestions(group_key: str, fields: list[dict], profile: Profile) -> l
         cat_n = norm(f["category"])
         score = 0
         reasons: list[str] = []
+        padded = f" {name_n} "
         for label, variants in terms:
-            if any(v in name_n for v in variants):
-                score += 3
+            if name_n == norm(label):                          # نام رشته دقیقاً همان علاقه است
+                score += 8
                 reasons.append(f"مرتبط با علاقه‌ی «{label}»")
-            elif any(v in cat_n for v in variants):
+            elif any(name_n == v for v in variants):           # نام رشته دقیقاً یکی از مترادف‌هاست
+                score += 6
+                reasons.append(f"مرتبط با علاقه‌ی «{label}»")
+            elif any(f" {v} " in padded for v in variants):    # واژه‌ی کامل در نام
+                score += 4
+                reasons.append(f"مرتبط با علاقه‌ی «{label}»")
+            elif any(v in name_n for v in variants):           # زیررشته (مثلاً «دامپزشکی» برای «پزشکی»)
+                score += 2
+                reasons.append(f"مرتبط با علاقه‌ی «{label}»")
+            elif any(v in cat_n for v in variants):            # هم‌دسته
                 score += 1
                 reasons.append(f"هم‌دسته با علاقه‌ی «{label}»")
         out.append({"field": f, "score": score, "reasons": reasons})
