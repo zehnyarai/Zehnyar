@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, UploadFile
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from markupsafe import Markup
@@ -166,6 +166,12 @@ async def http_error(request: Request, exc: StarletteHTTPException):
 
 
 # ---------------------------------------------------------------- صفحات عمومی
+@app.get("/sw.js", include_in_schema=False)
+def service_worker() -> Response:
+    return FileResponse(STATIC_DIR / "sw.js", media_type="application/javascript",
+                        headers={"Service-Worker-Allowed": "/", "Cache-Control": "no-cache"})
+
+
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     cards = []

@@ -221,3 +221,31 @@ def test_app_works_without_lifespan():
     c = TestClient(main.app)  # بدون with
     r = c.post("/premium/checkout", data={"plan": "month"}, follow_redirects=False)
     assert r.status_code in (303, 400, 429, 503)
+
+
+# ---------------------------------------------------------------- PWA
+def test_manifest_and_service_worker_served(client):
+    m = client.get("/static/manifest.webmanifest")
+    assert m.status_code == 200
+    data = m.json()
+    assert data["display"] == "standalone" and data["dir"] == "rtl"
+    assert any(i["sizes"] == "512x512" for i in data["icons"])
+    for icon in data["icons"]:
+        assert client.get(icon["src"]).status_code == 200
+    sw = client.get("/sw.js")
+    assert sw.status_code == 200
+    assert sw.headers["service-worker-allowed"] == "/"
+    assert "javascript" in sw.headers["content-type"]
+
+
+def test_service_worker_never_caches_sensitive_paths():
+    sw = (Path(main.__file__).parent / "static" / "sw.js").read_text(encoding="utf-8")
+    assert "/static/" in sw and "req.method !== 'GET'" in sw
+    for forbidden in ("/premium", "/admin", "/account", "/api"):
+        assert forbidden not in sw.split("self.addEventListener('fetch'")[1].split("startsWith('/static/')")[0]
+
+
+def test_install_button_and_pwa_script_on_pages(client):
+    html = client.get("/").text
+    assert 'id="install-app"' in html and 'rel="manifest"' in html
+    assert "/static/js/pwa.js" in html

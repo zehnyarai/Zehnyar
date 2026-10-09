@@ -397,3 +397,7 @@ table.simple th { background: var(--sky-100); color: #0b3a57; font-weight: 800; 
   .calc-layout { grid-template-columns: 1fr; }
   a { color: #000; }
 }
+
+/* دکمه‌ی نصب PWA */
+.install-btn { position: fixed; bottom: 16px; left: 16px; z-index: 50; border: 0; border-radius: 999px; padding: 10px 16px; background: #0ea5e9; color: #fff; font: inherit; box-shadow: 0 8px 24px rgba(14,165,233,.35); cursor: pointer; }
+.install-btn[hidden] { display: none; }
