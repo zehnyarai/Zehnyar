@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Reshteyar" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">#7dd3fc</item>
+        <item name="android:windowBackground">#f0f9ff</item>
+    </style>
+</resources>

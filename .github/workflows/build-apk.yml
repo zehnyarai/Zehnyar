@@ -1,0 +1,73 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [arena/b03df1da-zehnyar]
+    paths:
+      - 'reshteyar/android/**'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'آدرس HTTPS سایت (اگر خالی باشد متغیر RZ_URL استفاده می‌شود)'
+        required: false
+        default: ''
+      publish:
+        description: 'انتشار APK در Releases گیت‌هاب'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Resolve site URL
+        env:
+          INPUT_URL: ${{ inputs.url }}
+          VAR_URL: ${{ vars.RZ_URL }}
+        run: |
+          URL="${INPUT_URL:-$VAR_URL}"
+          if [[ "$URL" != https://* ]]; then
+            echo "::error::آدرس HTTPS سایت تنظیم نشده است. متغیر RZ_URL را در Settings > Variables بگذارید یا ورودی url را پر کنید."
+            exit 1
+          fi
+          echo "RZ_URL_RESOLVED=$URL" >> "$GITHUB_ENV"
+
+      - name: Build debug APK
+        working-directory: reshteyar/android
+        run: gradle :app:assembleDebug -PrzUrl="$RZ_URL_RESOLVED" --no-daemon --stacktrace
+
+      - name: Collect APK
+        run: cp reshteyar/android/app/build/outputs/apk/debug/app-debug.apk Reshteyar.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reshteyar-apk
+          path: Reshteyar.apk
+          retention-days: 30
+
+      - name: Publish release
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "apk-${GITHUB_RUN_NUMBER}" Reshteyar.apk \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "رشته‌یار APK (build ${GITHUB_RUN_NUMBER})" \
+            --notes "نسخه‌ی اندروید رشته‌یار. فایل Reshteyar.apk را دانلود و نصب کنید. (نصب از منابع خارج از گوگل‌پلی را در تنظیمات گوشی مجاز کنید.)"
