@@ -13,7 +13,7 @@ function updateConnectionLabel() {
     ? "سرور پژوهش متصل"
     : "متن کامل · ۶۲۳۶ آیه";
 }
-const state = { data: null, filter: "all", limit: 12 };
+const state = { data: null, filter: "all", limit: 12, workspaceView: "evidence" };
 
 const $ = (selector) => document.querySelector(selector);
 const form = $("#search-form");
@@ -361,19 +361,51 @@ function renderStructure(structure) {
   $("#structure-note").textContent = structure?.note || "";
 }
 
+const FIELD_META = {
+  worldview: { icon: "✦", label: "برای معنا، جهت و باور" },
+  ethics: { icon: "◌", label: "برای حالِ درون و خودسازی" },
+  society: { icon: "⌘", label: "برای رابطه و مسئولیت" },
+  knowledge: { icon: "⌁", label: "برای شناخت، روایت و نشانه" },
+};
+
 function renderFramework(data) {
   $("#framework-notice").textContent = data.notice || "";
-  $("#framework-grid").innerHTML = (data.categories || []).map((category, index) => `<article class="framework-card">
-    <span class="framework-index">${faNumber(index + 1)}</span>
-    <h3>${escapeHTML(category.title)}</h3>
-    <p>${escapeHTML(category.description)}</p>
-    <div class="framework-topics">${(category.topics || []).map((topic) => `<button type="button" class="framework-topic" data-framework-query="${escapeHTML(topic)}">${escapeHTML(topic)}</button>`).join("")}</div>
-  </article>`).join("");
+  $("#framework-grid").innerHTML = (data.categories || []).map((category, index) => {
+    const meta = FIELD_META[category.id] || { icon: "✦", label: "یک مسیر برای ورود به متن" };
+    return `<article class="framework-card framework-card--${escapeHTML(category.id)}">
+      <div class="field-card-top"><span class="framework-icon" aria-hidden="true">${meta.icon}</span><span class="framework-index">${faNumber(index + 1)}</span></div>
+      <span class="field-caption">${escapeHTML(meta.label)}</span>
+      <h3>${escapeHTML(category.title)}</h3>
+      <p>${escapeHTML(category.description)}</p>
+      <div class="framework-topics">${(category.topics || []).map((topic) => `<button type="button" class="framework-topic" data-framework-query="${escapeHTML(topic)}">${escapeHTML(topic)}</button>`).join("")}</div>
+    </article>`;
+  }).join("");
   $("#protocol-list").innerHTML = (data.protocol || []).map((item) => `<article class="protocol-item">
     <b>${escapeHTML(item.title)}</b>
     <p>${escapeHTML(item.description)}</p>
     <span>${escapeHTML(item.availability)}</span>
   </article>`).join("");
+}
+
+const WORKSPACE_NOTES = {
+  evidence: "ابتدا آیه‌ها و سیاق را ببینید؛ سپس در صورت نیاز، پیوندها و ابزارهای تکمیلی را باز کنید.",
+  paths: "این بخش مسیرهای بازیابی و پراکندگی را نشان می‌دهد؛ نقشه، جایگزین خواندن متن و سیاق نیست.",
+  reflection: "پرسش‌های خوانش و دفتر شخصی کنار هم هستند؛ یادداشت‌ها فقط روی همین دستگاه ذخیره می‌شوند.",
+  method: "مرز میان شاهد مستقیم، پیوند موضوعی و برداشت را پیش از نتیجه‌گیری بررسی کنید.",
+};
+
+function setWorkspaceView(view) {
+  if (!WORKSPACE_NOTES[view]) return;
+  state.workspaceView = view;
+  const shell = $("#research");
+  Object.keys(WORKSPACE_NOTES).forEach((name) => shell.classList.remove(`workspace-view-${name}`));
+  shell.classList.add(`workspace-view-${view}`);
+  $("#workspace-note").textContent = WORKSPACE_NOTES[view];
+  document.querySelectorAll("[data-workspace-view]").forEach((button) => {
+    const active = button.dataset.workspaceView === view;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
 }
 
 async function loadFramework() {
@@ -509,6 +541,7 @@ function renderReflection(reflection) {
 function render(data) {
   state.data = data;
   state.filter = "all";
+  setWorkspaceView("evidence");
   $("#topic-label").textContent = data.canonical_topic || data.query;
   $("#summary-text").textContent = data.summary;
   $("#topic-description").textContent = data.topic_description || "";
@@ -602,6 +635,10 @@ $("#framework-grid").addEventListener("click", (event) => {
   input.value = button.dataset.frameworkQuery;
   modeSelect.value = "topic";
   research(button.dataset.frameworkQuery, true);
+});
+
+document.querySelectorAll("[data-workspace-view]").forEach((button) => {
+  button.addEventListener("click", () => setWorkspaceView(button.dataset.workspaceView));
 });
 
 $("#load-more").addEventListener("click", () => {
@@ -771,6 +808,7 @@ if ("serviceWorker" in navigator && /^(https?:)$/.test(window.location.protocol)
 
 renderNotebook();
 updateConnectionLabel();
+setWorkspaceView("evidence");
 setGraphView("network");
 loadFramework();
 research(input.value);

@@ -29,7 +29,7 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 ## نصب روی موبایل
 
-رابط وب اکنون یک **PWA نصب‌پذیر** است و در حالت بی‌اتصال، جست‌وجوی پایهٔ عبارت را با پیکرهٔ محلی انجام می‌دهد. پوستهٔ Android و workflow ساخت APK نیز در `mobile/android/` و `.github/workflows/android-apk.yml` قرار گرفته‌اند. راهنمای کامل نصب، ساخت APK و اتصال نسخهٔ موبایل به سرور پژوهش در [`INSTALL_ANDROID.md`](INSTALL_ANDROID.md) است.
+رابط وب اکنون یک **PWA نصب‌پذیر** است و در حالت بی‌اتصال، جست‌وجوی پایهٔ عبارت را با پیکرهٔ محلی انجام می‌دهد. پوستهٔ Android و workflow ساخت APK نیز در `mobile/android/` و `.github/workflows/android-apk.yml` قرار گرفته‌اند. راهنمای کامل نصب، ساخت APK و اتصال نسخهٔ موبایل به سرور پژوهش در [`INSTALL_ANDROID.md`](INSTALL_ANDROID.md) است. مسیر محصول و اصول بازطراحی تجربه در [`PRODUCT_PLAN.md`](PRODUCT_PLAN.md) ثبت شده‌اند.
 
 ## API
 

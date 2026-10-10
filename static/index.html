@@ -23,8 +23,8 @@
         <span>ذهن‌یار</span>
       </a>
       <nav aria-label="ناوبری اصلی">
-        <a href="#frameworks">نقشهٔ فهم</a>
-        <a href="#research">پژوهش</a>
+        <a href="#frameworks">موضوع‌ها</a>
+        <a href="#research">مسیر پژوهش</a>
         <a href="#method">روش</a>
         <a href="#sources">منابع</a>
       </nav>
@@ -36,7 +36,7 @@
         <div class="eyebrow"><span class="pulse"></span> پژوهشِ شاهد-محور در قرآن</div>
         <h1 id="hero-title">پرسش را از مسیر <em>آیه، واژه و سیاق</em> دنبال کنید.</h1>
         <p class="hero-copy">
-          ذهن‌یار میان ذکر مستقیم، پیوند واژگانی و همسایگی خطی تمایز می‌گذارد تا هر نتیجه از مسیرِ قابل بررسی خود جدا نشود.
+          با یک پرسش شروع کنید؛ سپس متن، واژهٔ شاهد و سیاق را قدم‌به‌قدم دنبال کنید. هر مسیر، برای خواندن دقیق‌تر است نه پاسخِ قطعی و آماده.
         </p>
 
         <form id="search-form" class="search-panel" novalidate>
@@ -72,16 +72,19 @@
       <section id="frameworks" class="framework-shell" aria-labelledby="framework-title">
         <div class="framework-heading">
           <div>
-            <p class="section-kicker">نقشهٔ کار پژوهشگر</p>
-            <h2 id="framework-title">از پرسش تا فهم؛ <span>چه چیزهایی را باید دید؟</span></h2>
+            <p class="section-kicker">از کجا شروع کنیم؟</p>
+            <h2 id="framework-title">میدانِ پرسش خود را <span>انتخاب کنید.</span></h2>
           </div>
-          <p id="framework-notice">در حال آماده‌سازی چارچوب پژوهش…</p>
+          <p id="framework-notice">یک میدان را انتخاب کنید، سپس موضوعی را لمس کنید تا مسیر آیه‌ها آغاز شود.</p>
         </div>
         <div id="framework-grid" class="framework-grid" aria-live="polite"></div>
-        <section class="protocol-strip" aria-labelledby="protocol-title">
-          <div class="protocol-intro"><p class="section-kicker">پیش از نتیجه‌گیری</p><h3 id="protocol-title">پروتکل خوانش مسئولانه</h3><p>هر گام، مرز میان بازیابیِ متن و تفسیرِ آن را روشن نگه می‌دارد.</p></div>
-          <div id="protocol-list" class="protocol-list"></div>
-        </section>
+        <details class="protocol-strip" aria-labelledby="protocol-title">
+          <summary class="protocol-summary"><span><span class="section-kicker">پیش از نتیجه‌گیری</span><strong id="protocol-title">مرزهای خوانش مسئولانه</strong></span><span aria-hidden="true">⌄</span></summary>
+          <div class="protocol-inner">
+            <p>هر گام، مرز میان بازیابیِ متن و تفسیرِ آن را روشن نگه می‌دارد.</p>
+            <div id="protocol-list" class="protocol-list"></div>
+          </div>
+        </details>
       </section>
 
       <section id="research" class="research-shell" aria-labelledby="research-title">
@@ -95,9 +98,22 @@
 
         <div id="status-message" class="status-message" role="status" aria-live="polite"></div>
 
+        <section class="research-journey" aria-label="مراحل پژوهش">
+          <div class="journey-heading">
+            <p class="section-kicker">چه چیزی می‌خواهید ببینید؟</p>
+            <p id="workspace-note">ابتدا آیه‌ها و سیاق را ببینید؛ سپس در صورت نیاز، پیوندها و ابزارهای تکمیلی را باز کنید.</p>
+          </div>
+          <div class="workspace-tabs" role="tablist" aria-label="نمای پژوهش">
+            <button class="active" type="button" data-workspace-view="evidence" role="tab" aria-selected="true"><span>۱</span><b>شاهدها</b><small>آیه و سیاق</small></button>
+            <button type="button" data-workspace-view="paths" role="tab" aria-selected="false"><span>۲</span><b>پیوندها</b><small>موضوع و روایت</small></button>
+            <button type="button" data-workspace-view="reflection" role="tab" aria-selected="false"><span>۳</span><b>تأمل من</b><small>پرسش و دفتر</small></button>
+            <button type="button" data-workspace-view="method" role="tab" aria-selected="false"><span>۴</span><b>روش</b><small>مرزهای نتیجه</small></button>
+          </div>
+        </section>
+
         <div class="research-grid">
           <section class="evidence-column" aria-labelledby="evidence-title">
-            <article class="summary-card">
+            <article class="summary-card" data-workspace-pane="evidence">
               <div class="summary-topline">
                 <span class="summary-label">گزارش بازیابی</span>
                 <span id="result-quality" class="quality-badge">مسیر قابل ممیزی</span>
@@ -107,9 +123,9 @@
               <div id="expansion-row" class="expansion-row"></div>
             </article>
 
-            <div id="stats" class="stat-grid" aria-label="آمار بازیابی"></div>
+            <div id="stats" class="stat-grid" data-workspace-pane="evidence" aria-label="آمار بازیابی"></div>
 
-            <div class="evidence-toolbar">
+            <div class="evidence-toolbar" data-workspace-pane="evidence">
               <div>
                 <p class="section-kicker">آیه‌های بازیابی‌شده</p>
                 <h3 id="evidence-title">شواهد متنی</h3>
@@ -123,10 +139,14 @@
                 </div>
               </div>
             </div>
-            <div id="results-list" class="results-list" aria-live="polite"></div>
-            <button id="load-more" class="load-more" type="button" hidden>نمایش آیه‌های بیشتر <span>↓</span></button>
+            <div id="results-list" class="results-list" data-workspace-pane="evidence" aria-live="polite"></div>
+            <button id="load-more" class="load-more" data-workspace-pane="evidence" type="button" hidden>نمایش آیه‌های بیشتر <span>↓</span></button>
 
-            <section id="narrative-section" class="narrative-section" aria-labelledby="narrative-title" hidden>
+            <aside class="paths-intro" data-workspace-pane="paths" aria-label="راهنمای پیوندها">
+              <span>۲</span>
+              <div><b>پیوندها را با احتیاط دنبال کنید.</b><p>نقشه و پراکندگی، مسیرِ بازیابی‌اند؛ برای خواندن متن و سنجش سیاق به شاهدها بازگردید.</p></div>
+            </aside>
+            <section id="narrative-section" class="narrative-section" data-workspace-pane="paths" aria-labelledby="narrative-title" hidden>
               <div class="narrative-heading">
                 <div><p class="section-kicker">نشانه‌های غیرمستقیم و روایی</p><h3 id="narrative-title">خوانش از دل داستان‌های قرآن</h3></div>
                 <span id="narrative-count" class="narrative-count">—</span>
@@ -135,7 +155,7 @@
               <div id="narrative-list" class="narrative-list"></div>
             </section>
 
-            <section id="context-section" class="context-section" aria-labelledby="context-title">
+            <section id="context-section" class="context-section" data-workspace-pane="evidence" aria-labelledby="context-title">
               <div class="context-heading">
                 <div>
                   <p class="section-kicker">برای پرهیز از بریده‌خوانی</p>
@@ -148,7 +168,7 @@
           </section>
 
           <aside class="insight-column" aria-label="نقشه و راهنمای پژوهش">
-            <section class="graph-card" aria-labelledby="graph-title">
+            <section class="graph-card" data-workspace-pane="paths" aria-labelledby="graph-title">
               <div class="panel-heading">
                 <div>
                   <p class="section-kicker">نمای ارتباط</p>
@@ -175,7 +195,7 @@
               </div>
             </section>
 
-            <section class="structure-card" aria-labelledby="structure-title">
+            <section class="structure-card" data-workspace-pane="paths" aria-labelledby="structure-title">
               <div class="panel-heading">
                 <div>
                   <p class="section-kicker">نمای توصیفی</p>
@@ -189,7 +209,7 @@
               <p id="structure-note" class="structure-note"></p>
             </section>
 
-            <section class="notebook-card" aria-labelledby="notebook-title">
+            <section class="notebook-card" data-workspace-pane="reflection" aria-labelledby="notebook-title">
               <div class="panel-heading">
                 <div>
                   <p class="section-kicker">فضای شخصی، روی همین دستگاه</p>
@@ -205,13 +225,13 @@
               </div>
             </section>
 
-            <section class="questions-card" aria-labelledby="questions-title">
+            <section class="questions-card" data-workspace-pane="reflection" aria-labelledby="questions-title">
               <p class="section-kicker">گامِ بعدی پژوهش</p>
               <h3 id="questions-title">پرسش‌هایی برای خواندن دقیق‌تر</h3>
               <ol id="questions-list"></ol>
             </section>
 
-            <section class="reflection-card" aria-labelledby="reflection-title">
+            <section class="reflection-card" data-workspace-pane="reflection" aria-labelledby="reflection-title">
               <p class="section-kicker">از فهم به زندگی امروز</p>
               <h3 id="reflection-title">تأمل کاربردی</h3>
               <p id="reflection-focus" class="reflection-focus"></p>
@@ -219,7 +239,7 @@
               <p id="reflection-notice" class="reflection-notice"></p>
             </section>
 
-            <section id="method" class="method-card" aria-labelledby="method-title">
+            <section id="method" class="method-card" data-workspace-pane="method" aria-labelledby="method-title">
               <button id="method-toggle" class="method-toggle" type="button" aria-expanded="true">
                 <span><span class="section-kicker">شفافیت روش</span><strong id="method-title">چگونه نتیجه ساخته شد؟</strong></span>
                 <span class="chevron">⌄</span>
