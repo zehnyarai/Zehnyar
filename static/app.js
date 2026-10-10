@@ -1,6 +1,6 @@
 const api = "/api/analyze";
 const NOTEBOOK_KEY = "zehnyar-evidence-notebook-v1";
-const state = { data: null, filter: "all" };
+const state = { data: null, filter: "all", limit: 12 };
 
 const $ = (selector) => document.querySelector(selector);
 const form = $("#search-form");
@@ -48,8 +48,8 @@ function renderNotebook() {
     return;
   }
   list.innerHTML = notebook.slice(0, 6).map((item) => `<article class="notebook-item">
-    <div><b>${escapeHTML(item.reference)}</b><span lang="ar" dir="rtl">${escapeHTML(item.arabic)}</span></div>
-    <button class="notebook-remove" data-remove-note="${escapeHTML(item.id)}" type="button" aria-label="حذف ${escapeHTML(item.reference)}">حذف</button>
+    <div><b>${escapeHTML(item.reference)}</b><span lang="ar" dir="rtl">${escapeHTML(item.arabic)}</span>${item.note ? `<small>${escapeHTML(item.note)}</small>` : ""}</div>
+    <div class="notebook-item-actions"><button class="notebook-note" data-edit-note="${escapeHTML(item.id)}" type="button">یادداشت</button><button class="notebook-remove" data-remove-note="${escapeHTML(item.id)}" type="button" aria-label="حذف ${escapeHTML(item.reference)}">حذف</button></div>
   </article>`).join("");
   if (notebook.length > 6) {
     list.insertAdjacentHTML("beforeend", `<p class="notebook-empty">و ${faNumber(notebook.length - 6)} شاهد دیگر در دفتر ذخیره شده است.</p>`);
@@ -64,6 +64,7 @@ function saveVerse(verse) {
     arabic: verse.arabic,
     persian: verse.persian,
     query: state.data?.query || "",
+    note: "",
     savedAt: new Date().toISOString(),
   });
   persistNotebook();
@@ -74,6 +75,7 @@ function saveVerse(verse) {
 function loading() {
   const template = $("#loading-template");
   resultsList.replaceChildren(template.content.cloneNode(true));
+  $("#load-more").hidden = true;
   submit.disabled = true;
   statusMessage.classList.remove("show");
 }
@@ -178,6 +180,32 @@ function renderStructure(structure) {
   $("#structure-note").textContent = structure?.note || "";
 }
 
+function renderFramework(data) {
+  $("#framework-notice").textContent = data.notice || "";
+  $("#framework-grid").innerHTML = (data.categories || []).map((category, index) => `<article class="framework-card">
+    <span class="framework-index">${faNumber(index + 1)}</span>
+    <h3>${escapeHTML(category.title)}</h3>
+    <p>${escapeHTML(category.description)}</p>
+    <div class="framework-topics">${(category.topics || []).map((topic) => `<button type="button" class="framework-topic" data-framework-query="${escapeHTML(topic)}">${escapeHTML(topic)}</button>`).join("")}</div>
+  </article>`).join("");
+  $("#protocol-list").innerHTML = (data.protocol || []).map((item) => `<article class="protocol-item">
+    <b>${escapeHTML(item.title)}</b>
+    <p>${escapeHTML(item.description)}</p>
+    <span>${escapeHTML(item.availability)}</span>
+  </article>`).join("");
+}
+
+async function loadFramework() {
+  try {
+    const response = await fetch("/api/framework");
+    if (!response.ok) throw new Error("framework unavailable");
+    renderFramework(await response.json());
+  } catch {
+    $("#framework-notice").textContent = "چارچوب پژوهش در دسترس نیست؛ جست‌وجوی متنی همچنان فعال است.";
+    $("#framework-grid").innerHTML = '<p class="cluster-empty">لطفاً اتصال را دوباره بررسی کنید.</p>';
+  }
+}
+
 function addSvgElement(parent, name, attributes = {}) {
   const element = document.createElementNS(SVG_NS, name);
   Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, value));
@@ -254,6 +282,13 @@ function render(data) {
     .join("");
   renderStats(data.stats);
   renderVerses();
+  const available = data.stats.direct + data.stats.thematic;
+  const loadMore = $("#load-more");
+  loadMore.hidden = !available || data.stats.shown >= available || state.limit >= 24;
+  if (!loadMore.hidden) {
+    const remaining = Math.min(12, 24 - state.limit, available - data.stats.shown);
+    loadMore.innerHTML = `نمایش ${faNumber(remaining)} آیهٔ بیشتر <span>↓</span>`;
+  }
   renderContext(data.context);
   renderStructure(data.structure);
   renderGraph(data.graph);
@@ -267,7 +302,7 @@ function render(data) {
   });
 }
 
-async function research(query, scroll = false) {
+async function research(query, scroll = false, limit = 12) {
   const cleanQuery = query.trim();
   if (!cleanQuery) {
     showError("لطفاً یک واژه یا موضوع بنویسید.");
@@ -275,12 +310,13 @@ async function research(query, scroll = false) {
     return;
   }
   input.value = cleanQuery;
+  state.limit = limit;
   loading();
   try {
     const response = await fetch(api, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: cleanQuery, limit: 12, include_context: true, mode: modeSelect.value }),
+      body: JSON.stringify({ query: cleanQuery, limit, include_context: true, mode: modeSelect.value }),
     });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.detail || "دریافت نتیجه ناموفق بود.");
@@ -301,6 +337,19 @@ form.addEventListener("submit", (event) => {
 
 document.querySelectorAll("[data-query]").forEach((button) => {
   button.addEventListener("click", () => research(button.dataset.query, true));
+});
+
+$("#framework-grid").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-framework-query]");
+  if (!button) return;
+  input.value = button.dataset.frameworkQuery;
+  modeSelect.value = "topic";
+  research(button.dataset.frameworkQuery, true);
+});
+
+$("#load-more").addEventListener("click", () => {
+  if (!state.data) return;
+  research(state.data.query, false, Math.min(24, state.limit + 12));
 });
 
 document.querySelectorAll(".filter-tabs button").forEach((button) => {
@@ -342,6 +391,17 @@ resultsList.addEventListener("click", async (event) => {
 });
 
 $("#notebook-list").addEventListener("click", (event) => {
+  const editButton = event.target.closest("[data-edit-note]");
+  if (editButton) {
+    const item = notebook.find((entry) => entry.id === editButton.dataset.editNote);
+    if (!item) return;
+    const note = window.prompt("یادداشت پژوهشی یا منبع تفسیر را با نام اثر، جلد و صفحه ثبت کنید:", item.note || "");
+    if (note === null) return;
+    item.note = note.trim().slice(0, 1000);
+    persistNotebook();
+    renderNotebook();
+    return;
+  }
   const button = event.target.closest("[data-remove-note]");
   if (!button) return;
   notebook = notebook.filter((item) => item.id !== button.dataset.removeNote);
@@ -366,6 +426,7 @@ $("#export-notebook").addEventListener("click", () => {
       item.persian,
       "",
       `پرسش هنگام ذخیره: ${item.query || "—"}`,
+      `یادداشت / منبع: ${item.note || "—"}`,
       "",
     ]),
   ].join("\n");
@@ -402,4 +463,5 @@ $("#method-toggle").addEventListener("click", () => {
 });
 
 renderNotebook();
+loadFramework();
 research(input.value);

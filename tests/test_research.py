@@ -40,6 +40,12 @@ class QuranResearchTests(unittest.TestCase):
         structure_total = sum(item["total"] for item in result["structure"]["revelation"].values())
         self.assertEqual(structure_total, result["stats"]["direct"] + result["stats"]["thematic"])
 
+    def test_framework_categories_cover_every_curated_topic_once(self):
+        categorized = [topic for category in main.TOPIC_CATEGORIES for topic in category["topics"]]
+        self.assertEqual(set(categorized), set(main.TOPICS))
+        self.assertEqual(len(categorized), len(set(categorized)))
+        self.assertEqual(len(main.READING_PROTOCOL), 5)
+
     def test_blank_query_is_rejected(self):
         with self.assertRaises(HTTPException):
             main.analyze("   ", 12, True)
