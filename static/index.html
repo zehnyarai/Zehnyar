@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0c322e" />
+    <title>ذهن‌یار | پژوهش موضوعی قرآن</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient--one"></div>
+    <div class="ambient ambient--two"></div>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="ذهن‌یار، صفحه اصلی">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>ذهن‌یار</span>
+      </a>
+      <nav aria-label="ناوبری اصلی">
+        <a href="#research">پژوهش</a>
+        <a href="#method">روش</a>
+        <a href="#sources">منابع</a>
+      </nav>
+      <span class="header-status"><span></span> متن کامل · ۶۲۳۶ آیه</span>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="eyebrow"><span class="pulse"></span> پژوهشِ شاهد-محور در قرآن</div>
+        <h1 id="hero-title">پرسش را از مسیر <em>آیه، واژه و سیاق</em> دنبال کنید.</h1>
+        <p class="hero-copy">
+          ذهن‌یار میان ذکر مستقیم، پیوند واژگانی و همسایگی خطی تمایز می‌گذارد تا هر نتیجه از مسیرِ قابل بررسی خود جدا نشود.
+        </p>
+
+        <form id="search-form" class="search-panel" novalidate>
+          <label class="sr-only" for="query">موضوع یا واژهٔ مورد نظر</label>
+          <div class="search-icon" aria-hidden="true"></div>
+          <input id="query" name="query" maxlength="120" autocomplete="off" value="عدالت" placeholder="مثلاً: عدالت، صبر، علم یا یک واژهٔ عربی" />
+          <button id="search-submit" type="submit">
+            <span>آغاز پژوهش</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
+          </button>
+        </form>
+        <div class="suggestions" aria-label="پیشنهادهای جست‌وجو">
+          <span>برای شروع:</span>
+          <button type="button" data-query="رحمت">رحمت</button>
+          <button type="button" data-query="خانواده">خانواده</button>
+          <button type="button" data-query="علم">علم</button>
+          <button type="button" data-query="آزادی و اختیار">آزادی و اختیار</button>
+          <button type="button" data-query="انفاق">انفاق</button>
+        </div>
+
+        <div class="principles" aria-label="اصول پژوهش">
+          <div><span class="principle-icon">۱</span><p><b>شاهد پیش از جمع‌بندی</b><small>هر ادعا به آیه و واژهٔ شاهد متصل است.</small></p></div>
+          <div><span class="principle-icon">۲</span><p><b>تمایز سطحِ ارتباط</b><small>مستقیم، موضوعی و سیاقی یکسان نیستند.</small></p></div>
+          <div><span class="principle-icon">۳</span><p><b>دعوت به بازخوانی</b><small>این ابزار جایگزین تفسیر و گفت‌وگوی علمی نیست.</small></p></div>
+        </div>
+      </section>
+
+      <section id="research" class="research-shell" aria-labelledby="research-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">میز پژوهش</p>
+            <h2 id="research-title">نقشهٔ شواهد <span id="topic-label">عدالت</span></h2>
+          </div>
+          <div id="corpus-note" class="corpus-note">در حال آماده‌سازی پیکره…</div>
+        </div>
+
+        <div id="status-message" class="status-message" role="status" aria-live="polite"></div>
+
+        <div class="research-grid">
+          <section class="evidence-column" aria-labelledby="evidence-title">
+            <article class="summary-card">
+              <div class="summary-topline">
+                <span class="summary-label">گزارش بازیابی</span>
+                <span id="result-quality" class="quality-badge">مسیر قابل ممیزی</span>
+              </div>
+              <p id="summary-text">نتایج در حال بارگیری است.</p>
+              <div id="expansion-row" class="expansion-row"></div>
+            </article>
+
+            <div id="stats" class="stat-grid" aria-label="آمار بازیابی"></div>
+
+            <div class="evidence-toolbar">
+              <div>
+                <p class="section-kicker">آیه‌های بازیابی‌شده</p>
+                <h3 id="evidence-title">شواهد متنی</h3>
+              </div>
+              <div class="filter-tabs" role="tablist" aria-label="فیلتر نوع شاهد">
+                <button class="active" data-filter="all" role="tab" aria-selected="true">همه</button>
+                <button data-filter="direct" role="tab" aria-selected="false">مستقیم</button>
+                <button data-filter="thematic" role="tab" aria-selected="false">موضوعی</button>
+              </div>
+            </div>
+            <div id="results-list" class="results-list" aria-live="polite"></div>
+
+            <section id="context-section" class="context-section" aria-labelledby="context-title">
+              <div class="context-heading">
+                <div>
+                  <p class="section-kicker">برای پرهیز از بریده‌خوانی</p>
+                  <h3 id="context-title">پنجرهٔ سیاق خطی</h3>
+                </div>
+                <span>همسایه‌های آیه‌های نخست</span>
+              </div>
+              <div id="context-list" class="context-list"></div>
+            </section>
+          </section>
+
+          <aside class="insight-column" aria-label="نقشه و راهنمای پژوهش">
+            <section class="graph-card" aria-labelledby="graph-title">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-kicker">نمای ارتباط</p>
+                  <h3 id="graph-title">گرافِ مسیرِ بازیابی</h3>
+                </div>
+                <button id="graph-info" class="icon-button" type="button" aria-label="راهنمای گراف" aria-expanded="false">i</button>
+              </div>
+              <p id="graph-help" class="graph-help" hidden>گرهٔ میانی پرسش شماست. گره‌های سبز واژه‌های جست‌وجو و گره‌های روشن، آیه‌های نمایش‌داده‌شده‌اند. خط‌ها رابطهٔ بازیابی هستند، نه ادعای تفسیر قطعی.</p>
+              <div class="graph-wrap">
+                <svg id="graph" viewBox="0 0 620 390" role="img" aria-label="گراف واژه‌ها و آیه‌های مرتبط"></svg>
+              </div>
+              <div class="legend" aria-label="راهنمای گراف">
+                <span><i class="legend-dot topic"></i> پرسش</span>
+                <span><i class="legend-dot term"></i> واژهٔ شاهد</span>
+                <span><i class="legend-dot verse"></i> آیه</span>
+              </div>
+            </section>
+
+            <section class="questions-card" aria-labelledby="questions-title">
+              <p class="section-kicker">گامِ بعدی پژوهش</p>
+              <h3 id="questions-title">پرسش‌هایی برای خواندن دقیق‌تر</h3>
+              <ol id="questions-list"></ol>
+            </section>
+
+            <section id="method" class="method-card" aria-labelledby="method-title">
+              <button id="method-toggle" class="method-toggle" type="button" aria-expanded="true">
+                <span><span class="section-kicker">شفافیت روش</span><strong id="method-title">چگونه نتیجه ساخته شد؟</strong></span>
+                <span class="chevron">⌄</span>
+              </button>
+              <div id="method-content" class="method-content">
+                <ol id="method-list"></ol>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <footer id="sources" class="site-footer">
+      <div class="footer-brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><b>ذهن‌یار</b></div>
+      <p>متن عربی: Tanzil Uthmani · ترجمهٔ فارسی: QuranEnc، Ihsan Elahi Zaheer · هر نتیجه، آغازی برای مطالعهٔ سیاق و منابع تفسیری است.</p>
+      <a href="/docs" target="_blank" rel="noreferrer">مستندات API</a>
+    </footer>
+
+    <template id="loading-template">
+      <div class="loading-card"><span></span><span></span><span></span><p>در حال خواندن شبکهٔ واژگان و آیه‌ها…</p></div>
+    </template>
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>
