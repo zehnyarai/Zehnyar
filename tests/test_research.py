@@ -44,7 +44,20 @@ class QuranResearchTests(unittest.TestCase):
         categorized = [topic for category in main.TOPIC_CATEGORIES for topic in category["topics"]]
         self.assertEqual(set(categorized), set(main.TOPICS))
         self.assertEqual(len(categorized), len(set(categorized)))
-        self.assertEqual(len(main.READING_PROTOCOL), 5)
+        self.assertEqual(len(main.READING_PROTOCOL), 6)
+
+    def test_narrative_paths_are_bounded_and_separate_from_lexical_hits(self):
+        result = main.analyze("عدالت", 8, True, "topic")
+        paths = result["narrative"]["paths"]
+        self.assertGreaterEqual(len(paths), 2)
+        self.assertEqual(result["stats"]["narrative"], len(paths))
+        self.assertTrue(all(item["relation"] == "نشانهٔ رواییِ بازبینی‌شده" for item in paths))
+        self.assertTrue(all((item["surah"], item["ayah"]) in main.VERSE_MAP for item in paths))
+
+    def test_literal_mode_does_not_add_narrative_paths(self):
+        result = main.analyze("عدالت", 8, True, "literal")
+        self.assertEqual(result["narrative"]["paths"], [])
+        self.assertEqual(result["stats"]["narrative"], 0)
 
     def test_blank_query_is_rejected(self):
         with self.assertRaises(HTTPException):

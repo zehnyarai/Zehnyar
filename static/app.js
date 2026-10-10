@@ -76,6 +76,7 @@ function loading() {
   const template = $("#loading-template");
   resultsList.replaceChildren(template.content.cloneNode(true));
   $("#load-more").hidden = true;
+  $("#narrative-section").hidden = true;
   submit.disabled = true;
   statusMessage.classList.remove("show");
 }
@@ -92,9 +93,10 @@ function relationClass(verse) {
 function renderStats(stats) {
   const items = [
     [stats.direct, "شاهد مستقیم"],
-    [stats.thematic, "پیوند موضوعی"],
+    [stats.thematic, "پیوند واژگانی"],
+    [stats.narrative, "مسیر روایی"],
+    [stats.story_lexical, "شاهد در روایت"],
     [stats.surahs, "سورهٔ درگیر"],
-    [stats.shown, "آیهٔ نمایش‌داده‌شده"],
   ];
   $("#stats").innerHTML = items
     .map(([value, label]) => `<div class="stat"><strong>${faNumber(value)}</strong><span>${escapeHTML(label)}</span></div>`)
@@ -113,10 +115,11 @@ function verseCard(verse, index, context = false) {
     .map((item) => `<span title="${escapeHTML(item.origin || item.source)}"><b>${escapeHTML(item.label)}</b> · ${escapeHTML(item.source)}</span>`)
     .join("");
   const isSaved = notebook.some((item) => item.id === verse.id);
+  const storyMarkup = verse.story_context?.length ? `<span class="story-tag">در روایت: ${escapeHTML(verse.story_context[0])}</span>` : "";
   return `<article class="verse-card" data-verse-id="${escapeHTML(verse.id)}" style="animation-delay:${Math.min(index, 9) * 35}ms">
     <div class="verse-head">
       <span class="reference">${escapeHTML(verse.reference)} <small>· ${escapeHTML(verse.revelation)}</small></span>
-      <span class="relation ${relationClass(verse)}">${escapeHTML(verse.relation)}</span>
+      <div class="relation-group"><span class="relation ${relationClass(verse)}">${escapeHTML(verse.relation)}</span>${storyMarkup}</div>
     </div>
     <p class="verse-arabic" lang="ar" dir="rtl">${escapeHTML(verse.arabic)}</p>
     <p class="verse-persian">${escapeHTML(verse.persian)}</p>
@@ -152,6 +155,29 @@ function renderContext(context) {
   }
   section.hidden = false;
   $("#context-list").innerHTML = context.map((verse) => verseCard(verse, 0, true)).join("");
+}
+
+function renderNarrative(narrative) {
+  const section = $("#narrative-section");
+  const paths = narrative?.paths || [];
+  if (!paths.length) {
+    section.hidden = true;
+    return;
+  }
+  section.hidden = false;
+  $("#narrative-count").textContent = `${faNumber(paths.length)} مسیر · ${faNumber(narrative.lexical_story_hits)} شاهد واژگانی در روایت‌ها`;
+  $("#narrative-notice").textContent = narrative.notice || "";
+  $("#narrative-list").innerHTML = paths.map((path, index) => {
+    const saved = notebook.some((item) => item.id === path.id);
+    return `<article class="narrative-card" style="animation-delay:${index * 55}ms">
+      <div class="narrative-card-head"><span class="story-name">${escapeHTML(path.story)}</span><span>${escapeHTML(path.reference)} · ${escapeHTML(path.focus)}</span></div>
+      <p class="narrative-lens">${escapeHTML(path.lens)}</p>
+      <p class="narrative-arabic" lang="ar" dir="rtl">${escapeHTML(path.arabic)}</p>
+      <p class="narrative-persian">${escapeHTML(path.persian)}</p>
+      <div class="narrative-question"><b>پرسش خوانش:</b> ${escapeHTML(path.question)}</div>
+      <button class="save-narrative ${saved ? "saved" : ""}" type="button" data-save-narrative="${escapeHTML(path.id)}" ${saved ? "disabled" : ""}>${saved ? "در دفتر ✓" : "ذخیرهٔ آیهٔ لنگر"}</button>
+    </article>`;
+  }).join("");
 }
 
 function renderStructure(structure) {
@@ -290,6 +316,7 @@ function render(data) {
     loadMore.innerHTML = `نمایش ${faNumber(remaining)} آیهٔ بیشتر <span>↓</span>`;
   }
   renderContext(data.context);
+  renderNarrative(data.narrative);
   renderStructure(data.structure);
   renderGraph(data.graph);
   $("#questions-list").innerHTML = data.questions.map((question) => `<li>${escapeHTML(question)}</li>`).join("");
@@ -388,6 +415,17 @@ resultsList.addEventListener("click", async (event) => {
     button.textContent = "متن را انتخاب کنید";
   }
   window.setTimeout(() => { button.textContent = "کپی شاهد ↗"; }, 1600);
+});
+
+$("#narrative-list").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-save-narrative]");
+  if (!button || !state.data) return;
+  const path = state.data.narrative?.paths?.find((item) => item.id === button.dataset.saveNarrative);
+  if (path && saveVerse(path)) {
+    button.textContent = "در دفتر ✓";
+    button.classList.add("saved");
+    button.disabled = true;
+  }
 });
 
 $("#notebook-list").addEventListener("click", (event) => {
