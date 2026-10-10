@@ -2,7 +2,9 @@ import type { CapacitorConfig } from '@capacitor/cli'
 
 // Native production builds use the same HTTPS site as the API, keeping cookies
 // and requests first-party. Do not ship a localhost or a development URL.
+const standalone = process.env.VITE_APP_MODE === 'standalone'
 const publicUrl = process.env.CAPACITOR_SERVER_URL
+if (standalone && publicUrl) throw new Error('Standalone APK must not contain a remote server URL')
 if (publicUrl) {
   const url = new URL(publicUrl)
   if (

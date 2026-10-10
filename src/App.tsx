@@ -1,3 +1,5 @@
+import { IS_STANDALONE } from './config'
+import LocalSettings from './pages/LocalSettings'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ArrowLeft,
@@ -48,17 +50,18 @@ const paths: Record<Page, string> = {
 }
 const titles: Record<Page, string> = {
   dashboard: 'نمای کلی',
-  analysis: 'تحلیل هوشمند',
+  analysis: IS_STANDALONE ? 'ثبت عکس' : 'تحلیل هوشمند',
   orchards: 'باغ‌های من',
-  reports: 'گزارش‌ها',
+  reports: IS_STANDALONE ? 'عکس‌ها و یادداشت‌ها' : 'گزارش‌ها',
   calendar: 'تقویم مراقبت',
   knowledge: 'دانشنامه پسته',
-  subscription: 'اشتراک و پرداخت',
+  subscription: IS_STANDALONE ? 'داده‌ها و پشتیبان' : 'اشتراک و پرداخت',
   admin: 'پنل مدیریت',
 }
 const pageFromPath = () =>
-  (Object.entries(paths).find(([, path]) => path === location.pathname)?.[0] as Page | undefined) ??
-  'dashboard'
+  (Object.entries(paths).find(
+    ([, path]) => path === (IS_STANDALONE ? location.hash.slice(1) || '/' : location.pathname)
+  )?.[0] as Page | undefined) ?? 'dashboard'
 type ModalState =
   | { kind: 'auth' | 'task' | 'help' | 'privacy' | 'profile' }
   | { kind: 'orchard'; orchard?: Orchard }
@@ -162,7 +165,9 @@ export default function App() {
     setPage(next)
     setSidebarOpen(false)
     setNotifications(false)
-    if (location.pathname !== paths[next]) history.pushState(null, '', paths[next])
+    const target = IS_STANDALONE ? `#${paths[next]}` : paths[next]
+    if ((IS_STANDALONE ? location.hash : location.pathname) !== target)
+      history.pushState(null, '', target)
     window.scrollTo({ top: 0, behavior: 'auto' })
   }, [])
   const notify = useCallback(
@@ -212,7 +217,7 @@ export default function App() {
     notify,
     openArticle: (article) => setModal({ kind: 'article', article }),
     openReport: (report) => setModal({ kind: 'report', report }),
-    openAuth: () => setModal({ kind: 'auth' }),
+    openAuth: () => (IS_STANDALONE ? navigate('subscription') : setModal({ kind: 'auth' })),
     openOrchard: (orchard) => setModal({ kind: 'orchard', orchard }),
     openTask: () => setModal({ kind: 'task' }),
     startAnalysis,
@@ -266,7 +271,7 @@ export default function App() {
             {nav.map((item) => (
               <a
                 key={item.id}
-                href={paths[item.id]}
+                href={IS_STANDALONE ? `#${paths[item.id]}` : paths[item.id]}
                 onClick={(e) => {
                   e.preventDefault()
                   navigate(item.id)
@@ -276,7 +281,7 @@ export default function App() {
               >
                 <item.icon size={20} strokeWidth={1.7} />
                 <span>{titles[item.id]}</span>
-                {item.id === 'analysis' && <span className="ai-badge">AI</span>}
+                {item.id === 'analysis' && !IS_STANDALONE && <span className="ai-badge">AI</span>}
                 {item.id === 'orchards' && (
                   <span className="nav-count">{fa(data.orchards.length)}</span>
                 )}
@@ -294,7 +299,7 @@ export default function App() {
             className={`nav-item ${page === 'subscription' ? 'nav-active' : ''}`}
           >
             <CreditCard size={20} strokeWidth={1.7} />
-            <span>اشتراک و پرداخت</span>
+            <span>{titles.subscription}</span>
           </a>
         </div>
         <div className="sidebar-bottom">
@@ -335,7 +340,11 @@ export default function App() {
           )}
           <button
             className="sidebar-user"
-            onClick={() => setModal({ kind: !data.user || data.user.is_demo ? 'auth' : 'profile' })}
+            onClick={() =>
+              IS_STANDALONE
+                ? navigate('subscription')
+                : setModal({ kind: !data.user || data.user.is_demo ? 'auth' : 'profile' })
+            }
           >
             <span className="user-avatar">
               {data.user?.name.slice(0, 1) ?? <UserRound size={18} />}
@@ -343,11 +352,13 @@ export default function App() {
             <span>
               <strong>{data.user?.name ?? 'مهمان پستینو'}</strong>
               <small>
-                {!data.user || data.user.is_demo
-                  ? 'حساب آزمایشی · ورود'
-                  : data.usage.premium
-                    ? 'باغدار حرفه‌ای'
-                    : 'طرح همراه'}
+                {IS_STANDALONE
+                  ? 'روی دستگاه · رایگان'
+                  : !data.user || data.user.is_demo
+                    ? 'حساب آزمایشی · ورود'
+                    : data.usage.premium
+                      ? 'باغدار حرفه‌ای'
+                      : 'طرح همراه'}
               </small>
             </span>
             <ChevronLeft size={16} />
@@ -438,7 +449,19 @@ export default function App() {
           </div>
         </header>
         <main className="main-content" id="main-content">
-          {(!data.user || !!data.user.is_demo) && (
+          {IS_STANDALONE && (
+            <div className="demo-ribbon">
+              <span>
+                <span className="demo-dot" />
+                نسخه مستقل و رایگان · اطلاعات فقط روی همین دستگاه
+              </span>
+              <button onClick={() => navigate('subscription')}>
+                پشتیبان و تنظیمات
+                <ArrowLeft size={13} />
+              </button>
+            </div>
+          )}
+          {!IS_STANDALONE && (!data.user || !!data.user.is_demo) && (
             <div className="demo-ribbon">
               <span>
                 <span className="demo-dot" />
@@ -466,15 +489,18 @@ export default function App() {
           {page === 'knowledge' && (
             <KnowledgePage ctx={ctx} initialSearch={knowledgeSearch} key={searchKey} />
           )}
-          {page === 'subscription' && <Subscription ctx={ctx} />}
-          {page === 'admin' && <Admin ctx={ctx} />}
+          {page === 'subscription' &&
+            (IS_STANDALONE ? <LocalSettings ctx={ctx} /> : <Subscription ctx={ctx} />)}
+          {page === 'admin' && (IS_STANDALONE ? <LocalSettings ctx={ctx} /> : <Admin ctx={ctx} />)}
           <footer className="app-footer">
             <span>
               <Leaf size={13} />
               پستینو · با آگاهی، برای باغی ماندگار
             </span>
             <div>
-              <span className="version-label">نسخه آزمایشی ۰.۱</span>
+              <span className="version-label">
+                {IS_STANDALONE ? 'نسخه مستقل ۰.۱' : 'نسخه آزمایشی ۰.۱'}
+              </span>
               <button onClick={() => setModal({ kind: 'privacy' })}>حریم خصوصی</button>
               <span>·</span>
               <button onClick={() => setModal({ kind: 'help' })}>راهنما</button>

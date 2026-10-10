@@ -1,3 +1,4 @@
+import { IS_STANDALONE, assetUrl } from '../config'
 import { useRef, useState } from 'react'
 import {
   ArrowLeft,
@@ -47,9 +48,10 @@ export function ArticleCard({ article, onClick }: { article: Article; onClick: (
 
 export function ReportRow({ report, onClick }: { report: Report; onClick: () => void }) {
   const urgency = report.data.urgency
+  const record = report.data.provider === 'local-storage'
   return (
     <button className="report-row" onClick={onClick}>
-      <img src={report.image_url ?? '/images/pistachio-leaves.jpg'} alt="تصویر گزارش" />
+      <img src={report.image_url ?? assetUrl('/images/pistachio-leaves.jpg')} alt="تصویر گزارش" />
       <div className="report-row-title">
         <strong>{report.data.title}</strong>
         <span>
@@ -57,12 +59,18 @@ export function ReportRow({ report, onClick }: { report: Report; onClick: () => 
           {report.is_sample ? ' · نمونه نمایشی' : ''}
         </span>
       </div>
-      <Badge tone={urgency === 'high' ? 'red' : urgency === 'medium' ? 'amber' : 'green'}>
-        {urgency === 'high'
-          ? 'ارجاع فوری'
-          : urgency === 'medium'
-            ? 'نیازمند بررسی'
-            : 'پیگیری معمول'}
+      <Badge
+        tone={
+          record ? 'gray' : urgency === 'high' ? 'red' : urgency === 'medium' ? 'amber' : 'green'
+        }
+      >
+        {record
+          ? 'ثبت عکس · بدون تحلیل'
+          : urgency === 'high'
+            ? 'ارجاع فوری'
+            : urgency === 'medium'
+              ? 'نیازمند بررسی'
+              : 'پیگیری معمول'}
       </Badge>
       <span className="report-date">{relativeDate(report.created_at)}</span>
       <ChevronLeft className="row-arrow" size={16} />
@@ -144,9 +152,13 @@ export default function Dashboard({ ctx }: { ctx: AppContext }) {
       className: 'olive',
     },
     {
-      label: 'گزارش‌های بررسی',
+      label: IS_STANDALONE ? 'عکس‌های ثبت‌شده' : 'گزارش‌های بررسی',
       value: reports.length,
-      detail: data.user?.is_demo ? 'شامل گزارش‌های نمونه' : 'بررسی‌های ذخیره‌شده شما',
+      detail: IS_STANDALONE
+        ? 'عکس و یادداشت محلی، بدون تحلیل'
+        : data.user?.is_demo
+          ? 'شامل گزارش‌های نمونه'
+          : 'بررسی‌های ذخیره‌شده شما',
       icon: FileSearch,
       page: 'reports' as const,
       className: 'sand',
@@ -183,7 +195,7 @@ export default function Dashboard({ ctx }: { ctx: AppContext }) {
             </select>
             <button className="button primary" onClick={() => ctx.startAnalysis()}>
               <Plus size={17} />
-              تحلیل جدید
+              {IS_STANDALONE ? 'ثبت عکس جدید' : 'تحلیل جدید'}
             </button>
           </>
         }
@@ -191,7 +203,7 @@ export default function Dashboard({ ctx }: { ctx: AppContext }) {
       <div className="hero-grid">
         <section className="orchard-hero">
           <img
-            src="/images/pistachio-orchard.jpg"
+            src={assetUrl('/images/pistachio-orchard.jpg')}
             alt="باغ پسته در نور صبح"
             className="hero-photo"
             fetchPriority="high"
@@ -242,9 +254,13 @@ export default function Dashboard({ ctx }: { ctx: AppContext }) {
             </div>
             <div>
               <h2>درختت چی می‌گه؟</h2>
-              <p>با یک عکس، بررسی را شروع کن.</p>
+              <p>
+                {IS_STANDALONE
+                  ? 'عکس و یادداشت را روی گوشی نگه دار.'
+                  : 'با یک عکس، بررسی را شروع کن.'}
+              </p>
             </div>
-            <Badge tone="gray">هوشمند</Badge>
+            <Badge tone="gray">{IS_STANDALONE ? 'ثبت محلی' : 'هوشمند'}</Badge>
           </div>
           <button className="quick-dropzone" onClick={() => upload.current?.click()}>
             <div className="scan-illustration">
@@ -298,9 +314,11 @@ export default function Dashboard({ ctx }: { ctx: AppContext }) {
           />
           <div className="analysis-footnote">
             <ShieldCheck size={13} />
-            {data.services.vision_configured
-              ? 'بررسی اولیه؛ جایگزین تشخیص کارشناس نیست'
-              : 'حالت آزمایشی · سرویس تحلیل هنوز متصل نیست'}
+            {IS_STANDALONE
+              ? 'عکس ثبت می‌شود؛ تشخیص خودکار انجام نمی‌شود'
+              : data.services.vision_configured
+                ? 'بررسی اولیه؛ جایگزین تشخیص کارشناس نیست'
+                : 'حالت آزمایشی · سرویس تحلیل هنوز متصل نیست'}
           </div>
         </section>
       </div>
@@ -324,7 +342,7 @@ export default function Dashboard({ ctx }: { ctx: AppContext }) {
       <div className="dashboard-panels">
         <section className="card recent-reports">
           <CardHeader
-            title="آخرین بررسی‌های درختان"
+            title={IS_STANDALONE ? 'آخرین عکس‌ها و یادداشت‌ها' : 'آخرین بررسی‌های درختان'}
             subtitle="از مشاهده تا اقدام، یک مسیر روشن"
             action="همه گزارش‌ها"
             onClick={() => ctx.navigate('reports')}
@@ -345,7 +363,7 @@ export default function Dashboard({ ctx }: { ctx: AppContext }) {
               text="اولین بررسی را با یک عکس شروع کن."
               action={
                 <button className="text-button" onClick={() => ctx.startAnalysis()}>
-                  بررسی تصویر
+                  {IS_STANDALONE ? 'ثبت عکس' : 'بررسی تصویر'}
                   <ArrowLeft size={14} />
                 </button>
               }

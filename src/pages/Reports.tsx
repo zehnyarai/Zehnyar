@@ -1,3 +1,4 @@
+import { IS_STANDALONE } from '../config'
 import { useState } from 'react'
 import { FileSearch, Plus, Search, SlidersHorizontal } from 'lucide-react'
 import type { AppContext } from '../types'
@@ -19,12 +20,12 @@ export default function Reports({ ctx }: { ctx: AppContext }) {
     <>
       <PageTitle
         eyebrow="دفتر سلامت باغ"
-        title="گزارش‌های بررسی"
+        title={IS_STANDALONE ? 'عکس‌ها و یادداشت‌ها' : 'گزارش‌های بررسی'}
         subtitle="مشاهدات و قدم‌های بعدی را در کنار هم دنبال کن."
         action={
           <button className="button primary" onClick={() => ctx.startAnalysis()}>
             <Plus size={17} />
-            بررسی جدید
+            {IS_STANDALONE ? 'ثبت عکس جدید' : 'بررسی جدید'}
           </button>
         }
       />
@@ -57,12 +58,15 @@ export default function Reports({ ctx }: { ctx: AppContext }) {
           </span>
         </div>
         <div className="tabs">
-          {[
-            ['all', 'همه بررسی‌ها'],
-            ['medium', 'نیازمند بررسی'],
-            ['high', 'ارجاع فوری'],
-            ['low', 'پیگیری معمول'],
-          ].map(([id, label]) => (
+          {(IS_STANDALONE
+            ? [['all', 'همه عکس‌ها · بدون تحلیل']]
+            : [
+                ['all', 'همه بررسی‌ها'],
+                ['medium', 'نیازمند بررسی'],
+                ['high', 'ارجاع فوری'],
+                ['low', 'پیگیری معمول'],
+              ]
+          ).map(([id, label]) => (
             <button
               key={id}
               className={filter === id ? 'active' : ''}
@@ -89,14 +93,16 @@ export default function Reports({ ctx }: { ctx: AppContext }) {
             text="با تغییر فیلتر یا یک بررسی تازه شروع کن."
             action={
               <button className="button secondary" onClick={() => ctx.startAnalysis()}>
-                بررسی تصویر
+                {IS_STANDALONE ? 'ثبت عکس' : 'بررسی تصویر'}
               </button>
             }
           />
         )}
       </div>
       <p className="privacy-inline">
-        گزارش‌های نمونه صراحتاً مشخص‌اند. تصویر و گزارش واقعی فقط در حساب صاحب آن قابل مشاهده‌اند.
+        {IS_STANDALONE
+          ? 'عکس‌ها فقط در ذخیره‌سازی همین دستگاه‌اند. هیچ تشخیص یا امتیاز اطمینان تولید نمی‌شود.'
+          : 'گزارش‌های نمونه صراحتاً مشخص‌اند. تصویر و گزارش واقعی فقط در حساب صاحب آن قابل مشاهده‌اند.'}
       </p>
     </>
   )

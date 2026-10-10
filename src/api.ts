@@ -1,3 +1,4 @@
+import { IS_STANDALONE } from './config'
 export class ApiError extends Error {
   status: number
   constructor(message: string, status: number) {
@@ -7,6 +8,10 @@ export class ApiError extends Error {
 }
 
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
+  if (IS_STANDALONE) {
+    const { localApi } = await import('./standalone')
+    return localApi<T>(path, options)
+  }
   const isForm = options.body instanceof FormData
   let response: Response
   try {
@@ -103,13 +108,13 @@ export async function takePhoto(fallback: () => void, onFile: (file: File) => vo
     onFile(new File([blob], 'pistachio-camera.jpg', { type: 'image/jpeg' }))
   }
 }
-export function downloadText(name: string, content: string, type = 'text/plain;charset=utf-8') {
-  const url = URL.createObjectURL(new Blob(['\ufeff', content], { type }))
-  const a = document.createElement('a')
-  a.href = url
-  a.download = name
-  a.click()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+export async function downloadText(
+  name: string,
+  content: string,
+  type = 'text/plain;charset=utf-8'
+) {
+  const { saveTextFile } = await import('./files')
+  return saveTextFile(name, content, type)
 }
 export const errorMessage = (err: unknown) =>
   err instanceof Error ? err.message : 'خطایی رخ داد. دوباره تلاش کنید.'

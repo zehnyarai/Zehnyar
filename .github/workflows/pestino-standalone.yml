@@ -1,0 +1,102 @@
+name: Pestino free installable edition
+on:
+  push:
+    branches: [arena/e819b607-zehnyar]
+permissions:
+  contents: read
+concurrency:
+  group: pestino-free-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check && npm test
+      - name: Build free iPhone web edition
+        env:
+          VITE_BASE_PATH: /Zehnyar/
+        run: npm run build:standalone
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Test local storage, photos, backups and fully offline operation
+        run: npm run test:standalone
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: pestino-browser-test-results
+          path: test-results/
+          retention-days: 7
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Package all assets locally, with no server URL
+        run: npm ci && npm run android:standalone
+      - name: Prepare Android SDK
+        run: |
+          set +o pipefail
+          yes | sdkmanager --licenses > /dev/null
+          set -o pipefail
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Build signed installable test APK
+        working-directory: android
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+      - name: Verify actual installer and self-contained configuration
+        run: |
+          mkdir -p apk-output
+          cp android/app/build/outputs/apk/debug/app-debug.apk apk-output/Pestino-0.1.0.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose apk-output/Pestino-0.1.0.apk
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging apk-output/Pestino-0.1.0.apk > apk-output/package-info.txt
+          grep -q "name='ir.pestino.app'" apk-output/package-info.txt
+          grep -q 'پستینو' apk-output/package-info.txt
+          python3 - <<'PY'
+          import json, zipfile
+          with zipfile.ZipFile('apk-output/Pestino-0.1.0.apk') as apk:
+              config = json.loads(apk.read('assets/capacitor.config.json'))
+              assert config['appId'] == 'ir.pestino.app'
+              assert config['appName'] == 'پستینو'
+              assert not config.get('server', {}).get('url')
+              assert 'classes.dex' in apk.namelist()
+              assert 'assets/public/index.html' in apk.namelist()
+              assert any(p.startswith('assets/public/assets/') and p.endswith('.js') for p in apk.namelist())
+          PY
+          (cd apk-output && sha256sum Pestino-0.1.0.apk > Pestino-0.1.0.apk.sha256)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pestino-android-installer
+          path: apk-output/
+          retention-days: 7
+
+  deploy:
+    needs: web
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish only the free static web edition, no API or paid host
+        id: deployment
+        uses: actions/deploy-pages@v4

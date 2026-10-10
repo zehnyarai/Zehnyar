@@ -85,28 +85,32 @@ export default function Admin({ ctx }: { ctx: AppContext }) {
       setBusy('')
     }
   }
-  function exportCsv() {
+  async function exportCsv() {
     if (data?.is_demo) {
       const headers = 'sample_id,user,plan,amount_IRR,status\n'
-      downloadText(
-        'pestino-DEMO-payments.csv',
-        headers +
-          transactions
-            .map((p) =>
-              [p.id, p.user_name, p.plan, p.amount_rial, p.status]
-                .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-                .join(',')
-            )
-            .join('\n'),
-        'text/csv;charset=utf-8'
-      )
-      ctx.notify('فقط داده‌های نمونه خروجی گرفته شد.')
+      try {
+        await downloadText(
+          'pestino-DEMO-payments.csv',
+          headers +
+            transactions
+              .map((p) =>
+                [p.id, p.user_name, p.plan, p.amount_rial, p.status]
+                  .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+                  .join(',')
+              )
+              .join('\n'),
+          'text/csv;charset=utf-8'
+        )
+        ctx.notify('فقط داده‌های نمونه خروجی گرفته شد.')
+      } catch (e) {
+        ctx.notify(errorMessage(e), 'error')
+      }
       return
     }
     void fetch('/api/admin/payments/export', { credentials: 'same-origin' })
       .then(async (res) => {
         if (!res.ok) throw new Error('دریافت خروجی مجاز نیست.')
-        downloadText('pestino-payments.csv', await res.text(), 'text/csv;charset=utf-8')
+        await downloadText('pestino-payments.csv', await res.text(), 'text/csv;charset=utf-8')
       })
       .catch((e) => ctx.notify(errorMessage(e), 'error'))
   }

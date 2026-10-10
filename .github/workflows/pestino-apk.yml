@@ -30,7 +30,7 @@ jobs:
         run: |
           if [ -z "$PUBLIC_SERVER" ]; then
             echo '## Pestino APK has not been built' >> "$GITHUB_STEP_SUMMARY"
-            echo 'A permanent public HTTPS server is required first. Set the PESTINO_SERVER_URL repository variable after deployment, then push a new commit on arena/e819b607-zehnyar.' >> "$GITHUB_STEP_SUMMARY"
+            echo 'This optional ONLINE build requires a public HTTPS server. The FREE standalone edition is built separately by pestino-standalone.yml. Set the PESTINO_SERVER_URL repository variable after deployment, then push a new commit on arena/e819b607-zehnyar.' >> "$GITHUB_STEP_SUMMARY"
           else
             echo 'A server URL is set; the build job will validate the actual Pestino API before packaging.' >> "$GITHUB_STEP_SUMMARY"
           fi

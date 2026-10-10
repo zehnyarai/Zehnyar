@@ -27,3 +27,5 @@ android/build/
 .cache/
 
 apk-output/
+
+deliverables/

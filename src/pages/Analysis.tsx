@@ -1,3 +1,4 @@
+import { IS_STANDALONE, assetUrl } from '../config'
 import { useEffect, useRef, useState } from 'react'
 import {
   ArrowLeft,
@@ -60,7 +61,7 @@ export default function Analysis({
   async function analyze() {
     if (!file || busy) return
     setError('')
-    if (!consent) {
+    if (!consent && !IS_STANDALONE) {
       setError('لطفاً ارسال تصویر به سرویس تحلیل و محدودیت‌های بررسی را تأیید کنید.')
       return
     }
@@ -72,10 +73,18 @@ export default function Analysis({
     body.append('notes', notes)
     body.append('consent', 'true')
     try {
-      const report = await api<Report>('/analyses', { method: 'POST', body })
+      const report = await api<Report>(IS_STANDALONE ? '/local/photos' : '/analyses', {
+        method: 'POST',
+        body,
+      })
       await ctx.refresh()
       ctx.openReport(report)
-      ctx.notify('گزارش بررسی ذخیره شد.', 'success')
+      ctx.notify(
+        IS_STANDALONE
+          ? 'عکس و یادداشت روی دستگاه ذخیره شدند؛ تحلیلی انجام نشده.'
+          : 'گزارش بررسی ذخیره شد.',
+        'success'
+      )
     } catch (e) {
       setError(errorMessage(e))
     } finally {
@@ -94,7 +103,7 @@ export default function Analysis({
         orchard_name: 'نمونه آموزشی، نه باغ شما',
         tree_part: 'برگ',
         notes: '',
-        image_url: '/images/pistachio-leaves.jpg',
+        image_url: assetUrl('/images/pistachio-leaves.jpg'),
         created_at: new Date().toISOString(),
       })
     } catch (e) {
@@ -107,25 +116,37 @@ export default function Analysis({
     <>
       <PageTitle
         eyebrow="ببین، بشناس، آگاهانه اقدام کن"
-        title="بررسی هوشمند درخت پسته"
+        title={IS_STANDALONE ? 'ثبت عکس و یادداشت درخت' : 'بررسی هوشمند درخت پسته'}
         subtitle="عکس روشن و اطلاعات باغ، شروع یک بررسی بهتر است."
         action={
           <Badge tone={ctx.data.services.vision_configured ? 'green' : 'amber'}>
             <span className="status-dot" />
-            {ctx.data.services.vision_configured ? 'سرویس تنظیم شده' : 'آماده اتصال به سرویس'}
+            {IS_STANDALONE
+              ? 'محلی · رایگان'
+              : ctx.data.services.vision_configured
+                ? 'سرویس تنظیم شده'
+                : 'آماده اتصال به سرویس'}
           </Badge>
         }
       />
       <div className="analysis-stepper">
-        {['انتخاب تصویر', 'اطلاعات درخت', 'بررسی و اقدام'].map((s, i) => (
-          <div className={i === 0 && file ? 'step complete' : 'step'} key={s}>
-            <span>{i === 0 && file ? <Check size={15} /> : fa(i + 1)}</span>
-            <strong>{s}</strong>
-            {i < 2 && <div className="step-line" />}
-          </div>
-        ))}
+        {['انتخاب تصویر', 'اطلاعات درخت', IS_STANDALONE ? 'ثبت روی دستگاه' : 'بررسی و اقدام'].map(
+          (s, i) => (
+            <div className={i === 0 && file ? 'step complete' : 'step'} key={s}>
+              <span>{i === 0 && file ? <Check size={15} /> : fa(i + 1)}</span>
+              <strong>{s}</strong>
+              {i < 2 && <div className="step-line" />}
+            </div>
+          )
+        )}
       </div>
-      {!ctx.data.services.vision_configured && (
+      {IS_STANDALONE && (
+        <InfoBanner>
+          <strong>ثبت عکس، نه تشخیص هوشمند.</strong> عکس و یادداشت فقط روی همین دستگاه نگهداری
+          می‌شوند. هیچ تصویر یا اطلاعاتی برای تحلیل به سرور ارسال نمی‌شود.
+        </InfoBanner>
+      )}
+      {!IS_STANDALONE && !ctx.data.services.vision_configured && (
         <InfoBanner tone="warning">
           <strong>تحلیل واقعی هنوز فعال نشده است.</strong> کلید و مدل بینایی باید توسط مدیر روی سرور
           تنظیم شوند. نمونه گزارش فقط شکل نتیجه را نشان می‌دهد و عکس انتخابی شما را تحلیل نمی‌کند.
@@ -268,18 +289,20 @@ export default function Analysis({
             />
             <span className="character-count">{fa(notes.length)} / ۱٬۰۰۰</span>
           </label>
-          <label className="consent-check">
-            <input
-              type="checkbox"
-              checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
-              disabled={busy}
-            />
-            <span>
-              می‌پذیرم تصویر پس از حذف اطلاعات مکانی فایل، برای سرویس تحلیل ارسال شود. نتیجه احتمالی
-              است و جای تشخیص کارشناس را نمی‌گیرد.
-            </span>
-          </label>
+          {!IS_STANDALONE && (
+            <label className="consent-check">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+                disabled={busy}
+              />
+              <span>
+                می‌پذیرم تصویر پس از حذف اطلاعات مکانی فایل، برای سرویس تحلیل ارسال شود. نتیجه
+                احتمالی است و جای تشخیص کارشناس را نمی‌گیرد.
+              </span>
+            </label>
+          )}
           {error && (
             <div className="form-error" role="alert">
               {error}
@@ -299,20 +322,24 @@ export default function Analysis({
             }}
           >
             {busy ? (
-              <Spinner label="در حال ارسال و بررسی تصویر…" />
+              <Spinner
+                label={IS_STANDALONE ? 'در حال ذخیره عکس…' : 'در حال ارسال و بررسی تصویر…'}
+              />
             ) : (
               <>
                 <Sparkles size={18} />
-                بررسی تصویر
+                {IS_STANDALONE ? 'ذخیره عکس و یادداشت' : 'بررسی تصویر'}
                 <ArrowLeft size={17} />
               </>
             )}
           </button>
-          <div className="analysis-credit">
-            <ShieldCheck size={13} />
-            اعتبار باقی‌مانده: {fa(Math.max(0, ctx.data.usage.limit - ctx.data.usage.used))} بررسی ·
-            خطای سرویس اعتبار را کسر نمی‌کند.
-          </div>
+          {!IS_STANDALONE && (
+            <div className="analysis-credit">
+              <ShieldCheck size={13} />
+              اعتبار باقی‌مانده: {fa(Math.max(0, ctx.data.usage.limit - ctx.data.usage.used))} بررسی
+              · خطای سرویس اعتبار را کسر نمی‌کند.
+            </div>
+          )}
         </div>
         <aside className="analysis-sidebar">
           <section className="card photo-tips">
@@ -339,32 +366,34 @@ export default function Analysis({
               <ArrowLeft size={15} />
             </button>
           </section>
-          <section className="sample-report-card">
-            <span className="tip-icon">
-              <FileImage size={22} />
-            </span>
-            <h3>نتیجه چه شکلی است؟</h3>
-            <p>
-              مشاهدات، فرضیه‌های محتمل، بررسی‌های تکمیلی و قدم‌های کم‌خطر را در نمونه گزارش ببین.
-            </p>
-            <button
-              className="button secondary"
-              onClick={() => {
-                void sample()
-              }}
-              disabled={sampleBusy}
-            >
-              {sampleBusy ? (
-                <Spinner />
-              ) : (
-                <>
-                  مشاهده گزارش نمونه
-                  <ArrowLeft size={15} />
-                </>
-              )}
-            </button>
-            <small>نمونه نمایشی؛ بدون تحلیل عکس شما</small>
-          </section>
+          {!IS_STANDALONE && (
+            <section className="sample-report-card">
+              <span className="tip-icon">
+                <FileImage size={22} />
+              </span>
+              <h3>نتیجه چه شکلی است؟</h3>
+              <p>
+                مشاهدات، فرضیه‌های محتمل، بررسی‌های تکمیلی و قدم‌های کم‌خطر را در نمونه گزارش ببین.
+              </p>
+              <button
+                className="button secondary"
+                onClick={() => {
+                  void sample()
+                }}
+                disabled={sampleBusy}
+              >
+                {sampleBusy ? (
+                  <Spinner />
+                ) : (
+                  <>
+                    مشاهده گزارش نمونه
+                    <ArrowLeft size={15} />
+                  </>
+                )}
+              </button>
+              <small>نمونه نمایشی؛ بدون تحلیل عکس شما</small>
+            </section>
+          )}
           <div className="limitations">
             <CircleHelp size={18} />
             <div>

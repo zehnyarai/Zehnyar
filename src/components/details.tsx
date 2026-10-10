@@ -1,3 +1,4 @@
+import { IS_STANDALONE, assetUrl } from '../config'
 import { useState } from 'react'
 import {
   ArrowLeft,
@@ -88,9 +89,14 @@ export function ReportDetail({
   const [confirm, setConfirm] = useState(false)
   const [busy, setBusy] = useState(false)
   const d = report.data
-  function download() {
+  const record = d.provider === 'local-storage'
+  async function download() {
     const text = [
-      report.is_sample ? 'گزارش نمونه — تحلیل عکس شما نیست' : 'پستینو — گزارش غربالگری تصویر',
+      record
+        ? 'پستینو — عکس و یادداشت؛ بدون تحلیل'
+        : report.is_sample
+          ? 'گزارش نمونه — تحلیل عکس شما نیست'
+          : 'پستینو — گزارش غربالگری تصویر',
       d.title,
       report.orchard_name ?? '',
       persianDate(report.created_at, { year: 'numeric' }),
@@ -111,8 +117,15 @@ export function ReportDetail({
       d.disclaimer,
       `نسخه دانشنامه: ${d.knowledge_version}`,
     ].join('\n')
-    downloadText(`pestino-${report.is_sample ? 'SAMPLE-' : ''}${report.id.slice(0, 8)}.txt`, text)
-    ctx.notify('نسخه متنی گزارش دریافت شد.')
+    try {
+      const saved = await downloadText(
+        `pestino-${report.is_sample ? 'SAMPLE-' : ''}${report.id.slice(0, 8)}.txt`,
+        text
+      )
+      ctx.notify(saved ? 'نسخه متنی آماده شد.' : 'ذخیره فایل لغو شد.')
+    } catch (e) {
+      ctx.notify(errorMessage(e), 'error')
+    }
   }
   async function remove() {
     setBusy(true)
@@ -120,7 +133,11 @@ export function ReportDetail({
       await api(`/reports/${report.id}`, { method: 'DELETE' })
       await ctx.refresh()
       onClose()
-      ctx.notify('تصویر و محتوای گزارش حذف شد. اعتبار مصرف‌شده بازنمی‌گردد.')
+      ctx.notify(
+        record
+          ? 'عکس و یادداشت از ذخیره‌سازی دستگاه حذف شدند.'
+          : 'تصویر و محتوای گزارش حذف شد. اعتبار مصرف‌شده بازنمی‌گردد.'
+      )
     } catch (e) {
       ctx.notify(errorMessage(e), 'error')
     } finally {
@@ -144,23 +161,36 @@ export function ReportDetail({
         )}
         <div className="report-summary">
           <div className="report-detail-image">
-            <img src={report.image_url ?? '/images/pistachio-leaves.jpg'} alt="تصویر گزارش" />
+            <img
+              src={report.image_url ?? assetUrl('/images/pistachio-leaves.jpg')}
+              alt="تصویر گزارش"
+            />
             {!!report.is_sample && <span>تصویر آموزشی تولیدشده</span>}
           </div>
           <div>
             <div className="report-summary-badges">
               <Badge
-                tone={d.urgency === 'high' ? 'red' : d.urgency === 'medium' ? 'amber' : 'green'}
+                tone={
+                  record
+                    ? 'gray'
+                    : d.urgency === 'high'
+                      ? 'red'
+                      : d.urgency === 'medium'
+                        ? 'amber'
+                        : 'green'
+                }
               >
-                {d.urgency === 'high'
-                  ? 'ارجاع فوری به کارشناس'
-                  : d.urgency === 'medium'
-                    ? 'نیازمند بررسی تکمیلی'
-                    : 'پیگیری معمول'}
+                {record
+                  ? 'ثبت عکس · بدون تحلیل'
+                  : d.urgency === 'high'
+                    ? 'ارجاع فوری به کارشناس'
+                    : d.urgency === 'medium'
+                      ? 'نیازمند بررسی تکمیلی'
+                      : 'پیگیری معمول'}
               </Badge>
               {!!report.is_sample && <Badge tone="gray">نمونه نمایشی</Badge>}
             </div>
-            <h3>خلاصه بررسی اولیه</h3>
+            <h3>{record ? 'پرونده عکس و یادداشت' : 'خلاصه بررسی اولیه'}</h3>
             <p>{d.summary}</p>
             <div className="report-quality">
               <Eye size={14} />
@@ -170,7 +200,7 @@ export function ReportDetail({
         </div>
         <div className="tabs report-tabs">
           {[
-            ['observations', 'مشاهدات و احتمال‌ها', FileSearch],
+            ['observations', record ? 'یادداشت و محدودیت' : 'مشاهدات و احتمال‌ها', FileSearch],
             ['actions', 'اقدام و بررسی تکمیلی', ListChecks],
             ['sources', 'راهنماهای مرتبط', BookOpen],
           ].map(([id, label, Icon]) => {
@@ -191,7 +221,7 @@ export function ReportDetail({
           <div className="report-tab-content">
             <h3>
               <Eye size={18} />
-              چه چیزی قابل مشاهده است؟
+              {record ? 'یادداشت ثبت‌شده شما' : 'چه چیزی قابل مشاهده است؟'}
             </h3>
             <ul className="observation-list">
               {d.observations.map((o, i) => (
@@ -200,7 +230,7 @@ export function ReportDetail({
             </ul>
             <h3>
               <CircleAlert size={18} />
-              فرضیه‌های محتمل، نه تشخیص قطعی
+              {record ? 'تشخیص خودکار انجام نشده است' : 'فرضیه‌های محتمل، نه تشخیص قطعی'}
             </h3>
             {d.hypotheses.length ? (
               d.hypotheses.map((h) => (
@@ -222,11 +252,17 @@ export function ReportDetail({
                 </div>
               ))
             ) : (
-              <p className="muted">از این تصویر نمی‌توان فرضیه تشخیصی قابل اتکا ارائه کرد.</p>
+              <p className="muted">
+                {record
+                  ? 'این نسخه فقط تصویر را نگهداری می‌کند؛ مدل بینایی اجرا نمی‌شود.'
+                  : 'از این تصویر نمی‌توان فرضیه تشخیصی قابل اتکا ارائه کرد.'}
+              </p>
             )}
-            <p className="confidence-disclaimer">
-              امتیاز مدل کالیبره نشده است و احتمال واقعی بیماری یا دقت اندازه‌گیری‌شده نیست.
-            </p>
+            {!record && (
+              <p className="confidence-disclaimer">
+                امتیاز مدل کالیبره نشده است و احتمال واقعی بیماری یا دقت اندازه‌گیری‌شده نیست.
+              </p>
+            )}
           </div>
         )}
         {tab === 'actions' && (
@@ -312,8 +348,9 @@ export function ReportDetail({
         {confirm && (
           <div className="delete-confirm">
             <p>
-              تصویر و محتوای گزارش حذف می‌شود. برای جلوگیری از تغییر سقف اعتبار، سابقه مصرف بدون متن
-              و تصویر نگه داشته می‌شود.
+              {record
+                ? 'عکس و یادداشت از دستگاه حذف می‌شوند. بدون پشتیبان قابل بازگردانی نیستند.'
+                : 'تصویر و محتوای گزارش حذف می‌شود. برای جلوگیری از تغییر سقف اعتبار، سابقه مصرف بدون متن و تصویر نگه داشته می‌شود.'}
             </p>
             <button
               className="button danger small"
@@ -355,20 +392,21 @@ export function HelpModal({
         <div className="legal-copy">
           <h3>اطلاعاتی که ذخیره می‌شود</h3>
           <p>
-            اطلاعات حساب، مشخصات باغ، یادآورها و گزارش‌های شما در سرور ذخیره می‌شوند. در این نسخه
-            موقعیت دقیق GPS دریافت نمی‌شود. عکس واقعی فقط برای صاحب حساب قابل دریافت است.
+            {IS_STANDALONE
+              ? 'اطلاعات باغ، یادآورها و عکس‌ها فقط در ذخیره‌سازی همین دستگاه‌اند. ورود اینترنتی یا همگام‌سازی ندارید. پاک‌کردن داده‌های برنامه یا مرورگر، یا حذف برنامه می‌تواند همه داده‌ها را از بین ببرد. دستگاه را با قفل صفحه محافظت کنید و نسخه پشتیبان بگیرید.'
+              : 'اطلاعات حساب، مشخصات باغ، یادآورها و گزارش‌های شما در سرور ذخیره می‌شوند. در این نسخه موقعیت دقیق GPS دریافت نمی‌شود. عکس واقعی فقط برای صاحب حساب قابل دریافت است.'}
           </p>
           <h3>ارسال تصویر با رضایت شما</h3>
           <p>
-            پس از تأیید شما، تصویر به سرویس بینایی تنظیم‌شده توسط مدیر ارسال می‌شود. اطلاعات EXIF و
-            موقعیت فایل پیش از ذخیره و ارسال حذف می‌شوند. شرایط نگهداری سرویس خارجی باید پیش از عرضه
-            عمومی اعلام و بررسی شود.
+            {IS_STANDALONE
+              ? 'هیچ عکس یا مشخصات باغی از این نسخه برای سرور، پرداخت یا مدل بینایی ارسال نمی‌شود. عکس ذخیره‌شده از پیکسل‌ها دوباره ساخته می‌شود و اطلاعات EXIF/GPS اصلی در آن کپی نمی‌شوند. لینک منابع خارجی، در صورت انتخاب خودتان، با اینترنت باز می‌شود.'
+              : 'پس از تأیید شما، تصویر به سرویس بینایی تنظیم‌شده توسط مدیر ارسال می‌شود. اطلاعات EXIF و موقعیت فایل پیش از ذخیره و ارسال حذف می‌شوند. شرایط نگهداری سرویس خارجی باید پیش از عرضه عمومی اعلام و بررسی شود.'}
           </p>
           <h3>حذف عکس و گزارش</h3>
           <p>
-            از داخل گزارش می‌توانید تصویر و محتوای آن را حذف کنید. یک سابقه بدون محتوا برای محاسبه
-            اعتبار نگه داشته می‌شود. سوابق پرداخت و رویدادهای امنیتی جدا هستند. حذف کامل حساب و
-            سیاست نگهداری پشتیبان‌ها باید پیش از عرضه عمومی تکمیل شود.
+            {IS_STANDALONE
+              ? 'از پرونده عکس می‌توانید آن را حذف کنید. در بخش داده‌ها و پشتیبان، حذف همه داده‌های محلی هم در دسترس است. فایل‌های پشتیبان قبلی مستقل‌اند و باید جداگانه توسط شما حذف شوند؛ این فایل‌ها رمزگذاری نشده‌اند.'
+              : 'از داخل گزارش می‌توانید تصویر و محتوای آن را حذف کنید. یک سابقه بدون محتوا برای محاسبه اعتبار نگه داشته می‌شود. سوابق پرداخت و رویدادهای امنیتی جدا هستند. حذف کامل حساب و سیاست نگهداری پشتیبان‌ها باید پیش از عرضه عمومی تکمیل شود.'}
           </p>
           <h3>محدودیت علمی</h3>
           <p>
@@ -378,8 +416,9 @@ export function HelpModal({
           </p>
           <h3>حالت آزمایشی</h3>
           <p>
-            باغ‌ها، گزارش‌ها و تراکنش‌های نمونه مشخص هستند. تا تنظیم درگاه و سرویس، پرداخت و تحلیل
-            واقعی انجام نمی‌شود. تصاویر آموزشی برنامه تولیدشده‌اند و مدرک تشخیص نیستند.
+            {IS_STANDALONE
+              ? 'نسخه مستقل با دفتر باغ خالی شروع می‌شود. عکس ثبت‌شده، تشخیص نیست و هیچ وجه یا اشتراکی دریافت نمی‌شود. تصاویر آموزشی تولیدشده‌اند و مدرک تشخیص نیستند.'
+              : 'باغ‌ها، گزارش‌ها و تراکنش‌های نمونه مشخص هستند. تا تنظیم درگاه و سرویس، پرداخت و تحلیل واقعی انجام نمی‌شود. تصاویر آموزشی برنامه تولیدشده‌اند و مدرک تشخیص نیستند.'}
           </p>
         </div>
       ) : (
@@ -420,8 +459,9 @@ export function HelpModal({
             </div>
           ))}
           <InfoBanner tone="warning">
-            این نسخه یک پایلوت قابل توسعه است؛ سرویس‌ها، تأیید علمی و مراحل انتشار اندروید هنوز نیاز
-            به تکمیل دارند.
+            {IS_STANDALONE
+              ? 'این نسخه مستقل رایگان است؛ بدون سرور نصب و اجرا می‌شود. تحلیل هوشمند و پرداخت واقعی ندارد. تأیید علمی و آزمون دستگاه واقعی همچنان لازم‌اند.'
+              : 'این نسخه یک پایلوت قابل توسعه است؛ سرویس‌ها، تأیید علمی و مراحل انتشار اندروید هنوز نیاز به تکمیل دارند.'}
           </InfoBanner>
         </>
       )}

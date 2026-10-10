@@ -1,3 +1,5 @@
+import { IS_STANDALONE } from './config'
+import { Capacitor } from '@capacitor/core'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import '@fontsource/vazirmatn/arabic-400.css'
@@ -18,7 +20,11 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { fai
     return this.state.failed ? (
       <div className="boot-screen">
         <h1>نمایش صفحه با مشکل روبه‌رو شد</h1>
-        <p>اطلاعات ثبت‌شده روی سرور محفوظ است. صفحه را دوباره باز کنید.</p>
+        <p>
+          {IS_STANDALONE
+            ? 'صفحه را دوباره باز کنید؛ داده‌های دستگاه را پاک نکنید.'
+            : 'اطلاعات ثبت‌شده روی سرور محفوظ است. صفحه را دوباره باز کنید.'}
+        </p>
         <button className="button primary" onClick={() => location.reload()}>
           بارگذاری دوباره
         </button>
@@ -35,3 +41,17 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </ErrorBoundary>
   </React.StrictMode>
 )
+
+if (
+  IS_STANDALONE &&
+  !import.meta.env.DEV &&
+  !Capacitor.isNativePlatform() &&
+  'serviceWorker' in navigator
+) {
+  window.addEventListener('load', () => {
+    void navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {
+      // The app still works online. Offline availability is not promised until
+      // the worker has successfully cached all local assets.
+    })
+  })
+}

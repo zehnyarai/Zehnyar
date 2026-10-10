@@ -1,3 +1,4 @@
+import { IS_STANDALONE, assetUrl } from '../config'
 import { useState } from 'react'
 import {
   ArrowLeft,
@@ -60,7 +61,7 @@ export default function Orchards({ ctx }: { ctx: AppContext }) {
         {orchards.map((o, i) => (
           <article className="orchard-card card" key={o.id}>
             <div className={`orchard-cover cover-${i % 2}`}>
-              <img src="/images/pistachio-orchard.jpg" alt="تصویر آموزشی باغ پسته" />
+              <img src={assetUrl('/images/pistachio-orchard.jpg')} alt="تصویر آموزشی باغ پسته" />
               <div className="orchard-cover-shade" />
               <div className="orchard-cover-top">
                 <Badge tone="gray">{o.is_sample ? 'باغ نمونه' : 'ثبت‌شده توسط شما'}</Badge>
@@ -111,7 +112,7 @@ export default function Orchards({ ctx }: { ctx: AppContext }) {
                 className="button secondary small"
                 onClick={() => ctx.startAnalysis(undefined, o.id)}
               >
-                بررسی درخت
+                {IS_STANDALONE ? 'ثبت عکس درخت' : 'بررسی درخت'}
               </button>
             </div>
           </article>
@@ -192,7 +193,7 @@ export default function Orchards({ ctx }: { ctx: AppContext }) {
                 ctx.startAnalysis(undefined, id)
               }}
             >
-              بررسی تصویر درخت
+              {IS_STANDALONE ? 'ثبت عکس درخت' : 'بررسی تصویر درخت'}
               <ArrowLeft size={15} />
             </button>
             <button
