@@ -26,6 +26,15 @@ jobs:
       - run: npx playwright install --with-deps chromium webkit
       - name: Test local storage, photos, backups and fully offline operation
         run: npm run test:standalone -- --reporter=github
+      - name: Expose failed browser context without external log downloads
+        if: failure()
+        run: |
+          python3 - <<'PYCONTEXT'
+          from pathlib import Path
+          for p in Path('test-results').rglob('ui-context.json'):
+              value = p.read_text().replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+              print('::notice title=Standalone UI context::' + value)
+          PYCONTEXT
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -115,7 +124,8 @@ jobs:
     # Exactly one user-requested small APK is retained on this session branch
     # because download CDNs are unavailable in the agent sandbox. No SDK,
     # cache, signing key or user dataset is checked into Git.
-    needs: [web, apk]
+    # Native assets do not use a service worker; PWA cache testing is independent.
+    needs: apk
     runs-on: ubuntu-24.04
     permissions:
       contents: write

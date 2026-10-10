@@ -125,6 +125,7 @@ test('mobile layout and installation metadata are valid', async ({ page }) => {
 test.afterEach(async ({page}, info) => {
   if (info.status !== info.expectedStatus) {
     const diagnostic = await page.evaluate(() => ({url: location.href, hash: location.hash, text: document.body.innerText.slice(0, 7000), controlled: !!navigator.serviceWorker?.controller})).catch(() => ({url: page.url()}))
+    await fs.writeFile(info.outputPath('ui-context.json'), JSON.stringify(diagnostic))
     const value = JSON.stringify(diagnostic).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A')
     console.log('::notice title=Standalone UI failure context::' + value)
   }
