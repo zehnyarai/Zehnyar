@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
@@ -1036,6 +1037,15 @@ app = FastAPI(
     description="بازیابی شفاف واژگانی و پیوندهای موضوعی در متن قرآن، با نمایش شواهد، سیاق و مسیر بازیابی.",
 )
 app.add_middleware(GZipMiddleware, minimum_size=600)
+# The Android wrapper may be served from appassets.androidplatform.net while the
+# research API runs on a separately deployed HTTPS host. No credentials are used.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
+)
 
 
 @app.middleware("http")
@@ -1047,7 +1057,7 @@ async def standards_headers(request, call_next):
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
     response.headers["Content-Security-Policy"] = (
         "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data:; font-src 'self' data:; connect-src 'self'; "
+        "img-src 'self' data:; font-src 'self' data:; connect-src 'self' https:; "
         "object-src 'none'; base-uri 'self'; form-action 'self'"
     )
     if request.url.path.startswith("/api/"):
@@ -1130,6 +1140,16 @@ def get_verse(surah: int, ayah: int) -> dict[str, Any]:
 
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.api_route("/manifest.webmanifest", methods=["GET", "HEAD"], include_in_schema=False)
+def manifest() -> FileResponse:
+    return FileResponse(STATIC_DIR / "manifest.webmanifest", media_type="application/manifest+json")
+
+
+@app.api_route("/sw.js", methods=["GET", "HEAD"], include_in_schema=False)
+def service_worker() -> FileResponse:
+    return FileResponse(STATIC_DIR / "sw.js", media_type="application/javascript")
 
 
 @app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)

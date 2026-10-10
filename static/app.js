@@ -1,5 +1,18 @@
-const api = "/api/analyze";
+const API_BASE_KEY = "zehnyar-research-api-base-v1";
 const NOTEBOOK_KEY = "zehnyar-evidence-notebook-v1";
+
+function apiUrl(path) {
+  const base = (localStorage.getItem(API_BASE_KEY) || "").trim().replace(/\/$/, "");
+  return base ? `${base}${path}` : path;
+}
+
+function updateConnectionLabel() {
+  const label = document.querySelector("#connection-label");
+  if (!label) return;
+  label.textContent = localStorage.getItem(API_BASE_KEY)
+    ? "سرور پژوهش متصل"
+    : "متن کامل · ۶۲۳۶ آیه";
+}
 const state = { data: null, filter: "all", limit: 12 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -23,6 +36,147 @@ function escapeHTML(value = "") {
 function faNumber(value) {
   return Number(value || 0).toLocaleString("fa-IR");
 }
+
+const OFFLINE_CORPUS_URL = "static/offline-corpus.json";
+const OFFLINE_FRAMEWORK_URL = "static/offline-framework.json";
+let offlineCorpusPromise;
+
+function normalizeForOffline(value = "") {
+  return value
+    .replace(/[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed\u08d4-\u08ff]/g, "")
+    .replace(/[ٱأإآ]/g, "ا")
+    .replace(/ى/g, "ی")
+    .replace(/ي/g, "ی")
+    .replace(/ئ/g, "ی")
+    .replace(/ؤ/g, "و")
+    .replace(/ك/g, "ک")
+    .replace(/ة/g, "ه")
+    .replace(/[ـ‌]/g, " ")
+    .replace(/[^\w\s\u0600-\u06ff]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+async function offlineCorpus() {
+  if (!offlineCorpusPromise) {
+    offlineCorpusPromise = fetch(OFFLINE_CORPUS_URL).then((response) => {
+      if (!response.ok) throw new Error("offline corpus unavailable");
+      return response.json();
+    });
+  }
+  return offlineCorpusPromise;
+}
+
+function offlineStructure(matches) {
+  const bySurah = new Map();
+  const revelation = { "مکی": { total: 0, direct: 0 }, "مدنی": { total: 0, direct: 0 } };
+  matches.forEach((item) => {
+    const current = bySurah.get(item.surah) || { surah: item.surah, name: item.surah_name, type: item.revelation, total: 0, direct: 0 };
+    current.total += 1;
+    current.direct += 1;
+    bySurah.set(item.surah, current);
+    revelation[item.revelation].total += 1;
+    revelation[item.revelation].direct += 1;
+  });
+  return {
+    revelation,
+    distribution: [...bySurah.values()].sort((a, b) => b.total - a.total || a.surah - b.surah).slice(0, 7),
+    clusters: [],
+    note: "در حالت آفلاین، این نمودار فقط نتایج بازیابیِ عبارت را توصیف می‌کند.",
+  };
+}
+
+function offlineGraph(query, matches, structure) {
+  const topSurahs = structure.distribution.slice(0, 4);
+  const nodes = [
+    { id: "topic", label: query, meta: "پرسشِ آفلاین", kind: "topic", weight: 1 },
+    { id: "term-0", label: "عبارتِ جست‌وجوشده", meta: `${matches.length} شاهد`, kind: "term", weight: 0.78 },
+    ...topSurahs.map((item) => ({ id: `surah-${item.surah}`, label: item.name, meta: `سورهٔ ${item.surah} · ${item.total} شاهد`, kind: "surah", weight: 0.63 })),
+    ...matches.slice(0, 2).map((item, index) => ({ id: `verse-${index}`, label: item.reference, meta: item.relation, kind: "verse", weight: 0.45 })),
+  ];
+  const edges = [
+    { source: "topic", target: "term-0", label: `${matches.length} پیوند` },
+    ...topSurahs.map((item) => ({ source: "term-0", target: `surah-${item.surah}`, label: `${item.total} آیه` })),
+    ...matches.slice(0, 2).map((item, index) => ({ source: "term-0", target: `verse-${index}`, label: "شاهد نمونه" })),
+  ];
+  return {
+    nodes,
+    edges,
+    layout: "concentric-evidence",
+    metrics: { lexical_terms: 1, surah_connections: topSurahs.length, narrative_paths: 0, story_lexical_hits: 0 },
+    reading_arc: [
+      { stage: "نقطهٔ آغاز", title: "عبارت و شاهد", body: "جست‌وجوی آفلاین فقط عبارت واردشده را در متن عربی و ترجمهٔ فارسی بازیابی می‌کند." },
+      { stage: "رشتهٔ واژگانی", title: "واژهٔ مرکزی", body: `عبارتِ جست‌وجوشده: ${query}` },
+      { stage: "پراکندگی متن", title: "سوره‌ها", body: `بیشترین تمرکز آفلاین: ${topSurahs.map((item) => item.name).join("، ") || "—"}` },
+      { stage: "قوس روایی", title: "نیازمند اتصال", body: "مسیرهای رواییِ بازبینی‌شده در نسخهٔ آنلاین فعال می‌شوند." },
+      { stage: "بازگشت به زندگی", title: "تأمل محتاطانه", body: "میان متن، ترجمه و برداشت شخصی تمایز نگه دارید." },
+    ],
+    notice: "شبکهٔ آفلاین محدود به بازیابیِ عبارت است. برای واژه‌نامهٔ موضوعی، روایت‌ها و تحلیل کامل به سرور پژوهش متصل شوید.",
+  };
+}
+
+async function offlineAnalyze(query, limit) {
+  const corpus = await offlineCorpus();
+  const normalizedQuery = normalizeForOffline(query);
+  if (!normalizedQuery) throw new Error("عبارت جست‌وجو نمی‌تواند خالی باشد.");
+  const records = corpus.verses.map(([surah, ayah, arabic, persian, surah_name, revelation]) => ({ surah, ayah, arabic, persian, surah_name, revelation }));
+  const byId = new Map(records.map((record) => [`${record.surah}:${record.ayah}`, record]));
+  const matches = records.filter((record) => {
+    const ar = normalizeForOffline(record.arabic);
+    const fa = normalizeForOffline(record.persian);
+    return ar.includes(normalizedQuery) || fa.includes(normalizedQuery);
+  }).map((record) => {
+    const source = normalizeForOffline(record.arabic).includes(normalizedQuery) && normalizeForOffline(record.persian).includes(normalizedQuery)
+      ? "هر دو متن" : normalizeForOffline(record.arabic).includes(normalizedQuery) ? "متن عربی" : "ترجمهٔ فارسی";
+    return {
+      ...record,
+      id: `${record.surah}:${record.ayah}`,
+      reference: `${record.surah_name} ${record.surah}:${record.ayah}`,
+      score: 1,
+      matches: ["عبارتِ جست‌وجوشده"],
+      evidence: [{ label: "عبارتِ جست‌وجوشده", term: normalizedQuery, source, origin: "بازیابی آفلاین" }],
+      story_context: [],
+      relation: "ذکر / ترجمهٔ مستقیم",
+    };
+  });
+  const shown = matches.slice(0, limit);
+  const seen = new Set(shown.map((item) => item.id));
+  const context = [];
+  shown.slice(0, 3).forEach((item) => [-1, 1].forEach((delta) => {
+    const neighbor = byId.get(`${item.surah}:${item.ayah + delta}`);
+    if (neighbor && !seen.has(`${neighbor.surah}:${neighbor.ayah}`) && context.length < 4) {
+      seen.add(`${neighbor.surah}:${neighbor.ayah}`);
+      context.push({ ...neighbor, id: `${neighbor.surah}:${neighbor.ayah}`, reference: `${neighbor.surah_name} ${neighbor.surah}:${neighbor.ayah}`, score: 0, matches: ["همسایگی خطی"], evidence: [], story_context: [], relation: "سیاق خطی" });
+    }
+  }));
+  const structure = offlineStructure(matches);
+  return {
+    query,
+    canonical_topic: null,
+    mode: { id: "literal", label: "آفلاین: فقط عبارت", description: "بازیابی پایه از پیکرهٔ ذخیره‌شده روی دستگاه" },
+    summary: `در حالت آفلاین، ${faNumber(matches.length)} شاهدِ دارای عبارت «${query}» در پیکرهٔ محلی پیدا شد. توسعهٔ موضوعی، تحلیل شبکه‌ای کامل و مسیرهای روایی به اتصال سرور نیاز دارند.`,
+    topic_description: "جست‌وجوی پایهٔ آفلاین؛ فقط تطابق عبارت در متن عربی و ترجمهٔ فارسی.",
+    questions: ["این عبارت در آیه چه نقش و چه سیاقی دارد؟", "برای گسترش موضوعی و مسیرهای روایی، در زمان اتصال دوباره پژوهش را اجرا کنید."],
+    stats: { direct: matches.length, thematic: 0, narrative: 0, story_lexical: 0, surahs: structure.distribution.length, shown: shown.length },
+    expansion: [],
+    verses: shown,
+    context,
+    narrative: { paths: [], lexical_story_hits: 0, notice: "مسیرهای روایی در نسخهٔ آنلاین پژوهش در دسترس‌اند." },
+    structure,
+    graph: offlineGraph(query, matches, structure),
+    reflection: { title: "تأمل آفلاین", focus: "خواندن دقیق متن پیش از برداشت", prompts: ["یک موقعیت واقعی را انتخاب کنید و میان متن، ترجمه و برداشت شخصی تمایز بگذارید.", "برای تحلیل واژگانیِ گسترده‌تر و مسیرهای روایی، در حالت آنلاین همین پرسش را دوباره اجرا کنید."], notice: "این بخش تمرین تأمل است، نه حکم شخصی یا تفسیر نهایی." },
+    method: { title: "حالت آفلاین", steps: ["پیکرهٔ ذخیره‌شده روی دستگاه جست‌وجو می‌شود.", "فقط عبارتِ واردشده در عربی و ترجمهٔ فارسی تطبیق داده می‌شود.", "تحلیل موضوعی، شبکهٔ کامل و مسیرهای روایی نیازمند سرور پژوهش‌اند."] },
+    corpus: { arabic: "Tanzil Uthmani (offline)", persian: "QuranEnc Persian (offline)", total_verses: corpus.verses.length },
+    offline: true,
+  };
+}
+
+function showOfflineNotice() {
+  statusMessage.textContent = "اتصال به سرور پژوهش در دسترس نیست؛ جست‌وجوی پایه از پیکرهٔ ذخیره‌شده روی همین دستگاه اجرا شد.";
+  statusMessage.classList.add("show", "offline");
+}
+
 
 function loadNotebook() {
   try {
@@ -78,11 +232,12 @@ function loading() {
   $("#load-more").hidden = true;
   $("#narrative-section").hidden = true;
   submit.disabled = true;
-  statusMessage.classList.remove("show");
+  statusMessage.classList.remove("show", "offline");
 }
 
 function showError(message) {
   statusMessage.textContent = message;
+  statusMessage.classList.remove("offline");
   statusMessage.classList.add("show");
 }
 
@@ -223,12 +378,18 @@ function renderFramework(data) {
 
 async function loadFramework() {
   try {
-    const response = await fetch("/api/framework");
+    const response = await fetch(apiUrl("/api/framework"));
     if (!response.ok) throw new Error("framework unavailable");
     renderFramework(await response.json());
   } catch {
-    $("#framework-notice").textContent = "چارچوب پژوهش در دسترس نیست؛ جست‌وجوی متنی همچنان فعال است.";
-    $("#framework-grid").innerHTML = '<p class="cluster-empty">لطفاً اتصال را دوباره بررسی کنید.</p>';
+    try {
+      const response = await fetch(OFFLINE_FRAMEWORK_URL);
+      if (!response.ok) throw new Error("offline framework unavailable");
+      renderFramework(await response.json());
+    } catch {
+      $("#framework-notice").textContent = "چارچوب پژوهش در دسترس نیست؛ جست‌وجوی متنی همچنان فعال است.";
+      $("#framework-grid").innerHTML = '<p class="cluster-empty">لطفاً اتصال را دوباره بررسی کنید.</p>';
+    }
   }
 }
 
@@ -394,16 +555,31 @@ async function research(query, scroll = false, limit = 12) {
   state.limit = limit;
   loading();
   try {
-    const response = await fetch(api, {
+    const response = await fetch(apiUrl("/api/analyze"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ query: cleanQuery, limit, include_context: true, mode: modeSelect.value }),
     });
     const payload = await response.json();
-    if (!response.ok) throw new Error(payload.detail || "دریافت نتیجه ناموفق بود.");
+    if (!response.ok) {
+      const apiError = new Error(payload.detail || "دریافت نتیجه ناموفق بود.");
+      apiError.validation = response.status === 422;
+      throw apiError;
+    }
     render(payload);
     if (scroll) $("#research").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
+    if (!error.validation) {
+      try {
+        const fallback = await offlineAnalyze(cleanQuery, limit);
+        render(fallback);
+        showOfflineNotice();
+        if (scroll) $("#research").scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      } catch {
+        // Use the regular error state below if neither online nor offline research is available.
+      }
+    }
     resultsList.innerHTML = `<div class="empty-results"><b>اتصال به موتور پژوهش برقرار نشد.</b>لطفاً دوباره تلاش کنید.</div>`;
     showError(error.message || "خطای پیش‌بینی‌نشده رخ داد.");
   } finally {
@@ -435,8 +611,12 @@ $("#load-more").addEventListener("click", () => {
 
 $("#export-research").addEventListener("click", () => {
   if (!state.data) return;
+  if (state.data.offline) {
+    showError("گزارش Markdownِ قابل ممیزی به سرور پژوهش نیاز دارد. برای گزارش کامل، اتصال HTTPS را از نشان بالای صفحه تنظیم کنید.");
+    return;
+  }
   const params = new URLSearchParams({ q: state.data.query, mode: modeSelect.value });
-  window.location.assign(`/api/export/markdown?${params.toString()}`);
+  window.location.assign(`${apiUrl("/api/export/markdown")}?${params.toString()}`);
 });
 
 document.querySelectorAll(".filter-tabs button").forEach((button) => {
@@ -551,6 +731,27 @@ document.querySelectorAll("[data-graph-view]").forEach((button) => {
   button.addEventListener("click", () => setGraphView(button.dataset.graphView));
 });
 
+$("#connection-settings").addEventListener("click", () => {
+  const current = localStorage.getItem(API_BASE_KEY) || "";
+  const value = window.prompt("آدرس HTTPS سرور ذهن‌یار را وارد کنید. برای بازگشت به حالت آفلاین، مقدار را خالی بگذارید:", current);
+  if (value === null) return;
+  const normalized = value.trim().replace(/\/$/, "");
+  if (!normalized) {
+    localStorage.removeItem(API_BASE_KEY);
+    updateConnectionLabel();
+    research(input.value);
+    return;
+  }
+  if (!/^https:\/\/[^\s/]+/i.test(normalized)) {
+    showError("برای اتصال امن، آدرس HTTPS کامل سرور را وارد کنید.");
+    return;
+  }
+  localStorage.setItem(API_BASE_KEY, normalized);
+  updateConnectionLabel();
+  loadFramework();
+  research(input.value);
+});
+
 $("#graph-info").addEventListener("click", () => {
   const help = $("#graph-help");
   help.hidden = !help.hidden;
@@ -564,7 +765,12 @@ $("#method-toggle").addEventListener("click", () => {
   button.setAttribute("aria-expanded", String(!content.hidden));
 });
 
+if ("serviceWorker" in navigator && /^(https?:)$/.test(window.location.protocol)) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+
 renderNotebook();
+updateConnectionLabel();
 setGraphView("network");
 loadFramework();
 research(input.value);

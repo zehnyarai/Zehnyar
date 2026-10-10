@@ -44,7 +44,7 @@ a { color: inherit; text-decoration: none; }
 .brand-mark i:nth-child(1) { height: 7px; opacity: .54; }.brand-mark i:nth-child(2) { height: 14px; }.brand-mark i:nth-child(3) { height: 10px; opacity: .75; }
 .site-header nav { display: flex; gap: clamp(14px, 2.8vw, 37px); margin-right: 84px; color: #52738b; font-size: 13px; }
 .site-header nav a { transition: color .2s; }.site-header nav a:hover { color: var(--emerald); }
-.header-status { display: inline-flex; gap: 7px; align-items: center; color: #416e88; font-size: 12px; background: rgba(224,247,249,.82); border: 1px solid #cce8ef; border-radius: 30px; padding: 5px 12px; direction: rtl; }
+.header-status { display: inline-flex; gap: 7px; align-items: center; color: #416e88; font: inherit; font-size: 12px; background: rgba(224,247,249,.82); border: 1px solid #cce8ef; border-radius: 30px; padding: 5px 12px; direction: rtl; }.header-status:hover { color: #075b7a; border-color: #77bfd0; }
 .header-status span, .pulse { width: 7px; height: 7px; border-radius: 50%; background: #1baec0; box-shadow: 0 0 0 3px rgba(64,174,127,.15); }
 
 .hero { text-align: center; width: min(100% - 32px, 990px); margin: 0 auto; padding: 92px 0 70px; }
@@ -82,7 +82,7 @@ h1 em::after { content: ''; position: absolute; left: 1px; right: 1px; bottom: -
 .section-heading { width: min(100%, 1320px); margin: 0 auto 23px; display: flex; align-items: end; justify-content: space-between; }
 .section-heading h2 { margin: 1px 0 0; color: var(--pine-deep); line-height: 1.3; font-size: 28px; letter-spacing: -1px; }.section-heading h2 span { color: var(--emerald); }
 .corpus-note { color: #5c849c; font-size: 11px; border-radius: 20px; background: #e5f4f8; padding: 5px 12px; }
-.status-message { display: none; width: min(100%, 1320px); margin: -9px auto 18px; padding: 9px 12px; border-radius: 9px; color: #a4574b; background: #eef8ff; border: 1px solid #cfe4ed; font-size: 12px; }.status-message.show { display: block; }
+.status-message { display: none; width: min(100%, 1320px); margin: -9px auto 18px; padding: 9px 12px; border-radius: 9px; color: #a4574b; background: #eef8ff; border: 1px solid #cfe4ed; font-size: 12px; }.status-message.show { display: block; }.status-message.offline { color: #156c87; background: #e6f8fa; border-color: #bce3ea; }
 .research-grid { width: min(100%, 1320px); margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(330px, .85fr); align-items: start; gap: 23px; }
 .evidence-column, .insight-column { min-width: 0; }
 .summary-card, .graph-card, .structure-card, .notebook-card, .questions-card, .reflection-card, .method-card, .context-section { background: var(--paper); border: 1px solid var(--line); border-radius: 17px; box-shadow: var(--soft-shadow); }

@@ -1,0 +1,47 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'ai.zehnyar.mobile'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'ai.zehnyar.mobile'
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName '0.1.0'
+    }
+}
+
+def sourceStatic = file('../../../static')
+def generatedAssets = file("$buildDir/generated/zehnyar-assets")
+
+tasks.register('syncZehnyarAssets', Sync) {
+    from(sourceStatic) {
+        into('static')
+    }
+    from(file('../../../static/index.html')) {
+        rename { 'index.html' }
+    }
+    from(file('../../../static/manifest.webmanifest')) {
+        rename { 'manifest.webmanifest' }
+    }
+    from(file('../../../static/sw.js')) {
+        rename { 'sw.js' }
+    }
+    into(generatedAssets)
+}
+
+afterEvaluate {
+    android.sourceSets.main.assets.srcDir(generatedAssets)
+}
+
+tasks.named('preBuild').configure {
+    dependsOn(tasks.named('syncZehnyarAssets'))
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.11.0'
+}

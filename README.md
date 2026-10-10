@@ -27,6 +27,10 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 سپس `http://localhost:8000` را باز کنید. مستندات تعاملی API در `/docs` در دسترس است.
 
+## نصب روی موبایل
+
+رابط وب اکنون یک **PWA نصب‌پذیر** است و در حالت بی‌اتصال، جست‌وجوی پایهٔ عبارت را با پیکرهٔ محلی انجام می‌دهد. پوستهٔ Android و workflow ساخت APK نیز در `mobile/android/` و `.github/workflows/android-apk.yml` قرار گرفته‌اند. راهنمای کامل نصب، ساخت APK و اتصال نسخهٔ موبایل به سرور پژوهش در [`INSTALL_ANDROID.md`](INSTALL_ANDROID.md) است.
+
 ## API
 
 ### `POST /api/analyze`

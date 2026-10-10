@@ -3,9 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0c322e" />
+    <meta name="theme-color" content="#075b7a" />
+    <meta name="application-name" content="ذهن‌یار" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <title>ذهن‌یار | پژوهش موضوعی قرآن</title>
-    <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="static/icons/zehnyar-192.png" type="image/png" />
+    <link rel="apple-touch-icon" href="static/icons/zehnyar-192.png" />
+    <link rel="stylesheet" href="static/styles.css" />
   </head>
   <body>
     <div class="ambient ambient--one"></div>
@@ -22,7 +28,7 @@
         <a href="#method">روش</a>
         <a href="#sources">منابع</a>
       </nav>
-      <span class="header-status"><span></span> متن کامل · ۶۲۳۶ آیه</span>
+      <button id="connection-settings" class="header-status" type="button" title="تنظیم یا پاک‌کردن آدرس سرور پژوهش"><span></span><b id="connection-label">متن کامل · ۶۲۳۶ آیه</b></button>
     </header>
 
     <main id="top">
@@ -236,6 +242,6 @@
     <template id="loading-template">
       <div class="loading-card"><span></span><span></span><span></span><p>در حال خواندن شبکهٔ واژگان و آیه‌ها…</p></div>
     </template>
-    <script src="/static/app.js" defer></script>
+    <script src="static/app.js" defer></script>
   </body>
 </html>
