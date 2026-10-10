@@ -52,6 +52,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: mobile-latest
+          target_commitish: ${{ github.sha }}
           name: "ذهن‌یار برای اندروید — آخرین نسخه"
           prerelease: true
           generate_release_notes: true
