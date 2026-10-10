@@ -64,6 +64,28 @@ class QuranResearchTests(unittest.TestCase):
             [list(item) for item in main.TOPICS["عدالت"]["terms"]],
         )
 
+    def test_concept_lexicon_separates_quranic_equivalents_from_related_terms(self):
+        lexicon_path = Path(main.STATIC_DIR) / "concept-lexicon.json"
+        lexicon = json.loads(lexicon_path.read_text(encoding="utf-8"))
+        concepts = {concept["id"]: concept for concept in lexicon["concepts"]}
+        love = concepts["love"]
+        self.assertIn("عشق", love["aliases"])
+        self.assertIn(["حب", "حُبّ و دوست‌داشتن"], love["equivalents"])
+        self.assertIn(["رحمة", "رحمت"], love["related"])
+        self.assertTrue(all(concept["equivalents"] for concept in concepts.values()))
+        self.assertTrue(all("related" in concept for concept in concepts.values()))
+
+    def test_love_concept_has_arabic_quranic_witnesses_without_searching_persian(self):
+        lexicon = json.loads((Path(main.STATIC_DIR) / "concept-lexicon.json").read_text(encoding="utf-8"))
+        love = next(concept for concept in lexicon["concepts"] if concept["id"] == "love")
+        equivalent_terms = {main.normalize(term) for term, _ in love["equivalents"]}
+        arabic_matches = [
+            record for record in main.CORPUS
+            if any(term in record["arabic_normalized"] for term in equivalent_terms)
+        ]
+        self.assertGreater(len(arabic_matches), 0)
+        self.assertFalse(any(main.normalize("عشق") in record["arabic_normalized"] for record in main.CORPUS))
+
     def test_narrative_paths_are_bounded_and_separate_from_lexical_hits(self):
         result = main.analyze("عدالت", 8, True, "topic")
         paths = result["narrative"]["paths"]

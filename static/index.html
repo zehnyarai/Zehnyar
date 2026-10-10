@@ -3,277 +3,138 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#075b7a" />
+    <meta name="theme-color" content="#123f56" />
     <meta name="application-name" content="ذهن‌یار" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <title>ذهن‌یار | پژوهش موضوعی قرآن</title>
+    <title>ذهن‌یار | پژوهش مفهومی در قرآن</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="static/icons/zehnyar-192.png" type="image/png" />
     <link rel="apple-touch-icon" href="static/icons/zehnyar-192.png" />
     <link rel="stylesheet" href="static/styles.css" />
   </head>
   <body>
-    <div class="ambient ambient--one"></div>
-    <div class="ambient ambient--two"></div>
-
-    <header class="site-header">
-      <a class="brand" href="#top" aria-label="ذهن‌یار، صفحه اصلی">
+    <header class="app-header">
+      <button id="brand-home" class="brand" type="button" aria-label="بازگشت به جست‌وجو">
         <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
         <span>ذهن‌یار</span>
-      </a>
-      <nav aria-label="ناوبری اصلی">
-        <a href="#frameworks">موضوع‌ها</a>
-        <a href="#research">مسیر پژوهش</a>
-        <button id="open-method" class="nav-link" type="button">روش</button>
-        <button id="open-sources" class="nav-link" type="button" aria-haspopup="dialog" aria-controls="sources-dialog">منابع</button>
-      </nav>
-      <button id="connection-settings" class="header-status" type="button" title="تنظیم یا پاک‌کردن آدرس سرور پژوهش"><span></span><b id="connection-label">متن کامل · ۶۲۳۶ آیه</b></button>
+      </button>
+      <div class="header-actions">
+        <button id="open-method" class="text-button" type="button">روش جست‌وجو</button>
+        <button id="open-sources" class="text-button" type="button" aria-haspopup="dialog" aria-controls="sources-dialog">منابع</button>
+      </div>
     </header>
 
-    <main id="top">
-      <section class="hero" aria-labelledby="hero-title">
-        <div class="eyebrow"><span class="pulse"></span> پژوهشِ شاهد-محور در قرآن</div>
-        <h1 id="hero-title">پرسش را از مسیر <em>آیه، واژه و سیاق</em> دنبال کنید.</h1>
-        <p class="hero-copy">
-          با یک پرسش شروع کنید؛ سپس متن، واژهٔ شاهد و سیاق را قدم‌به‌قدم دنبال کنید. هر مسیر، برای خواندن دقیق‌تر است نه پاسخِ قطعی و آماده.
-        </p>
+    <main>
+      <section id="search-screen" class="screen search-screen" aria-labelledby="search-title">
+        <div class="search-hero">
+          <p class="eyebrow">پژوهشِ مفهوم‌محور در متن قرآن</p>
+          <h1 id="search-title">هر مفهوم را از <em>واژه‌های قرآنی</em> آغاز کنید.</h1>
+          <p class="lede">موضوع را به فارسی یا عربی بنویسید. ذهن‌یار ابتدا معادل‌های عربیِ بازبینی‌شده را جست‌وجو می‌کند، سپس پیوندهای هم‌خانواده را جدا نشان می‌دهد.</p>
 
-        <form id="search-form" class="search-panel" novalidate>
-          <label class="sr-only" for="query">موضوع یا واژهٔ مورد نظر</label>
-          <div class="search-icon" aria-hidden="true"></div>
-          <input id="query" name="query" maxlength="120" autocomplete="off" placeholder="مثلاً: عدالت، امید، خانواده یا یک واژهٔ عربی" />
-          <label class="sr-only" for="search-mode">حالت جست‌وجو</label>
-          <select id="search-mode" class="search-mode" title="حالت جست‌وجو">
-            <option value="topic" selected>موضوعیِ شفاف</option>
-            <option value="literal">فقط عبارت</option>
-          </select>
-          <button id="search-submit" type="submit">
-            <span>آغاز پژوهش</span>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
-          </button>
-        </form>
-        <div class="suggestions" aria-label="پیشنهادهای جست‌وجو">
-          <span>برای شروع:</span>
-          <button type="button" data-query="رحمت">رحمت</button>
-          <button type="button" data-query="خانواده">خانواده</button>
-          <button type="button" data-query="علم">علم</button>
-          <button type="button" data-query="آزادی و اختیار">آزادی و اختیار</button>
-          <button type="button" data-query="انفاق">انفاق</button>
+          <form id="concept-form" class="concept-form" novalidate>
+            <label class="sr-only" for="concept-query">مفهوم یا واژهٔ مورد پژوهش</label>
+            <input id="concept-query" name="query" maxlength="120" autocomplete="off" placeholder="مثلاً: عشق، عدالت، خانواده یا حُبّ" />
+            <button type="submit">آغاز جست‌وجو <span aria-hidden="true">←</span></button>
+          </form>
+
+          <label class="translation-option">
+            <input id="translation-option" type="checkbox" />
+            <span>عبارت فارسی را در ترجمهٔ فعلی هم دقیق جست‌وجو کن</span>
+          </label>
+          <details class="advanced-search">
+            <summary>واژهٔ عربیِ دلخواه دارید؟</summary>
+            <p>برای مفهومی که هنوز در واژه‌نامهٔ بازبینی‌شده نیست، یک یا چند کلیدواژهٔ عربی وارد کنید تا مسیر جست‌وجو کاملاً روشن بماند.</p>
+            <label class="sr-only" for="arabic-seeds">کلیدواژه‌های عربیِ دلخواه</label>
+            <input id="arabic-seeds" maxlength="160" autocomplete="off" placeholder="مثلاً: هجرة، سفر، بلد (با ویرگول جدا کنید)" />
+          </details>
+          <p id="search-status" class="search-status" role="status" aria-live="polite"></p>
         </div>
 
-        <div class="principles" aria-label="اصول پژوهش">
-          <div><span class="principle-icon">۱</span><p><b>شاهد پیش از جمع‌بندی</b><small>هر ادعا به آیه و واژهٔ شاهد متصل است.</small></p></div>
-          <div><span class="principle-icon">۲</span><p><b>تمایز سطحِ ارتباط</b><small>مستقیم، موضوعی و سیاقی یکسان نیستند.</small></p></div>
-          <div><span class="principle-icon">۳</span><p><b>دعوت به بازخوانی</b><small>این ابزار جایگزین تفسیر و گفت‌وگوی علمی نیست.</small></p></div>
-        </div>
-      </section>
-
-      <section id="frameworks" class="framework-shell" aria-labelledby="framework-title">
-        <div class="framework-heading">
-          <div>
-            <p class="section-kicker">از کجا شروع کنیم؟</p>
-            <h2 id="framework-title">میدانِ پرسش خود را <span>انتخاب کنید.</span></h2>
-          </div>
-          <p id="framework-notice">یک میدان را انتخاب کنید، سپس موضوعی را لمس کنید تا مسیر آیه‌ها آغاز شود.</p>
-        </div>
-        <div id="framework-grid" class="framework-grid" aria-live="polite"></div>
-        <details class="protocol-strip" aria-labelledby="protocol-title">
-          <summary class="protocol-summary"><span><span class="section-kicker">پیش از نتیجه‌گیری</span><strong id="protocol-title">مرزهای خوانش مسئولانه</strong></span><span aria-hidden="true">⌄</span></summary>
-          <div class="protocol-inner">
-            <p>هر گام، مرز میان بازیابیِ متن و تفسیرِ آن را روشن نگه می‌دارد.</p>
-            <div id="protocol-list" class="protocol-list"></div>
-          </div>
-        </details>
-      </section>
-
-      <section id="research" class="research-shell" aria-labelledby="research-title">
-        <div class="section-heading">
-          <div>
-            <p class="section-kicker">میز پژوهش</p>
-            <h2 id="research-title">نقشهٔ شواهد <span id="topic-label">عدالت</span></h2>
-          </div>
-          <div id="corpus-note" class="corpus-note">در حال آماده‌سازی پیکره…</div>
-        </div>
-
-        <div id="status-message" class="status-message" role="status" aria-live="polite"></div>
-
-        <section class="research-journey" aria-label="مراحل پژوهش">
-          <div class="journey-heading">
-            <p class="section-kicker">چه چیزی می‌خواهید ببینید؟</p>
-            <p id="workspace-note">ابتدا آیه‌ها و سیاق را ببینید؛ سپس در صورت نیاز، پیوندها و ابزارهای تکمیلی را باز کنید.</p>
-          </div>
-          <div class="workspace-tabs" role="tablist" aria-label="نمای پژوهش">
-            <button class="active" type="button" data-workspace-view="evidence" role="tab" aria-selected="true"><span>۱</span><b>شاهدها</b><small>آیه و سیاق</small></button>
-            <button type="button" data-workspace-view="paths" role="tab" aria-selected="false"><span>۲</span><b>پیوندها</b><small>موضوع و روایت</small></button>
-            <button type="button" data-workspace-view="reflection" role="tab" aria-selected="false"><span>۳</span><b>تأمل من</b><small>پرسش و دفتر</small></button>
-            <button type="button" data-workspace-view="method" role="tab" aria-selected="false"><span>۴</span><b>روش</b><small>مرزهای نتیجه</small></button>
-          </div>
+        <section class="path-intro" aria-label="لایه‌های جست‌وجو">
+          <article><span>۱</span><div><b>معادل‌های قرآنی</b><p>واژه‌ها و ریشه‌های عربیِ آشکارشده برای مفهوم.</p></div></article>
+          <article><span>۲</span><div><b>مفاهیم مرتبط</b><p>پیوندهای هم‌خانواده، با برچسب جدا و بدون ادعای هم‌معنایی قطعی.</p></div></article>
+          <article><span>۳</span><div><b>خواندنِ آیه</b><p>هر آیه یک پروندهٔ مستقل برای سیاق، چارچوب و یادداشت پژوهشی دارد.</p></div></article>
         </section>
 
-        <section id="research-empty" class="research-empty" aria-labelledby="research-empty-title">
-          <span class="empty-orbit" aria-hidden="true">✦</span>
-          <p class="section-kicker">یک جست‌وجوی آرام و مرحله‌ای</p>
-          <h3 id="research-empty-title">موضوعی را بنویسید یا از میدان‌های بالا آغاز کنید.</h3>
-          <p>ابتدا شاهدهای لفظی و سیاق را می‌بینید. آیه‌های بیشتر فقط با انتخاب شما و در دسته‌های کوچک باز می‌شوند.</p>
+        <section class="concept-starters" aria-labelledby="starters-title">
+          <div class="section-intro"><p class="eyebrow">برای شروع</p><h2 id="starters-title">یک مسیر مفهومی انتخاب کنید</h2></div>
+          <div id="starter-list" class="starter-list" aria-live="polite"></div>
         </section>
+      </section>
 
-        <div class="research-grid">
-          <section class="evidence-column" aria-labelledby="evidence-title">
-            <article class="summary-card" data-workspace-pane="evidence">
-              <div class="summary-topline">
-                <span class="summary-label">گزارش بازیابی</span>
-                <span id="result-quality" class="quality-badge">مسیر قابل ممیزی</span>
-              </div>
-              <p id="summary-text">نتایج در حال بارگیری است.</p>
-              <p id="topic-description" class="topic-description"></p>
-              <div id="expansion-row" class="expansion-row"></div>
-            </article>
-
-            <div id="stats" class="stat-grid" data-workspace-pane="evidence" aria-label="آمار بازیابی"></div>
-
-            <div class="evidence-toolbar" data-workspace-pane="evidence">
-              <div>
-                <p class="section-kicker">آیه‌های بازیابی‌شده</p>
-                <h3 id="evidence-title">شواهد متنی</h3>
-              </div>
-              <div class="evidence-actions">
-                <button id="export-research" class="export-research" type="button" title="خروجی کاملِ همهٔ شواهد واژگانی">دفتر کامل ↧</button>
-                <div class="filter-tabs" role="tablist" aria-label="فیلتر نوع شاهد">
-                  <button class="active" data-filter="all" role="tab" aria-selected="true">همه</button>
-                  <button data-filter="direct" role="tab" aria-selected="false">مستقیم</button>
-                  <button data-filter="thematic" role="tab" aria-selected="false">موضوعی</button>
-                </div>
-              </div>
-            </div>
-            <div id="results-list" class="results-list" data-workspace-pane="evidence" aria-live="polite"></div>
-            <p id="evidence-progress" class="evidence-progress" data-workspace-pane="evidence" aria-live="polite"></p>
-            <button id="load-more" class="load-more" data-workspace-pane="evidence" type="button" hidden>نمایش آیه‌های بیشتر <span>↓</span></button>
-
-            <aside class="paths-intro" data-workspace-pane="paths" aria-label="راهنمای پیوندها">
-              <span>۲</span>
-              <div><b>پیوندها را با احتیاط دنبال کنید.</b><p>نقشه و پراکندگی، مسیرِ بازیابی‌اند؛ برای خواندن متن و سنجش سیاق به شاهدها بازگردید.</p></div>
-            </aside>
-            <section id="narrative-section" class="narrative-section" data-workspace-pane="paths" aria-labelledby="narrative-title" hidden>
-              <div class="narrative-heading">
-                <div><p class="section-kicker">نشانه‌های غیرمستقیم و روایی</p><h3 id="narrative-title">خوانش از دل داستان‌های قرآن</h3></div>
-                <span id="narrative-count" class="narrative-count">—</span>
-              </div>
-              <p id="narrative-notice" class="narrative-notice"></p>
-              <div id="narrative-list" class="narrative-list"></div>
-            </section>
-
-            <section id="context-section" class="context-section" data-workspace-pane="evidence" aria-labelledby="context-title">
-              <div class="context-heading">
-                <div>
-                  <p class="section-kicker">برای پرهیز از بریده‌خوانی</p>
-                  <h3 id="context-title">پنجرهٔ سیاق خطی</h3>
-                </div>
-                <span>همسایه‌های آیه‌های نخست</span>
-              </div>
-              <div id="context-list" class="context-list"></div>
-            </section>
-          </section>
-
-          <aside class="insight-column" aria-label="نقشه و راهنمای پژوهش">
-            <section class="graph-card" data-workspace-pane="paths" aria-labelledby="graph-title">
-              <div class="panel-heading">
-                <div>
-                  <p class="section-kicker">نمای ارتباط</p>
-                  <h3 id="graph-title">گرافِ مسیرِ بازیابی</h3>
-                </div>
-                <button id="graph-info" class="icon-button" type="button" aria-label="راهنمای گراف" aria-expanded="false">i</button>
-              </div>
-              <p id="graph-help" class="graph-help" hidden>گرهٔ میانی پرسش شماست. حلقهٔ اول واژه‌های شاهد، حلقهٔ دوم سوره‌ها و حلقهٔ روایی داستان‌های لنگر را نشان می‌دهد. این یک نقشهٔ بازیابی است، نه اثبات ساختار حلقویِ ذاتی قرآن یا تفسیر قطعی.</p>
-              <div class="graph-switch" role="tablist" aria-label="نمایش شبکه">
-                <button class="active" type="button" data-graph-view="network" role="tab" aria-selected="true">شبکهٔ لایه‌ای</button>
-                <button type="button" data-graph-view="arc" role="tab" aria-selected="false">قوس خوانش</button>
-              </div>
-              <div id="network-view" class="graph-wrap">
-                <svg id="graph" viewBox="0 0 620 430" role="img" aria-label="شبکهٔ لایه‌ای واژه‌ها، سوره‌ها و روایت‌های مرتبط"></svg>
-              </div>
-              <div id="arc-view" class="arc-view" hidden></div>
-              <div id="graph-metrics" class="graph-metrics" aria-label="شاخص‌های شبکه"></div>
-              <p id="graph-note" class="graph-note"></p>
-              <div class="legend" aria-label="راهنمای گراف">
-                <span><i class="legend-dot topic"></i> پرسش</span>
-                <span><i class="legend-dot term"></i> واژهٔ شاهد</span>
-                <span><i class="legend-dot surah"></i> سوره</span>
-                <span><i class="legend-dot story"></i> روایت</span>
-              </div>
-            </section>
-
-            <section class="structure-card" data-workspace-pane="paths" aria-labelledby="structure-title">
-              <div class="panel-heading">
-                <div>
-                  <p class="section-kicker">نمای توصیفی</p>
-                  <h3 id="structure-title">الگوی ساختاریِ بازیابی</h3>
-                </div>
-                <span id="structure-total" class="structure-total">—</span>
-              </div>
-              <div id="revelation-split" class="revelation-split" aria-label="پراکندگی مکی و مدنی"></div>
-              <div id="distribution-list" class="distribution-list" aria-label="توزیع نتایج در سوره‌ها"></div>
-              <button id="distribution-toggle" class="distribution-toggle" type="button" hidden></button>
-              <div id="cluster-list" class="cluster-list" aria-label="خوشه‌های خطی آیات"></div>
-              <p id="structure-note" class="structure-note"></p>
-            </section>
-
-            <section class="notebook-card" data-workspace-pane="reflection" aria-labelledby="notebook-title">
-              <div class="panel-heading">
-                <div>
-                  <p class="section-kicker">فضای شخصی، روی همین دستگاه</p>
-                  <h3 id="notebook-title">دفترِ شواهد</h3>
-                </div>
-                <span id="notebook-count" class="notebook-count">۰</span>
-              </div>
-              <p class="notebook-intro">آیه‌های منتخب در مرورگر شما ذخیره می‌شوند و به سرور فرستاده نمی‌شوند.</p>
-              <div id="notebook-list" class="notebook-list"></div>
-              <div class="notebook-actions">
-                <button id="export-notebook" type="button">خروجی یادداشت‌ها</button>
-                <button id="clear-notebook" class="subtle-action" type="button">پاک‌کردن</button>
-              </div>
-            </section>
-
-            <section class="questions-card" data-workspace-pane="reflection" aria-labelledby="questions-title">
-              <p class="section-kicker">گامِ بعدی پژوهش</p>
-              <h3 id="questions-title">پرسش‌هایی برای خواندن دقیق‌تر</h3>
-              <ol id="questions-list"></ol>
-            </section>
-
-            <section class="reflection-card" data-workspace-pane="reflection" aria-labelledby="reflection-title">
-              <p class="section-kicker">از فهم به زندگی امروز</p>
-              <h3 id="reflection-title">تأمل کاربردی</h3>
-              <p id="reflection-focus" class="reflection-focus"></p>
-              <ol id="reflection-list" class="reflection-list"></ol>
-              <p id="reflection-notice" class="reflection-notice"></p>
-            </section>
-
-            <section id="method" class="method-card" data-workspace-pane="method" aria-labelledby="method-title">
-              <button id="method-toggle" class="method-toggle" type="button" aria-expanded="true">
-                <span><span class="section-kicker">شفافیت روش</span><strong id="method-title">چگونه نتیجه ساخته شد؟</strong></span>
-                <span class="chevron">⌄</span>
-              </button>
-              <div id="method-content" class="method-content">
-                <ol id="method-list"></ol>
-              </div>
-            </section>
-          </aside>
+      <section id="results-screen" class="screen results-screen" hidden aria-labelledby="results-title">
+        <div class="screen-topbar">
+          <button class="back-button" data-go="search" type="button">← جست‌وجوی تازه</button>
+          <span id="result-corpus" class="corpus-badge">۶۲۳۶ آیه</span>
         </div>
+        <div class="results-heading">
+          <p class="eyebrow">فهرست آیه‌های بازیابی‌شده</p>
+          <h2 id="results-title">مسیرِ <span id="result-topic">—</span></h2>
+          <p id="result-summary"></p>
+          <div id="active-terms" class="term-groups" aria-label="واژه‌های فعال در جست‌وجو"></div>
+        </div>
+
+        <div class="results-toolbar">
+          <p id="result-progress" aria-live="polite"></p>
+          <div class="result-filters" role="tablist" aria-label="فیلتر سطح ارتباط">
+            <button class="active" data-filter="all" type="button" role="tab" aria-selected="true">همه</button>
+            <button data-filter="equivalent" type="button" role="tab" aria-selected="false">معادل قرآنی</button>
+            <button data-filter="related" type="button" role="tab" aria-selected="false">مرتبط</button>
+            <button data-filter="exact" type="button" role="tab" aria-selected="false">عبارت دقیق</button>
+          </div>
+        </div>
+        <div id="verse-list" class="verse-list" aria-live="polite"></div>
+        <button id="load-more" class="load-more" type="button" hidden>نمایش آیه‌های بعدی</button>
+      </section>
+
+      <section id="detail-screen" class="screen detail-screen" hidden aria-labelledby="detail-title">
+        <div class="screen-topbar">
+          <button class="back-button" data-go="results" type="button">← فهرست آیه‌ها</button>
+          <button id="save-verse" class="save-button" type="button">ذخیره در دفتر</button>
+        </div>
+        <article class="detail-verse">
+          <p id="detail-reference" class="detail-reference">—</p>
+          <h2 id="detail-title" class="detail-arabic" lang="ar" dir="rtl"></h2>
+          <p id="detail-persian" class="detail-persian"></p>
+          <div id="detail-evidence" class="detail-evidence"></div>
+        </article>
+
+        <div class="study-tabs" role="tablist" aria-label="پروندهٔ پژوهش آیه">
+          <button class="active" data-detail-tab="notes" type="button" role="tab" aria-selected="true">نکات آیه</button>
+          <button data-detail-tab="foundations" type="button" role="tab" aria-selected="false">اصول و مبانی</button>
+          <button data-detail-tab="framework" type="button" role="tab" aria-selected="false">چارچوب معنایی</button>
+          <button data-detail-tab="messages" type="button" role="tab" aria-selected="false">پیام‌های قابل بررسی</button>
+          <button data-detail-tab="context" type="button" role="tab" aria-selected="false">سیاق سوره</button>
+          <button data-detail-tab="quran" type="button" role="tab" aria-selected="false">نسبت با قرآن</button>
+          <button data-detail-tab="notebook" type="button" role="tab" aria-selected="false">یادداشت من</button>
+        </div>
+        <div id="detail-panels" class="detail-panels"></div>
       </section>
     </main>
 
-    <dialog id="sources-dialog" class="sources-dialog" aria-labelledby="sources-dialog-title">
-      <form method="dialog">
-        <button class="dialog-close" aria-label="بستن منابع">×</button>
-      </form>
-      <p class="section-kicker">منابع و حدود استفاده</p>
-      <h2 id="sources-dialog-title">متن، ترجمه و مرز پژوهش</h2>
-      <p>متن عربی: Tanzil Uthmani. ترجمهٔ فعلی: QuranEnc، Ihsan Elahi Zaheer. هر نتیجه آغازِ مطالعهٔ سیاق و منابع تفسیری است، نه تفسیر نهایی.</p>
+    <dialog id="method-dialog" class="dialog" aria-labelledby="method-title">
+      <form method="dialog"><button class="dialog-close" aria-label="بستن">×</button></form>
+      <p class="eyebrow">روش پژوهش</p>
+      <h2 id="method-title">از مفهوم تا آیه، بدون پنهان‌کردنِ مسیر</h2>
+      <ol>
+        <li>نام مفهوم با واژه‌نامهٔ محلیِ بازبینی‌پذیر تطبیق داده می‌شود.</li>
+        <li>معادل‌های عربیِ قرآن و پیوندهای مرتبط در دو گروه جدا جست‌وجو می‌شوند.</li>
+        <li>هر کارت، واژهٔ دقیق و متنِ عربیِ سبب بازیابی را نشان می‌دهد.</li>
+        <li>فیلدهای پروندهٔ آیه راهنمای خواندن‌اند؛ تفسیر نهایی، فتوا یا ادعای هم‌معنایی قطعی نیستند.</li>
+      </ol>
+    </dialog>
+
+    <dialog id="sources-dialog" class="dialog" aria-labelledby="sources-title">
+      <form method="dialog"><button class="dialog-close" aria-label="بستن">×</button></form>
+      <p class="eyebrow">منابع و حدود استفاده</p>
+      <h2 id="sources-title">متن و ترجمه</h2>
+      <p>متن عربیِ برنامه: Tanzil Uthmani. ترجمهٔ فعلی: QuranEnc، Ihsan Elahi Zaheer. واژه‌نامهٔ مفهومی، یک ابزار بازیابی و آغاز پژوهش است؛ جای تفسیر معتبر را نمی‌گیرد.</p>
       <a href="https://github.com/zehnyarai/Zehnyar#readme" target="_blank" rel="noreferrer">راهنمای پروژه ↗</a>
     </dialog>
 
-    <template id="loading-template">
-      <div class="loading-card"><span></span><span></span><span></span><p>در حال خواندن شبکهٔ واژگان و آیه‌ها…</p></div>
+    <template id="empty-result-template">
+      <div class="empty-state"><b>شاهدی در این لایه پیدا نشد.</b><span>عبارت عربی دیگری را امتحان کنید یا فیلتر «همه» را بازگردانید.</span></div>
     </template>
     <script src="static/app.js" defer></script>
   </body>

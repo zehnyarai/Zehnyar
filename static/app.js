@@ -1,28 +1,26 @@
-const API_BASE_KEY = "zehnyar-research-api-base-v1";
-const NOTEBOOK_KEY = "zehnyar-evidence-notebook-v1";
-
-function apiUrl(path) {
-  const base = (localStorage.getItem(API_BASE_KEY) || "").trim().replace(/\/$/, "");
-  return base ? `${base}${path}` : path;
-}
-
-function updateConnectionLabel() {
-  const label = document.querySelector("#connection-label");
-  if (!label) return;
-  label.textContent = localStorage.getItem(API_BASE_KEY)
-    ? "سرور پژوهش متصل"
-    : "متن کامل · ۶۲۳۶ آیه";
-}
-const state = { data: null, filter: "all", limit: 12, pageSize: 12, workspaceView: "evidence", structureExpanded: false };
+const CORPUS_URL = "static/offline-corpus.json";
+const LEXICON_URL = "static/concept-lexicon.json";
+const NOTEBOOK_KEY = "zehnyar-verse-notebook-v2";
+const PAGE_SIZE = 12;
 
 const $ = (selector) => document.querySelector(selector);
-const form = $("#search-form");
-const input = $("#query");
-const modeSelect = $("#search-mode");
-const submit = $("#search-submit");
-const resultsList = $("#results-list");
-const statusMessage = $("#status-message");
-const SVG_NS = "http://www.w3.org/2000/svg";
+const $$ = (selector) => [...document.querySelectorAll(selector)];
+const state = {
+  screen: "search",
+  corpus: [],
+  recordById: new Map(),
+  lexicon: null,
+  query: "",
+  concept: null,
+  terms: [],
+  matches: [],
+  shown: PAGE_SIZE,
+  filter: "all",
+  selected: null,
+  detailTab: "notes",
+  searchTranslations: false,
+  notebook: loadNotebook(),
+};
 
 function escapeHTML(value = "") {
   return String(value)
@@ -37,13 +35,7 @@ function faNumber(value) {
   return Number(value || 0).toLocaleString("fa-IR");
 }
 
-const OFFLINE_CORPUS_URL = "static/offline-corpus.json";
-const OFFLINE_FRAMEWORK_URL = "static/offline-framework.json";
-const OFFLINE_TOPICS_URL = "static/offline-topics.json";
-let offlineCorpusPromise;
-let offlineTopicsPromise;
-
-function normalizeForOffline(value = "") {
+function normalize(value = "") {
   return value
     .replace(/[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed\u08d4-\u08ff]/g, "")
     .replace(/[ٱأإآ]/g, "ا")
@@ -60,893 +52,458 @@ function normalizeForOffline(value = "") {
     .toLowerCase();
 }
 
-async function offlineCorpus() {
-  if (!offlineCorpusPromise) {
-    offlineCorpusPromise = fetch(OFFLINE_CORPUS_URL).then((response) => {
-      if (!response.ok) throw new Error("offline corpus unavailable");
-      return response.json();
-    });
-  }
-  return offlineCorpusPromise;
-}
-
-async function offlineTopics() {
-  if (!offlineTopicsPromise) {
-    offlineTopicsPromise = fetch(OFFLINE_TOPICS_URL).then((response) => {
-      if (!response.ok) throw new Error("offline topics unavailable");
-      return response.json();
-    });
-  }
-  return offlineTopicsPromise;
-}
-
-function findOfflineTopic(query, topics) {
-  const normalizedQuery = normalizeForOffline(query);
-  const candidates = Object.entries(topics || {}).flatMap(([title, topic]) => (topic.aliases || [])
-    .map((alias) => [normalizeForOffline(alias), title, topic])
-    .filter(([alias]) => alias && normalizedQuery.includes(alias)));
-  if (!candidates.length) return { title: null, topic: null };
-  const [, title, topic] = candidates.sort((a, b) => b[0].length - a[0].length)[0];
-  return { title, topic };
-}
-
-function offlineQueryTerms(query, topic, mode) {
-  const normalizedQuery = normalizeForOffline(query);
-  const terms = [{ value: normalizedQuery, label: "عبارتِ جست‌وجوشده", direct: true, origin: "عبارتِ کاربر" }];
-  if (mode === "topic") {
-    normalizedQuery.split(" ").filter((token) => token.length >= 3 && token !== normalizedQuery).forEach((token) => {
-      terms.push({ value: token, label: `واژهٔ «${token}»`, direct: false, origin: "بخشِ عبارتِ کاربر" });
-    });
-    (topic?.terms || []).forEach(([term, label]) => {
-      const value = normalizeForOffline(term);
-      if (value) terms.push({ value, label, direct: value === normalizedQuery, origin: "واژه‌نامهٔ موضوعیِ محلی" });
-    });
-  }
-  const seen = new Set();
-  return terms.filter((term) => {
-    if (!term.value || seen.has(term.value)) return false;
-    seen.add(term.value);
-    return true;
-  });
-}
-
-function offlineEvidence(record, terms) {
-  const arabic = normalizeForOffline(record.arabic);
-  const persian = normalizeForOffline(record.persian);
-  const evidence = [];
-  let score = 0;
-  let direct = false;
-  terms.forEach((term) => {
-    const inArabic = arabic.includes(term.value);
-    const inPersian = persian.includes(term.value);
-    if (!inArabic && !inPersian) return;
-    direct = direct || term.direct;
-    score += term.direct ? 10 : 1;
-    evidence.push({
-      label: term.label,
-      term: term.value,
-      source: inArabic && inPersian ? "هر دو متن" : inArabic ? "متن عربی" : "ترجمهٔ فارسی",
-      origin: term.origin,
-    });
-  });
-  return evidence.length ? { score, direct, evidence } : null;
-}
-
-function offlineStructure(matches) {
-  const bySurah = new Map();
-  const revelation = { "مکی": { total: 0, direct: 0 }, "مدنی": { total: 0, direct: 0 } };
-  matches.forEach((item) => {
-    const current = bySurah.get(item.surah) || { surah: item.surah, name: item.surah_name, type: item.revelation, total: 0, direct: 0 };
-    current.total += 1;
-    current.direct += Number(item.direct);
-    bySurah.set(item.surah, current);
-    revelation[item.revelation].total += 1;
-    revelation[item.revelation].direct += Number(item.direct);
-  });
-  return {
-    revelation,
-    distribution: [...bySurah.values()].sort((a, b) => b.total - a.total || a.surah - b.surah),
-    clusters: [],
-    note: "این پراکندگی همهٔ شواهدِ بازیابی‌شده را نشان می‌دهد؛ تعداد آیه‌ها، رتبهٔ تفسیریِ سوره‌ها نیست.",
-  };
-}
-
-function offlineGraph(query, matches, structure) {
-  const topSurahs = structure.distribution.slice(0, 4);
-  const nodes = [
-    { id: "topic", label: query, meta: "پرسشِ محلی", kind: "topic", weight: 1 },
-    { id: "term-0", label: "واژه‌های شاهد", meta: `${matches.length} شاهد`, kind: "term", weight: 0.78 },
-    ...topSurahs.map((item) => ({ id: `surah-${item.surah}`, label: item.name, meta: `سورهٔ ${item.surah} · ${item.total} شاهد`, kind: "surah", weight: 0.63 })),
-    ...matches.slice(0, 2).map((item, index) => ({ id: `verse-${index}`, label: item.reference, meta: item.relation, kind: "verse", weight: 0.45 })),
-  ];
-  const edges = [
-    { source: "topic", target: "term-0", label: `${matches.length} پیوند` },
-    ...topSurahs.map((item) => ({ source: "term-0", target: `surah-${item.surah}`, label: `${item.total} آیه` })),
-    ...matches.slice(0, 2).map((item, index) => ({ source: "term-0", target: `verse-${index}`, label: "شاهد نمونه" })),
-  ];
-  return {
-    nodes,
-    edges,
-    layout: "concentric-evidence",
-    metrics: { lexical_terms: 1, surah_connections: topSurahs.length, narrative_paths: 0, story_lexical_hits: 0 },
-    reading_arc: [
-      { stage: "نقطهٔ آغاز", title: "عبارت و شاهد", body: "آیه‌ها از پیکرهٔ ذخیره‌شده و واژه‌های شاهدِ شفاف بازیابی شده‌اند." },
-      { stage: "رشتهٔ واژگانی", title: "واژه‌های موضوع", body: "واژه‌های فعال روی هر کارت آیه مشخص‌اند." },
-      { stage: "پراکندگی متن", title: "سوره‌ها", body: `برای دیدن همهٔ سوره‌های درگیر، در نمای ساختار دکمهٔ «نمایش همه» را بزنید.` },
-      { stage: "قوس روایی", title: "نیازمند منبع افزوده", body: "مسیرهای رواییِ بازبینی‌شده در نسخهٔ متصل به سرور در دسترس‌اند." },
-      { stage: "بازگشت به زندگی", title: "تأمل محتاطانه", body: "میان متن، ترجمه و برداشت شخصی تمایز نگه دارید." },
-    ],
-    notice: "این نقشه، مسیرِ بازیابیِ محلی است؛ ساختار ذاتی یا تفسیر قطعیِ قرآن را اثبات نمی‌کند.",
-  };
-}
-
-async function offlineAnalyze(query, limit, offset = 0, mode = "topic") {
-  const [corpus, topicRegistry] = await Promise.all([offlineCorpus(), offlineTopics()]);
-  const normalizedQuery = normalizeForOffline(query);
-  if (!normalizedQuery) throw new Error("عبارت جست‌وجو نمی‌تواند خالی باشد.");
-  const { title: canonicalTopic, topic } = findOfflineTopic(query, topicRegistry.topics);
-  const terms = offlineQueryTerms(query, topic, mode);
-  const records = corpus.verses.map(([surah, ayah, arabic, persian, surah_name, revelation]) => ({ surah, ayah, arabic, persian, surah_name, revelation }));
-  const byId = new Map(records.map((record) => [`${record.surah}:${record.ayah}`, record]));
-  const matches = records.map((record) => {
-    const found = offlineEvidence(record, terms);
-    if (!found) return null;
-    return {
-      ...record,
-      id: `${record.surah}:${record.ayah}`,
-      reference: `${record.surah_name} ${record.surah}:${record.ayah}`,
-      score: found.score,
-      matches: found.evidence.map((item) => item.label),
-      evidence: found.evidence,
-      direct: found.direct,
-      story_context: [],
-      relation: found.direct ? "ذکر / ترجمهٔ مستقیم" : "پیوند واژگانیِ موضوعی",
-    };
-  }).filter(Boolean);
-  const directMatches = matches.filter((item) => item.direct).sort((a, b) => b.score - a.score || a.surah - b.surah || a.ayah - b.ayah);
-  const thematicMatches = matches.filter((item) => !item.direct).sort((a, b) => b.score - a.score || a.surah - b.surah || a.ayah - b.ayah);
-  const ordered = [...directMatches, ...thematicMatches];
-  const shown = ordered.slice(offset, offset + limit);
-  const seen = new Set(shown.map((item) => item.id));
-  const context = [];
-  shown.slice(0, 3).forEach((item) => [-1, 1].forEach((delta) => {
-    const neighbor = byId.get(`${item.surah}:${item.ayah + delta}`);
-    if (neighbor && !seen.has(`${neighbor.surah}:${neighbor.ayah}`) && context.length < 4) {
-      seen.add(`${neighbor.surah}:${neighbor.ayah}`);
-      context.push({ ...neighbor, id: `${neighbor.surah}:${neighbor.ayah}`, reference: `${neighbor.surah_name} ${neighbor.surah}:${neighbor.ayah}`, score: 0, matches: ["همسایگی خطی"], evidence: [], story_context: [], relation: "سیاق خطی" });
-    }
-  }));
-  const structure = offlineStructure(ordered);
-  const topical = mode === "topic" && topic;
-  const modeInfo = topical
-    ? { id: "topic", label: "آفلاین: موضوعیِ شفاف", description: "عبارت و واژه‌نامهٔ موضوعیِ ذخیره‌شده روی دستگاه جست‌وجو می‌شوند." }
-    : { id: "literal", label: "آفلاین: فقط عبارت", description: "فقط عبارتِ واردشده در متن عربی و ترجمهٔ فارسی جست‌وجو می‌شود." };
-  const summary = topical
-    ? `برای «${canonicalTopic}»، ${faNumber(directMatches.length)} شاهدِ دارای عبارتِ جست‌وجوشده و ${faNumber(thematicMatches.length)} پیوندِ واژگانی از پیکرهٔ محلی بازیابی شد.`
-    : `در حالت آفلاین، ${faNumber(directMatches.length)} شاهدِ دارای عبارت «${query}» در پیکرهٔ محلی پیدا شد.`;
-  return {
-    query,
-    canonical_topic: topical ? canonicalTopic : null,
-    mode: modeInfo,
-    summary,
-    topic_description: topical ? topic.description : "جست‌وجوی عبارت‌محور در پیکرهٔ ذخیره‌شده روی دستگاه.",
-    questions: topical ? topic.questions : ["این عبارت در آیه چه نقش و چه سیاقی دارد؟", "آیا صورت عربی یا واژهٔ هم‌ریشه‌ای برای جست‌وجوی دقیق‌تر وجود دارد؟"],
-    stats: { direct: directMatches.length, thematic: thematicMatches.length, narrative: 0, story_lexical: 0, surahs: structure.distribution.length, shown: shown.length },
-    page: { offset, limit, total: ordered.length, next_offset: offset + shown.length < ordered.length ? offset + shown.length : null },
-    expansion: topical ? terms.filter((term) => !term.direct).map((term) => term.label).slice(0, 6) : [],
-    verses: shown,
-    context,
-    narrative: { paths: [], lexical_story_hits: 0, notice: "مسیرهای رواییِ بازبینی‌شده در نسخهٔ متصل به سرور در دسترس‌اند." },
-    structure,
-    graph: offlineGraph(query, ordered, structure),
-    reflection: { title: "تأمل آفلاین", focus: "خواندن دقیق متن پیش از برداشت", prompts: ["یک موقعیت واقعی را انتخاب کنید و میان متن، ترجمه و برداشت شخصی تمایز بگذارید.", "برای مسیرهای روایی و منابع افزوده، همین پرسش را در نسخهٔ متصل به سرور دوباره اجرا کنید."], notice: "این بخش تمرین تأمل است، نه حکم شخصی یا تفسیر نهایی." },
-    method: { title: "حالت آفلاین", steps: ["پیکرهٔ ذخیره‌شده روی دستگاه و واژه‌نامهٔ موضوعیِ قابل مشاهده جست‌وجو می‌شوند.", modeInfo.description, "مسیرهای روایی و منابع تفسیریِ افزوده نیازمند سرور پژوهش‌اند."] },
-    corpus: { arabic: "Tanzil Uthmani (offline)", persian: "QuranEnc Persian (offline)", total_verses: corpus.verses.length },
-    offline: true,
-  };
-}
-
-function showOfflineNotice() {
-  statusMessage.textContent = "اتصال به سرور پژوهش در دسترس نیست؛ جست‌وجو از پیکره و واژه‌نامهٔ موضوعیِ ذخیره‌شده روی همین دستگاه اجرا شد.";
-  statusMessage.classList.add("show", "offline");
-}
-
-
 function loadNotebook() {
   try {
     const saved = JSON.parse(localStorage.getItem(NOTEBOOK_KEY) || "[]");
-    return Array.isArray(saved) ? saved.filter((item) => item && item.id && item.reference) : [];
+    return Array.isArray(saved) ? saved : [];
   } catch {
     return [];
   }
 }
 
-let notebook = loadNotebook();
-
 function persistNotebook() {
-  localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(notebook));
+  localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(state.notebook));
 }
 
-function renderNotebook() {
-  const count = $("#notebook-count");
-  const list = $("#notebook-list");
-  count.textContent = faNumber(notebook.length);
-  if (!notebook.length) {
-    list.innerHTML = '<p class="notebook-empty">هنوز شاهدی ذخیره نشده است.</p>';
-    return;
-  }
-  list.innerHTML = notebook.slice(0, 6).map((item) => `<article class="notebook-item">
-    <div><b>${escapeHTML(item.reference)}</b><span lang="ar" dir="rtl">${escapeHTML(item.arabic)}</span>${item.note ? `<small>${escapeHTML(item.note)}</small>` : ""}</div>
-    <div class="notebook-item-actions"><button class="notebook-note" data-edit-note="${escapeHTML(item.id)}" type="button">یادداشت</button><button class="notebook-remove" data-remove-note="${escapeHTML(item.id)}" type="button" aria-label="حذف ${escapeHTML(item.reference)}">حذف</button></div>
-  </article>`).join("");
-  if (notebook.length > 6) {
-    list.insertAdjacentHTML("beforeend", `<p class="notebook-empty">و ${faNumber(notebook.length - 6)} شاهد دیگر در دفتر ذخیره شده است.</p>`);
-  }
+function isSaved(verse) {
+  return state.notebook.some((item) => item.id === verse.id);
 }
 
-function saveVerse(verse) {
-  if (notebook.some((item) => item.id === verse.id)) return false;
-  notebook.unshift({
-    id: verse.id,
-    reference: verse.reference,
-    arabic: verse.arabic,
-    persian: verse.persian,
-    query: state.data?.query || "",
-    note: "",
-    savedAt: new Date().toISOString(),
-  });
+function saveCurrentVerse() {
+  const verse = state.selected;
+  if (!verse) return;
+  const index = state.notebook.findIndex((item) => item.id === verse.id);
+  if (index >= 0) {
+    state.notebook.splice(index, 1);
+  } else {
+    state.notebook.unshift({
+      id: verse.id,
+      query: state.query,
+      reference: verse.reference,
+      arabic: verse.arabic,
+      persian: verse.persian,
+      note: "",
+      savedAt: new Date().toISOString(),
+    });
+  }
   persistNotebook();
-  renderNotebook();
-  return true;
+  updateSaveButton();
 }
 
-function loading() {
-  $("#research").classList.remove("is-empty");
-  const template = $("#loading-template");
-  resultsList.replaceChildren(template.content.cloneNode(true));
-  $("#load-more").hidden = true;
-  $("#narrative-section").hidden = true;
-  submit.disabled = true;
-  statusMessage.classList.remove("show", "offline");
+function updateSaveButton() {
+  const button = $("#save-verse");
+  const saved = state.selected && isSaved(state.selected);
+  button.textContent = saved ? "در دفتر ✓" : "ذخیره در دفتر";
+  button.classList.toggle("saved", Boolean(saved));
 }
 
-function showError(message) {
-  statusMessage.textContent = message;
-  statusMessage.classList.remove("offline");
-  statusMessage.classList.add("show");
-}
-
-function relationClass(verse) {
-  return verse.relation.includes("مستقیم") ? "direct" : "thematic";
-}
-
-function renderStats(stats) {
-  const items = [
-    [stats.direct, "شاهد مستقیم"],
-    [stats.thematic, "پیوند واژگانی"],
-    [stats.narrative, "مسیر روایی"],
-    [stats.story_lexical, "شاهد در روایت"],
-    [stats.surahs, "سورهٔ درگیر"],
-  ];
-  $("#stats").innerHTML = items
-    .map(([value, label]) => `<div class="stat"><strong>${faNumber(value)}</strong><span>${escapeHTML(label)}</span></div>`)
-    .join("");
-}
-
-function verseCard(verse, index, context = false) {
-  if (context) {
-    return `<article class="context-item">
-      <div class="context-ref">${escapeHTML(verse.reference)} · ${escapeHTML(verse.revelation)}</div>
-      <p>${escapeHTML(verse.persian)}</p>
-    </article>`;
-  }
-  const evidence = verse.evidence?.length ? verse.evidence : verse.matches.map((label) => ({ label, source: "مسیر بازیابی" }));
-  const matchMarkup = evidence
-    .map((item) => `<span title="${escapeHTML(item.origin || item.source)}"><b>${escapeHTML(item.label)}</b> · ${escapeHTML(item.source)}</span>`)
-    .join("");
-  const isSaved = notebook.some((item) => item.id === verse.id);
-  const storyMarkup = verse.story_context?.length ? `<span class="story-tag">در روایت: ${escapeHTML(verse.story_context[0])}</span>` : "";
-  return `<article class="verse-card" data-verse-id="${escapeHTML(verse.id)}" style="animation-delay:${Math.min(index, 9) * 35}ms">
-    <div class="verse-head">
-      <span class="reference">${escapeHTML(verse.reference)} <small>· ${escapeHTML(verse.revelation)}</small></span>
-      <div class="relation-group"><span class="relation ${relationClass(verse)}">${escapeHTML(verse.relation)}</span>${storyMarkup}</div>
-    </div>
-    <p class="verse-arabic" lang="ar" dir="rtl">${escapeHTML(verse.arabic)}</p>
-    <p class="verse-persian">${escapeHTML(verse.persian)}</p>
-    <div class="verse-foot">
-      <div class="match-list">${matchMarkup}</div>
-      <div class="verse-actions">
-        <button class="save-verse ${isSaved ? "saved" : ""}" type="button" data-save="${escapeHTML(verse.id)}" ${isSaved ? "disabled" : ""}>${isSaved ? "در دفتر ✓" : "ذخیره"}</button>
-        <button class="copy-verse" type="button" data-copy="${escapeHTML(verse.id)}" aria-label="کپی ارجاع ${escapeHTML(verse.reference)}">کپی شاهد ↗</button>
-      </div>
-    </div>
-  </article>`;
-}
-
-function renderVerses() {
-  if (!state.data) return;
-  const all = state.data.verses;
-  const filtered = state.filter === "all"
-    ? all
-    : all.filter((verse) => relationClass(verse) === state.filter);
-
-  if (!filtered.length) {
-    resultsList.innerHTML = `<div class="empty-results"><b>در این لایه شاهدی نمایش داده نشد.</b>فیلتر «همه» را امتحان کنید یا واژهٔ دیگری جست‌وجو کنید.</div>`;
-    return;
-  }
-  resultsList.innerHTML = filtered.map((verse, index) => verseCard(verse, index)).join("");
-}
-
-function renderContext(context) {
-  const section = $("#context-section");
-  if (!context || !context.length) {
-    section.hidden = true;
-    return;
-  }
-  section.hidden = false;
-  $("#context-list").innerHTML = context.map((verse) => verseCard(verse, 0, true)).join("");
-}
-
-function renderNarrative(narrative) {
-  const section = $("#narrative-section");
-  const paths = narrative?.paths || [];
-  if (!paths.length) {
-    section.hidden = true;
-    return;
-  }
-  section.hidden = false;
-  $("#narrative-count").textContent = `${faNumber(paths.length)} مسیر · ${faNumber(narrative.lexical_story_hits)} شاهد واژگانی در روایت‌ها`;
-  $("#narrative-notice").textContent = narrative.notice || "";
-  $("#narrative-list").innerHTML = paths.map((path, index) => {
-    const saved = notebook.some((item) => item.id === path.id);
-    return `<article class="narrative-card" style="animation-delay:${index * 55}ms">
-      <div class="narrative-card-head"><span class="story-name">${escapeHTML(path.story)}</span><span>${escapeHTML(path.reference)} · ${escapeHTML(path.focus)}</span></div>
-      <p class="narrative-lens">${escapeHTML(path.lens)}</p>
-      <p class="narrative-arabic" lang="ar" dir="rtl">${escapeHTML(path.arabic)}</p>
-      <p class="narrative-persian">${escapeHTML(path.persian)}</p>
-      <div class="narrative-question"><b>پرسش خوانش:</b> ${escapeHTML(path.question)}</div>
-      <button class="save-narrative ${saved ? "saved" : ""}" type="button" data-save-narrative="${escapeHTML(path.id)}" ${saved ? "disabled" : ""}>${saved ? "در دفتر ✓" : "ذخیرهٔ آیهٔ لنگر"}</button>
-    </article>`;
-  }).join("");
-}
-
-function renderStructure(structure) {
-  const total = (structure?.revelation?.["مکی"]?.total || 0) + (structure?.revelation?.["مدنی"]?.total || 0);
-  const distribution = structure?.distribution || [];
-  $("#structure-total").textContent = `${faNumber(total)} شاهد · ${faNumber(distribution.length)} سوره`;
-  const split = structure?.revelation || {};
-  $("#revelation-split").innerHTML = ["مکی", "مدنی"].map((type) => {
-    const item = split[type] || { total: 0, direct: 0 };
-    return `<div class="revelation-stat"><span>${type}</span><b>${faNumber(item.total)}</b><small>${faNumber(item.direct)} مستقیم</small></div>`;
-  }).join("");
-
-  const compactCount = 7;
-  const visibleDistribution = state.structureExpanded ? distribution : distribution.slice(0, compactCount);
-  const maximum = Math.max(1, ...distribution.map((item) => item.total));
-  $("#distribution-list").innerHTML = visibleDistribution.length
-    ? visibleDistribution.map((item) => `<div class="distribution-row">
-        <span title="${escapeHTML(item.name)}">${escapeHTML(item.name)}</span>
-        <span class="distribution-bar"><i style="width:${Math.max(6, (item.total / maximum) * 100)}%"></i></span>
-        <b>${faNumber(item.total)}</b>
-      </div>`).join("")
-    : '<p class="cluster-empty">داده‌ای برای نمایش نیست.</p>';
-  const distributionToggle = $("#distribution-toggle");
-  distributionToggle.hidden = distribution.length <= compactCount;
-  if (!distributionToggle.hidden) {
-    distributionToggle.textContent = state.structureExpanded
-      ? "نمایش فشردهٔ سوره‌ها"
-      : `نمایش همهٔ ${faNumber(distribution.length)} سوره`;
-    distributionToggle.setAttribute("aria-expanded", String(state.structureExpanded));
-  }
-
-  const clusters = structure?.clusters || [];
-  $("#cluster-list").innerHTML = clusters.length
-    ? clusters.map((cluster) => `<div class="cluster-item"><span>${escapeHTML(cluster.reference)}</span><b>${faNumber(cluster.count)} شاهد در ${faNumber(cluster.span)} آیه</b></div>`).join("")
-    : '<p class="cluster-empty">خوشهٔ خطیِ چندآیه‌ای در این بازیابی دیده نشد.</p>';
-  $("#structure-note").textContent = structure?.note || "";
-}
-
-const FIELD_META = {
-  worldview: { icon: "✦", label: "برای معنا، جهت و باور" },
-  ethics: { icon: "◌", label: "برای حالِ درون و خودسازی" },
-  society: { icon: "⌘", label: "برای رابطه و مسئولیت" },
-  knowledge: { icon: "⌁", label: "برای شناخت، روایت و نشانه" },
-};
-
-function renderFramework(data) {
-  $("#framework-notice").textContent = data.notice || "";
-  $("#framework-grid").innerHTML = (data.categories || []).map((category, index) => {
-    const meta = FIELD_META[category.id] || { icon: "✦", label: "یک مسیر برای ورود به متن" };
-    const defaultTopic = category.topics?.[0] || "";
-    return `<article class="framework-card framework-card--${escapeHTML(category.id)}">
-      <div class="field-card-top"><span class="framework-icon" aria-hidden="true">${meta.icon}</span><span class="framework-index">${faNumber(index + 1)}</span></div>
-      <span class="field-caption">${escapeHTML(meta.label)}</span>
-      <h3>${escapeHTML(category.title)}</h3>
-      <p>${escapeHTML(category.description)}</p>
-      <button type="button" class="field-start" data-framework-query="${escapeHTML(defaultTopic)}">شروع با «${escapeHTML(defaultTopic)}» <span aria-hidden="true">←</span></button>
-      <div class="framework-topics">${(category.topics || []).map((topic) => `<button type="button" class="framework-topic" data-framework-query="${escapeHTML(topic)}">${escapeHTML(topic)}</button>`).join("")}</div>
-    </article>`;
-  }).join("");
-  $("#protocol-list").innerHTML = (data.protocol || []).map((item) => `<article class="protocol-item">
-    <b>${escapeHTML(item.title)}</b>
-    <p>${escapeHTML(item.description)}</p>
-    <span>${escapeHTML(item.availability)}</span>
-  </article>`).join("");
-}
-
-const WORKSPACE_NOTES = {
-  evidence: "ابتدا آیه‌ها و سیاق را ببینید؛ سپس در صورت نیاز، پیوندها و ابزارهای تکمیلی را باز کنید.",
-  paths: "این بخش مسیرهای بازیابی و پراکندگی را نشان می‌دهد؛ نقشه، جایگزین خواندن متن و سیاق نیست.",
-  reflection: "پرسش‌های خوانش و دفتر شخصی کنار هم هستند؛ یادداشت‌ها فقط روی همین دستگاه ذخیره می‌شوند.",
-  method: "مرز میان شاهد مستقیم، پیوند موضوعی و برداشت را پیش از نتیجه‌گیری بررسی کنید.",
-};
-
-function setWorkspaceView(view) {
-  if (!WORKSPACE_NOTES[view]) return;
-  state.workspaceView = view;
-  const shell = $("#research");
-  Object.keys(WORKSPACE_NOTES).forEach((name) => shell.classList.remove(`workspace-view-${name}`));
-  shell.classList.add(`workspace-view-${view}`);
-  $("#workspace-note").textContent = WORKSPACE_NOTES[view];
-  document.querySelectorAll("[data-workspace-view]").forEach((button) => {
-    const active = button.dataset.workspaceView === view;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-selected", String(active));
-  });
-}
-
-async function loadFramework() {
-  try {
-    const response = await fetch(apiUrl("/api/framework"));
-    if (!response.ok) throw new Error("framework unavailable");
-    renderFramework(await response.json());
-  } catch {
-    try {
-      const response = await fetch(OFFLINE_FRAMEWORK_URL);
-      if (!response.ok) throw new Error("offline framework unavailable");
-      renderFramework(await response.json());
-    } catch {
-      $("#framework-notice").textContent = "چارچوب پژوهش در دسترس نیست؛ جست‌وجوی متنی همچنان فعال است.";
-      $("#framework-grid").innerHTML = '<p class="cluster-empty">لطفاً اتصال را دوباره بررسی کنید.</p>';
-    }
-  }
-}
-
-function addSvgElement(parent, name, attributes = {}) {
-  const element = document.createElementNS(SVG_NS, name);
-  Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, value));
-  parent.appendChild(element);
-  return element;
-}
-
-function ringCoordinates(ids, radius, startAngle, centerX = 310, centerY = 215) {
-  const count = Math.max(ids.length, 1);
-  return Object.fromEntries(ids.map((id, index) => {
-    const angle = startAngle + (Math.PI * 2 * index) / count;
-    return [id, [centerX + radius * Math.cos(angle), centerY + radius * Math.sin(angle)]];
-  }));
-}
-
-function nodePositions(nodes) {
-  const positions = { topic: [310, 215] };
-  const groups = {
-    verse: nodes.filter((node) => node.kind === "verse").map((node) => node.id),
-    term: nodes.filter((node) => node.kind === "term").map((node) => node.id),
-    story: nodes.filter((node) => node.kind === "story").map((node) => node.id),
-    surah: nodes.filter((node) => node.kind === "surah").map((node) => node.id),
+function recordFromTuple(tuple) {
+  const [surah, ayah, arabic, persian, surahName, revelation] = tuple;
+  return {
+    id: `${surah}:${ayah}`,
+    surah,
+    ayah,
+    arabic,
+    persian,
+    surahName,
+    revelation,
+    reference: `${surahName} ${surah}:${ayah}`,
+    arabicNormalized: normalize(arabic),
+    persianNormalized: normalize(persian),
   };
-  Object.assign(positions, ringCoordinates(groups.verse, 65, -Math.PI / 2));
-  Object.assign(positions, ringCoordinates(groups.term, 112, -Math.PI / 2 + 0.35));
-  Object.assign(positions, ringCoordinates(groups.story, 146, Math.PI / 4));
-  Object.assign(positions, ringCoordinates(groups.surah, 184, -Math.PI / 2));
-  return positions;
 }
 
-function graphLabel(node) {
-  if (node.kind === "verse") {
-    const chunks = node.label.split(" ");
-    return chunks.length > 1 ? [chunks.slice(0, -1).join(" "), chunks.at(-1)] : [node.label];
-  }
-  return [node.label];
+async function loadData() {
+  const [corpusResponse, lexiconResponse] = await Promise.all([fetch(CORPUS_URL), fetch(LEXICON_URL)]);
+  if (!corpusResponse.ok || !lexiconResponse.ok) throw new Error("پیکرهٔ محلی یا واژه‌نامهٔ مفهومی در دسترس نیست.");
+  const corpus = await corpusResponse.json();
+  state.lexicon = await lexiconResponse.json();
+  state.corpus = corpus.verses.map(recordFromTuple);
+  state.recordById = new Map(state.corpus.map((record) => [record.id, record]));
+  $("#result-corpus").textContent = `${faNumber(state.corpus.length)} آیه`;
+  renderStarters();
 }
 
-function renderArc(graph) {
-  const arc = $("#arc-view");
-  arc.innerHTML = (graph.reading_arc || []).map((step, index) => `<article class="arc-step" data-stage="${faNumber(index + 1)}">
-    <b>${escapeHTML(step.title)}</b>
-    <p>${escapeHTML(step.body)}</p>
-  </article>`).join("");
-}
-
-function renderGraphMetrics(graph) {
-  const metrics = graph.metrics || {};
-  const items = [
-    [metrics.lexical_terms, "واژهٔ پل"],
-    [metrics.surah_connections, "سورهٔ پیوندی"],
-    [metrics.narrative_paths, "مسیر روایی"],
-    [metrics.story_lexical_hits, "شاهد در داستان"],
-  ];
-  $("#graph-metrics").innerHTML = items.map(([value, label]) => `<div class="graph-metric"><b>${faNumber(value)}</b><span>${escapeHTML(label)}</span></div>`).join("");
-  $("#graph-note").textContent = graph.notice || "";
-}
-
-function renderGraph(graph) {
-  const svg = $("#graph");
-  svg.replaceChildren();
-  if (!graph || !graph.nodes.length) return;
-  const positions = nodePositions(graph.nodes);
-
-  graph.edges.forEach((edge) => {
-    const [x1, y1] = positions[edge.source] || [0, 0];
-    const [x2, y2] = positions[edge.target] || [0, 0];
-    const line = addSvgElement(svg, "line", { x1, y1, x2, y2, class: "graph-line" });
-    const title = addSvgElement(line, "title");
-    title.textContent = edge.label;
+function renderStarters() {
+  const priority = ["محبت و عشق", "عدالت", "رحمت", "خانواده", "علم و اندیشه", "آزادی و اختیار", "دعا و عبادت", "توبه"];
+  const concepts = [...(state.lexicon?.concepts || [])].sort((a, b) => {
+    const aIndex = priority.indexOf(a.title);
+    const bIndex = priority.indexOf(b.title);
+    return (aIndex < 0 ? 99 : aIndex) - (bIndex < 0 ? 99 : bIndex);
   });
+  $("#starter-list").innerHTML = concepts.map((concept) => `<button class="starter" type="button" data-concept="${escapeHTML(concept.aliases[0])}">${escapeHTML(concept.title)}</button>`).join("");
+}
 
-  graph.nodes.forEach((node) => {
-    const [x, y] = positions[node.id] || [310, 215];
-    const radii = { topic: 37, term: 29, story: 29, surah: 26, verse: 20 };
-    const radius = radii[node.kind] || 24;
-    const group = addSvgElement(svg, "g", { class: `graph-node node-${node.kind}`, transform: `translate(${x} ${y})`, tabindex: "0" });
-    const title = addSvgElement(group, "title");
-    title.textContent = `${node.label} — ${node.meta}`;
-    addSvgElement(group, "circle", { r: radius });
-    const labels = graphLabel(node);
-    const startingY = labels.length === 1 ? -2 : -6;
-    labels.forEach((label, index) => {
-      const text = addSvgElement(group, "text", { y: startingY + index * 11, class: "node-title" });
-      text.textContent = label.length > 13 ? `${label.slice(0, 12)}…` : label;
+function resolveConcept(query) {
+  const normalized = normalize(query);
+  const matches = (state.lexicon?.concepts || []).flatMap((concept) => (concept.aliases || []).map((alias) => ({ concept, alias: normalize(alias) })))
+    .filter((item) => item.alias && normalized.includes(item.alias))
+    .sort((a, b) => b.alias.length - a.alias.length);
+  return matches[0]?.concept || null;
+}
+
+function probablyArabic(value) {
+  const raw = String(value || "");
+  return /[يكىةىأإؤء]/.test(raw) || normalize(raw).split(" ").join("").length <= 4;
+}
+
+function uniqueTerms(terms) {
+  const seen = new Set();
+  return terms.filter((term) => {
+    const key = `${term.scope}:${term.value}`;
+    if (!term.value || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function buildTerms(query, concept, includeTranslation, manualArabic = "") {
+  const normalizedQuery = normalize(query);
+  const terms = manualArabic.split(/[،,]/).map((value) => value.trim()).filter(Boolean).map((value) => ({
+    value: normalize(value), label: `واژهٔ عربیِ شما: ${value}`, type: "exact", scope: "arabic", origin: "کلیدواژهٔ عربیِ کاربر",
+  }));
+  if (concept) {
+    (concept.equivalents || []).forEach(([term, label]) => terms.push({
+      value: normalize(term), label, type: "equivalent", scope: "arabic", origin: "معادل قرآنیِ واژه‌نامه",
+    }));
+    (concept.related || []).forEach(([term, label]) => terms.push({
+      value: normalize(term), label, type: "related", scope: "arabic", origin: "پیوند مرتبطِ واژه‌نامه",
+    }));
+  }
+  const isKnownEquivalent = (concept?.equivalents || []).some(([term]) => normalize(term) === normalizedQuery);
+  if (probablyArabic(query) && (!concept || isKnownEquivalent)) {
+    terms.unshift({
+      value: normalizedQuery, label: "عبارت عربیِ کاربر", type: "exact", scope: "arabic", origin: "عبارتِ کاربر",
     });
-    const meta = addSvgElement(group, "text", { y: labels.length === 1 ? 13 : 16, class: "node-meta" });
-    meta.textContent = node.meta.length > 17 ? `${node.meta.slice(0, 16)}…` : node.meta;
-  });
-  renderArc(graph);
-  renderGraphMetrics(graph);
-}
-
-function setGraphView(view) {
-  const network = $("#network-view");
-  const arc = $("#arc-view");
-  network.hidden = view !== "network";
-  arc.hidden = view !== "arc";
-  document.querySelectorAll("[data-graph-view]").forEach((button) => {
-    const active = button.dataset.graphView === view;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-selected", String(active));
-  });
-}
-
-function renderReflection(reflection) {
-  if (!reflection) return;
-  $("#reflection-title").textContent = reflection.title || "تأمل کاربردی";
-  $("#reflection-focus").textContent = reflection.focus || "";
-  $("#reflection-list").innerHTML = (reflection.prompts || []).map((prompt) => `<li>${escapeHTML(prompt)}</li>`).join("");
-  $("#reflection-notice").textContent = reflection.notice || "";
-}
-
-function mergeResearchPage(data, append) {
-  if (!append || !state.data || state.data.query !== data.query) return data;
-  const seen = new Set(state.data.verses.map((verse) => verse.id));
-  data.verses = [
-    ...state.data.verses,
-    ...data.verses.filter((verse) => !seen.has(verse.id)),
-  ];
-  data.context = state.data.context;
-  data.stats = { ...data.stats, shown: data.verses.length };
-  return data;
-}
-
-function render(data, append = false) {
-  const payload = mergeResearchPage(data, append);
-  state.data = payload;
-  state.filter = "all";
-  state.limit = payload.page?.limit || state.pageSize;
-  $("#research").classList.remove("is-empty");
-  if (!append) {
-    state.structureExpanded = false;
-    setWorkspaceView("evidence");
   }
-  $("#topic-label").textContent = payload.canonical_topic || payload.query;
-  $("#summary-text").textContent = payload.summary;
-  $("#topic-description").textContent = payload.topic_description || "";
-  $("#corpus-note").textContent = `${faNumber(payload.corpus.total_verses)} آیه · عربی و ترجمهٔ فارسی`;
-  $("#result-quality").textContent = payload.mode?.label || "مسیر قابل ممیزی";
-  modeSelect.value = payload.mode?.id || modeSelect.value;
-
-  const expansion = $("#expansion-row");
-  expansion.innerHTML = (payload.expansion || [])
-    .map((label) => `<span>${escapeHTML(label)}</span>`)
-    .join("");
-  renderStats(payload.stats);
-  renderVerses();
-  const page = payload.page || { total: payload.stats.direct + payload.stats.thematic, next_offset: null };
-  $("#evidence-progress").textContent = `اکنون ${faNumber(payload.stats.shown)} از ${faNumber(page.total)} شاهدِ بازیابی‌شده از ${faNumber(payload.stats.surahs)} سوره نمایش داده شده است.`;
-  const loadMore = $("#load-more");
-  loadMore.hidden = page.next_offset === null || page.next_offset === undefined;
-  if (!loadMore.hidden) {
-    const remaining = Math.min(state.pageSize, page.total - page.next_offset);
-    loadMore.innerHTML = `نمایش ${faNumber(remaining)} آیهٔ بعدی از ${faNumber(page.total)} شاهد <span>↓</span>`;
+  if (includeTranslation) {
+    terms.unshift({
+      value: normalizedQuery, label: "عبارت فارسیِ کاربر", type: "exact", scope: "persian", origin: "جست‌وجوی دقیق در ترجمه",
+    });
   }
-  renderContext(payload.context);
-  renderNarrative(payload.narrative);
-  renderStructure(payload.structure);
-  renderGraph(payload.graph);
-  renderReflection(payload.reflection);
-  $("#questions-list").innerHTML = payload.questions.map((question) => `<li>${escapeHTML(question)}</li>`).join("");
-  $("#method-list").innerHTML = payload.method.steps.map((step) => `<li>${escapeHTML(step)}</li>`).join("");
+  return uniqueTerms(terms);
+}
 
-  document.querySelectorAll(".filter-tabs button").forEach((button) => {
-    const active = button.dataset.filter === "all";
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-selected", String(active));
+function typeLabel(type) {
+  return { equivalent: "معادل قرآنی", related: "مفهوم مرتبط", exact: "عبارت دقیق" }[type] || "شاهد";
+}
+
+function evaluateRecord(record, terms) {
+  const evidence = [];
+  terms.forEach((term) => {
+    const inArabic = term.scope !== "persian" && record.arabicNormalized.includes(term.value);
+    const inPersian = term.scope === "persian" && record.persianNormalized.includes(term.value);
+    if (!inArabic && !inPersian) return;
+    evidence.push({
+      ...term,
+      source: inArabic ? "متن عربی" : "ترجمهٔ فارسی",
+    });
   });
+  if (!evidence.length) return null;
+  const rank = { exact: 30, equivalent: 12, related: 3 };
+  const type = evidence.some((item) => item.type === "exact") ? "exact"
+    : evidence.some((item) => item.type === "equivalent") ? "equivalent" : "related";
+  return { ...record, evidence, type, score: evidence.reduce((sum, item) => sum + rank[item.type], 0) };
 }
 
-function showResearchEmpty() {
-  state.data = null;
-  $("#research").classList.add("is-empty");
-  $("#corpus-note").textContent = "پیش از شروع، یک پرسش انتخاب کنید";
-  $("#topic-label").textContent = "پرسش شما";
-  resultsList.replaceChildren();
-  $("#load-more").hidden = true;
-}
-
-async function research(query, scroll = false, limit = state.pageSize, offset = 0, append = false) {
+function searchConcept(query) {
   const cleanQuery = query.trim();
+  const status = $("#search-status");
   if (!cleanQuery) {
-    showError("لطفاً یک واژه یا موضوع بنویسید.");
-    input.focus();
+    status.textContent = "یک مفهوم یا واژه بنویسید.";
+    $("#concept-query").focus();
     return;
   }
-  input.value = cleanQuery;
-  state.limit = limit;
-  loading();
-  try {
-    const response = await fetch(apiUrl("/api/analyze"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: cleanQuery, limit, offset, include_context: true, mode: modeSelect.value }),
-    });
-    const payload = await response.json();
-    if (!response.ok) {
-      const apiError = new Error(payload.detail || "دریافت نتیجه ناموفق بود.");
-      apiError.validation = response.status === 422;
-      throw apiError;
-    }
-    render(payload, append);
-    if (scroll) $("#research").scrollIntoView({ behavior: "smooth", block: "start" });
-  } catch (error) {
-    if (!error.validation) {
-      try {
-        const fallback = await offlineAnalyze(cleanQuery, limit, offset, modeSelect.value);
-        render(fallback, append);
-        showOfflineNotice();
-        if (scroll) $("#research").scrollIntoView({ behavior: "smooth", block: "start" });
-        return;
-      } catch {
-        // Use the regular error state below if neither online nor offline research is available.
-      }
-    }
-    resultsList.innerHTML = `<div class="empty-results"><b>اتصال به موتور پژوهش برقرار نشد.</b>لطفاً دوباره تلاش کنید.</div>`;
-    showError(error.message || "خطای پیش‌بینی‌نشده رخ داد.");
-  } finally {
-    submit.disabled = false;
+  const concept = resolveConcept(cleanQuery);
+  const manualArabic = $("#arabic-seeds").value;
+  const terms = buildTerms(cleanQuery, concept, $("#translation-option").checked, manualArabic);
+  if (!terms.length) {
+    status.textContent = "برای این عبارت هنوز معادل عربیِ بازبینی‌شده‌ای در واژه‌نامه نیست. واژهٔ عربی را در بخش «واژهٔ عربیِ دلخواه» وارد کنید یا جست‌وجوی دقیق در ترجمه را فعال کنید.";
+    return;
   }
+  state.query = cleanQuery;
+  state.concept = concept;
+  state.terms = terms;
+  state.matches = state.corpus.map((record) => evaluateRecord(record, terms)).filter(Boolean)
+    .sort((a, b) => b.score - a.score || a.surah - b.surah || a.ayah - b.ayah);
+  state.shown = PAGE_SIZE;
+  state.filter = "all";
+  state.selected = null;
+  status.textContent = "";
+  renderResults();
+  navigate("results");
 }
 
-form.addEventListener("submit", (event) => {
+function renderTermGroups() {
+  const byType = ["equivalent", "related", "exact"].map((type) => ({ type, terms: state.terms.filter((term) => term.type === type) })).filter((group) => group.terms.length);
+  $("#active-terms").innerHTML = byType.map((group) => `<span class="term-group ${group.type === "related" ? "related" : ""}"><b>${typeLabel(group.type)}:</b> ${group.terms.map((term) => escapeHTML(term.label)).join("، ")}</span>`).join("");
+}
+
+function resultsByFilter() {
+  return state.filter === "all" ? state.matches : state.matches.filter((item) => item.type === state.filter);
+}
+
+function renderResults() {
+  const allSurahs = new Set(state.matches.map((item) => item.surah)).size;
+  const equivalentCount = state.matches.filter((item) => item.type === "equivalent" || item.type === "exact").length;
+  const relatedCount = state.matches.filter((item) => item.type === "related").length;
+  const title = state.concept?.title || state.query;
+  $("#result-topic").textContent = title;
+  $("#result-summary").textContent = state.concept
+    ? `برای «${title}»، ${faNumber(equivalentCount)} شاهدِ واژگانیِ عربی و ${faNumber(relatedCount)} پیوندِ مرتبط پیدا شد. هر پیوند مرتبط از معادل قرآنی جدا نگه داشته شده است.`
+    : `نتایجِ عبارت «${state.query}» فقط بر پایهٔ مسیرِ انتخاب‌شده در جست‌وجو بازیابی شده‌اند.`;
+  renderTermGroups();
+  $$(".result-filters button").forEach((button) => {
+    const active = button.dataset.filter === state.filter;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+  renderVerseList();
+}
+
+function verseCard(verse) {
+  const primaryEvidence = verse.evidence.slice(0, 2).map((item) => `${item.label} · ${item.source}`).join("، ");
+  return `<button class="verse-card" type="button" data-verse-id="${escapeHTML(verse.id)}">
+    <span class="verse-head"><span class="verse-reference">${escapeHTML(verse.reference)} · ${escapeHTML(verse.revelation)}</span><span class="verse-type ${verse.type}">${typeLabel(verse.type)}</span></span>
+    <span class="verse-arabic" lang="ar" dir="rtl">${escapeHTML(verse.arabic)}</span>
+    <span class="verse-persian">${escapeHTML(verse.persian)}</span>
+    <span class="verse-match"><b>واژهٔ شاهد:</b> ${escapeHTML(primaryEvidence)} <i class="open-cue" aria-hidden="true">←</i></span>
+  </button>`;
+}
+
+function renderVerseList() {
+  const filtered = resultsByFilter();
+  const visible = filtered.slice(0, state.shown);
+  const list = $("#verse-list");
+  if (!visible.length) {
+    list.replaceChildren($("#empty-result-template").content.cloneNode(true));
+  } else {
+    list.innerHTML = visible.map(verseCard).join("");
+  }
+  $("#result-progress").textContent = `${faNumber(visible.length)} از ${faNumber(filtered.length)} آیه در این لایه · ${faNumber(new Set(state.matches.map((item) => item.surah)).size)} سوره در کل مسیر`;
+  const loadMore = $("#load-more");
+  loadMore.hidden = visible.length >= filtered.length;
+  if (!loadMore.hidden) loadMore.textContent = `نمایش ${faNumber(Math.min(PAGE_SIZE, filtered.length - visible.length))} آیهٔ بعدی`;
+}
+
+function openVerse(id, shouldNavigate = true) {
+  const verse = state.matches.find((item) => item.id === id);
+  if (!verse) return;
+  state.selected = verse;
+  state.detailTab = "notes";
+  renderDetail();
+  if (shouldNavigate) navigate("detail", id);
+}
+
+function getContext(verse) {
+  return [-1, 0, 1].map((delta) => state.recordById.get(`${verse.surah}:${verse.ayah + delta}`)).filter(Boolean);
+}
+
+function evidencePills(evidence) {
+  return evidence.map((item) => `<span class="evidence-pill ${item.type === "related" ? "related" : ""}">${escapeHTML(typeLabel(item.type))}: ${escapeHTML(item.label)} · ${escapeHTML(item.source)}</span>`).join("");
+}
+
+function renderDetail() {
+  const verse = state.selected;
+  if (!verse) return;
+  $("#detail-reference").textContent = `${verse.reference} · ${verse.revelation}`;
+  $("#detail-title").textContent = verse.arabic;
+  $("#detail-persian").textContent = verse.persian;
+  $("#detail-evidence").innerHTML = evidencePills(verse.evidence);
+  updateSaveButton();
+  $$(".study-tabs button").forEach((button) => {
+    const active = button.dataset.detailTab === state.detailTab;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+  renderDetailPanel();
+}
+
+function promptsForVerse() {
+  return state.concept?.prompts || [
+    "فاعل، مخاطب و قیدهای آیه را از خود متن جدا کنید.",
+    "پیش از نتیجه‌گیری، آیه‌های پیش و پس را بخوانید.",
+  ];
+}
+
+function detailPanelNotes(verse) {
+  const direct = verse.evidence.filter((item) => item.type !== "related");
+  return `<section class="detail-panel"><p class="eyebrow">نکات متن‌محور</p><h3>از چه مسیرى این آیه وارد پژوهش شد؟</h3>
+    <p class="reading-notice">این بخش، دادهٔ بازیابی و راهنمای خواندن است؛ برداشت تفسیریِ نهایی نیست.</p>
+    <ul class="study-list">
+      <li><b>واژه‌های شاهد</b>${escapeHTML(verse.evidence.map((item) => `${item.label} (${item.source})`).join("، "))}</li>
+      <li><b>سطح ارتباط</b>${escapeHTML(typeLabel(verse.type))}. ${verse.type === "related" ? "این پیوند برای مقایسه است و هم‌معنایی قطعی را نشان نمی‌دهد." : "تطابق در متن عربی یا عبارت انتخاب‌شده ثبت شده است."}</li>
+      <li><b>اصل خواندن</b>گوینده، مخاطب، فعل و قیدهای آیه را پیش از استخراج هر پیام مشخص کنید.</li>
+    </ul></section>`;
+}
+
+function detailPanelFoundations(verse) {
+  const evidenceKinds = [...new Set(verse.evidence.map((item) => typeLabel(item.type)))].join("، ");
+  return `<section class="detail-panel"><p class="eyebrow">اصول و مبانیِ خواندن آیه</p><h3>پیش از برداشت، پایه‌های بررسی را روشن کنید.</h3>
+    <ul class="study-list"><li><b>پایهٔ متن</b>متن عربیِ آیه، نقطهٔ آغاز است؛ ترجمه برای فهم فارسی کمک می‌کند اما جای تحلیلِ واژهٔ عربی را نمی‌گیرد.</li><li><b>پایهٔ بازیابی</b>این آیه با سطحِ «${escapeHTML(evidenceKinds)}» وارد مسیر شده است. سطحِ بازیابی را با معنای نهاییِ آیه یکی نگیرید.</li><li><b>پایهٔ سیاق</b>گوینده، مخاطب، پیوستگی پیش و پس و جایگاه آیه در سوره، پیش از تعمیم‌دادن بررسی می‌شود.</li><li><b>پایهٔ اختلاف دیدگاه</b>هر داوری تفسیری به منبع، مؤلف، جلد و صفحه نیاز دارد؛ در یادداشت پژوهش ثبتش کنید.</li></ul></section>`;
+}
+
+function detailPanelFramework(verse) {
+  const equivalents = state.terms.filter((item) => item.type === "equivalent");
+  const related = state.terms.filter((item) => item.type === "related");
+  return `<section class="detail-panel"><p class="eyebrow">چارچوب معنایی و مبانی بررسی</p><h3>مفهوم را به جایِ یک برچسبِ کلی، لایه‌لایه بخوانید.</h3>
+    <p>مفهومِ پایه: <b>${escapeHTML(state.concept?.title || state.query)}</b>. واژه‌های زیر مسیرِ بازیابی‌اند و نه معادل‌سازیِ تفسیریِ قطعی.</p>
+    <div class="semantic-columns"><div class="semantic-box"><h4>معادل‌های قرآنیِ فعال</h4>${equivalents.map((item) => `<span>${escapeHTML(item.label)}</span>`).join("") || "<span>—</span>"}</div><div class="semantic-box related"><h4>پیوندهای مرتبطِ فعال</h4>${related.map((item) => `<span>${escapeHTML(item.label)}</span>`).join("") || "<span>—</span>"}</div></div>
+    <ul class="study-list"><li><b>مبنای اول</b>خودِ واژهٔ عربی، پیش از ترجمه و برداشت، بررسی می‌شود.</li><li><b>مبنای دوم</b>پیوند مرتبط باید در همان سیاق آزموده شود؛ صرفِ حضور یک ریشه، نتیجهٔ مفهومی نمی‌سازد.</li></ul></section>`;
+}
+
+function detailPanelMessages(verse) {
+  return `<section class="detail-panel"><p class="eyebrow">پیام‌های قابل بررسی</p><h3>پیام را از متن استخراج کنید، نه از یک کارت آماده.</h3>
+    <p class="reading-notice">برای حفظ امانت متن، این بخش «پرسشِ استخراج پیام» می‌دهد، نه یک تفسیرِ خودکار و قطعی.</p>
+    <ul class="study-list">${promptsForVerse().map((prompt, index) => `<li><b>پرسش ${faNumber(index + 1)}</b>${escapeHTML(prompt)}</li>`).join("")}<li><b>پیوند با این آیه</b>بررسی کنید «${escapeHTML(verse.evidence[0]?.label || state.query)}» در این آیه چه نقشی دارد و چه چیزی را نمی‌توان از آن نتیجه گرفت.</li></ul></section>`;
+}
+
+function detailPanelContext(verse) {
+  const context = getContext(verse);
+  return `<section class="detail-panel"><p class="eyebrow">آیه در سیاق سوره</p><h3>پیش و پسِ آیه را کنار هم بخوانید.</h3><p>این پنجرهٔ خطی جای مطالعهٔ کامل سوره را نمی‌گیرد، اما از بریده‌خوانی جلوگیری می‌کند.</p>
+    <div class="context-grid">${context.map((item) => `<button class="context-verse ${item.id === verse.id ? "current" : ""}" data-context-id="${escapeHTML(item.id)}" type="button"><b>${escapeHTML(item.reference)}</b><p>${escapeHTML(item.persian)}</p></button>`).join("")}</div></section>`;
+}
+
+function detailPanelQuran(verse) {
+  const sameSurah = state.matches.filter((item) => item.surah === verse.surah && item.id !== verse.id).slice(0, 5);
+  const surahs = new Set(state.matches.map((item) => item.surah)).size;
+  return `<section class="detail-panel"><p class="eyebrow">آیه در نسبت با کل قرآن</p><h3>جای این آیه در مسیرِ همین پژوهش</h3>
+    <ul class="study-list"><li><b>پوشش بازیابی</b>${faNumber(state.matches.length)} آیه در ${faNumber(surahs)} سوره، بر پایهٔ واژه‌های فعالِ همین پرسش پیدا شده‌اند.</li><li><b>مرز نتیجه</b>این شمارش، اهمیت تفسیری یا همهٔ ارتباط‌های ممکن میان آیات را رتبه‌بندی نمی‌کند.</li></ul>
+    ${sameSurah.length ? `<div class="related-verses">${sameSurah.map((item) => `<button class="related-verse" type="button" data-related-id="${escapeHTML(item.id)}">${escapeHTML(item.reference)} · ${escapeHTML(item.evidence[0]?.label || "شاهد")}</button>`).join("")}</div>` : "<p>در این مسیر، شاهدِ دیگری از همین سوره در فهرست فعلی نیست.</p>"}</section>`;
+}
+
+function detailPanelNotebook(verse) {
+  const saved = state.notebook.find((item) => item.id === verse.id);
+  return `<section class="detail-panel"><p class="eyebrow">دفتر پژوهش، فقط روی همین دستگاه</p><h3>یادداشت و منبع خود را ثبت کنید.</h3><p>برای تفسیر یا منبع بیرونی، نام اثر، مؤلف، جلد و صفحه را دقیق بنویسید.</p>
+    <textarea id="verse-note" class="note-area" placeholder="برداشت موقت، پرسش، یا ارجاع منبع…">${escapeHTML(saved?.note || "")}</textarea>
+    <div class="note-actions"><button id="save-note" type="button">ذخیرهٔ یادداشت</button><span id="note-status"></span></div></section>`;
+}
+
+function renderDetailPanel() {
+  const verse = state.selected;
+  if (!verse) return;
+  const panels = {
+    notes: detailPanelNotes,
+    foundations: detailPanelFoundations,
+    framework: detailPanelFramework,
+    messages: detailPanelMessages,
+    context: detailPanelContext,
+    quran: detailPanelQuran,
+    notebook: detailPanelNotebook,
+  };
+  $("#detail-panels").innerHTML = (panels[state.detailTab] || detailPanelNotes)(verse);
+}
+
+function saveNote() {
+  const input = $("#verse-note");
+  if (!input || !state.selected) return;
+  const existing = state.notebook.find((item) => item.id === state.selected.id);
+  if (existing) {
+    existing.note = input.value.trim().slice(0, 3000);
+  } else {
+    state.notebook.unshift({
+      id: state.selected.id,
+      query: state.query,
+      reference: state.selected.reference,
+      arabic: state.selected.arabic,
+      persian: state.selected.persian,
+      note: input.value.trim().slice(0, 3000),
+      savedAt: new Date().toISOString(),
+    });
+  }
+  persistNotebook();
+  updateSaveButton();
+  $("#note-status").textContent = "روی همین دستگاه ذخیره شد.";
+}
+
+function showScreen(name, verseId = null) {
+  state.screen = name;
+  $("#search-screen").hidden = name !== "search";
+  $("#results-screen").hidden = name !== "results";
+  $("#detail-screen").hidden = name !== "detail";
+  if (name === "detail" && verseId && state.selected?.id !== verseId) openVerse(verseId, false);
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function navigate(name, verseId = null) {
+  const hash = name === "search" ? "" : name === "results" ? "#results" : `#verse/${verseId || state.selected?.id || ""}`;
+  history.pushState({ screen: name, verseId }, "", `${location.pathname}${hash}`);
+  showScreen(name, verseId);
+}
+
+function restoreFromHistory() {
+  const hash = location.hash;
+  if (hash.startsWith("#verse/") && state.matches.length) {
+    const id = decodeURIComponent(hash.slice(7));
+    if (state.matches.some((item) => item.id === id)) {
+      openVerse(id, false);
+      showScreen("detail");
+      return;
+    }
+  }
+  if (hash === "#results" && state.matches.length) {
+    showScreen("results");
+    return;
+  }
+  showScreen("search");
+}
+
+$("#concept-form").addEventListener("submit", (event) => {
   event.preventDefault();
-  research(input.value, true);
+  searchConcept($("#concept-query").value);
 });
 
-document.querySelectorAll("[data-query]").forEach((button) => {
-  button.addEventListener("click", () => research(button.dataset.query, true));
-});
-
-$("#framework-grid").addEventListener("click", (event) => {
-  const button = event.target.closest("[data-framework-query]");
+$("#starter-list").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-concept]");
   if (!button) return;
-  input.value = button.dataset.frameworkQuery;
-  modeSelect.value = "topic";
-  research(button.dataset.frameworkQuery, true);
+  $("#concept-query").value = button.dataset.concept;
+  searchConcept(button.dataset.concept);
 });
 
-document.querySelectorAll("[data-workspace-view]").forEach((button) => {
-  button.addEventListener("click", () => setWorkspaceView(button.dataset.workspaceView));
+$("#verse-list").addEventListener("click", (event) => {
+  const card = event.target.closest("[data-verse-id]");
+  if (card) openVerse(card.dataset.verseId);
 });
 
 $("#load-more").addEventListener("click", () => {
-  const nextOffset = state.data?.page?.next_offset;
-  if (!state.data || nextOffset === null || nextOffset === undefined) return;
-  research(state.data.query, false, state.pageSize, nextOffset, true);
+  state.shown += PAGE_SIZE;
+  renderVerseList();
 });
 
-$("#distribution-toggle").addEventListener("click", () => {
-  if (!state.data?.structure?.distribution?.length) return;
-  state.structureExpanded = !state.structureExpanded;
-  renderStructure(state.data.structure);
+$$(".result-filters button").forEach((button) => button.addEventListener("click", () => {
+  state.filter = button.dataset.filter;
+  state.shown = PAGE_SIZE;
+  renderResults();
+}));
+
+$$(".study-tabs button").forEach((button) => button.addEventListener("click", () => {
+  state.detailTab = button.dataset.detailTab;
+  renderDetail();
+}));
+
+$("#detail-panels").addEventListener("click", (event) => {
+  const contextButton = event.target.closest("[data-context-id]");
+  if (contextButton) return openVerse(contextButton.dataset.contextId);
+  const relatedButton = event.target.closest("[data-related-id]");
+  if (relatedButton) return openVerse(relatedButton.dataset.relatedId);
+  if (event.target.closest("#save-note")) saveNote();
 });
 
-$("#export-research").addEventListener("click", () => {
-  if (!state.data) return;
-  if (state.data.offline) {
-    showError("گزارش Markdownِ قابل ممیزی به سرور پژوهش نیاز دارد. برای گزارش کامل، اتصال HTTPS را از نشان بالای صفحه تنظیم کنید.");
-    return;
-  }
-  const params = new URLSearchParams({ q: state.data.query, mode: modeSelect.value });
-  window.location.assign(`${apiUrl("/api/export/markdown")}?${params.toString()}`);
-});
+$$("[data-go]").forEach((button) => button.addEventListener("click", () => navigate(button.dataset.go)));
+$("#brand-home").addEventListener("click", () => navigate("search"));
+$("#save-verse").addEventListener("click", saveCurrentVerse);
 
-document.querySelectorAll(".filter-tabs button").forEach((button) => {
-  button.addEventListener("click", () => {
-    state.filter = button.dataset.filter;
-    document.querySelectorAll(".filter-tabs button").forEach((item) => {
-      const active = item === button;
-      item.classList.toggle("active", active);
-      item.setAttribute("aria-selected", String(active));
-    });
-    renderVerses();
-  });
-});
+$("#open-method").addEventListener("click", () => $("#method-dialog").showModal());
+$("#open-sources").addEventListener("click", () => $("#sources-dialog").showModal());
+window.addEventListener("popstate", restoreFromHistory);
 
-resultsList.addEventListener("click", async (event) => {
-  const saveButton = event.target.closest("[data-save]");
-  if (saveButton && state.data) {
-    const verse = state.data.verses.find((item) => item.id === saveButton.dataset.save);
-    if (verse && saveVerse(verse)) {
-      saveButton.textContent = "در دفتر ✓";
-      saveButton.classList.add("saved");
-      saveButton.disabled = true;
-    }
-    return;
-  }
-
-  const button = event.target.closest("[data-copy]");
-  if (!button || !state.data) return;
-  const verse = state.data.verses.find((item) => item.id === button.dataset.copy);
-  if (!verse) return;
-  const citation = `${verse.reference}\n${verse.arabic}\n${verse.persian}`;
-  try {
-    await navigator.clipboard.writeText(citation);
-    button.textContent = "کپی شد ✓";
-  } catch {
-    button.textContent = "متن را انتخاب کنید";
-  }
-  window.setTimeout(() => { button.textContent = "کپی شاهد ↗"; }, 1600);
-});
-
-$("#narrative-list").addEventListener("click", (event) => {
-  const button = event.target.closest("[data-save-narrative]");
-  if (!button || !state.data) return;
-  const path = state.data.narrative?.paths?.find((item) => item.id === button.dataset.saveNarrative);
-  if (path && saveVerse(path)) {
-    button.textContent = "در دفتر ✓";
-    button.classList.add("saved");
-    button.disabled = true;
-  }
-});
-
-$("#notebook-list").addEventListener("click", (event) => {
-  const editButton = event.target.closest("[data-edit-note]");
-  if (editButton) {
-    const item = notebook.find((entry) => entry.id === editButton.dataset.editNote);
-    if (!item) return;
-    const note = window.prompt("یادداشت پژوهشی یا منبع تفسیر را با نام اثر، جلد و صفحه ثبت کنید:", item.note || "");
-    if (note === null) return;
-    item.note = note.trim().slice(0, 1000);
-    persistNotebook();
-    renderNotebook();
-    return;
-  }
-  const button = event.target.closest("[data-remove-note]");
-  if (!button) return;
-  notebook = notebook.filter((item) => item.id !== button.dataset.removeNote);
-  persistNotebook();
-  renderNotebook();
-  renderVerses();
-});
-
-$("#export-notebook").addEventListener("click", () => {
-  if (!notebook.length) return;
-  const today = new Intl.DateTimeFormat("fa-IR", { dateStyle: "long" }).format(new Date());
-  const body = [
-    "# دفتر شواهد ذهن‌یار",
-    "",
-    `تاریخ خروجی: ${today}`,
-    "",
-    ...notebook.flatMap((item) => [
-      `## ${item.reference}`,
-      "",
-      item.arabic,
-      "",
-      item.persian,
-      "",
-      `پرسش هنگام ذخیره: ${item.query || "—"}`,
-      `یادداشت / منبع: ${item.note || "—"}`,
-      "",
-    ]),
-  ].join("\n");
-  const blob = new Blob([body], { type: "text/markdown;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = "zehnyar-evidence-notebook.md";
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
-});
-
-$("#clear-notebook").addEventListener("click", () => {
-  if (!notebook.length || !window.confirm("همهٔ شواهد ذخیره‌شده از همین مرورگر پاک شوند؟")) return;
-  notebook = [];
-  persistNotebook();
-  renderNotebook();
-  renderVerses();
-});
-
-document.querySelectorAll("[data-graph-view]").forEach((button) => {
-  button.addEventListener("click", () => setGraphView(button.dataset.graphView));
-});
-
-$("#connection-settings").addEventListener("click", () => {
-  const current = localStorage.getItem(API_BASE_KEY) || "";
-  const value = window.prompt("آدرس HTTPS سرور ذهن‌یار را وارد کنید. برای بازگشت به حالت آفلاین، مقدار را خالی بگذارید:", current);
-  if (value === null) return;
-  const normalized = value.trim().replace(/\/$/, "");
-  if (!normalized) {
-    localStorage.removeItem(API_BASE_KEY);
-    updateConnectionLabel();
-    if (input.value.trim()) research(input.value);
-    return;
-  }
-  if (!/^https:\/\/[^\s/]+/i.test(normalized)) {
-    showError("برای اتصال امن، آدرس HTTPS کامل سرور را وارد کنید.");
-    return;
-  }
-  localStorage.setItem(API_BASE_KEY, normalized);
-  updateConnectionLabel();
-  loadFramework();
-  if (input.value.trim()) research(input.value);
-});
-
-$("#graph-info").addEventListener("click", () => {
-  const help = $("#graph-help");
-  help.hidden = !help.hidden;
-  $("#graph-info").setAttribute("aria-expanded", String(!help.hidden));
-});
-
-$("#open-method").addEventListener("click", () => {
-  if (state.data) {
-    setWorkspaceView("method");
-    $("#research").scrollIntoView({ behavior: "smooth", block: "start" });
-    return;
-  }
-  const protocol = document.querySelector(".protocol-strip");
-  protocol.open = true;
-  protocol.scrollIntoView({ behavior: "smooth", block: "center" });
-});
-
-$("#open-sources").addEventListener("click", () => {
-  const dialog = $("#sources-dialog");
-  if (typeof dialog.showModal === "function") dialog.showModal();
-});
-
-$("#method-toggle").addEventListener("click", () => {
-  const content = $("#method-content");
-  const button = $("#method-toggle");
-  content.hidden = !content.hidden;
-  button.setAttribute("aria-expanded", String(!content.hidden));
-});
-
-if ("serviceWorker" in navigator && /^(https?:)$/.test(window.location.protocol)) {
+if ("serviceWorker" in navigator && /^(https?:)$/.test(location.protocol)) {
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 }
 
-renderNotebook();
-updateConnectionLabel();
-setWorkspaceView("evidence");
-setGraphView("network");
-loadFramework();
-showResearchEmpty();
+loadData().then(() => {
+  history.replaceState({ screen: "search" }, "", location.pathname);
+  showScreen("search");
+}).catch((error) => {
+  $("#search-status").textContent = error.message || "بارگیری داده‌ها ناموفق بود.";
+});
