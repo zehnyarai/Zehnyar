@@ -1,4 +1,6 @@
-fastapi
-uvicorn
-groq
-
+fastapi==0.143.0
+uvicorn[standard]==0.54.0
+httpx==0.28.1
+python-multipart==0.0.32
+Pillow==12.3.0
+python-dotenv==1.2.4

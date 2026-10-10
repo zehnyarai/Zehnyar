@@ -1,0 +1,101 @@
+name: Build Pestino test APK
+
+on:
+  push:
+    branches: [arena/e819b607-zehnyar]
+  workflow_dispatch:
+    inputs:
+      server_url:
+        description: "Public HTTPS Pestino site root (not the temporary Arena preview)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pestino-test-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CAPACITOR_SERVER_URL: ${{ inputs.server_url || vars.PESTINO_SERVER_URL }}
+
+jobs:
+  configuration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain the build prerequisite
+        env:
+          PUBLIC_SERVER: ${{ inputs.server_url || vars.PESTINO_SERVER_URL }}
+        run: |
+          if [ -z "$PUBLIC_SERVER" ]; then
+            echo '## Pestino APK has not been built' >> "$GITHUB_STEP_SUMMARY"
+            echo 'A permanent public HTTPS server is required first. Set the PESTINO_SERVER_URL repository variable after deployment, then push a new commit on arena/e819b607-zehnyar.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'A server URL is set; the build job will validate the actual Pestino API before packaging.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  apk:
+    if: >-
+      github.ref == 'refs/heads/arena/e819b607-zehnyar' &&
+      (inputs.server_url != '' || vars.PESTINO_SERVER_URL != '')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Validate URL and published API
+        run: |
+          node tools/check-android-url.mjs
+          python3 tools/check_online_server.py "$CAPACITOR_SERVER_URL"
+      - name: Install dependencies and sync Android
+        run: |
+          npm ci
+          npm run android:sync
+      - name: Prepare Android SDK
+        run: |
+          set +o pipefail
+          yes | sdkmanager --licenses > /dev/null
+          set -o pipefail
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Build installable test APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug --no-daemon --stacktrace
+      - name: Verify package and signature
+        run: |
+          mkdir -p apk-output
+          cp android/app/build/outputs/apk/debug/app-debug.apk apk-output/Pestino-0.1.0-test.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose apk-output/Pestino-0.1.0-test.apk
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging apk-output/Pestino-0.1.0-test.apk > apk-output/package-info.txt
+          grep -q "name='ir.pestino.app'" apk-output/package-info.txt
+          grep -q 'پستینو' apk-output/package-info.txt
+          python3 - <<'PY'
+          import json, os, zipfile
+          with zipfile.ZipFile('apk-output/Pestino-0.1.0-test.apk') as apk:
+              config = json.loads(apk.read('assets/capacitor.config.json'))
+              assert config['appId'] == 'ir.pestino.app'
+              assert config['appName'] == 'پستینو'
+              assert config['server']['url'] == os.environ['CAPACITOR_SERVER_URL']
+              assert 'classes.dex' in apk.namelist()
+          PY
+          (cd apk-output && sha256sum Pestino-0.1.0-test.apk > Pestino-0.1.0-test.apk.sha256)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pestino-test-apk
+          path: apk-output/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Describe test limitations
+        run: |
+          echo '## Installable Pestino test APK' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Artifact: pestino-test-apk. This is a debug-signed test build, not a production/store release. Real device testing, stable private release signing, scientific validation and service configuration are still required.' >> "$GITHUB_STEP_SUMMARY"

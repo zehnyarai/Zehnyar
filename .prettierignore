@@ -1,0 +1,8 @@
+node_modules
+dist
+android
+storage
+.venv
+package-lock.json
+
+.cache

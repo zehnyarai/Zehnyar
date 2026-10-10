@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">پستینو</string>
+    <string name="title_activity_main">پستینو</string>
+    <string name="package_name">ir.pestino.app</string>
+    <string name="custom_url_scheme">ir.pestino.app</string>
+</resources>

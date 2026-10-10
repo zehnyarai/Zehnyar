@@ -1,0 +1,24 @@
+# Online pilot only. The free instance is ephemeral: do not store real farm,
+# identity or payment data here until durable storage is configured.
+services:
+  - type: web
+    name: pestino-pilot
+    runtime: docker
+    branch: arena/e819b607-zehnyar
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: PORT
+        value: "8000"
+      - key: DEMO_MODE
+        value: "true"
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: ZARINPAL_SANDBOX
+        value: "true"
+      # RENDER_EXTERNAL_URL is supplied by Render; the API uses it as the
+      # public URL unless PUBLIC_BASE_URL is explicitly configured.

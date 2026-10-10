@@ -1,0 +1,38 @@
+{
+  "name": "pestino",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "android:sync": "node tools/check-android-url.mjs && npm run build && cap sync android",
+    "android:open": "cap open android",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "format": "prettier --write src *.ts *.json index.html",
+    "format:check": "prettier --check src *.ts *.json index.html"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/camera": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@fontsource/vazirmatn": "^5.2.8",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.4.0",
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "prettier": "^3.9.9",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.0",
+    "vitest": "^5.0.3"
+  }
+}

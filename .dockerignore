@@ -1,0 +1,14 @@
+.git
+.env
+.env.*
+!.env.example
+node_modules
+.venv
+storage
+dist
+android
+__pycache__
+.pytest_cache
+test-results
+playwright-report
+*.tsbuildinfo

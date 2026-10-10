@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_PATH: /data/pesteyar.sqlite3
+      UPLOAD_DIR: /data/uploads
+    volumes:
+      - pesteyar-data:/data
+    restart: unless-stopped
+volumes:
+  pesteyar-data:
