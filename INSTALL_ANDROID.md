@@ -6,9 +6,9 @@
 
 این راه برای استفادهٔ کامل پیشنهاد می‌شود: بازیابی موضوعی، شبکهٔ لایه‌ای، مسیرهای روایی، گراف و گزارش Markdown همگی فعال می‌مانند.
 
-1. مخزن را از طریق **Render** به‌عنوان یک Web Service متصل کنید. فایل `render.yaml` آماده است.
-2. پس از deploy شدن، آدرس HTTPS سرویس را در Chrome اندروید باز کنید.
-3. از منوی Chrome گزینهٔ **Install app** یا **Add to Home screen** را بزنید.
+1. برای حالت آفلاین و نصب بدون هشدار Play Protect، می‌توانید GitHub Pages مخزن را فعال کنید؛ سپس نشانی `https://zehnyarai.github.io/Zehnyar/` را در Chrome اندروید باز کنید. workflow `Deploy installable PWA` فایل‌های لازم را منتشر می‌کند.
+2. یا مخزن را از طریق **Render** به‌عنوان یک Web Service متصل کنید. فایل `render.yaml` آماده است.
+3. پس از بازشدن نشانی HTTPS در Chrome اندروید، از منوی Chrome گزینهٔ **Install app** یا **Add to Home screen** را بزنید.
 4. اپ مانند یک برنامهٔ مستقل روی گوشی باز می‌شود و shell و پیکرهٔ آفلاین را cache می‌کند.
 
 ## راه دوم — فایل APK از GitHub

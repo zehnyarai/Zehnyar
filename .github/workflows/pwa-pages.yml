@@ -1,0 +1,51 @@
+name: Deploy installable PWA
+
+on:
+  push:
+    branches:
+      - arena/b44e7de5-zehnyar
+    paths:
+      - "static/**"
+      - ".github/workflows/pwa-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "github-pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Prepare static PWA
+        run: |
+          mkdir -p _site
+          cp static/index.html _site/index.html
+          cp static/manifest.webmanifest _site/manifest.webmanifest
+          cp static/sw.js _site/sw.js
+          cp -R static _site/static
+          touch _site/.nojekyll
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
