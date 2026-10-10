@@ -217,3 +217,25 @@ h1 em::after { content: ''; position: absolute; left: 1px; right: 1px; bottom: -
   .research-empty h3 { font-size: 17px; }
   .sources-dialog { padding: 26px 21px 21px; }
 }
+
+/* Coverage is explicit: a compact first view never means the other surahs were omitted. */
+.evidence-progress {
+  margin: 10px 0 0;
+  color: #5e8095;
+  font-size: 10px;
+  line-height: 1.8;
+  text-align: center;
+}
+.distribution-toggle {
+  width: 100%;
+  margin: 9px 0 2px;
+  padding: 7px 10px;
+  color: #08798f;
+  border: 1px dashed #b8dde3;
+  border-radius: 9px;
+  background: #f5fcfd;
+  font-size: 10px;
+  font-weight: 800;
+}
+.distribution-toggle:hover,
+.distribution-toggle:focus-visible { color: #fff; border-color: #08798f; background: #08798f; outline: 0; }

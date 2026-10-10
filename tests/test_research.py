@@ -1,4 +1,6 @@
+import json
 import unittest
+from pathlib import Path
 
 from fastapi import HTTPException
 
@@ -45,6 +47,22 @@ class QuranResearchTests(unittest.TestCase):
         self.assertEqual(set(categorized), set(main.TOPICS))
         self.assertEqual(len(categorized), len(set(categorized)))
         self.assertEqual(len(main.READING_PROTOCOL), 6)
+
+    def test_structural_map_keeps_every_involved_surah_available(self):
+        result = main.analyze("عدالت", 12, True, "topic")
+        distribution = result["structure"]["distribution"]
+        self.assertEqual(len(distribution), result["stats"]["surahs"])
+        self.assertGreater(len(distribution), 7)
+        self.assertEqual(sum(item["total"] for item in distribution), result["page"]["total"])
+
+    def test_offline_topic_registry_matches_the_reviewed_server_lexicon(self):
+        registry_path = Path(main.STATIC_DIR) / "offline-topics.json"
+        registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        self.assertEqual(set(registry["topics"]), set(main.TOPICS))
+        self.assertEqual(
+            registry["topics"]["عدالت"]["terms"],
+            [list(item) for item in main.TOPICS["عدالت"]["terms"]],
+        )
 
     def test_narrative_paths_are_bounded_and_separate_from_lexical_hits(self):
         result = main.analyze("عدالت", 8, True, "topic")

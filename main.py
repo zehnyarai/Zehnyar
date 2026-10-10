@@ -682,7 +682,9 @@ def structural_payload(
             }
         )
 
-    distribution = sorted(buckets.values(), key=lambda item: (-item["total"], item["surah"]))[:7]
+    # Keep every involved surah in the payload. The client initially renders a
+    # compact slice, then lets the reader deliberately reveal the full map.
+    distribution = sorted(buckets.values(), key=lambda item: (-item["total"], item["surah"]))
     clusters.sort(key=lambda item: (-item["count"], item["span"], item["reference"]))
     return {
         "revelation": revelation,

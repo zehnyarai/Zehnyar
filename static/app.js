@@ -13,7 +13,7 @@ function updateConnectionLabel() {
     ? "سرور پژوهش متصل"
     : "متن کامل · ۶۲۳۶ آیه";
 }
-const state = { data: null, filter: "all", limit: 12, pageSize: 12, workspaceView: "evidence" };
+const state = { data: null, filter: "all", limit: 12, pageSize: 12, workspaceView: "evidence", structureExpanded: false };
 
 const $ = (selector) => document.querySelector(selector);
 const form = $("#search-form");
@@ -39,7 +39,9 @@ function faNumber(value) {
 
 const OFFLINE_CORPUS_URL = "static/offline-corpus.json";
 const OFFLINE_FRAMEWORK_URL = "static/offline-framework.json";
+const OFFLINE_TOPICS_URL = "static/offline-topics.json";
 let offlineCorpusPromise;
+let offlineTopicsPromise;
 
 function normalizeForOffline(value = "") {
   return value
@@ -68,30 +70,92 @@ async function offlineCorpus() {
   return offlineCorpusPromise;
 }
 
+async function offlineTopics() {
+  if (!offlineTopicsPromise) {
+    offlineTopicsPromise = fetch(OFFLINE_TOPICS_URL).then((response) => {
+      if (!response.ok) throw new Error("offline topics unavailable");
+      return response.json();
+    });
+  }
+  return offlineTopicsPromise;
+}
+
+function findOfflineTopic(query, topics) {
+  const normalizedQuery = normalizeForOffline(query);
+  const candidates = Object.entries(topics || {}).flatMap(([title, topic]) => (topic.aliases || [])
+    .map((alias) => [normalizeForOffline(alias), title, topic])
+    .filter(([alias]) => alias && normalizedQuery.includes(alias)));
+  if (!candidates.length) return { title: null, topic: null };
+  const [, title, topic] = candidates.sort((a, b) => b[0].length - a[0].length)[0];
+  return { title, topic };
+}
+
+function offlineQueryTerms(query, topic, mode) {
+  const normalizedQuery = normalizeForOffline(query);
+  const terms = [{ value: normalizedQuery, label: "عبارتِ جست‌وجوشده", direct: true, origin: "عبارتِ کاربر" }];
+  if (mode === "topic") {
+    normalizedQuery.split(" ").filter((token) => token.length >= 3 && token !== normalizedQuery).forEach((token) => {
+      terms.push({ value: token, label: `واژهٔ «${token}»`, direct: false, origin: "بخشِ عبارتِ کاربر" });
+    });
+    (topic?.terms || []).forEach(([term, label]) => {
+      const value = normalizeForOffline(term);
+      if (value) terms.push({ value, label, direct: value === normalizedQuery, origin: "واژه‌نامهٔ موضوعیِ محلی" });
+    });
+  }
+  const seen = new Set();
+  return terms.filter((term) => {
+    if (!term.value || seen.has(term.value)) return false;
+    seen.add(term.value);
+    return true;
+  });
+}
+
+function offlineEvidence(record, terms) {
+  const arabic = normalizeForOffline(record.arabic);
+  const persian = normalizeForOffline(record.persian);
+  const evidence = [];
+  let score = 0;
+  let direct = false;
+  terms.forEach((term) => {
+    const inArabic = arabic.includes(term.value);
+    const inPersian = persian.includes(term.value);
+    if (!inArabic && !inPersian) return;
+    direct = direct || term.direct;
+    score += term.direct ? 10 : 1;
+    evidence.push({
+      label: term.label,
+      term: term.value,
+      source: inArabic && inPersian ? "هر دو متن" : inArabic ? "متن عربی" : "ترجمهٔ فارسی",
+      origin: term.origin,
+    });
+  });
+  return evidence.length ? { score, direct, evidence } : null;
+}
+
 function offlineStructure(matches) {
   const bySurah = new Map();
   const revelation = { "مکی": { total: 0, direct: 0 }, "مدنی": { total: 0, direct: 0 } };
   matches.forEach((item) => {
     const current = bySurah.get(item.surah) || { surah: item.surah, name: item.surah_name, type: item.revelation, total: 0, direct: 0 };
     current.total += 1;
-    current.direct += 1;
+    current.direct += Number(item.direct);
     bySurah.set(item.surah, current);
     revelation[item.revelation].total += 1;
-    revelation[item.revelation].direct += 1;
+    revelation[item.revelation].direct += Number(item.direct);
   });
   return {
     revelation,
-    distribution: [...bySurah.values()].sort((a, b) => b.total - a.total || a.surah - b.surah).slice(0, 7),
+    distribution: [...bySurah.values()].sort((a, b) => b.total - a.total || a.surah - b.surah),
     clusters: [],
-    note: "در حالت آفلاین، این نمودار فقط نتایج بازیابیِ عبارت را توصیف می‌کند.",
+    note: "این پراکندگی همهٔ شواهدِ بازیابی‌شده را نشان می‌دهد؛ تعداد آیه‌ها، رتبهٔ تفسیریِ سوره‌ها نیست.",
   };
 }
 
 function offlineGraph(query, matches, structure) {
   const topSurahs = structure.distribution.slice(0, 4);
   const nodes = [
-    { id: "topic", label: query, meta: "پرسشِ آفلاین", kind: "topic", weight: 1 },
-    { id: "term-0", label: "عبارتِ جست‌وجوشده", meta: `${matches.length} شاهد`, kind: "term", weight: 0.78 },
+    { id: "topic", label: query, meta: "پرسشِ محلی", kind: "topic", weight: 1 },
+    { id: "term-0", label: "واژه‌های شاهد", meta: `${matches.length} شاهد`, kind: "term", weight: 0.78 },
     ...topSurahs.map((item) => ({ id: `surah-${item.surah}`, label: item.name, meta: `سورهٔ ${item.surah} · ${item.total} شاهد`, kind: "surah", weight: 0.63 })),
     ...matches.slice(0, 2).map((item, index) => ({ id: `verse-${index}`, label: item.reference, meta: item.relation, kind: "verse", weight: 0.45 })),
   ];
@@ -106,41 +170,43 @@ function offlineGraph(query, matches, structure) {
     layout: "concentric-evidence",
     metrics: { lexical_terms: 1, surah_connections: topSurahs.length, narrative_paths: 0, story_lexical_hits: 0 },
     reading_arc: [
-      { stage: "نقطهٔ آغاز", title: "عبارت و شاهد", body: "جست‌وجوی آفلاین فقط عبارت واردشده را در متن عربی و ترجمهٔ فارسی بازیابی می‌کند." },
-      { stage: "رشتهٔ واژگانی", title: "واژهٔ مرکزی", body: `عبارتِ جست‌وجوشده: ${query}` },
-      { stage: "پراکندگی متن", title: "سوره‌ها", body: `بیشترین تمرکز آفلاین: ${topSurahs.map((item) => item.name).join("، ") || "—"}` },
-      { stage: "قوس روایی", title: "نیازمند اتصال", body: "مسیرهای رواییِ بازبینی‌شده در نسخهٔ آنلاین فعال می‌شوند." },
+      { stage: "نقطهٔ آغاز", title: "عبارت و شاهد", body: "آیه‌ها از پیکرهٔ ذخیره‌شده و واژه‌های شاهدِ شفاف بازیابی شده‌اند." },
+      { stage: "رشتهٔ واژگانی", title: "واژه‌های موضوع", body: "واژه‌های فعال روی هر کارت آیه مشخص‌اند." },
+      { stage: "پراکندگی متن", title: "سوره‌ها", body: `برای دیدن همهٔ سوره‌های درگیر، در نمای ساختار دکمهٔ «نمایش همه» را بزنید.` },
+      { stage: "قوس روایی", title: "نیازمند منبع افزوده", body: "مسیرهای رواییِ بازبینی‌شده در نسخهٔ متصل به سرور در دسترس‌اند." },
       { stage: "بازگشت به زندگی", title: "تأمل محتاطانه", body: "میان متن، ترجمه و برداشت شخصی تمایز نگه دارید." },
     ],
-    notice: "شبکهٔ آفلاین محدود به بازیابیِ عبارت است. برای واژه‌نامهٔ موضوعی، روایت‌ها و تحلیل کامل به سرور پژوهش متصل شوید.",
+    notice: "این نقشه، مسیرِ بازیابیِ محلی است؛ ساختار ذاتی یا تفسیر قطعیِ قرآن را اثبات نمی‌کند.",
   };
 }
 
-async function offlineAnalyze(query, limit, offset = 0) {
-  const corpus = await offlineCorpus();
+async function offlineAnalyze(query, limit, offset = 0, mode = "topic") {
+  const [corpus, topicRegistry] = await Promise.all([offlineCorpus(), offlineTopics()]);
   const normalizedQuery = normalizeForOffline(query);
   if (!normalizedQuery) throw new Error("عبارت جست‌وجو نمی‌تواند خالی باشد.");
+  const { title: canonicalTopic, topic } = findOfflineTopic(query, topicRegistry.topics);
+  const terms = offlineQueryTerms(query, topic, mode);
   const records = corpus.verses.map(([surah, ayah, arabic, persian, surah_name, revelation]) => ({ surah, ayah, arabic, persian, surah_name, revelation }));
   const byId = new Map(records.map((record) => [`${record.surah}:${record.ayah}`, record]));
-  const matches = records.filter((record) => {
-    const ar = normalizeForOffline(record.arabic);
-    const fa = normalizeForOffline(record.persian);
-    return ar.includes(normalizedQuery) || fa.includes(normalizedQuery);
-  }).map((record) => {
-    const source = normalizeForOffline(record.arabic).includes(normalizedQuery) && normalizeForOffline(record.persian).includes(normalizedQuery)
-      ? "هر دو متن" : normalizeForOffline(record.arabic).includes(normalizedQuery) ? "متن عربی" : "ترجمهٔ فارسی";
+  const matches = records.map((record) => {
+    const found = offlineEvidence(record, terms);
+    if (!found) return null;
     return {
       ...record,
       id: `${record.surah}:${record.ayah}`,
       reference: `${record.surah_name} ${record.surah}:${record.ayah}`,
-      score: 1,
-      matches: ["عبارتِ جست‌وجوشده"],
-      evidence: [{ label: "عبارتِ جست‌وجوشده", term: normalizedQuery, source, origin: "بازیابی آفلاین" }],
+      score: found.score,
+      matches: found.evidence.map((item) => item.label),
+      evidence: found.evidence,
+      direct: found.direct,
       story_context: [],
-      relation: "ذکر / ترجمهٔ مستقیم",
+      relation: found.direct ? "ذکر / ترجمهٔ مستقیم" : "پیوند واژگانیِ موضوعی",
     };
-  });
-  const shown = matches.slice(offset, offset + limit);
+  }).filter(Boolean);
+  const directMatches = matches.filter((item) => item.direct).sort((a, b) => b.score - a.score || a.surah - b.surah || a.ayah - b.ayah);
+  const thematicMatches = matches.filter((item) => !item.direct).sort((a, b) => b.score - a.score || a.surah - b.surah || a.ayah - b.ayah);
+  const ordered = [...directMatches, ...thematicMatches];
+  const shown = ordered.slice(offset, offset + limit);
   const seen = new Set(shown.map((item) => item.id));
   const context = [];
   shown.slice(0, 3).forEach((item) => [-1, 1].forEach((delta) => {
@@ -150,31 +216,38 @@ async function offlineAnalyze(query, limit, offset = 0) {
       context.push({ ...neighbor, id: `${neighbor.surah}:${neighbor.ayah}`, reference: `${neighbor.surah_name} ${neighbor.surah}:${neighbor.ayah}`, score: 0, matches: ["همسایگی خطی"], evidence: [], story_context: [], relation: "سیاق خطی" });
     }
   }));
-  const structure = offlineStructure(matches);
+  const structure = offlineStructure(ordered);
+  const topical = mode === "topic" && topic;
+  const modeInfo = topical
+    ? { id: "topic", label: "آفلاین: موضوعیِ شفاف", description: "عبارت و واژه‌نامهٔ موضوعیِ ذخیره‌شده روی دستگاه جست‌وجو می‌شوند." }
+    : { id: "literal", label: "آفلاین: فقط عبارت", description: "فقط عبارتِ واردشده در متن عربی و ترجمهٔ فارسی جست‌وجو می‌شود." };
+  const summary = topical
+    ? `برای «${canonicalTopic}»، ${faNumber(directMatches.length)} شاهدِ دارای عبارتِ جست‌وجوشده و ${faNumber(thematicMatches.length)} پیوندِ واژگانی از پیکرهٔ محلی بازیابی شد.`
+    : `در حالت آفلاین، ${faNumber(directMatches.length)} شاهدِ دارای عبارت «${query}» در پیکرهٔ محلی پیدا شد.`;
   return {
     query,
-    canonical_topic: null,
-    mode: { id: "literal", label: "آفلاین: فقط عبارت", description: "بازیابی پایه از پیکرهٔ ذخیره‌شده روی دستگاه" },
-    summary: `در حالت آفلاین، ${faNumber(matches.length)} شاهدِ دارای عبارت «${query}» در پیکرهٔ محلی پیدا شد. توسعهٔ موضوعی، تحلیل شبکه‌ای کامل و مسیرهای روایی به اتصال سرور نیاز دارند.`,
-    topic_description: "جست‌وجوی پایهٔ آفلاین؛ فقط تطابق عبارت در متن عربی و ترجمهٔ فارسی.",
-    questions: ["این عبارت در آیه چه نقش و چه سیاقی دارد؟", "برای گسترش موضوعی و مسیرهای روایی، در زمان اتصال دوباره پژوهش را اجرا کنید."],
-    stats: { direct: matches.length, thematic: 0, narrative: 0, story_lexical: 0, surahs: structure.distribution.length, shown: shown.length },
-    page: { offset, limit, total: matches.length, next_offset: offset + shown.length < matches.length ? offset + shown.length : null },
-    expansion: [],
+    canonical_topic: topical ? canonicalTopic : null,
+    mode: modeInfo,
+    summary,
+    topic_description: topical ? topic.description : "جست‌وجوی عبارت‌محور در پیکرهٔ ذخیره‌شده روی دستگاه.",
+    questions: topical ? topic.questions : ["این عبارت در آیه چه نقش و چه سیاقی دارد؟", "آیا صورت عربی یا واژهٔ هم‌ریشه‌ای برای جست‌وجوی دقیق‌تر وجود دارد؟"],
+    stats: { direct: directMatches.length, thematic: thematicMatches.length, narrative: 0, story_lexical: 0, surahs: structure.distribution.length, shown: shown.length },
+    page: { offset, limit, total: ordered.length, next_offset: offset + shown.length < ordered.length ? offset + shown.length : null },
+    expansion: topical ? terms.filter((term) => !term.direct).map((term) => term.label).slice(0, 6) : [],
     verses: shown,
     context,
-    narrative: { paths: [], lexical_story_hits: 0, notice: "مسیرهای روایی در نسخهٔ آنلاین پژوهش در دسترس‌اند." },
+    narrative: { paths: [], lexical_story_hits: 0, notice: "مسیرهای رواییِ بازبینی‌شده در نسخهٔ متصل به سرور در دسترس‌اند." },
     structure,
-    graph: offlineGraph(query, matches, structure),
-    reflection: { title: "تأمل آفلاین", focus: "خواندن دقیق متن پیش از برداشت", prompts: ["یک موقعیت واقعی را انتخاب کنید و میان متن، ترجمه و برداشت شخصی تمایز بگذارید.", "برای تحلیل واژگانیِ گسترده‌تر و مسیرهای روایی، در حالت آنلاین همین پرسش را دوباره اجرا کنید."], notice: "این بخش تمرین تأمل است، نه حکم شخصی یا تفسیر نهایی." },
-    method: { title: "حالت آفلاین", steps: ["پیکرهٔ ذخیره‌شده روی دستگاه جست‌وجو می‌شود.", "فقط عبارتِ واردشده در عربی و ترجمهٔ فارسی تطبیق داده می‌شود.", "تحلیل موضوعی، شبکهٔ کامل و مسیرهای روایی نیازمند سرور پژوهش‌اند."] },
+    graph: offlineGraph(query, ordered, structure),
+    reflection: { title: "تأمل آفلاین", focus: "خواندن دقیق متن پیش از برداشت", prompts: ["یک موقعیت واقعی را انتخاب کنید و میان متن، ترجمه و برداشت شخصی تمایز بگذارید.", "برای مسیرهای روایی و منابع افزوده، همین پرسش را در نسخهٔ متصل به سرور دوباره اجرا کنید."], notice: "این بخش تمرین تأمل است، نه حکم شخصی یا تفسیر نهایی." },
+    method: { title: "حالت آفلاین", steps: ["پیکرهٔ ذخیره‌شده روی دستگاه و واژه‌نامهٔ موضوعیِ قابل مشاهده جست‌وجو می‌شوند.", modeInfo.description, "مسیرهای روایی و منابع تفسیریِ افزوده نیازمند سرور پژوهش‌اند."] },
     corpus: { arabic: "Tanzil Uthmani (offline)", persian: "QuranEnc Persian (offline)", total_verses: corpus.verses.length },
     offline: true,
   };
 }
 
 function showOfflineNotice() {
-  statusMessage.textContent = "اتصال به سرور پژوهش در دسترس نیست؛ جست‌وجوی پایه از پیکرهٔ ذخیره‌شده روی همین دستگاه اجرا شد.";
+  statusMessage.textContent = "اتصال به سرور پژوهش در دسترس نیست؛ جست‌وجو از پیکره و واژه‌نامهٔ موضوعیِ ذخیره‌شده روی همین دستگاه اجرا شد.";
   statusMessage.classList.add("show", "offline");
 }
 
@@ -339,22 +412,32 @@ function renderNarrative(narrative) {
 
 function renderStructure(structure) {
   const total = (structure?.revelation?.["مکی"]?.total || 0) + (structure?.revelation?.["مدنی"]?.total || 0);
-  $("#structure-total").textContent = `${faNumber(total)} شاهد`;
+  const distribution = structure?.distribution || [];
+  $("#structure-total").textContent = `${faNumber(total)} شاهد · ${faNumber(distribution.length)} سوره`;
   const split = structure?.revelation || {};
   $("#revelation-split").innerHTML = ["مکی", "مدنی"].map((type) => {
     const item = split[type] || { total: 0, direct: 0 };
     return `<div class="revelation-stat"><span>${type}</span><b>${faNumber(item.total)}</b><small>${faNumber(item.direct)} مستقیم</small></div>`;
   }).join("");
 
-  const distribution = structure?.distribution || [];
+  const compactCount = 7;
+  const visibleDistribution = state.structureExpanded ? distribution : distribution.slice(0, compactCount);
   const maximum = Math.max(1, ...distribution.map((item) => item.total));
-  $("#distribution-list").innerHTML = distribution.length
-    ? distribution.map((item) => `<div class="distribution-row">
+  $("#distribution-list").innerHTML = visibleDistribution.length
+    ? visibleDistribution.map((item) => `<div class="distribution-row">
         <span title="${escapeHTML(item.name)}">${escapeHTML(item.name)}</span>
         <span class="distribution-bar"><i style="width:${Math.max(6, (item.total / maximum) * 100)}%"></i></span>
         <b>${faNumber(item.total)}</b>
       </div>`).join("")
     : '<p class="cluster-empty">داده‌ای برای نمایش نیست.</p>';
+  const distributionToggle = $("#distribution-toggle");
+  distributionToggle.hidden = distribution.length <= compactCount;
+  if (!distributionToggle.hidden) {
+    distributionToggle.textContent = state.structureExpanded
+      ? "نمایش فشردهٔ سوره‌ها"
+      : `نمایش همهٔ ${faNumber(distribution.length)} سوره`;
+    distributionToggle.setAttribute("aria-expanded", String(state.structureExpanded));
+  }
 
   const clusters = structure?.clusters || [];
   $("#cluster-list").innerHTML = clusters.length
@@ -560,7 +643,10 @@ function render(data, append = false) {
   state.filter = "all";
   state.limit = payload.page?.limit || state.pageSize;
   $("#research").classList.remove("is-empty");
-  if (!append) setWorkspaceView("evidence");
+  if (!append) {
+    state.structureExpanded = false;
+    setWorkspaceView("evidence");
+  }
   $("#topic-label").textContent = payload.canonical_topic || payload.query;
   $("#summary-text").textContent = payload.summary;
   $("#topic-description").textContent = payload.topic_description || "";
@@ -575,6 +661,7 @@ function render(data, append = false) {
   renderStats(payload.stats);
   renderVerses();
   const page = payload.page || { total: payload.stats.direct + payload.stats.thematic, next_offset: null };
+  $("#evidence-progress").textContent = `اکنون ${faNumber(payload.stats.shown)} از ${faNumber(page.total)} شاهدِ بازیابی‌شده از ${faNumber(payload.stats.surahs)} سوره نمایش داده شده است.`;
   const loadMore = $("#load-more");
   loadMore.hidden = page.next_offset === null || page.next_offset === undefined;
   if (!loadMore.hidden) {
@@ -632,7 +719,7 @@ async function research(query, scroll = false, limit = state.pageSize, offset = 
   } catch (error) {
     if (!error.validation) {
       try {
-        const fallback = await offlineAnalyze(cleanQuery, limit, offset);
+        const fallback = await offlineAnalyze(cleanQuery, limit, offset, modeSelect.value);
         render(fallback, append);
         showOfflineNotice();
         if (scroll) $("#research").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -673,6 +760,12 @@ $("#load-more").addEventListener("click", () => {
   const nextOffset = state.data?.page?.next_offset;
   if (!state.data || nextOffset === null || nextOffset === undefined) return;
   research(state.data.query, false, state.pageSize, nextOffset, true);
+});
+
+$("#distribution-toggle").addEventListener("click", () => {
+  if (!state.data?.structure?.distribution?.length) return;
+  state.structureExpanded = !state.structureExpanded;
+  renderStructure(state.data.structure);
 });
 
 $("#export-research").addEventListener("click", () => {
