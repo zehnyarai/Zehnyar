@@ -75,6 +75,18 @@ class QuranResearchTests(unittest.TestCase):
         self.assertIn("## مسیرهای رواییِ پیشنهادی", registry)
         self.assertIn("ص 38:21", registry)
 
+    def test_pagination_keeps_the_full_evidence_registry_reachable(self):
+        first = main.analyze("رحمت", 12, True, "topic", 0)
+        self.assertEqual(first["page"]["offset"], 0)
+        self.assertEqual(first["page"]["limit"], 12)
+        self.assertEqual(first["page"]["total"], first["stats"]["direct"] + first["stats"]["thematic"])
+        self.assertGreater(first["page"]["total"], len(first["verses"]))
+        self.assertEqual(first["page"]["next_offset"], len(first["verses"]))
+
+        second = main.analyze("رحمت", 12, True, "topic", first["page"]["next_offset"])
+        self.assertTrue({verse["id"] for verse in first["verses"]}.isdisjoint({verse["id"] for verse in second["verses"]}))
+        self.assertEqual(second["page"]["offset"], 12)
+
     def test_blank_query_is_rejected(self):
         with self.assertRaises(HTTPException):
             main.analyze("   ", 12, True)

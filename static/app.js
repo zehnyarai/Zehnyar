@@ -13,7 +13,7 @@ function updateConnectionLabel() {
     ? "سرور پژوهش متصل"
     : "متن کامل · ۶۲۳۶ آیه";
 }
-const state = { data: null, filter: "all", limit: 12, workspaceView: "evidence" };
+const state = { data: null, filter: "all", limit: 12, pageSize: 12, workspaceView: "evidence" };
 
 const $ = (selector) => document.querySelector(selector);
 const form = $("#search-form");
@@ -116,7 +116,7 @@ function offlineGraph(query, matches, structure) {
   };
 }
 
-async function offlineAnalyze(query, limit) {
+async function offlineAnalyze(query, limit, offset = 0) {
   const corpus = await offlineCorpus();
   const normalizedQuery = normalizeForOffline(query);
   if (!normalizedQuery) throw new Error("عبارت جست‌وجو نمی‌تواند خالی باشد.");
@@ -140,7 +140,7 @@ async function offlineAnalyze(query, limit) {
       relation: "ذکر / ترجمهٔ مستقیم",
     };
   });
-  const shown = matches.slice(0, limit);
+  const shown = matches.slice(offset, offset + limit);
   const seen = new Set(shown.map((item) => item.id));
   const context = [];
   shown.slice(0, 3).forEach((item) => [-1, 1].forEach((delta) => {
@@ -159,6 +159,7 @@ async function offlineAnalyze(query, limit) {
     topic_description: "جست‌وجوی پایهٔ آفلاین؛ فقط تطابق عبارت در متن عربی و ترجمهٔ فارسی.",
     questions: ["این عبارت در آیه چه نقش و چه سیاقی دارد؟", "برای گسترش موضوعی و مسیرهای روایی، در زمان اتصال دوباره پژوهش را اجرا کنید."],
     stats: { direct: matches.length, thematic: 0, narrative: 0, story_lexical: 0, surahs: structure.distribution.length, shown: shown.length },
+    page: { offset, limit, total: matches.length, next_offset: offset + shown.length < matches.length ? offset + shown.length : null },
     expansion: [],
     verses: shown,
     context,
@@ -227,6 +228,7 @@ function saveVerse(verse) {
 }
 
 function loading() {
+  $("#research").classList.remove("is-empty");
   const template = $("#loading-template");
   resultsList.replaceChildren(template.content.cloneNode(true));
   $("#load-more").hidden = true;
@@ -540,37 +542,52 @@ function renderReflection(reflection) {
   $("#reflection-notice").textContent = reflection.notice || "";
 }
 
-function render(data) {
-  state.data = data;
+function mergeResearchPage(data, append) {
+  if (!append || !state.data || state.data.query !== data.query) return data;
+  const seen = new Set(state.data.verses.map((verse) => verse.id));
+  data.verses = [
+    ...state.data.verses,
+    ...data.verses.filter((verse) => !seen.has(verse.id)),
+  ];
+  data.context = state.data.context;
+  data.stats = { ...data.stats, shown: data.verses.length };
+  return data;
+}
+
+function render(data, append = false) {
+  const payload = mergeResearchPage(data, append);
+  state.data = payload;
   state.filter = "all";
-  setWorkspaceView("evidence");
-  $("#topic-label").textContent = data.canonical_topic || data.query;
-  $("#summary-text").textContent = data.summary;
-  $("#topic-description").textContent = data.topic_description || "";
-  $("#corpus-note").textContent = `${faNumber(data.corpus.total_verses)} آیه · عربی و ترجمهٔ فارسی`;
-  $("#result-quality").textContent = data.mode?.label || "مسیر قابل ممیزی";
-  modeSelect.value = data.mode?.id || modeSelect.value;
+  state.limit = payload.page?.limit || state.pageSize;
+  $("#research").classList.remove("is-empty");
+  if (!append) setWorkspaceView("evidence");
+  $("#topic-label").textContent = payload.canonical_topic || payload.query;
+  $("#summary-text").textContent = payload.summary;
+  $("#topic-description").textContent = payload.topic_description || "";
+  $("#corpus-note").textContent = `${faNumber(payload.corpus.total_verses)} آیه · عربی و ترجمهٔ فارسی`;
+  $("#result-quality").textContent = payload.mode?.label || "مسیر قابل ممیزی";
+  modeSelect.value = payload.mode?.id || modeSelect.value;
 
   const expansion = $("#expansion-row");
-  expansion.innerHTML = (data.expansion || [])
+  expansion.innerHTML = (payload.expansion || [])
     .map((label) => `<span>${escapeHTML(label)}</span>`)
     .join("");
-  renderStats(data.stats);
+  renderStats(payload.stats);
   renderVerses();
-  const available = data.stats.direct + data.stats.thematic;
+  const page = payload.page || { total: payload.stats.direct + payload.stats.thematic, next_offset: null };
   const loadMore = $("#load-more");
-  loadMore.hidden = !available || data.stats.shown >= available || state.limit >= 24;
+  loadMore.hidden = page.next_offset === null || page.next_offset === undefined;
   if (!loadMore.hidden) {
-    const remaining = Math.min(12, 24 - state.limit, available - data.stats.shown);
-    loadMore.innerHTML = `نمایش ${faNumber(remaining)} آیهٔ بیشتر <span>↓</span>`;
+    const remaining = Math.min(state.pageSize, page.total - page.next_offset);
+    loadMore.innerHTML = `نمایش ${faNumber(remaining)} آیهٔ بعدی از ${faNumber(page.total)} شاهد <span>↓</span>`;
   }
-  renderContext(data.context);
-  renderNarrative(data.narrative);
-  renderStructure(data.structure);
-  renderGraph(data.graph);
-  renderReflection(data.reflection);
-  $("#questions-list").innerHTML = data.questions.map((question) => `<li>${escapeHTML(question)}</li>`).join("");
-  $("#method-list").innerHTML = data.method.steps.map((step) => `<li>${escapeHTML(step)}</li>`).join("");
+  renderContext(payload.context);
+  renderNarrative(payload.narrative);
+  renderStructure(payload.structure);
+  renderGraph(payload.graph);
+  renderReflection(payload.reflection);
+  $("#questions-list").innerHTML = payload.questions.map((question) => `<li>${escapeHTML(question)}</li>`).join("");
+  $("#method-list").innerHTML = payload.method.steps.map((step) => `<li>${escapeHTML(step)}</li>`).join("");
 
   document.querySelectorAll(".filter-tabs button").forEach((button) => {
     const active = button.dataset.filter === "all";
@@ -579,7 +596,16 @@ function render(data) {
   });
 }
 
-async function research(query, scroll = false, limit = 12) {
+function showResearchEmpty() {
+  state.data = null;
+  $("#research").classList.add("is-empty");
+  $("#corpus-note").textContent = "پیش از شروع، یک پرسش انتخاب کنید";
+  $("#topic-label").textContent = "پرسش شما";
+  resultsList.replaceChildren();
+  $("#load-more").hidden = true;
+}
+
+async function research(query, scroll = false, limit = state.pageSize, offset = 0, append = false) {
   const cleanQuery = query.trim();
   if (!cleanQuery) {
     showError("لطفاً یک واژه یا موضوع بنویسید.");
@@ -593,7 +619,7 @@ async function research(query, scroll = false, limit = 12) {
     const response = await fetch(apiUrl("/api/analyze"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: cleanQuery, limit, include_context: true, mode: modeSelect.value }),
+      body: JSON.stringify({ query: cleanQuery, limit, offset, include_context: true, mode: modeSelect.value }),
     });
     const payload = await response.json();
     if (!response.ok) {
@@ -601,13 +627,13 @@ async function research(query, scroll = false, limit = 12) {
       apiError.validation = response.status === 422;
       throw apiError;
     }
-    render(payload);
+    render(payload, append);
     if (scroll) $("#research").scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
     if (!error.validation) {
       try {
-        const fallback = await offlineAnalyze(cleanQuery, limit);
-        render(fallback);
+        const fallback = await offlineAnalyze(cleanQuery, limit, offset);
+        render(fallback, append);
         showOfflineNotice();
         if (scroll) $("#research").scrollIntoView({ behavior: "smooth", block: "start" });
         return;
@@ -644,8 +670,9 @@ document.querySelectorAll("[data-workspace-view]").forEach((button) => {
 });
 
 $("#load-more").addEventListener("click", () => {
-  if (!state.data) return;
-  research(state.data.query, false, Math.min(24, state.limit + 12));
+  const nextOffset = state.data?.page?.next_offset;
+  if (!state.data || nextOffset === null || nextOffset === undefined) return;
+  research(state.data.query, false, state.pageSize, nextOffset, true);
 });
 
 $("#export-research").addEventListener("click", () => {
@@ -778,7 +805,7 @@ $("#connection-settings").addEventListener("click", () => {
   if (!normalized) {
     localStorage.removeItem(API_BASE_KEY);
     updateConnectionLabel();
-    research(input.value);
+    if (input.value.trim()) research(input.value);
     return;
   }
   if (!/^https:\/\/[^\s/]+/i.test(normalized)) {
@@ -788,13 +815,29 @@ $("#connection-settings").addEventListener("click", () => {
   localStorage.setItem(API_BASE_KEY, normalized);
   updateConnectionLabel();
   loadFramework();
-  research(input.value);
+  if (input.value.trim()) research(input.value);
 });
 
 $("#graph-info").addEventListener("click", () => {
   const help = $("#graph-help");
   help.hidden = !help.hidden;
   $("#graph-info").setAttribute("aria-expanded", String(!help.hidden));
+});
+
+$("#open-method").addEventListener("click", () => {
+  if (state.data) {
+    setWorkspaceView("method");
+    $("#research").scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
+  const protocol = document.querySelector(".protocol-strip");
+  protocol.open = true;
+  protocol.scrollIntoView({ behavior: "smooth", block: "center" });
+});
+
+$("#open-sources").addEventListener("click", () => {
+  const dialog = $("#sources-dialog");
+  if (typeof dialog.showModal === "function") dialog.showModal();
 });
 
 $("#method-toggle").addEventListener("click", () => {
@@ -813,4 +856,4 @@ updateConnectionLabel();
 setWorkspaceView("evidence");
 setGraphView("network");
 loadFramework();
-research(input.value);
+showResearchEmpty();

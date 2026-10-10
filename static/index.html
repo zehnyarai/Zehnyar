@@ -25,8 +25,8 @@
       <nav aria-label="ناوبری اصلی">
         <a href="#frameworks">موضوع‌ها</a>
         <a href="#research">مسیر پژوهش</a>
-        <a href="#method">روش</a>
-        <a href="#sources">منابع</a>
+        <button id="open-method" class="nav-link" type="button">روش</button>
+        <button id="open-sources" class="nav-link" type="button" aria-haspopup="dialog" aria-controls="sources-dialog">منابع</button>
       </nav>
       <button id="connection-settings" class="header-status" type="button" title="تنظیم یا پاک‌کردن آدرس سرور پژوهش"><span></span><b id="connection-label">متن کامل · ۶۲۳۶ آیه</b></button>
     </header>
@@ -42,7 +42,7 @@
         <form id="search-form" class="search-panel" novalidate>
           <label class="sr-only" for="query">موضوع یا واژهٔ مورد نظر</label>
           <div class="search-icon" aria-hidden="true"></div>
-          <input id="query" name="query" maxlength="120" autocomplete="off" value="عدالت" placeholder="مثلاً: عدالت، صبر، علم یا یک واژهٔ عربی" />
+          <input id="query" name="query" maxlength="120" autocomplete="off" placeholder="مثلاً: عدالت، امید، خانواده یا یک واژهٔ عربی" />
           <label class="sr-only" for="search-mode">حالت جست‌وجو</label>
           <select id="search-mode" class="search-mode" title="حالت جست‌وجو">
             <option value="topic" selected>موضوعیِ شفاف</option>
@@ -109,6 +109,13 @@
             <button type="button" data-workspace-view="reflection" role="tab" aria-selected="false"><span>۳</span><b>تأمل من</b><small>پرسش و دفتر</small></button>
             <button type="button" data-workspace-view="method" role="tab" aria-selected="false"><span>۴</span><b>روش</b><small>مرزهای نتیجه</small></button>
           </div>
+        </section>
+
+        <section id="research-empty" class="research-empty" aria-labelledby="research-empty-title">
+          <span class="empty-orbit" aria-hidden="true">✦</span>
+          <p class="section-kicker">یک جست‌وجوی آرام و مرحله‌ای</p>
+          <h3 id="research-empty-title">موضوعی را بنویسید یا از میدان‌های بالا آغاز کنید.</h3>
+          <p>ابتدا شاهدهای لفظی و سیاق را می‌بینید. آیه‌های بیشتر فقط با انتخاب شما و در دسته‌های کوچک باز می‌شوند.</p>
         </section>
 
         <div class="research-grid">
@@ -253,11 +260,15 @@
       </section>
     </main>
 
-    <footer id="sources" class="site-footer">
-      <div class="footer-brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><b>ذهن‌یار</b></div>
-      <p>متن عربی: Tanzil Uthmani · ترجمهٔ فارسی: QuranEnc، Ihsan Elahi Zaheer · هر نتیجه، آغازی برای مطالعهٔ سیاق و منابع تفسیری است.</p>
-      <a href="/docs" target="_blank" rel="noreferrer">مستندات API</a>
-    </footer>
+    <dialog id="sources-dialog" class="sources-dialog" aria-labelledby="sources-dialog-title">
+      <form method="dialog">
+        <button class="dialog-close" aria-label="بستن منابع">×</button>
+      </form>
+      <p class="section-kicker">منابع و حدود استفاده</p>
+      <h2 id="sources-dialog-title">متن، ترجمه و مرز پژوهش</h2>
+      <p>متن عربی: Tanzil Uthmani. ترجمهٔ فعلی: QuranEnc، Ihsan Elahi Zaheer. هر نتیجه آغازِ مطالعهٔ سیاق و منابع تفسیری است، نه تفسیر نهایی.</p>
+      <a href="https://github.com/zehnyarai/Zehnyar#readme" target="_blank" rel="noreferrer">راهنمای پروژه ↗</a>
+    </dialog>
 
     <template id="loading-template">
       <div class="loading-card"><span></span><span></span><span></span><p>در حال خواندن شبکهٔ واژگان و آیه‌ها…</p></div>

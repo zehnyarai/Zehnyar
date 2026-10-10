@@ -445,6 +445,7 @@ CORPUS, VERSE_MAP, CHAPTERS = load_corpus()
 class AnalyzeRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=120)
     limit: int = Field(default=12, ge=6, le=24)
+    offset: int = Field(default=0, ge=0, le=6236)
     include_context: bool = True
     mode: Literal["topic", "literal"] = "topic"
 
@@ -850,6 +851,7 @@ def analyze(
     limit: int,
     include_context: bool,
     mode: Literal["topic", "literal"] = "topic",
+    offset: int = 0,
 ) -> dict[str, Any]:
     cleaned_query = WHITESPACE.sub(" ", query).strip()
     if not cleaned_query:
@@ -871,7 +873,10 @@ def analyze(
     lexical_story_hits = sum(1 for record, _, _, _, _ in candidates if story_context(record))
 
     # Keep literal evidence first, then add transparent, tagged topical evidence.
-    selected = (direct_candidates + thematic_candidates)[:limit]
+    # The full evidence registry remains available, but the UI receives one
+    # deliberate page at a time so a user is not flooded with verses.
+    ordered_candidates = direct_candidates + thematic_candidates
+    selected = ordered_candidates[offset : offset + limit]
     verses = [
         serialize_verse(
             record,
@@ -954,6 +959,12 @@ def analyze(
             "story_lexical": lexical_story_hits,
             "surahs": len(surah_counts),
             "shown": len(verses),
+        },
+        "page": {
+            "offset": offset,
+            "limit": limit,
+            "total": len(ordered_candidates),
+            "next_offset": offset + len(verses) if offset + len(verses) < len(ordered_candidates) else None,
         },
         "expansion": expansion_labels,
         "verses": verses,
@@ -1106,16 +1117,17 @@ def meta() -> dict[str, Any]:
 
 @app.post("/api/analyze", tags=["research"])
 def analyze_topic(request: AnalyzeRequest) -> dict[str, Any]:
-    return analyze(request.query, request.limit, request.include_context, request.mode)
+    return analyze(request.query, request.limit, request.include_context, request.mode, request.offset)
 
 
 @app.get("/api/analyze", tags=["research"])
 def analyze_topic_get(
     q: str = Query(..., min_length=1, max_length=120),
     limit: int = Query(default=12, ge=6, le=24),
+    offset: int = Query(default=0, ge=0, le=6236),
     mode: Literal["topic", "literal"] = Query(default="topic"),
 ) -> dict[str, Any]:
-    return analyze(q, limit, True, mode)
+    return analyze(q, limit, True, mode, offset)
 
 
 @app.get("/api/export/markdown", tags=["research"])

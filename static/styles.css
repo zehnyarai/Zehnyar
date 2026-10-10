@@ -151,3 +151,69 @@ h1 em::after { content: ''; position: absolute; left: 1px; right: 1px; bottom: -
 .field-start { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; margin-top: 12px; padding: 7px 9px; color: #086e82; border: 1px solid #bfe4e7; border-radius: 10px; background: rgba(238, 251, 251, .88); font-size: 10px; font-weight: 800; transition: background .18s, color .18s, transform .18s; }
 .field-start:hover, .field-start:focus-visible { color: #fff; border-color: #08798f; background: #08798f; transform: translateX(-2px); outline: 0; }
 .field-start span { direction: ltr; font-size: 14px; line-height: 1; }
+
+/* A deliberately quiet first state: no result machinery appears before a question. */
+.nav-link {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+}
+.site-header nav .nav-link:hover { color: var(--emerald); }
+
+.research-empty {
+  display: none;
+  width: min(100%, 650px);
+  margin: 0 auto;
+  padding: 34px 32px;
+  text-align: center;
+  border: 1px solid #cce7ed;
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(255,255,255,.9), rgba(230,248,249,.75));
+  box-shadow: 0 15px 35px rgba(9, 94, 120, .06);
+}
+.research-empty .empty-orbit {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 12px;
+  color: #16899a;
+  border: 1px solid #bfe6e7;
+  border-radius: 50%;
+  background: #effcfc;
+  font-size: 17px;
+}
+.research-empty h3 { margin: 5px auto 9px; color: var(--pine-deep); font-size: 19px; line-height: 1.6; }
+.research-empty > p:last-child { max-width: 500px; margin: 0 auto; color: #608196; font-size: 12px; line-height: 2; }
+.research-shell.is-empty { padding-top: 50px; padding-bottom: 54px; }
+.research-shell.is-empty .section-heading,
+.research-shell.is-empty .research-journey,
+.research-shell.is-empty .research-grid { display: none; }
+.research-shell.is-empty .research-empty { display: block; }
+
+.sources-dialog {
+  width: min(calc(100% - 32px), 570px);
+  padding: 28px 30px 25px;
+  color: var(--ink);
+  border: 1px solid #c9e5ec;
+  border-radius: 18px;
+  background: #fbfeff;
+  box-shadow: 0 25px 80px rgba(4, 49, 75, .24);
+}
+.sources-dialog::backdrop { background: rgba(6, 48, 72, .35); backdrop-filter: blur(2px); }
+.sources-dialog form { position: absolute; top: 10px; left: 11px; margin: 0; }
+.dialog-close { width: 30px; height: 30px; padding: 0; color: #4b7890; border: 0; border-radius: 50%; background: #edf7fa; font-size: 21px; line-height: 1; }
+.dialog-close:hover { color: #fff; background: #177d91; }
+.sources-dialog h2 { margin: 3px 0 10px; color: var(--pine-deep); font-size: 22px; line-height: 1.45; }
+.sources-dialog p { margin: 0 0 15px; color: #58788c; font-size: 12px; line-height: 2; }
+.sources-dialog a { display: inline-flex; padding: 5px 10px; color: #08768a; border: 1px solid #c3e5ea; border-radius: 8px; background: #effafb; font-size: 11px; font-weight: 800; }
+
+@media (max-width: 630px) {
+  .research-shell.is-empty { padding-top: 35px; padding-bottom: 38px; }
+  .research-empty { padding: 27px 18px; border-radius: 18px; }
+  .research-empty h3 { font-size: 17px; }
+  .sources-dialog { padding: 26px 21px 21px; }
+}
