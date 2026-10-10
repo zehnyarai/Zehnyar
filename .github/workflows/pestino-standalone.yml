@@ -89,7 +89,10 @@ jobs:
           "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging apk-output/Pestino-0.1.1.apk > apk-output/package-info.txt
           grep -q "name='ir.pestino.app'" apk-output/package-info.txt
           grep -q 'پستینو' apk-output/package-info.txt
-          grep -q 'Verified using v1 scheme (JAR signing): true' apk-output/signature-info.txt
+          # APK's declared minSdk is 24, so default verification may skip v1.
+          # Verify JAR compatibility explicitly, without changing app minSdk.
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --min-sdk-version 23 --max-sdk-version 23 apk-output/Pestino-0.1.1.apk | tee apk-output/signature-v1-info.txt
+          grep -q 'Verified using v1 scheme (JAR signing): true' apk-output/signature-v1-info.txt
           grep -q 'Verified using v2 scheme (APK Signature Scheme v2): true' apk-output/signature-info.txt
           python3 - <<'PY'
           import json, zipfile
@@ -103,6 +106,15 @@ jobs:
               assert any(p.startswith('assets/public/assets/') and p.endswith('.js') for p in apk.namelist())
           PY
           (cd apk-output && sha256sum Pestino-0.1.1.apk > Pestino-0.1.1.apk.sha256)
+      - name: Expose signing diagnostics if verification fails
+        if: failure()
+        run: |
+          python3 - <<'PYSIGN'
+          from pathlib import Path
+          for p in Path('apk-output').glob('*info.txt'):
+              value = p.read_text().replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+              print('::notice title=APK verification details::' + value)
+          PYSIGN
       - uses: actions/upload-artifact@v4
         with:
           name: pestino-android-installer
@@ -176,6 +188,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           printf 'Built source commit: %s\nThis APK is a non-debug, test-key-signed local-only compatibility build, with no image diagnosis or payment.\n' "$GITHUB_SHA" > installers/BUILD.txt
-          git add installers/Pestino-0.1.1.apk installers/Pestino-0.1.1.apk.sha256 installers/package-info.txt installers/signature-info.txt installers/BUILD.txt
+          git add installers/Pestino-0.1.1.apk installers/Pestino-0.1.1.apk.sha256 installers/package-info.txt installers/signature-info.txt installers/signature-v1-info.txt installers/BUILD.txt
           git commit -m 'Deliver verified self-contained Pestino Android installer' || exit 1
           git push origin arena/e819b607-zehnyar
