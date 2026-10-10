@@ -60,13 +60,8 @@ jobs:
         run: |
           npm ci
           npm run android:sync
-      - uses: android-actions/setup-android@v3
-      - name: Prepare Android SDK
-        run: |
-          set +o pipefail
-          yes | sdkmanager --licenses > /dev/null
-          set -o pipefail
-          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Use the hosted runner Android SDK
+        run: bash tools/prepare-android-sdk.sh
       - name: Build installable test APK
         working-directory: android
         run: |

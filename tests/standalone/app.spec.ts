@@ -8,7 +8,7 @@ async function addOrchard(page: import('@playwright/test').Page) {
   await page.getByLabel('شهر', { exact: true }).fill('رفسنجان')
   await page.getByLabel('مساحت (هکتار)').fill('2')
   await page.getByLabel('تعداد درخت').fill('200')
-  await page.getByRole('button', { name: 'ثبت باغ', exact: true }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'ثبت باغ', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'باغ مستقل آزمون' })).toBeVisible()
 }
 

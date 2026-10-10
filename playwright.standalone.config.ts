@@ -7,7 +7,6 @@ export default defineConfig({
     baseURL: 'http://127.0.0.1:4173/Zehnyar/',
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
-    launchOptions: { args: ['--no-sandbox', '--disable-dev-shm-usage'] },
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
