@@ -1,5 +1,5 @@
 name: Deploy installable PWA
-# GitHub Pages is configured to use GitHub Actions for this repository.
+# GitHub Pages deployment is authorized for this repository environment.
 
 on:
   push:
