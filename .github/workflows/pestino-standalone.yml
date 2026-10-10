@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   web:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -25,7 +25,7 @@ jobs:
         run: npm run build:standalone
       - run: npx playwright install --with-deps chromium webkit
       - name: Test local storage, photos, backups and fully offline operation
-        run: npm run test:standalone
+        run: npm run test:standalone -- --reporter=github
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
@@ -37,7 +37,7 @@ jobs:
           path: dist
 
   apk:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -52,6 +52,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Package all assets locally, with no server URL
         run: npm ci && npm run android:standalone
+      - uses: android-actions/setup-android@v3
       - name: Prepare Android SDK
         run: |
           set +o pipefail
@@ -60,7 +61,20 @@ jobs:
           sdkmanager "platforms;android-36" "build-tools;36.0.0"
       - name: Build signed installable test APK
         working-directory: android
-        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+        run: |
+          set +e
+          ./gradlew :app:assembleDebug --no-daemon --stacktrace > gradle-build.log 2>&1
+          result=$?
+          cat gradle-build.log
+          if [ "$result" -ne 0 ]; then
+            python3 - <<'PYLOG'
+          from pathlib import Path
+          message = '\n'.join(Path('gradle-build.log').read_text().splitlines()[-180:])
+          message = message.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+          print('::error title=Android compiler diagnostics::' + message)
+          PYLOG
+          fi
+          exit "$result"
       - name: Verify actual installer and self-contained configuration
         run: |
           mkdir -p apk-output
@@ -88,8 +102,9 @@ jobs:
           retention-days: 7
 
   deploy:
+    if: vars.PESTINO_PAGES_ENABLED == 'true'
     needs: web
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       pages: write
       id-token: write
@@ -100,3 +115,28 @@ jobs:
       - name: Publish only the free static web edition, no API or paid host
         id: deployment
         uses: actions/deploy-pages@v4
+
+  deliver:
+    # Exactly one user-requested small APK is retained on this session branch
+    # because download CDNs are unavailable in the agent sandbox. No SDK,
+    # cache, signing key or user dataset is checked into Git.
+    needs: [web, apk]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: arena/e819b607-zehnyar
+      - uses: actions/download-artifact@v4
+        with:
+          name: pestino-android-installer
+          path: installers
+      - name: Publish the requested verified installer on the session branch only
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          printf 'Built source commit: %s\nThis APK is a debug-signed local-only test, with no image diagnosis or payment.\n' "$GITHUB_SHA" > installers/BUILD.txt
+          git add installers/Pestino-0.1.0.apk installers/Pestino-0.1.0.apk.sha256 installers/package-info.txt installers/BUILD.txt
+          git commit -m 'Deliver verified self-contained Pestino Android installer' || exit 1
+          git push origin arena/e819b607-zehnyar
