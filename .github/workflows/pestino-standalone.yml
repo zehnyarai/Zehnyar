@@ -67,7 +67,7 @@ jobs:
         working-directory: android
         run: |
           set +e
-          ./gradlew :app:assembleDebug --no-daemon --stacktrace > gradle-build.log 2>&1
+          ./gradlew :app:assembleRelease --no-daemon --stacktrace > gradle-build.log 2>&1
           result=$?
           cat gradle-build.log
           if [ "$result" -ne 0 ]; then
@@ -79,17 +79,21 @@ jobs:
           PYLOG
           fi
           exit "$result"
+      - name: Sign a non-debug compatibility installer (v1, v2 and v3)
+        run: bash tools/sign-compat-apk.sh
       - name: Verify actual installer and self-contained configuration
         run: |
           mkdir -p apk-output
-          cp android/app/build/outputs/apk/debug/app-debug.apk apk-output/Pestino-0.1.0.apk
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose apk-output/Pestino-0.1.0.apk
-          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging apk-output/Pestino-0.1.0.apk > apk-output/package-info.txt
+          test -s apk-output/Pestino-0.1.1.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose apk-output/Pestino-0.1.1.apk | tee apk-output/signature-info.txt
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging apk-output/Pestino-0.1.1.apk > apk-output/package-info.txt
           grep -q "name='ir.pestino.app'" apk-output/package-info.txt
           grep -q 'پستینو' apk-output/package-info.txt
+          grep -q 'Verified using v1 scheme (JAR signing): true' apk-output/signature-info.txt
+          grep -q 'Verified using v2 scheme (APK Signature Scheme v2): true' apk-output/signature-info.txt
           python3 - <<'PY'
           import json, zipfile
-          with zipfile.ZipFile('apk-output/Pestino-0.1.0.apk') as apk:
+          with zipfile.ZipFile('apk-output/Pestino-0.1.1.apk') as apk:
               config = json.loads(apk.read('assets/capacitor.config.json'))
               assert config['appId'] == 'ir.pestino.app'
               assert config['appName'] == 'پستینو'
@@ -98,12 +102,42 @@ jobs:
               assert 'assets/public/index.html' in apk.namelist()
               assert any(p.startswith('assets/public/assets/') and p.endswith('.js') for p in apk.namelist())
           PY
-          (cd apk-output && sha256sum Pestino-0.1.0.apk > Pestino-0.1.0.apk.sha256)
+          (cd apk-output && sha256sum Pestino-0.1.1.apk > Pestino-0.1.1.apk.sha256)
       - uses: actions/upload-artifact@v4
         with:
           name: pestino-android-installer
           path: apk-output/
           retention-days: 7
+
+
+  install:
+    needs: apk
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [24, 35]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: pestino-android-installer
+          path: apk-output
+      - name: Allow emulator hardware acceleration
+        run: |
+          sudo chmod 666 /dev/kvm
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+      - name: Install and launch the actual APK
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          target: google_apis
+          emulator-boot-timeout: 300
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot -camera-back none
+          disable-animations: true
+          script: bash tools/check-android-install.sh
 
   deploy:
     if: vars.PESTINO_PAGES_ENABLED == 'true'
@@ -125,7 +159,7 @@ jobs:
     # because download CDNs are unavailable in the agent sandbox. No SDK,
     # cache, signing key or user dataset is checked into Git.
     # Native assets do not use a service worker; PWA cache testing is independent.
-    needs: apk
+    needs: [apk, install]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -141,7 +175,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          printf 'Built source commit: %s\nThis APK is a debug-signed local-only test, with no image diagnosis or payment.\n' "$GITHUB_SHA" > installers/BUILD.txt
-          git add installers/Pestino-0.1.0.apk installers/Pestino-0.1.0.apk.sha256 installers/package-info.txt installers/BUILD.txt
+          printf 'Built source commit: %s\nThis APK is a non-debug, test-key-signed local-only compatibility build, with no image diagnosis or payment.\n' "$GITHUB_SHA" > installers/BUILD.txt
+          git add installers/Pestino-0.1.1.apk installers/Pestino-0.1.1.apk.sha256 installers/package-info.txt installers/signature-info.txt installers/BUILD.txt
           git commit -m 'Deliver verified self-contained Pestino Android installer' || exit 1
           git push origin arena/e819b607-zehnyar
