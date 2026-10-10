@@ -59,6 +59,22 @@ class QuranResearchTests(unittest.TestCase):
         self.assertEqual(result["narrative"]["paths"], [])
         self.assertEqual(result["stats"]["narrative"], 0)
 
+    def test_network_is_traceable_and_reflection_is_guarded(self):
+        result = main.analyze("عدالت", 12, True, "topic")
+        node_kinds = {node["kind"] for node in result["graph"]["nodes"]}
+        self.assertTrue({"topic", "term", "surah", "story", "verse"}.issubset(node_kinds))
+        self.assertEqual(len(result["graph"]["reading_arc"]), 5)
+        self.assertEqual(result["graph"]["layout"], "concentric-evidence")
+        self.assertIn("نه حکم شخصی", result["reflection"]["notice"])
+        self.assertEqual(len(result["reflection"]["prompts"]), 2)
+
+    def test_markdown_registry_exports_all_lexical_evidence(self):
+        registry = main.research_markdown("عدالت", "topic")
+        self.assertIn("# دفتر کامل شواهد ذهن‌یار", registry)
+        self.assertIn("## شواهد واژگانی", registry)
+        self.assertIn("## مسیرهای رواییِ پیشنهادی", registry)
+        self.assertIn("ص 38:21", registry)
+
     def test_blank_query_is_rejected(self):
         with self.assertRaises(HTTPException):
             main.analyze("   ", 12, True)

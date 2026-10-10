@@ -239,23 +239,55 @@ function addSvgElement(parent, name, attributes = {}) {
   return element;
 }
 
+function ringCoordinates(ids, radius, startAngle, centerX = 310, centerY = 215) {
+  const count = Math.max(ids.length, 1);
+  return Object.fromEntries(ids.map((id, index) => {
+    const angle = startAngle + (Math.PI * 2 * index) / count;
+    return [id, [centerX + radius * Math.cos(angle), centerY + radius * Math.sin(angle)]];
+  }));
+}
+
 function nodePositions(nodes) {
-  const positions = { topic: [310, 195] };
-  const term = [[158, 92], [462, 92], [158, 302], [462, 302]];
-  const verse = [[72, 198], [548, 198], [310, 43], [310, 347], [73, 56], [547, 335]];
-  let termIndex = 0;
-  let verseIndex = 0;
-  nodes.forEach((node) => {
-    if (node.kind === "term") positions[node.id] = term[termIndex++ % term.length];
-    if (node.kind === "verse") positions[node.id] = verse[verseIndex++ % verse.length];
-  });
+  const positions = { topic: [310, 215] };
+  const groups = {
+    verse: nodes.filter((node) => node.kind === "verse").map((node) => node.id),
+    term: nodes.filter((node) => node.kind === "term").map((node) => node.id),
+    story: nodes.filter((node) => node.kind === "story").map((node) => node.id),
+    surah: nodes.filter((node) => node.kind === "surah").map((node) => node.id),
+  };
+  Object.assign(positions, ringCoordinates(groups.verse, 65, -Math.PI / 2));
+  Object.assign(positions, ringCoordinates(groups.term, 112, -Math.PI / 2 + 0.35));
+  Object.assign(positions, ringCoordinates(groups.story, 146, Math.PI / 4));
+  Object.assign(positions, ringCoordinates(groups.surah, 184, -Math.PI / 2));
   return positions;
 }
 
 function graphLabel(node) {
-  if (node.kind !== "verse") return [node.label];
-  const chunks = node.label.split(" ");
-  return chunks.length > 1 ? [chunks.slice(0, -1).join(" "), chunks.at(-1)] : [node.label];
+  if (node.kind === "verse") {
+    const chunks = node.label.split(" ");
+    return chunks.length > 1 ? [chunks.slice(0, -1).join(" "), chunks.at(-1)] : [node.label];
+  }
+  return [node.label];
+}
+
+function renderArc(graph) {
+  const arc = $("#arc-view");
+  arc.innerHTML = (graph.reading_arc || []).map((step, index) => `<article class="arc-step" data-stage="${faNumber(index + 1)}">
+    <b>${escapeHTML(step.title)}</b>
+    <p>${escapeHTML(step.body)}</p>
+  </article>`).join("");
+}
+
+function renderGraphMetrics(graph) {
+  const metrics = graph.metrics || {};
+  const items = [
+    [metrics.lexical_terms, "واژهٔ پل"],
+    [metrics.surah_connections, "سورهٔ پیوندی"],
+    [metrics.narrative_paths, "مسیر روایی"],
+    [metrics.story_lexical_hits, "شاهد در داستان"],
+  ];
+  $("#graph-metrics").innerHTML = items.map(([value, label]) => `<div class="graph-metric"><b>${faNumber(value)}</b><span>${escapeHTML(label)}</span></div>`).join("");
+  $("#graph-note").textContent = graph.notice || "";
 }
 
 function renderGraph(graph) {
@@ -273,8 +305,9 @@ function renderGraph(graph) {
   });
 
   graph.nodes.forEach((node) => {
-    const [x, y] = positions[node.id] || [310, 195];
-    const radius = node.kind === "topic" ? 37 : node.kind === "term" ? 30 : 25;
+    const [x, y] = positions[node.id] || [310, 215];
+    const radii = { topic: 37, term: 29, story: 29, surah: 26, verse: 20 };
+    const radius = radii[node.kind] || 24;
     const group = addSvgElement(svg, "g", { class: `graph-node node-${node.kind}`, transform: `translate(${x} ${y})`, tabindex: "0" });
     const title = addSvgElement(group, "title");
     title.textContent = `${node.label} — ${node.meta}`;
@@ -283,13 +316,33 @@ function renderGraph(graph) {
     const startingY = labels.length === 1 ? -2 : -6;
     labels.forEach((label, index) => {
       const text = addSvgElement(group, "text", { y: startingY + index * 11, class: "node-title" });
-      text.textContent = label.length > 14 ? `${label.slice(0, 13)}…` : label;
+      text.textContent = label.length > 13 ? `${label.slice(0, 12)}…` : label;
     });
-    if (node.kind !== "verse") {
-      const meta = addSvgElement(group, "text", { y: labels.length === 1 ? 13 : 16, class: "node-meta" });
-      meta.textContent = node.meta.length > 18 ? `${node.meta.slice(0, 17)}…` : node.meta;
-    }
+    const meta = addSvgElement(group, "text", { y: labels.length === 1 ? 13 : 16, class: "node-meta" });
+    meta.textContent = node.meta.length > 17 ? `${node.meta.slice(0, 16)}…` : node.meta;
   });
+  renderArc(graph);
+  renderGraphMetrics(graph);
+}
+
+function setGraphView(view) {
+  const network = $("#network-view");
+  const arc = $("#arc-view");
+  network.hidden = view !== "network";
+  arc.hidden = view !== "arc";
+  document.querySelectorAll("[data-graph-view]").forEach((button) => {
+    const active = button.dataset.graphView === view;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+}
+
+function renderReflection(reflection) {
+  if (!reflection) return;
+  $("#reflection-title").textContent = reflection.title || "تأمل کاربردی";
+  $("#reflection-focus").textContent = reflection.focus || "";
+  $("#reflection-list").innerHTML = (reflection.prompts || []).map((prompt) => `<li>${escapeHTML(prompt)}</li>`).join("");
+  $("#reflection-notice").textContent = reflection.notice || "";
 }
 
 function render(data) {
@@ -319,6 +372,7 @@ function render(data) {
   renderNarrative(data.narrative);
   renderStructure(data.structure);
   renderGraph(data.graph);
+  renderReflection(data.reflection);
   $("#questions-list").innerHTML = data.questions.map((question) => `<li>${escapeHTML(question)}</li>`).join("");
   $("#method-list").innerHTML = data.method.steps.map((step) => `<li>${escapeHTML(step)}</li>`).join("");
 
@@ -377,6 +431,12 @@ $("#framework-grid").addEventListener("click", (event) => {
 $("#load-more").addEventListener("click", () => {
   if (!state.data) return;
   research(state.data.query, false, Math.min(24, state.limit + 12));
+});
+
+$("#export-research").addEventListener("click", () => {
+  if (!state.data) return;
+  const params = new URLSearchParams({ q: state.data.query, mode: modeSelect.value });
+  window.location.assign(`/api/export/markdown?${params.toString()}`);
 });
 
 document.querySelectorAll(".filter-tabs button").forEach((button) => {
@@ -487,6 +547,10 @@ $("#clear-notebook").addEventListener("click", () => {
   renderVerses();
 });
 
+document.querySelectorAll("[data-graph-view]").forEach((button) => {
+  button.addEventListener("click", () => setGraphView(button.dataset.graphView));
+});
+
 $("#graph-info").addEventListener("click", () => {
   const help = $("#graph-help");
   help.hidden = !help.hidden;
@@ -501,5 +565,6 @@ $("#method-toggle").addEventListener("click", () => {
 });
 
 renderNotebook();
+setGraphView("network");
 loadFramework();
 research(input.value);

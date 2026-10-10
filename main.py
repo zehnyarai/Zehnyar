@@ -14,7 +14,7 @@ from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -380,6 +380,31 @@ NARRATIVE_BRIDGES: dict[str, list[dict[str, str]]] = {
     ],
 }
 
+# These are reflection exercises, never fatwas or automatic applications of a verse.
+# Their role is to help users carry a carefully-read question into present-day life.
+PRACTICAL_LENSES: dict[str, dict[str, Any]] = {
+    "توحید": {"focus": "بررسی تکیه‌گاه‌ها و اولویت‌های زندگی", "prompts": ["در یک تصمیم مهم، چه ترس‌ها یا وابستگی‌هایی جهت انتخاب شما را می‌سازند؟ آن‌ها را از اصلِ ارزش‌ها جدا بنویسید.", "پیش از نتیجه‌گیری، گفت‌وگوی ابراهیم یا یوسف را کامل بخوانید و میان استدلال متن و برداشت شخصی‌تان خط بکشید."]},
+    "وحی و رسالت": {"focus": "دقت در دریافت، فهم و ابلاغ پیام", "prompts": ["در یک گفت‌وگوی مهم، دریافتِ پیام، تفسیرِ خود و شیوهٔ انتقال آن را سه مرحلهٔ جدا ثبت کنید.", "در روایت موسی، ببینید کجا سخن از مأموریت است و کجا از واکنش مخاطب؛ این دو را در گفت‌وگوی امروز خلط نکنید."]},
+    "هدایت": {"focus": "انتخاب آگاهانه در میان راه‌ها", "prompts": ["یک انتخاب جاری را بنویسید و نشانه‌ها، پیش‌فرض‌ها و پیامدهای هر راه را جدا کنید.", "پیش از گرفتن یک نتیجهٔ شخصی، از خود بپرسید: متن در مقام دعوت است، گزارش است یا استدلال؟"]},
+    "ایمان": {"focus": "نسبت باور، گفتار و کنش", "prompts": ["یک باور مهم را انتخاب کنید و فقط یک رفتارِ قابل مشاهده که با آن سازگار است ثبت کنید.", "در داستان اصحاب کهف، میان وضعیت بیرونی، باور و کنش شخصیت‌ها تمایز بگذارید."]},
+    "تقوا": {"focus": "آگاهی از موقعیت آزمون و انتخاب", "prompts": ["پیش از واکنش در یک موقعیت پرفشار، محرک، امکان‌های کنش و پیامدها را روی کاغذ از هم جدا کنید.", "در داستان یوسف، به جای کلی‌گویی، ترتیب موقعیت، گفت‌وگو و پاسخ را مرور کنید."]},
+    "آخرت": {"focus": "دیدن پیامدِ بلندمدت در کنار تصمیمِ فوری", "prompts": ["برای یک تصمیم امروز، اثر کوتاه‌مدت و اثر بلندمدت آن بر خود و دیگران را جدا یادداشت کنید.", "در آیات لنگر، فقط آنچه متن دربارهٔ مشاهده، پرسش و پاسخ می‌گوید بنویسید؛ سپس سراغ منابع تفسیری بروید."]},
+    "آزادی و اختیار": {"focus": "تفکیک فشار بیرونی، انتخاب و مسئولیت", "prompts": ["در یک مسئلهٔ شخصی، فشارهای بیرونی و بخش‌هایی را که واقعاً در اختیار شماست جدا فهرست کنید.", "در روایت فرعون، کنش قدرت و پیامد آن را از داوری‌های شتاب‌زده دربارهٔ شخصیت‌ها تفکیک کنید."]},
+    "رحمت": {"focus": "ترمیم رابطه بدون نادیده‌گرفتن واقعیت", "prompts": ["در یک تعارض، واقعیتِ آسیب، امکان گفت‌وگو و مرزهای سالم را جدا بنویسید.", "پیش از الگوبرداری از داستان یوسف، کل مسیر روایت و تفاوت موقعیت امروز را در نظر بگیرید."]},
+    "صبر": {"focus": "پایداری فعال در وضعیت دشوار", "prompts": ["یک وضعیت دشوار را به سه بخشِ واقعیت، واکنش قابل کنترل و کمک مورد نیاز تقسیم کنید.", "در آیات یعقوب یا ایوب، گوینده، موقعیت و نوع سخن را پیش از برداشت عملی مشخص کنید."]},
+    "توبه": {"focus": "بازنگری، مسئولیت‌پذیری و بازگشت", "prompts": ["یک خطای قابل اصلاح را بدون توجیه بنویسید؛ سپس گام جبرانِ مشخص و مسئولانه تعیین کنید.", "در داستان آدم یا یونس، ترتیب رویدادها را بخوانید و از تبدیل روایت به نسخهٔ ساده‌شده پرهیز کنید."]},
+    "شکر": {"focus": "دیدن نعمت و مسئولیتِ همراه آن", "prompts": ["سه امکان یا رابطهٔ ارزشمند امروز را نام ببرید و برای یکی، یک کنش مسئولانهٔ کوچک تعیین کنید.", "در داستان سبأ، نعمت، واکنش و پیامد را در متن از هم جدا بخوانید."]},
+    "امانت و عهد": {"focus": "اعتماد، شایستگی و وفای به تعهد", "prompts": ["در یک مسئولیت، معیار توانایی، امانت‌داری و پاسخ‌گویی را مکتوب کنید.", "پیش از استناد به داستان یوسف یا مدین، نقش گوینده و زمینهٔ همان پیشنهاد را روشن کنید."]},
+    "خانواده": {"focus": "گفت‌وگو، مسئولیت و مرزهای رابطه", "prompts": ["در یک گفت‌وگوی خانوادگی، نیاز، نگرانی و درخواست هر طرف را بدون داوری اولیه ثبت کنید.", "روایت نوح یا ابراهیم را کامل بخوانید تا نسبت خویشاوندی، گفت‌وگو و موضع شخصی با هم خلط نشوند."]},
+    "عدالت": {"focus": "شنیدنِ روایت‌های متفاوت پیش از داوری", "prompts": ["در یک تعارض، داده‌ها و روایت هر طرف را جدا بنویسید؛ سپس ببینید کدام صدا کمتر شنیده شده است.", "در داستان داود، ترتیب شنیدن دعوا و داوری را با وضعیت واقعیِ خود مقایسهٔ ساده‌انگارانه نکنید."]},
+    "انفاق": {"focus": "نسبت دارایی، نیت و اثر اجتماعی", "prompts": ["یک منبع در اختیار خود را انتخاب کنید و راهی کوچک، سنجیده و پایدار برای سود رساندن به دیگری بیابید.", "در داستان قارون یا باغ‌داران، سخن شخصیت‌ها، تصمیم‌ها و پیامدها را جداگانه بخوانید."]},
+    "اصلاح و صلح": {"focus": "صورت‌بندی مسئله و اقدام مسئولانه", "prompts": ["یک مسئلهٔ جمعی را طوری بنویسید که افراد، آسیب، امکان اقدام و محدودیت‌ها در آن معلوم باشند.", "در داستان ذوالقرنین، مسئله، گفت‌وگو، همکاری و راه‌حل را از هم تفکیک کنید."]},
+    "علم": {"focus": "فروتنی معرفتی و یادگیری دقیق", "prompts": ["برای یک مسئله، آنچه می‌دانید، آنچه نمی‌دانید و منبع لازم برای بررسی را جدا فهرست کنید.", "در داستان موسی و بندهٔ دانا، ترتیب پرسش، وعده، مشاهده و توضیح را یادداشت کنید."]},
+    "نشانه‌ها و آفرینش": {"focus": "مشاهده، پرسش و پرهیز از نتیجه‌گیری شتاب‌زده", "prompts": ["یک پدیدهٔ روزمره را دقیق مشاهده کنید؛ دادهٔ مشاهده و برداشت شخصی‌تان را در دو ستون بنویسید.", "در آیهٔ لنگر، آنچه واقعاً گفته شده را از تفسیر یا نتیجهٔ شخصی جدا نگه دارید."]},
+    "داستان و عبرت": {"focus": "یادگیری از روایت بدون ساده‌سازی شخصیت‌ها", "prompts": ["در یک روایت، شخصیت‌ها، تعارض، نقطهٔ تغییر و پیامد را جدا ثبت کنید.", "از خود بپرسید آیه چه کارکردی برای داستان بیان می‌کند و کجا ممکن است تجربهٔ امروز شما متفاوت باشد."]},
+    "دعاء و عبادت": {"focus": "دعا، توجه و عملِ آگاهانه", "prompts": ["یک نیاز واقعی را با زبان روشن بنویسید و در کنار آن یک گام مسئولانهٔ عملی مشخص کنید.", "در دعای زکریا یا یونس، زمینه، الفاظ دعا و توصیف پاسخ را از هم جدا مطالعه کنید."]},
+}
+
 
 
 def load_corpus() -> tuple[list[dict[str, Any]], dict[tuple[int, int], dict[str, Any]], dict[int, dict[str, Any]]]:
@@ -665,33 +690,103 @@ def structural_payload(
     }
 
 
-def graph_payload(canonical: str, terms: list[tuple[str, str, bool, str]], verses: list[dict[str, Any]]) -> dict[str, Any]:
-    nodes = [
-        {
-            "id": "topic",
-            "label": canonical,
-            "meta": "پرسشِ کاربر",
-            "kind": "topic",
-            "weight": 1,
+def practical_reflection(canonical: str | None, topic: dict[str, Any] | None) -> dict[str, Any]:
+    lens = PRACTICAL_LENSES.get(canonical or "")
+    if lens:
+        return {
+            "title": f"تأمل کاربردی برای «{canonical}»",
+            "focus": lens["focus"],
+            "prompts": lens["prompts"],
+            "notice": "این‌ها تمرینِ تأمل‌اند، نه حکم شخصی، فتوا یا جایگزینِ مشاوره و تفسیر معتبر.",
         }
+    return {
+        "title": "تأمل کاربردیِ محتاطانه",
+        "focus": "پیوند دادن پرسش امروز با خوانشِ دقیقِ متن",
+        "prompts": [
+            "یک موقعیت واقعی را انتخاب کنید و پیش از هر نتیجه‌ای، داده‌های متن، تجربهٔ خود و فرض‌هایتان را جدا بنویسید.",
+            topic["questions"][0] if topic else "این واژه در آیه چه نقش و چه سیاقی دارد؟",
+        ],
+        "notice": "این‌ها تمرینِ تأمل‌اند، نه حکم شخصی، فتوا یا جایگزینِ مشاوره و تفسیر معتبر.",
+    }
+
+
+def graph_payload(
+    canonical: str,
+    terms: list[tuple[str, str, bool, str]],
+    candidates: list[tuple[dict[str, Any], int, list[str], bool, list[dict[str, str]]]],
+    verses: list[dict[str, Any]],
+    narrative_paths: list[dict[str, Any]],
+    lexical_story_hits: int,
+) -> dict[str, Any]:
+    """Build a small, traceable, concentric evidence network for the current query."""
+    term_counts: Counter[str] = Counter()
+    term_surah_counts: Counter[tuple[str, int]] = Counter()
+    surah_records: dict[int, dict[str, Any]] = {}
+    for record, _, _, _, trace in candidates:
+        surah_records[record["surah"]] = record
+        for evidence in trace:
+            label = evidence["label"]
+            term_counts[label] += 1
+            term_surah_counts[(label, record["surah"])] += 1
+
+    if not term_counts:
+        term_counts = Counter({label: 0 for _, label, _, _ in terms[:4]})
+    top_terms = term_counts.most_common(4)
+    top_surah_counts = Counter(record["surah"] for record, _, _, _, _ in candidates).most_common(4)
+
+    nodes: list[dict[str, Any]] = [
+        {"id": "topic", "label": canonical, "meta": "پرسشِ کاربر", "kind": "topic", "weight": 1}
     ]
-    edges: list[dict[str, str]] = []
-    term_nodes = []
-    for index, (term, label, direct, _) in enumerate(terms[:4]):
+    edges: list[dict[str, Any]] = []
+    term_node_by_label: dict[str, str] = {}
+    for index, (label, count) in enumerate(top_terms):
         identifier = f"term-{index}"
-        term_nodes.append((identifier, term, label))
+        term_node_by_label[label] = identifier
         nodes.append(
             {
                 "id": identifier,
                 "label": label.replace("ترجمهٔ ", ""),
-                "meta": "واژهٔ جست‌وجو" if direct else "واژهٔ هم‌خانواده",
+                "meta": f"{count} شاهد واژگانی",
                 "kind": "term",
-                "weight": 0.75,
+                "weight": 0.78,
             }
         )
-        edges.append({"source": "topic", "target": identifier, "label": "مسیر بازیابی"})
+        edges.append({"source": "topic", "target": identifier, "label": f"{count} پیوند"})
 
-    for index, verse in enumerate(verses[:6]):
+    for index, (surah, count) in enumerate(top_surah_counts):
+        record = surah_records[surah]
+        identifier = f"surah-{surah}"
+        nodes.append(
+            {
+                "id": identifier,
+                "label": record["surah_name"],
+                "meta": f"سورهٔ {surah} · {count} شاهد",
+                "kind": "surah",
+                "weight": 0.63,
+            }
+        )
+        best_label = max(
+            (label for label, _ in top_terms),
+            key=lambda label: term_surah_counts[(label, surah)],
+            default=None,
+        )
+        source = term_node_by_label.get(best_label, "topic")
+        edges.append({"source": source, "target": identifier, "label": f"{count} آیه"})
+
+    for index, path in enumerate(narrative_paths[:2]):
+        identifier = f"story-{index}"
+        nodes.append(
+            {
+                "id": identifier,
+                "label": path["story"],
+                "meta": f"آیهٔ لنگر {path['reference']}",
+                "kind": "story",
+                "weight": 0.68,
+            }
+        )
+        edges.append({"source": "topic", "target": identifier, "label": "مسیر روایی"})
+
+    for index, verse in enumerate(verses[:2]):
         identifier = f"verse-{index}"
         nodes.append(
             {
@@ -699,13 +794,54 @@ def graph_payload(canonical: str, terms: list[tuple[str, str, bool, str]], verse
                 "label": verse["reference"],
                 "meta": verse["relation"],
                 "kind": "verse",
-                "weight": 0.5,
+                "weight": 0.45,
             }
         )
-        match_index = index % max(len(term_nodes), 1)
-        source = term_nodes[match_index][0] if term_nodes else "topic"
-        edges.append({"source": source, "target": identifier, "label": verse["relation"]})
-    return {"nodes": nodes, "edges": edges}
+        matching_label = next((item["label"] for item in verse["evidence"] if item["label"] in term_node_by_label), None)
+        edges.append({"source": term_node_by_label.get(matching_label, "topic"), "target": identifier, "label": "شاهد نمونه"})
+
+    top_term_labels = [label.replace("ترجمهٔ ", "") for label, _ in top_terms]
+    top_surah_labels = [surah_records[surah]["surah_name"] for surah, _ in top_surah_counts]
+    reading_arc = [
+        {
+            "stage": "نقطهٔ آغاز",
+            "title": "عبارت و شاهد",
+            "body": "از آیه‌هایی شروع کنید که عبارتِ جست‌وجوشده یا ترجمهٔ آن را دارند؛ سپس منبعِ تطابق را روی هر کارت بررسی کنید.",
+        },
+        {
+            "stage": "رشتهٔ واژگانی",
+            "title": "واژه‌های پل",
+            "body": "واژه‌های پرتکرار در مسیر فعلی: " + ("، ".join(top_term_labels) if top_term_labels else "—"),
+        },
+        {
+            "stage": "پراکندگی متن",
+            "title": "سوره‌ها و سیاق‌ها",
+            "body": "بیشترین تمرکز بازیابی در: " + ("، ".join(top_surah_labels) if top_surah_labels else "—"),
+        },
+        {
+            "stage": "قوس روایی",
+            "title": "داستان و موقعیت",
+            "body": f"{len(narrative_paths)} مسیر رواییِ لنگر و {lexical_story_hits} شاهد واژگانی در محدوده‌های داستانی شناسایی شده است.",
+        },
+        {
+            "stage": "بازگشت به زندگی",
+            "title": "تأمل محتاطانه",
+            "body": "پیش از کاربرد شخصی، میان متن، ترجمه، تفسیر و تجربهٔ امروز خود تمایز بگذارید.",
+        },
+    ]
+    return {
+        "nodes": nodes,
+        "edges": edges,
+        "layout": "concentric-evidence",
+        "metrics": {
+            "lexical_terms": len(term_counts),
+            "surah_connections": len(top_surah_counts),
+            "narrative_paths": len(narrative_paths),
+            "story_lexical_hits": lexical_story_hits,
+        },
+        "reading_arc": reading_arc,
+        "notice": "حلقه‌های این نمودار، لایه‌های بازیابیِ همین پرسش‌اند؛ آن‌ها ادعای اثباتِ ساختار حلقویِ ذاتیِ یک سوره یا تفسیر قطعی ندارند.",
+    }
 
 
 def analyze(
@@ -827,7 +963,15 @@ def analyze(
             "notice": "مسیرهای روایی، آیه‌های لنگر و پرسش‌های خوانش‌اند؛ آن‌ها شاهدِ غیرمستقیم و پیشنهادی هستند، نه تفسیر نهایی یا فهرست کاملِ همهٔ اشارات.",
         },
         "structure": structural_payload(candidates),
-        "graph": graph_payload(canonical_label, graph_terms, verses),
+        "graph": graph_payload(
+            canonical_label,
+            graph_terms,
+            candidates,
+            verses,
+            active_narrative_paths,
+            lexical_story_hits,
+        ),
+        "reflection": practical_reflection(canonical if mode == "topic" else None, active_topic),
         "method": method,
         "corpus": {
             "arabic": "Tanzil Uthmani (verbatim)",
@@ -837,9 +981,58 @@ def analyze(
     }
 
 
+def research_markdown(query: str, mode: Literal["topic", "literal"]) -> str:
+    """Create a portable, complete registry of lexical evidence for offline review."""
+    result = analyze(query, len(CORPUS), False, mode)
+    lines = [
+        "# دفتر کامل شواهد ذهن‌یار",
+        "",
+        f"- پرسش: {result['query']}",
+        f"- حالت: {result['mode']['label']}",
+        f"- پیکره: {result['corpus']['total_verses']} آیه",
+        f"- شاهد مستقیم: {result['stats']['direct']}",
+        f"- پیوند واژگانی: {result['stats']['thematic']}",
+        "",
+        "> این گزارش، رجیستری بازیابی است؛ تفسیر نهایی، فتوا یا ادعای پوشش کاملِ اشارات غیرمستقیم نیست.",
+        "",
+        "## شواهد واژگانی",
+        "",
+    ]
+    for verse in result["verses"]:
+        witness = "؛ ".join(f"{item['label']} ({item['source']})" for item in verse["evidence"])
+        stories = f" · بافت روایی: {', '.join(verse['story_context'])}" if verse["story_context"] else ""
+        lines.extend(
+            [
+                f"### {verse['reference']} — {verse['relation']}{stories}",
+                "",
+                verse["arabic"],
+                "",
+                verse["persian"],
+                "",
+                f"مسیر شاهد: {witness or '—'}",
+                "",
+            ]
+        )
+    if result["narrative"]["paths"]:
+        lines.extend(["## مسیرهای رواییِ پیشنهادی", ""])
+        for path in result["narrative"]["paths"]:
+            lines.extend(
+                [
+                    f"### {path['story']} — {path['reference']} ({path['focus']})",
+                    "",
+                    path["lens"],
+                    "",
+                    f"پرسش خوانش: {path['question']}",
+                    "",
+                ]
+            )
+    lines.extend(["## یادآوری روش", "", *[f"- {step}" for step in result["method"]["steps"]], ""])
+    return "\n".join(lines)
+
+
 app = FastAPI(
     title="ذهن‌یار | پژوهش موضوعی قرآن",
-    version="1.1.0",
+    version="1.2.0",
     description="بازیابی شفاف واژگانی و پیوندهای موضوعی در متن قرآن، با نمایش شواهد، سیاق و مسیر بازیابی.",
 )
 app.add_middleware(GZipMiddleware, minimum_size=600)
@@ -913,6 +1106,19 @@ def analyze_topic_get(
     mode: Literal["topic", "literal"] = Query(default="topic"),
 ) -> dict[str, Any]:
     return analyze(q, limit, True, mode)
+
+
+@app.get("/api/export/markdown", tags=["research"])
+def export_markdown(
+    q: str = Query(..., min_length=1, max_length=120),
+    mode: Literal["topic", "literal"] = Query(default="topic"),
+) -> PlainTextResponse:
+    content = research_markdown(q, mode)
+    return PlainTextResponse(
+        content,
+        media_type="text/markdown; charset=utf-8",
+        headers={"Content-Disposition": "attachment; filename=zehnyar-evidence-registry.md"},
+    )
 
 
 @app.get("/api/verse/{surah}/{ayah}", tags=["research"])

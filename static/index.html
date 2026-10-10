@@ -108,10 +108,13 @@
                 <p class="section-kicker">آیه‌های بازیابی‌شده</p>
                 <h3 id="evidence-title">شواهد متنی</h3>
               </div>
-              <div class="filter-tabs" role="tablist" aria-label="فیلتر نوع شاهد">
-                <button class="active" data-filter="all" role="tab" aria-selected="true">همه</button>
-                <button data-filter="direct" role="tab" aria-selected="false">مستقیم</button>
-                <button data-filter="thematic" role="tab" aria-selected="false">موضوعی</button>
+              <div class="evidence-actions">
+                <button id="export-research" class="export-research" type="button" title="خروجی کاملِ همهٔ شواهد واژگانی">دفتر کامل ↧</button>
+                <div class="filter-tabs" role="tablist" aria-label="فیلتر نوع شاهد">
+                  <button class="active" data-filter="all" role="tab" aria-selected="true">همه</button>
+                  <button data-filter="direct" role="tab" aria-selected="false">مستقیم</button>
+                  <button data-filter="thematic" role="tab" aria-selected="false">موضوعی</button>
+                </div>
               </div>
             </div>
             <div id="results-list" class="results-list" aria-live="polite"></div>
@@ -147,14 +150,22 @@
                 </div>
                 <button id="graph-info" class="icon-button" type="button" aria-label="راهنمای گراف" aria-expanded="false">i</button>
               </div>
-              <p id="graph-help" class="graph-help" hidden>گرهٔ میانی پرسش شماست. گره‌های سبز واژه‌های جست‌وجو و گره‌های روشن، آیه‌های نمایش‌داده‌شده‌اند. خط‌ها رابطهٔ بازیابی هستند، نه ادعای تفسیر قطعی.</p>
-              <div class="graph-wrap">
-                <svg id="graph" viewBox="0 0 620 390" role="img" aria-label="گراف واژه‌ها و آیه‌های مرتبط"></svg>
+              <p id="graph-help" class="graph-help" hidden>گرهٔ میانی پرسش شماست. حلقهٔ اول واژه‌های شاهد، حلقهٔ دوم سوره‌ها و حلقهٔ روایی داستان‌های لنگر را نشان می‌دهد. این یک نقشهٔ بازیابی است، نه اثبات ساختار حلقویِ ذاتی قرآن یا تفسیر قطعی.</p>
+              <div class="graph-switch" role="tablist" aria-label="نمایش شبکه">
+                <button class="active" type="button" data-graph-view="network" role="tab" aria-selected="true">شبکهٔ لایه‌ای</button>
+                <button type="button" data-graph-view="arc" role="tab" aria-selected="false">قوس خوانش</button>
               </div>
+              <div id="network-view" class="graph-wrap">
+                <svg id="graph" viewBox="0 0 620 430" role="img" aria-label="شبکهٔ لایه‌ای واژه‌ها، سوره‌ها و روایت‌های مرتبط"></svg>
+              </div>
+              <div id="arc-view" class="arc-view" hidden></div>
+              <div id="graph-metrics" class="graph-metrics" aria-label="شاخص‌های شبکه"></div>
+              <p id="graph-note" class="graph-note"></p>
               <div class="legend" aria-label="راهنمای گراف">
                 <span><i class="legend-dot topic"></i> پرسش</span>
                 <span><i class="legend-dot term"></i> واژهٔ شاهد</span>
-                <span><i class="legend-dot verse"></i> آیه</span>
+                <span><i class="legend-dot surah"></i> سوره</span>
+                <span><i class="legend-dot story"></i> روایت</span>
               </div>
             </section>
 
@@ -192,6 +203,14 @@
               <p class="section-kicker">گامِ بعدی پژوهش</p>
               <h3 id="questions-title">پرسش‌هایی برای خواندن دقیق‌تر</h3>
               <ol id="questions-list"></ol>
+            </section>
+
+            <section class="reflection-card" aria-labelledby="reflection-title">
+              <p class="section-kicker">از فهم به زندگی امروز</p>
+              <h3 id="reflection-title">تأمل کاربردی</h3>
+              <p id="reflection-focus" class="reflection-focus"></p>
+              <ol id="reflection-list" class="reflection-list"></ol>
+              <p id="reflection-notice" class="reflection-notice"></p>
             </section>
 
             <section id="method" class="method-card" aria-labelledby="method-title">
