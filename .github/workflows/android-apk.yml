@@ -46,7 +46,9 @@ jobs:
           if-no-files-found: error
 
       - name: Publish latest prerelease
-        if: github.event_name == 'workflow_dispatch' && inputs.publish_release
+        # A source update that rebuilds the APK also refreshes the stable download
+        # link; workflow_dispatch keeps a manual republish option.
+        if: github.event_name == 'push' || inputs.publish_release == true
         uses: softprops/action-gh-release@v2
         with:
           tag_name: mobile-latest
