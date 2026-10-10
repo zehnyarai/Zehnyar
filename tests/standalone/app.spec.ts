@@ -45,6 +45,7 @@ test('task creation and completion work locally', async ({ page }) => {
   await page.getByRole('button', { name: 'ثبت یادآور', exact: true }).click()
   await expect(page.getByText('بازدید مستقل برگ‌ها', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'انجام بازدید مستقل برگ‌ها', exact: true }).click()
+  await expect(page.getByText('بازدید مستقل برگ‌ها', {exact: true})).not.toBeVisible()
   await page.reload()
   await page.getByRole('button', { name: 'نمایش انجام‌شده‌ها' }).click()
   await expect(page.getByRole('button', { name: 'بازگرداندن بازدید مستقل برگ‌ها', exact: true })).toBeVisible()
@@ -81,6 +82,8 @@ test('backup download, erasure and confirmed restore work', async ({ page }) => 
   expect(JSON.parse(content.replace(/^\uFEFF/, '')).orchards).toHaveLength(1)
   await page.getByRole('button', { name: 'حذف همه داده‌های محلی' }).click()
   await page.getByRole('button', { name: 'تأیید حذف همه داده‌ها' }).click()
+  await expect(page.getByRole('button', {name: 'بازگردانی پشتیبان'})).toBeEnabled()
+  await expect(page.getByRole('status')).toContainText('اطلاعات محلی حذف شدند')
   await page.locator('input[type=file]').setInputFiles(path!)
   await expect(page.getByText('اطلاعات فعلی با فایل پشتیبان جایگزین شود؟')).toBeVisible()
   await page.getByRole('button', { name: 'تأیید بازگردانی' }).click()
@@ -116,4 +119,13 @@ test('mobile layout and installation metadata are valid', async ({ page }) => {
   expect(manifest.display).toBe('standalone')
   expect(manifest.icons).toHaveLength(2)
   await expect(page.locator('link[rel=apple-touch-icon]')).toHaveAttribute('href', '/Zehnyar/icon-180.png')
+})
+
+
+test.afterEach(async ({page}, info) => {
+  if (info.status !== info.expectedStatus) {
+    const diagnostic = await page.evaluate(() => ({url: location.href, hash: location.hash, text: document.body.innerText.slice(0, 7000), controlled: !!navigator.serviceWorker?.controller})).catch(() => ({url: page.url()}))
+    const value = JSON.stringify(diagnostic).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A')
+    console.log('::notice title=Standalone UI failure context::' + value)
+  }
 })

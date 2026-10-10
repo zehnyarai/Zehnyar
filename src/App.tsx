@@ -133,7 +133,11 @@ export default function App() {
       setSidebarOpen(false)
     }
     window.addEventListener('popstate', pop)
-    return () => window.removeEventListener('popstate', pop)
+    window.addEventListener('hashchange', pop)
+    return () => {
+      window.removeEventListener('popstate', pop)
+      window.removeEventListener('hashchange', pop)
+    }
   }, [])
   useEffect(() => {
     if (!toast) return
