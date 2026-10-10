@@ -148,3 +148,6 @@ h1 em::after { content: ''; position: absolute; left: 1px; right: 1px; bottom: -
 .framework-card--ethics .framework-icon { color: #0b8d7f; background: linear-gradient(145deg, #f3fffb, #dff5ec); border-color: #c5e9df; }
 .framework-card--society .framework-icon { color: #9a6b39; background: linear-gradient(145deg, #fffaf1, #f9ebcf); border-color: #f0ddb6; }
 .framework-card--knowledge .framework-icon { color: #715da0; background: linear-gradient(145deg, #fbf8ff, #eee9fb); border-color: #ddd2f5; }
+.field-start { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; margin-top: 12px; padding: 7px 9px; color: #086e82; border: 1px solid #bfe4e7; border-radius: 10px; background: rgba(238, 251, 251, .88); font-size: 10px; font-weight: 800; transition: background .18s, color .18s, transform .18s; }
+.field-start:hover, .field-start:focus-visible { color: #fff; border-color: #08798f; background: #08798f; transform: translateX(-2px); outline: 0; }
+.field-start span { direction: ltr; font-size: 14px; line-height: 1; }

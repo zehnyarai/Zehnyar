@@ -372,11 +372,13 @@ function renderFramework(data) {
   $("#framework-notice").textContent = data.notice || "";
   $("#framework-grid").innerHTML = (data.categories || []).map((category, index) => {
     const meta = FIELD_META[category.id] || { icon: "✦", label: "یک مسیر برای ورود به متن" };
+    const defaultTopic = category.topics?.[0] || "";
     return `<article class="framework-card framework-card--${escapeHTML(category.id)}">
       <div class="field-card-top"><span class="framework-icon" aria-hidden="true">${meta.icon}</span><span class="framework-index">${faNumber(index + 1)}</span></div>
       <span class="field-caption">${escapeHTML(meta.label)}</span>
       <h3>${escapeHTML(category.title)}</h3>
       <p>${escapeHTML(category.description)}</p>
+      <button type="button" class="field-start" data-framework-query="${escapeHTML(defaultTopic)}">شروع با «${escapeHTML(defaultTopic)}» <span aria-hidden="true">←</span></button>
       <div class="framework-topics">${(category.topics || []).map((topic) => `<button type="button" class="framework-topic" data-framework-query="${escapeHTML(topic)}">${escapeHTML(topic)}</button>`).join("")}</div>
     </article>`;
   }).join("");
