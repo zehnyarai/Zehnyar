@@ -1,2 +1,2 @@
-Built source commit: 1aedae7678a83fa87a1a089979d6400c7039067b
-This APK is a debug-signed local-only test, with no image diagnosis or payment.
+Built source commit: 2158a2980359225f0326381602e4e97a487d62cf
+This APK is a non-debug, test-key-signed local-only compatibility build, with no image diagnosis or payment.
