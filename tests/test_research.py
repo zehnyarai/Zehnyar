@@ -27,6 +27,19 @@ class QuranResearchTests(unittest.TestCase):
         self.assertEqual(result["stats"]["direct"], 0)
         self.assertGreater(result["stats"]["thematic"], 0)
 
+    def test_literal_mode_has_no_implicit_topic_expansion(self):
+        result = main.analyze("عدالت", 8, True, "literal")
+        self.assertEqual(result["mode"]["id"], "literal")
+        self.assertEqual(result["stats"]["thematic"], 0)
+        self.assertTrue(all(item["relation"] == "ذکر / ترجمهٔ مستقیم" for item in result["verses"]))
+
+    def test_evidence_trace_and_structure_are_returned(self):
+        result = main.analyze("عدالت", 8, True)
+        self.assertTrue(result["verses"][0]["evidence"])
+        self.assertIn(result["verses"][0]["evidence"][0]["source"], {"متن عربی", "ترجمهٔ فارسی", "هر دو متن"})
+        structure_total = sum(item["total"] for item in result["structure"]["revelation"].values())
+        self.assertEqual(structure_total, result["stats"]["direct"] + result["stats"]["thematic"])
+
     def test_blank_query_is_rejected(self):
         with self.assertRaises(HTTPException):
             main.analyze("   ", 12, True)

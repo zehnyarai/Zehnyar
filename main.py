@@ -10,9 +10,10 @@ import json
 import re
 from collections import Counter
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -221,6 +222,7 @@ class AnalyzeRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=120)
     limit: int = Field(default=12, ge=6, le=24)
     include_context: bool = True
+    mode: Literal["topic", "literal"] = "topic"
 
 
 def find_topic(query: str) -> tuple[str | None, dict[str, Any] | None]:
@@ -241,26 +243,40 @@ def contains_term(record: dict[str, Any], normalized_term: str) -> bool:
     return normalized_term in record["arabic_normalized"] or normalized_term in record["persian_normalized"]
 
 
-def make_terms(query: str, topic: dict[str, Any] | None) -> list[tuple[str, str, bool]]:
-    """Return normalized query expansion terms: term, readable label, is_query_term."""
-    output: list[tuple[str, str, bool]] = []
+def make_terms(
+    query: str, topic: dict[str, Any] | None, mode: Literal["topic", "literal"]
+) -> list[tuple[str, str, bool, str]]:
+    """Return term, readable label, directness, and provenance for retrieval.
+
+    Literal mode protects the user's expression from implicit expansion. Topic mode
+    adds only the compact, visible vocabulary declared in TOPICS.
+    """
+    output: list[tuple[str, str, bool, str]] = []
     query_normalized = normalize(query)
     if query_normalized:
-        output.append((query_normalized, "عبارتِ جست‌وجوشده", True))
-        # Individual meaningful query tokens help a phrase such as «عدالت در تجارت».
+        output.append((query_normalized, "عبارتِ جست‌وجوشده", True, "literal"))
+
+    if mode == "topic":
+        # Components of a multiword question are discovery aids, not direct matches
+        # for the complete phrase.
         for token in query_normalized.split():
             if len(token) >= 3 and token != query_normalized:
-                # A component of a multiword query is useful retrieval evidence,
-                # but is not labelled as a direct mention of the whole phrase.
-                output.append((token, f"واژهٔ «{token}»", False))
-    if topic:
-        for term, label in topic["terms"]:
-            normalized_term = normalize(term)
-            if normalized_term:
-                output.append((normalized_term, label, normalized_term == query_normalized))
+                output.append((token, f"واژهٔ «{token}»", False, "query_component"))
+        if topic:
+            for term, label in topic["terms"]:
+                normalized_term = normalize(term)
+                if normalized_term:
+                    output.append(
+                        (
+                            normalized_term,
+                            label,
+                            normalized_term == query_normalized,
+                            "topic_lexicon",
+                        )
+                    )
 
     seen: set[str] = set()
-    unique: list[tuple[str, str, bool]] = []
+    unique: list[tuple[str, str, bool, str]] = []
     for item in output:
         if item[0] not in seen:
             unique.append(item)
@@ -268,22 +284,55 @@ def make_terms(query: str, topic: dict[str, Any] | None) -> list[tuple[str, str,
     return unique
 
 
-def evidence_for(record: dict[str, Any], terms: list[tuple[str, str, bool]]) -> tuple[int, list[str], bool]:
+def evidence_for(
+    record: dict[str, Any], terms: list[tuple[str, str, bool, str]]
+) -> tuple[int, list[str], bool, list[dict[str, str]]]:
+    """Score a verse and preserve the exact field and vocabulary that retrieved it."""
     score = 0
     labels: list[str] = []
+    trace: list[dict[str, str]] = []
     direct = False
-    for term, label, is_query_term in terms:
-        if contains_term(record, term):
-            labels.append(label)
-            score += 8 if is_query_term else 4
-            direct = direct or is_query_term
-    # A compact preference for verses where the word occurs in the Arabic original.
-    if labels and any(term in record["arabic_normalized"] for term, _, _ in terms):
+
+    for term, label, is_query_term, origin in terms:
+        in_arabic = term in record["arabic_normalized"]
+        in_persian = term in record["persian_normalized"]
+        if not (in_arabic or in_persian):
+            continue
+        source = "هر دو متن" if in_arabic and in_persian else "متن عربی" if in_arabic else "ترجمهٔ فارسی"
+        labels.append(label)
+        trace.append(
+            {
+                "label": label,
+                "term": term,
+                "source": source,
+                "origin": "عبارتِ کاربر" if is_query_term else "واژه‌نامهٔ موضوعی" if origin == "topic_lexicon" else "جزءِ پرسش",
+            }
+        )
+        score += 8 if is_query_term else 4
+        direct = direct or is_query_term
+
+    # A small, explicit preference for results with an Arabic witness; it does not
+    # change their relation type or assert any semantic priority.
+    if trace and any(item["source"] in {"متن عربی", "هر دو متن"} for item in trace):
         score += 1
-    return score, labels[:4], direct
+
+    unique_trace: list[dict[str, str]] = []
+    seen_trace: set[tuple[str, str]] = set()
+    for item in trace:
+        key = (item["label"], item["source"])
+        if key not in seen_trace:
+            unique_trace.append(item)
+            seen_trace.add(key)
+    return score, list(dict.fromkeys(labels))[:4], direct, unique_trace[:5]
 
 
-def serialize_verse(record: dict[str, Any], score: int, matches: list[str], relation: str) -> dict[str, Any]:
+def serialize_verse(
+    record: dict[str, Any],
+    score: int,
+    matches: list[str],
+    relation: str,
+    evidence: list[dict[str, str]] | None = None,
+) -> dict[str, Any]:
     return {
         "id": f"{record['surah']}:{record['ayah']}",
         "surah": record["surah"],
@@ -294,6 +343,7 @@ def serialize_verse(record: dict[str, Any], score: int, matches: list[str], rela
         "persian": record["persian"],
         "score": score,
         "matches": matches,
+        "evidence": evidence or [],
         "relation": relation,
     }
 
@@ -314,7 +364,70 @@ def surrounding_context(record: dict[str, Any]) -> list[dict[str, Any]]:
     return context
 
 
-def graph_payload(canonical: str, terms: list[tuple[str, str, bool]], verses: list[dict[str, Any]]) -> dict[str, Any]:
+def structural_payload(
+    candidates: list[tuple[dict[str, Any], int, list[str], bool, list[dict[str, str]]]]
+) -> dict[str, Any]:
+    """Describe result distribution without converting a pattern into interpretation."""
+    buckets: dict[int, dict[str, Any]] = {}
+    revelation = {
+        "مکی": {"total": 0, "direct": 0},
+        "مدنی": {"total": 0, "direct": 0},
+    }
+    ordered = sorted(candidates, key=lambda item: (item[0]["surah"], item[0]["ayah"]))
+
+    for record, _, _, direct, _ in ordered:
+        surah = record["surah"]
+        bucket = buckets.setdefault(
+            surah,
+            {
+                "surah": surah,
+                "name": record["surah_name"],
+                "type": record["surah_type"],
+                "total": 0,
+                "direct": 0,
+            },
+        )
+        bucket["total"] += 1
+        bucket["direct"] += int(direct)
+        revelation[record["surah_type"]]["total"] += 1
+        revelation[record["surah_type"]]["direct"] += int(direct)
+
+    clusters: list[dict[str, Any]] = []
+    run: list[tuple[dict[str, Any], int, list[str], bool, list[dict[str, str]]]] = []
+    for item in ordered:
+        record = item[0]
+        if not run or (record["surah"] == run[-1][0]["surah"] and record["ayah"] <= run[-1][0]["ayah"] + 3):
+            run.append(item)
+            continue
+        if len(run) >= 2:
+            clusters.append(
+                {
+                    "reference": f"{run[0][0]['surah_name']} {run[0][0]['surah']}:{run[0][0]['ayah']}–{run[-1][0]['ayah']}",
+                    "count": len(run),
+                    "span": run[-1][0]["ayah"] - run[0][0]["ayah"] + 1,
+                }
+            )
+        run = [item]
+    if len(run) >= 2:
+        clusters.append(
+            {
+                "reference": f"{run[0][0]['surah_name']} {run[0][0]['surah']}:{run[0][0]['ayah']}–{run[-1][0]['ayah']}",
+                "count": len(run),
+                "span": run[-1][0]["ayah"] - run[0][0]["ayah"] + 1,
+            }
+        )
+
+    distribution = sorted(buckets.values(), key=lambda item: (-item["total"], item["surah"]))[:7]
+    clusters.sort(key=lambda item: (-item["count"], item["span"], item["reference"]))
+    return {
+        "revelation": revelation,
+        "distribution": distribution,
+        "clusters": clusters[:4],
+        "note": "این نمودار فقط پراکندگیِ بازیابی را توصیف می‌کند و نشان‌دهندهٔ اهمیت تفسیری یا رتبه‌بندی سوره‌ها نیست.",
+    }
+
+
+def graph_payload(canonical: str, terms: list[tuple[str, str, bool, str]], verses: list[dict[str, Any]]) -> dict[str, Any]:
     nodes = [
         {
             "id": "topic",
@@ -326,7 +439,7 @@ def graph_payload(canonical: str, terms: list[tuple[str, str, bool]], verses: li
     ]
     edges: list[dict[str, str]] = []
     term_nodes = []
-    for index, (term, label, direct) in enumerate(terms[:4]):
+    for index, (term, label, direct, _) in enumerate(terms[:4]):
         identifier = f"term-{index}"
         term_nodes.append((identifier, term, label))
         nodes.append(
@@ -338,7 +451,7 @@ def graph_payload(canonical: str, terms: list[tuple[str, str, bool]], verses: li
                 "weight": 0.75,
             }
         )
-        edges.append({"source": "topic", "target": identifier, "label": "گسترش شفاف"})
+        edges.append({"source": "topic", "target": identifier, "label": "مسیر بازیابی"})
 
     for index, verse in enumerate(verses[:6]):
         identifier = f"verse-{index}"
@@ -357,24 +470,30 @@ def graph_payload(canonical: str, terms: list[tuple[str, str, bool]], verses: li
     return {"nodes": nodes, "edges": edges}
 
 
-def analyze(query: str, limit: int, include_context: bool) -> dict[str, Any]:
+def analyze(
+    query: str,
+    limit: int,
+    include_context: bool,
+    mode: Literal["topic", "literal"] = "topic",
+) -> dict[str, Any]:
     cleaned_query = WHITESPACE.sub(" ", query).strip()
     if not cleaned_query:
         raise HTTPException(status_code=422, detail="عبارت جست‌وجو نمی‌تواند خالی باشد.")
 
     canonical, topic = find_topic(cleaned_query)
-    terms = make_terms(cleaned_query, topic)
-    candidates: list[tuple[dict[str, Any], int, list[str], bool]] = []
+    active_topic = topic if mode == "topic" else None
+    terms = make_terms(cleaned_query, active_topic, mode)
+    candidates: list[tuple[dict[str, Any], int, list[str], bool, list[dict[str, str]]]] = []
     for record in CORPUS:
-        score, labels, direct = evidence_for(record, terms)
+        score, labels, direct, trace = evidence_for(record, terms)
         if score:
-            candidates.append((record, score, labels, direct))
+            candidates.append((record, score, labels, direct, trace))
 
     candidates.sort(key=lambda item: (-item[1], item[0]["surah"], item[0]["ayah"]))
     direct_candidates = [item for item in candidates if item[3]]
     thematic_candidates = [item for item in candidates if not item[3]]
 
-    # Keep direct evidence first, then add transparent, tagged thematic evidence.
+    # Keep literal evidence first, then add transparent, tagged topical evidence.
     selected = (direct_candidates + thematic_candidates)[:limit]
     verses = [
         serialize_verse(
@@ -382,14 +501,15 @@ def analyze(query: str, limit: int, include_context: bool) -> dict[str, Any]:
             score,
             labels,
             "ذکر / ترجمهٔ مستقیم" if direct else "پیوند واژگانیِ موضوعی",
+            trace,
         )
-        for record, score, labels, direct in selected
+        for record, score, labels, direct, trace in selected
     ]
 
     contexts: list[dict[str, Any]] = []
     if include_context and selected:
         seen = {item["id"] for item in verses}
-        for record, _, _, _ in selected[:3]:
+        for record, _, _, _, _ in selected[:3]:
             for neighbor in surrounding_context(record):
                 if neighbor["id"] not in seen:
                     contexts.append(neighbor)
@@ -399,36 +519,53 @@ def analyze(query: str, limit: int, include_context: bool) -> dict[str, Any]:
             if len(contexts) >= 4:
                 break
 
-    surah_counts = Counter(record["surah"] for record, _, _, _ in candidates)
-    canonical_label = canonical or cleaned_query
-    expansion_labels = [label for _, label, is_query in terms if not is_query][:6]
-    summary = (
-        f"برای «{canonical_label}»، {len(direct_candidates)} شاهدِ دارای عبارتِ جست‌وجوشده و "
-        f"{len(thematic_candidates)} شاهدِ دارای واژه‌های هم‌خانواده بازیابی شد. "
-        "نتایجِ موضوعی با برچسب واژهٔ شاهد نمایش داده شده‌اند تا مسیر استدلال قابل بازبینی بماند."
-    )
+    surah_counts = Counter(record["surah"] for record, _, _, _, _ in candidates)
+    canonical_label = canonical if mode == "topic" and canonical else cleaned_query
+    expansion_labels = [label for _, label, is_query, _ in terms if not is_query][:6]
+    if mode == "literal":
+        summary = (
+            f"در حالتِ عبارت‌محور، {len(direct_candidates)} شاهد برای «{cleaned_query}» بازیابی شد. "
+            "هیچ واژهٔ هم‌خانواده یا توسعهٔ موضوعی به این جست‌وجو افزوده نشده است."
+        )
+    else:
+        summary = (
+            f"برای «{canonical_label}»، {len(direct_candidates)} شاهدِ دارای عبارتِ جست‌وجوشده و "
+            f"{len(thematic_candidates)} شاهدِ دارای واژه‌های هم‌خانواده بازیابی شد. "
+            "نتایجِ موضوعی با برچسب واژهٔ شاهد نمایش داده شده‌اند تا مسیر استدلال قابل بازبینی بماند."
+        )
     if not candidates:
         summary = (
             f"برای «{cleaned_query}» در بازیابی واژگانیِ فعلی شاهدی پیدا نشد. "
-            "صورت عربیِ واژه، ریشهٔ کوتاه‌تر یا یکی از پیشنهادهای موضوعی را امتحان کنید."
+            "صورت عربیِ واژه، ریشهٔ کوتاه‌تر یا حالت موضوعی را امتحان کنید."
         )
 
+    mode_info = {
+        "id": mode,
+        "label": "موضوعیِ شفاف" if mode == "topic" else "فقط عبارت",
+        "description": (
+            "عبارتِ کاربر با واژه‌نامهٔ کوچک و قابل مشاهدهٔ موضوع گسترش می‌یابد."
+            if mode == "topic"
+            else "فقط عبارتِ واردشده در متن عربی و ترجمهٔ فارسی جست‌وجو می‌شود."
+        ),
+    }
     method = {
         "title": "روشِ بازیابیِ قابل‌ممیزی",
         "steps": [
             "متن عربی و ترجمهٔ فارسی به‌صورت جداگانه نرمال‌سازی و جست‌وجو می‌شوند.",
-            "ذکر مستقیم از پیوند واژگانیِ موضوعی جدا و روی هر آیه برچسب‌گذاری می‌شود.",
+            mode_info["description"],
+            "روی هر آیه، منبع شاهد (متن عربی یا ترجمهٔ فارسی) و مسیر واژه‌ای نمایش داده می‌شود.",
             "برای جلوگیری از بریده‌خوانی، همسایه‌های خطیِ چند آیهٔ اول نیز نشان داده می‌شوند.",
-            "نقشهٔ گراف فقط پیوندهای قابل مشاهدهٔ همین بازیابی را نشان می‌دهد؛ نتیجهٔ تفسیریِ قطعی نیست.",
+            "گراف و نمودار ساختاری فقط دادهٔ بازیابی را نشان می‌دهند؛ نتیجهٔ تفسیریِ قطعی نیستند.",
         ],
     }
-    graph_terms = terms if terms else [(normalize(cleaned_query), "عبارتِ جست‌وجوشده", True)]
+    graph_terms = terms if terms else [(normalize(cleaned_query), "عبارتِ جست‌وجوشده", True, "literal")]
     return {
         "query": cleaned_query,
-        "canonical_topic": canonical,
+        "canonical_topic": canonical if mode == "topic" else None,
+        "mode": mode_info,
         "summary": summary,
-        "topic_description": topic["description"] if topic else "جست‌وجوی آزاد، بدون توسعهٔ موضوعیِ ازپیش‌تعریف‌شده.",
-        "questions": topic["questions"] if topic else [
+        "topic_description": active_topic["description"] if active_topic else "جست‌وجوی عبارت‌محور، بدون توسعهٔ موضوعیِ ازپیش‌تعریف‌شده.",
+        "questions": active_topic["questions"] if active_topic else [
             "این واژه در کدام نقش دستوری و سیاق به کار رفته است؟",
             "آیا صورت عربی یا واژهٔ هم‌ریشه‌ای برای جست‌وجوی دقیق‌تر وجود دارد؟",
         ],
@@ -441,6 +578,7 @@ def analyze(query: str, limit: int, include_context: bool) -> dict[str, Any]:
         "expansion": expansion_labels,
         "verses": verses,
         "context": contexts,
+        "structure": structural_payload(candidates),
         "graph": graph_payload(canonical_label, graph_terms, verses),
         "method": method,
         "corpus": {
@@ -453,9 +591,27 @@ def analyze(query: str, limit: int, include_context: bool) -> dict[str, Any]:
 
 app = FastAPI(
     title="ذهن‌یار | پژوهش موضوعی قرآن",
-    version="1.0.0",
-    description="بازیابی شفاف واژگانی و پیوندهای موضوعی در متن قرآن، با نمایش شواهد و سیاق.",
+    version="1.1.0",
+    description="بازیابی شفاف واژگانی و پیوندهای موضوعی در متن قرآن، با نمایش شواهد، سیاق و مسیر بازیابی.",
 )
+app.add_middleware(GZipMiddleware, minimum_size=600)
+
+
+@app.middleware("http")
+async def standards_headers(request, call_next):
+    """Keep the single-page research workspace private and self-contained by default."""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:; font-src 'self' data:; connect-src 'self'; "
+        "object-src 'none'; base-uri 'self'; form-action 'self'"
+    )
+    if request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @app.get("/api/health", tags=["system"])
@@ -470,21 +626,26 @@ def meta() -> dict[str, Any]:
             {"title": title, "aliases": topic["aliases"], "description": topic["description"]}
             for title, topic in TOPICS.items()
         ],
+        "modes": [
+            {"id": "literal", "label": "فقط عبارت", "description": "بدون توسعهٔ واژگانی"},
+            {"id": "topic", "label": "موضوعیِ شفاف", "description": "با واژه‌نامهٔ قابل مشاهدهٔ موضوع"},
+        ],
         "corpus": {"verses": len(CORPUS), "arabic": "Tanzil Uthmani", "persian": "QuranEnc Persian (Ihsan Elahi Zaheer)"},
     }
 
 
 @app.post("/api/analyze", tags=["research"])
 def analyze_topic(request: AnalyzeRequest) -> dict[str, Any]:
-    return analyze(request.query, request.limit, request.include_context)
+    return analyze(request.query, request.limit, request.include_context, request.mode)
 
 
 @app.get("/api/analyze", tags=["research"])
 def analyze_topic_get(
     q: str = Query(..., min_length=1, max_length=120),
     limit: int = Query(default=12, ge=6, le=24),
+    mode: Literal["topic", "literal"] = Query(default="topic"),
 ) -> dict[str, Any]:
-    return analyze(q, limit, True)
+    return analyze(q, limit, True, mode)
 
 
 @app.get("/api/verse/{surah}/{ayah}", tags=["research"])
@@ -498,7 +659,7 @@ def get_verse(surah: int, ayah: int) -> dict[str, Any]:
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
-@app.get("/", include_in_schema=False)
+@app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
 def home() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
 

@@ -1,9 +1,11 @@
 const api = "/api/analyze";
+const NOTEBOOK_KEY = "zehnyar-evidence-notebook-v1";
 const state = { data: null, filter: "all" };
 
 const $ = (selector) => document.querySelector(selector);
 const form = $("#search-form");
 const input = $("#query");
+const modeSelect = $("#search-mode");
 const submit = $("#search-submit");
 const resultsList = $("#results-list");
 const statusMessage = $("#status-message");
@@ -16,6 +18,57 @@ function escapeHTML(value = "") {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function faNumber(value) {
+  return Number(value || 0).toLocaleString("fa-IR");
+}
+
+function loadNotebook() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(NOTEBOOK_KEY) || "[]");
+    return Array.isArray(saved) ? saved.filter((item) => item && item.id && item.reference) : [];
+  } catch {
+    return [];
+  }
+}
+
+let notebook = loadNotebook();
+
+function persistNotebook() {
+  localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(notebook));
+}
+
+function renderNotebook() {
+  const count = $("#notebook-count");
+  const list = $("#notebook-list");
+  count.textContent = faNumber(notebook.length);
+  if (!notebook.length) {
+    list.innerHTML = '<p class="notebook-empty">هنوز شاهدی ذخیره نشده است.</p>';
+    return;
+  }
+  list.innerHTML = notebook.slice(0, 6).map((item) => `<article class="notebook-item">
+    <div><b>${escapeHTML(item.reference)}</b><span lang="ar" dir="rtl">${escapeHTML(item.arabic)}</span></div>
+    <button class="notebook-remove" data-remove-note="${escapeHTML(item.id)}" type="button" aria-label="حذف ${escapeHTML(item.reference)}">حذف</button>
+  </article>`).join("");
+  if (notebook.length > 6) {
+    list.insertAdjacentHTML("beforeend", `<p class="notebook-empty">و ${faNumber(notebook.length - 6)} شاهد دیگر در دفتر ذخیره شده است.</p>`);
+  }
+}
+
+function saveVerse(verse) {
+  if (notebook.some((item) => item.id === verse.id)) return false;
+  notebook.unshift({
+    id: verse.id,
+    reference: verse.reference,
+    arabic: verse.arabic,
+    persian: verse.persian,
+    query: state.data?.query || "",
+    savedAt: new Date().toISOString(),
+  });
+  persistNotebook();
+  renderNotebook();
+  return true;
 }
 
 function loading() {
@@ -42,7 +95,7 @@ function renderStats(stats) {
     [stats.shown, "آیهٔ نمایش‌داده‌شده"],
   ];
   $("#stats").innerHTML = items
-    .map(([value, label]) => `<div class="stat"><strong>${escapeHTML(value)}</strong><span>${escapeHTML(label)}</span></div>`)
+    .map(([value, label]) => `<div class="stat"><strong>${faNumber(value)}</strong><span>${escapeHTML(label)}</span></div>`)
     .join("");
 }
 
@@ -53,9 +106,11 @@ function verseCard(verse, index, context = false) {
       <p>${escapeHTML(verse.persian)}</p>
     </article>`;
   }
-  const matchMarkup = verse.matches
-    .map((match) => `<span>${escapeHTML(match)}</span>`)
+  const evidence = verse.evidence?.length ? verse.evidence : verse.matches.map((label) => ({ label, source: "مسیر بازیابی" }));
+  const matchMarkup = evidence
+    .map((item) => `<span title="${escapeHTML(item.origin || item.source)}"><b>${escapeHTML(item.label)}</b> · ${escapeHTML(item.source)}</span>`)
     .join("");
+  const isSaved = notebook.some((item) => item.id === verse.id);
   return `<article class="verse-card" data-verse-id="${escapeHTML(verse.id)}" style="animation-delay:${Math.min(index, 9) * 35}ms">
     <div class="verse-head">
       <span class="reference">${escapeHTML(verse.reference)} <small>· ${escapeHTML(verse.revelation)}</small></span>
@@ -65,7 +120,10 @@ function verseCard(verse, index, context = false) {
     <p class="verse-persian">${escapeHTML(verse.persian)}</p>
     <div class="verse-foot">
       <div class="match-list">${matchMarkup}</div>
-      <button class="copy-verse" type="button" data-copy="${escapeHTML(verse.id)}" aria-label="کپی ارجاع ${escapeHTML(verse.reference)}">کپی شاهد ↗</button>
+      <div class="verse-actions">
+        <button class="save-verse ${isSaved ? "saved" : ""}" type="button" data-save="${escapeHTML(verse.id)}" ${isSaved ? "disabled" : ""}>${isSaved ? "در دفتر ✓" : "ذخیره"}</button>
+        <button class="copy-verse" type="button" data-copy="${escapeHTML(verse.id)}" aria-label="کپی ارجاع ${escapeHTML(verse.reference)}">کپی شاهد ↗</button>
+      </div>
     </div>
   </article>`;
 }
@@ -92,6 +150,32 @@ function renderContext(context) {
   }
   section.hidden = false;
   $("#context-list").innerHTML = context.map((verse) => verseCard(verse, 0, true)).join("");
+}
+
+function renderStructure(structure) {
+  const total = (structure?.revelation?.["مکی"]?.total || 0) + (structure?.revelation?.["مدنی"]?.total || 0);
+  $("#structure-total").textContent = `${faNumber(total)} شاهد`;
+  const split = structure?.revelation || {};
+  $("#revelation-split").innerHTML = ["مکی", "مدنی"].map((type) => {
+    const item = split[type] || { total: 0, direct: 0 };
+    return `<div class="revelation-stat"><span>${type}</span><b>${faNumber(item.total)}</b><small>${faNumber(item.direct)} مستقیم</small></div>`;
+  }).join("");
+
+  const distribution = structure?.distribution || [];
+  const maximum = Math.max(1, ...distribution.map((item) => item.total));
+  $("#distribution-list").innerHTML = distribution.length
+    ? distribution.map((item) => `<div class="distribution-row">
+        <span title="${escapeHTML(item.name)}">${escapeHTML(item.name)}</span>
+        <span class="distribution-bar"><i style="width:${Math.max(6, (item.total / maximum) * 100)}%"></i></span>
+        <b>${faNumber(item.total)}</b>
+      </div>`).join("")
+    : '<p class="cluster-empty">داده‌ای برای نمایش نیست.</p>';
+
+  const clusters = structure?.clusters || [];
+  $("#cluster-list").innerHTML = clusters.length
+    ? clusters.map((cluster) => `<div class="cluster-item"><span>${escapeHTML(cluster.reference)}</span><b>${faNumber(cluster.count)} شاهد در ${faNumber(cluster.span)} آیه</b></div>`).join("")
+    : '<p class="cluster-empty">خوشهٔ خطیِ چندآیه‌ای در این بازیابی دیده نشد.</p>';
+  $("#structure-note").textContent = structure?.note || "";
 }
 
 function addSvgElement(parent, name, attributes = {}) {
@@ -159,8 +243,10 @@ function render(data) {
   state.filter = "all";
   $("#topic-label").textContent = data.canonical_topic || data.query;
   $("#summary-text").textContent = data.summary;
-  $("#corpus-note").textContent = `${data.corpus.total_verses.toLocaleString("fa-IR")} آیه · عربی و ترجمهٔ فارسی`;
-  $("#result-quality").textContent = data.canonical_topic ? "گسترش واژگانیِ آشکار" : "بازیابی واژگانیِ آزاد";
+  $("#topic-description").textContent = data.topic_description || "";
+  $("#corpus-note").textContent = `${faNumber(data.corpus.total_verses)} آیه · عربی و ترجمهٔ فارسی`;
+  $("#result-quality").textContent = data.mode?.label || "مسیر قابل ممیزی";
+  modeSelect.value = data.mode?.id || modeSelect.value;
 
   const expansion = $("#expansion-row");
   expansion.innerHTML = (data.expansion || [])
@@ -169,6 +255,7 @@ function render(data) {
   renderStats(data.stats);
   renderVerses();
   renderContext(data.context);
+  renderStructure(data.structure);
   renderGraph(data.graph);
   $("#questions-list").innerHTML = data.questions.map((question) => `<li>${escapeHTML(question)}</li>`).join("");
   $("#method-list").innerHTML = data.method.steps.map((step) => `<li>${escapeHTML(step)}</li>`).join("");
@@ -193,7 +280,7 @@ async function research(query, scroll = false) {
     const response = await fetch(api, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: cleanQuery, limit: 12, include_context: true }),
+      body: JSON.stringify({ query: cleanQuery, limit: 12, include_context: true, mode: modeSelect.value }),
     });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.detail || "دریافت نتیجه ناموفق بود.");
@@ -229,6 +316,17 @@ document.querySelectorAll(".filter-tabs button").forEach((button) => {
 });
 
 resultsList.addEventListener("click", async (event) => {
+  const saveButton = event.target.closest("[data-save]");
+  if (saveButton && state.data) {
+    const verse = state.data.verses.find((item) => item.id === saveButton.dataset.save);
+    if (verse && saveVerse(verse)) {
+      saveButton.textContent = "در دفتر ✓";
+      saveButton.classList.add("saved");
+      saveButton.disabled = true;
+    }
+    return;
+  }
+
   const button = event.target.closest("[data-copy]");
   if (!button || !state.data) return;
   const verse = state.data.verses.find((item) => item.id === button.dataset.copy);
@@ -241,6 +339,53 @@ resultsList.addEventListener("click", async (event) => {
     button.textContent = "متن را انتخاب کنید";
   }
   window.setTimeout(() => { button.textContent = "کپی شاهد ↗"; }, 1600);
+});
+
+$("#notebook-list").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-remove-note]");
+  if (!button) return;
+  notebook = notebook.filter((item) => item.id !== button.dataset.removeNote);
+  persistNotebook();
+  renderNotebook();
+  renderVerses();
+});
+
+$("#export-notebook").addEventListener("click", () => {
+  if (!notebook.length) return;
+  const today = new Intl.DateTimeFormat("fa-IR", { dateStyle: "long" }).format(new Date());
+  const body = [
+    "# دفتر شواهد ذهن‌یار",
+    "",
+    `تاریخ خروجی: ${today}`,
+    "",
+    ...notebook.flatMap((item) => [
+      `## ${item.reference}`,
+      "",
+      item.arabic,
+      "",
+      item.persian,
+      "",
+      `پرسش هنگام ذخیره: ${item.query || "—"}`,
+      "",
+    ]),
+  ].join("\n");
+  const blob = new Blob([body], { type: "text/markdown;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = "zehnyar-evidence-notebook.md";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+});
+
+$("#clear-notebook").addEventListener("click", () => {
+  if (!notebook.length || !window.confirm("همهٔ شواهد ذخیره‌شده از همین مرورگر پاک شوند؟")) return;
+  notebook = [];
+  persistNotebook();
+  renderNotebook();
+  renderVerses();
 });
 
 $("#graph-info").addEventListener("click", () => {
@@ -256,4 +401,5 @@ $("#method-toggle").addEventListener("click", () => {
   button.setAttribute("aria-expanded", String(!content.hidden));
 });
 
+renderNotebook();
 research(input.value);

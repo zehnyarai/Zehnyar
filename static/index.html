@@ -36,6 +36,11 @@
           <label class="sr-only" for="query">موضوع یا واژهٔ مورد نظر</label>
           <div class="search-icon" aria-hidden="true"></div>
           <input id="query" name="query" maxlength="120" autocomplete="off" value="عدالت" placeholder="مثلاً: عدالت، صبر، علم یا یک واژهٔ عربی" />
+          <label class="sr-only" for="search-mode">حالت جست‌وجو</label>
+          <select id="search-mode" class="search-mode" title="حالت جست‌وجو">
+            <option value="topic" selected>موضوعیِ شفاف</option>
+            <option value="literal">فقط عبارت</option>
+          </select>
           <button id="search-submit" type="submit">
             <span>آغاز پژوهش</span>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg>
@@ -76,6 +81,7 @@
                 <span id="result-quality" class="quality-badge">مسیر قابل ممیزی</span>
               </div>
               <p id="summary-text">نتایج در حال بارگیری است.</p>
+              <p id="topic-description" class="topic-description"></p>
               <div id="expansion-row" class="expansion-row"></div>
             </article>
 
@@ -123,6 +129,36 @@
                 <span><i class="legend-dot topic"></i> پرسش</span>
                 <span><i class="legend-dot term"></i> واژهٔ شاهد</span>
                 <span><i class="legend-dot verse"></i> آیه</span>
+              </div>
+            </section>
+
+            <section class="structure-card" aria-labelledby="structure-title">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-kicker">نمای توصیفی</p>
+                  <h3 id="structure-title">الگوی ساختاریِ بازیابی</h3>
+                </div>
+                <span id="structure-total" class="structure-total">—</span>
+              </div>
+              <div id="revelation-split" class="revelation-split" aria-label="پراکندگی مکی و مدنی"></div>
+              <div id="distribution-list" class="distribution-list" aria-label="توزیع نتایج در سوره‌ها"></div>
+              <div id="cluster-list" class="cluster-list" aria-label="خوشه‌های خطی آیات"></div>
+              <p id="structure-note" class="structure-note"></p>
+            </section>
+
+            <section class="notebook-card" aria-labelledby="notebook-title">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-kicker">فضای شخصی، روی همین دستگاه</p>
+                  <h3 id="notebook-title">دفترِ شواهد</h3>
+                </div>
+                <span id="notebook-count" class="notebook-count">۰</span>
+              </div>
+              <p class="notebook-intro">آیه‌های منتخب در مرورگر شما ذخیره می‌شوند و به سرور فرستاده نمی‌شوند.</p>
+              <div id="notebook-list" class="notebook-list"></div>
+              <div class="notebook-actions">
+                <button id="export-notebook" type="button">خروجی یادداشت‌ها</button>
+                <button id="clear-notebook" class="subtle-action" type="button">پاک‌کردن</button>
               </div>
             </section>
 
