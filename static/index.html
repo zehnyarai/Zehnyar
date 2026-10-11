@@ -32,22 +32,13 @@
           <h1 id="search-title">هر مفهوم را از <em>واژه‌های قرآنی</em> آغاز کنید.</h1>
           <p class="lede">موضوع را به فارسی یا عربی بنویسید. ذهن‌یار ابتدا معادل‌های عربیِ بازبینی‌شده را جست‌وجو می‌کند، سپس پیوندهای هم‌خانواده را جدا نشان می‌دهد.</p>
 
-          <form id="concept-form" class="concept-form" novalidate>
-            <label class="sr-only" for="concept-query">مفهوم یا واژهٔ مورد پژوهش</label>
-            <input id="concept-query" name="query" maxlength="120" autocomplete="off" placeholder="مثلاً: عشق، عدالت، خانواده یا حُبّ" />
-            <button type="submit">آغاز جست‌وجو <span aria-hidden="true">←</span></button>
+          <form id="concept-form" class="research-form" novalidate>
+            <div class="search-field root-field"><label for="root-query"><b>ریشه و صورت عربی</b><small>مثل: ح ب ب، ع د ل</small></label><input id="root-query" maxlength="80" autocomplete="off" placeholder="ریشه یا واژهٔ عربی" /></div>
+            <div class="search-field usage-field"><label for="usage-query"><b>کاربرد قرآنی</b><small>مثل: عدالت، رحمت، خانواده</small></label><input id="usage-query" maxlength="120" autocomplete="off" placeholder="موضوع یا کاربرد" /></div>
+            <div class="search-field keyword-field"><label for="keyword-query"><b>کلیدواژه‌های دقیق</b><small>با ویرگول جدا کنید</small></label><input id="keyword-query" maxlength="160" autocomplete="off" placeholder="مثل: قسط، میزان" /></div>
+            <div class="search-field synonym-field"><label for="synonym-query"><b>مترادف و هم‌خانواده</b><small>مثل: عشق، محبت، مودّت</small></label><input id="synonym-query" maxlength="120" autocomplete="off" placeholder="مفهوم فارسی یا عربی" /></div>
+            <div class="form-actions"><label class="translation-option"><input id="translation-option" type="checkbox" /><span>تطابق دقیق در ترجمهٔ فارسیِ فعلی</span></label><button type="submit">جست‌وجوی پژوهشی <span aria-hidden="true">←</span></button></div>
           </form>
-
-          <label class="translation-option">
-            <input id="translation-option" type="checkbox" />
-            <span>عبارت فارسی را در ترجمهٔ فعلی هم دقیق جست‌وجو کن</span>
-          </label>
-          <details class="advanced-search">
-            <summary>واژهٔ عربیِ دلخواه دارید؟</summary>
-            <p>برای مفهومی که هنوز در واژه‌نامهٔ بازبینی‌شده نیست، یک یا چند کلیدواژهٔ عربی وارد کنید تا مسیر جست‌وجو کاملاً روشن بماند.</p>
-            <label class="sr-only" for="arabic-seeds">کلیدواژه‌های عربیِ دلخواه</label>
-            <input id="arabic-seeds" maxlength="160" autocomplete="off" placeholder="مثلاً: هجرة، سفر، بلد (با ویرگول جدا کنید)" />
-          </details>
           <p id="search-status" class="search-status" role="status" aria-live="polite"></p>
         </div>
 
@@ -61,6 +52,26 @@
           <div class="section-intro"><p class="eyebrow">برای شروع</p><h2 id="starters-title">یک مسیر مفهومی انتخاب کنید</h2></div>
           <div id="starter-list" class="starter-list" aria-live="polite"></div>
         </section>
+
+        <section class="research-gateways" aria-label="کتابخانه‌های پژوهش">
+          <button id="open-surah-library" class="gateway-card" type="button"><span class="gateway-icon">۱۱۴</span><span><b>پژوهش سوره‌ها</b><small>فهرست ۱۱۴ سوره، موضوعات صریح و پیوندهای پژوهشی</small></span><i aria-hidden="true">←</i></button>
+          <button id="open-story-library" class="gateway-card" type="button"><span class="gateway-icon">۞</span><span><b>داستان‌های قرآن</b><small>مسیرهای روایی، قطعه‌آیات و پروندهٔ خوانش داستان</small></span><i aria-hidden="true">←</i></button>
+        </section>
+      </section>
+
+      <section id="library-screen" class="screen library-screen" hidden aria-labelledby="library-title">
+        <div class="screen-topbar"><button class="back-button" data-go="search" type="button">← بازگشت به جست‌وجو</button><span class="corpus-badge">کتابخانهٔ پژوهش</span></div>
+        <div class="results-heading"><p class="eyebrow">نقشهٔ مطالعه</p><h2 id="library-title">—</h2><p id="library-description"></p></div>
+        <div id="library-list" class="library-list" aria-live="polite"></div>
+      </section>
+
+      <section id="surah-screen" class="screen surah-screen" hidden aria-labelledby="surah-title">
+        <div class="screen-topbar"><button class="back-button" data-go="library" type="button">← کتابخانه</button><button id="surah-open-verses" class="save-button" type="button">خواندن آیه‌های سوره</button></div>
+        <article class="detail-verse"><p id="surah-reference" class="detail-reference">—</p><h2 id="surah-title">—</h2><p id="surah-description" class="detail-persian"></p></article>
+        <div class="study-tabs" role="tablist" aria-label="پروندهٔ پژوهش سوره">
+          <button class="active" data-surah-tab="notes" type="button">نکات سوره</button><button data-surah-tab="messages" type="button">پیام‌های قابل بررسی</button><button data-surah-tab="direct" type="button">موضوعات صریح</button><button data-surah-tab="related" type="button">موضوعات مرتبط</button>
+        </div>
+        <div id="surah-panels" class="detail-panels"></div>
       </section>
 
       <section id="results-screen" class="screen results-screen" hidden aria-labelledby="results-title">

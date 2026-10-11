@@ -86,6 +86,14 @@ class QuranResearchTests(unittest.TestCase):
         self.assertGreater(len(arabic_matches), 0)
         self.assertFalse(any(main.normalize("عشق") in record["arabic_normalized"] for record in main.CORPUS))
 
+    def test_initial_story_library_uses_valid_quran_ranges(self):
+        story_index = json.loads((Path(main.STATIC_DIR) / "story-index.json").read_text(encoding="utf-8"))
+        self.assertEqual(len(story_index["stories"]), len(main.STORY_RANGES))
+        for story in story_index["stories"]:
+            for passage in story["passages"]:
+                self.assertIn((passage["surah"], passage["start"]), main.VERSE_MAP)
+                self.assertIn((passage["surah"], passage["end"]), main.VERSE_MAP)
+
     def test_narrative_paths_are_bounded_and_separate_from_lexical_hits(self):
         result = main.analyze("عدالت", 8, True, "topic")
         paths = result["narrative"]["paths"]
