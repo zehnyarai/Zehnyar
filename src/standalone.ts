@@ -2,6 +2,9 @@
 import type { AnalysisData, Bootstrap, Knowledge, Orchard, Report, Task } from './types'
 import knowledgeData from './data/knowledge.json'
 import { assetUrl } from './config'
+import { EMPTY_CONTEXT, validateContext } from './scientific'
+import { EMPTY_BILLING, validateField } from './fieldwork'
+import type { FieldKind, FieldRecord } from './fieldwork'
 
 const DB_NAME = 'pestino-local-v1'
 const KEY = 'data'
@@ -11,12 +14,26 @@ interface State {
   orchards: Orchard[]
   tasks: Task[]
   reports: Report[]
+  fields: Record<FieldKind, FieldRecord<FieldKind>[]>
 }
 export class LocalError extends Error {
   status = 400
 }
-const emptyState = (): State => ({ version: 1, orchards: [], tasks: [], reports: [] })
-const uid = () => crypto.randomUUID()
+const emptyState = (): State => ({
+  version: 1,
+  orchards: [],
+  tasks: [],
+  reports: [],
+  fields: { labs: [], experiences: [], prices: [], climate: [] },
+})
+const uid = () => {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  bytes[6] = (bytes[6] & 15) | 64
+  bytes[8] = (bytes[8] & 63) | 128
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('')
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+}
 let connection: Promise<IDBDatabase> | null = null
 let queue: Promise<unknown> = Promise.resolve()
 function database() {
@@ -48,7 +65,12 @@ async function load(): Promise<State> {
   const db = await database()
   return new Promise((resolve, reject) => {
     const req = db.transaction('state').objectStore('state').get(KEY)
-    req.onsuccess = () => resolve(req.result ?? emptyState())
+    req.onsuccess = () =>
+      resolve({
+        ...emptyState(),
+        ...req.result,
+        fields: { ...emptyState().fields, ...req.result?.fields },
+      })
     req.onerror = () =>
       reject(new LocalError('خواندن داده‌های دستگاه ممکن نشد. داده‌ها را پاک نکنید.'))
   })
@@ -258,6 +280,10 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       else {
         state.orchards.splice(i, 1)
         state.tasks = state.tasks.filter((t) => t.orchard_id !== id)
+        state.fields.labs = state.fields.labs.map((r) => {
+          const d = r.data as import('./fieldwork').LabInput
+          return d.orchard_id === id ? { ...r, data: { ...d, orchard_id: null } } : r
+        })
         state.reports = state.reports.map((r) =>
           r.orchard_id === id ? { ...r, orchard_id: null, orchard_name: null } : r
         )
@@ -289,10 +315,18 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       const image = form.get('image')
       if (!(image instanceof File)) throw new LocalError('تصویر انتخاب کنید.')
       const part = text(form.get('tree_part'), 'بخش درخت', 30, 1)
-      if (!['برگ', 'میوه', 'شاخه و تنه', 'کل درخت', 'ریشه و طوقه'].includes(part))
+      if (!['برگ', 'میوه', 'شاخه و تنه', 'کل درخت', 'ریشه و طوقه', 'گل و جوانه'].includes(part))
         throw new LocalError('بخش درخت معتبر نیست.')
       const notes = text(form.get('notes') ?? '', 'یادداشت', 1000)
       const orchard = orchardId(state, form.get('orchard_id'))
+      const context = form.get('context')
+        ? validateContext(JSON.parse(String(form.get('context'))))
+        : { ...EMPTY_CONTEXT }
+      const extra = form.getAll('additional_images')
+      if (extra.length > 3 || extra.some((f) => !(f instanceof File)))
+        throw new LocalError('حداکثر چهار تصویر برای هر پرونده انتخاب کنید.')
+      const images = [await normalizedPhoto(image)]
+      for (const f of extra) images.push(await normalizedPhoto(f as File))
       const record: Report = {
         id: uid(),
         orchard_id: orchard,
@@ -300,7 +334,9 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
         tree_part: part,
         notes,
         data: photoData(part, notes),
-        image_url: await normalizedPhoto(image),
+        image_url: images[0],
+        image_urls: images,
+        context,
         created_at: new Date().toISOString(),
         is_sample: 0,
       }
@@ -313,6 +349,44 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       state.reports.splice(i, 1)
       result = { ok: true }
       modified = true
+    } else if (path === '/billing/config' && method === 'GET') result = EMPTY_BILLING
+    else if (path === '/billing/my' && method === 'GET')
+      result = { balance: 0, purchased: 0, used: 0, receipts: [], history: [] }
+    else if (path.startsWith('/billing/'))
+      throw new LocalError(
+        'دریافت وجه و مدیریت اعتبار سروری در نسخه مستقل فعال نیست؛ وجهی واریز نکنید.'
+      )
+    else if (path.startsWith('/field-records/')) {
+      const [kind, recordId] = path.slice('/field-records/'.length).split('/') as [
+        FieldKind,
+        string | undefined,
+      ]
+      if (!Object.prototype.hasOwnProperty.call(state.fields, kind))
+        throw new LocalError('نوع داده معتبر نیست.')
+      const records = state.fields[kind]
+      if (method === 'GET' && !recordId) result = records
+      else if (method === 'POST' && !recordId) {
+        if (records.length >= 500)
+          throw new LocalError('سقف ایمن ۵۰۰ پرونده برای این بخش تکمیل شده است.')
+        const data = validateField(kind, body)
+        if (kind === 'labs') orchardId(state, (data as import('./fieldwork').LabInput).orchard_id)
+        const record = {
+          id: uid(),
+          data,
+          author: 'باغدار پستینو',
+          visibility: 'private' as const,
+          created_at: new Date().toISOString(),
+        }
+        records.unshift(record)
+        result = record
+        modified = true
+      } else if (method === 'DELETE' && recordId) {
+        const i = records.findIndex((r) => r.id === recordId)
+        if (i < 0) throw new LocalError('پرونده پیدا نشد.')
+        records.splice(i, 1)
+        result = { ok: true }
+        modified = true
+      } else throw new LocalError('عملیات معتبر نیست.')
     } else if (
       path.startsWith('/auth/') ||
       path.startsWith('/admin/') ||
@@ -324,7 +398,8 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       )
     } else throw new LocalError('این عملیات در نسخه مستقل پشتیبانی نمی‌شود.')
     if (modified) await save(state)
-    return structuredClone(result) as T
+    // JSON-only state: avoid requiring structuredClone in older Android WebViews.
+    return JSON.parse(JSON.stringify(result)) as T
   })
 }
 function id(value: unknown) {
@@ -375,12 +450,27 @@ export function validateBackup(content: string): State {
   state.reports = raw.reports.map((value) => {
     const r = object(value)
     const part = text(r.tree_part, 'بخش درخت', 30, 1)
-    if (!['برگ', 'میوه', 'شاخه و تنه', 'کل درخت', 'ریشه و طوقه'].includes(part))
+    if (!['برگ', 'میوه', 'شاخه و تنه', 'کل درخت', 'ریشه و طوقه', 'گل و جوانه'].includes(part))
       throw new LocalError('بخش درخت معتبر نیست.')
     const notes = text(r.notes, 'یادداشت', 1000)
     const image = text(r.image_url, 'عکس', 12000000, 1)
     if (!/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(image))
       throw new LocalError('عکس پشتیبان باید JPEG محلی باشد؛ لینک و تصویر SVG پذیرفته نمی‌شود.')
+    const extraImages = r.image_urls === undefined ? [image] : r.image_urls
+    if (
+      !Array.isArray(extraImages) ||
+      extraImages.length < 1 ||
+      extraImages.length > 4 ||
+      extraImages[0] !== image ||
+      extraImages.some(
+        (v) =>
+          typeof v !== 'string' ||
+          v.length > 12000000 ||
+          !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(v)
+      )
+    )
+      throw new LocalError('عکس پشتیبان باید JPEG محلی باشد.')
+    const context = r.context ? validateContext(r.context) : { ...EMPTY_CONTEXT }
     const created = text(r.created_at, 'زمان ثبت', 40, 1)
     if (Number.isNaN(Date.parse(created))) throw new LocalError('زمان ثبت معتبر نیست.')
     const orchard = orchardId(state, r.orchard_id)
@@ -392,11 +482,36 @@ export function validateBackup(content: string): State {
       notes,
       data: photoData(part, notes),
       image_url: image,
+      image_urls: extraImages as string[],
+      context,
       created_at: created,
       is_sample: 0,
     }
   })
   uniqueIds(state.reports)
+  if (raw.fields !== undefined) {
+    const fields = object(raw.fields)
+    for (const kind of ['labs', 'experiences', 'prices', 'climate'] as FieldKind[]) {
+      const records = fields[kind] ?? []
+      if (!Array.isArray(records) || records.length > 500)
+        throw new LocalError('پرونده‌های پشتیبان معتبر نیستند.')
+      state.fields[kind] = records.map((value) => {
+        const r = object(value),
+          data = validateField(kind, r.data)
+        if (kind === 'labs') orchardId(state, (data as import('./fieldwork').LabInput).orchard_id)
+        const created = text(r.created_at, 'زمان ثبت', 40, 1)
+        if (Number.isNaN(Date.parse(created))) throw new LocalError('زمان ثبت معتبر نیست.')
+        return {
+          id: id(r.id),
+          created_at: created,
+          author: 'باغدار پستینو',
+          visibility: 'private' as const,
+          data,
+        }
+      })
+      uniqueIds(state.fields[kind])
+    }
+  }
   return state
 }
 export async function exportBackup(): Promise<string> {

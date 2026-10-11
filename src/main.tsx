@@ -10,6 +10,7 @@ import '@fontsource/vazirmatn/arabic-800.css'
 import '@fontsource/vazirmatn/latin-400.css'
 import App from './App'
 import './styles.css'
+import './reference.css'
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
   state = { failed: false }

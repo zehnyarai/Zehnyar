@@ -45,12 +45,15 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
 export const fa = (value: number, maximumFractionDigits = 1) =>
   new Intl.NumberFormat('fa-IR', { maximumFractionDigits }).format(value)
 export const today = () => {
-  const parts = new Intl.DateTimeFormat('en-CA', {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Tehran',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
-  }).formatToParts(new Date())
+  })
+  if (typeof formatter.formatToParts !== 'function')
+    return new Date(Date.now() + 210 * 60000).toISOString().slice(0, 10) // Tehran, no DST in this pilot's current period.
+  const parts = formatter.formatToParts(new Date())
   return ['year', 'month', 'day'].map((t) => parts.find((p) => p.type === t)?.value).join('-')
 }
 export function persianDate(value: string | Date, options: Intl.DateTimeFormatOptions = {}) {
@@ -87,7 +90,7 @@ export function dueLabel(date: string) {
 export function checkImage(file: File) {
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type))
     return 'لطفاً تصویر JPG، PNG یا WebP انتخاب کنید.'
-  if (file.size > 8 * 1024 * 1024) return 'حجم تصویر باید کمتر از ۸ مگابایت باشد.'
+  if (file.size > 6 * 1024 * 1024) return 'حجم تصویر باید کمتر از ۶ مگابایت باشد.'
   return null
 }
 export async function takePhoto(fallback: () => void, onFile: (file: File) => void) {

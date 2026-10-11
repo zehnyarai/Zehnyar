@@ -12,17 +12,23 @@ async function addOrchard(page: import('@playwright/test').Page) {
   await expect(page.getByRole('heading', { name: 'باغ مستقل آزمون' })).toBeVisible()
 }
 
-test('boots at the project path without a single API call or payment/signup prompt', async ({ page }) => {
-  const calls: string[] = [], errors: string[] = []
-  page.on('request', request => { if (new URL(request.url()).pathname.includes('/api/')) calls.push(request.url()) })
-  page.on('pageerror', error => errors.push(error.message))
+test('boots at the project path without a single API call or payment/signup prompt', async ({
+  page,
+}) => {
+  const calls: string[] = [],
+    errors: string[] = []
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname.includes('/api/')) calls.push(request.url())
+  })
+  page.on('pageerror', (error) => errors.push(error.message))
   await page.goto('./')
-  await expect(page.getByRole('heading', { name: 'باغ سالم، خیال آسوده' })).toBeVisible()
-  await expect(page.getByText('نسخه مستقل و رایگان', { exact: false })).toBeVisible()
-  expect(await page.locator('img.hero-photo').evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true)
+  await expect(page.getByRole('heading', { name: 'دستیار هوشمند باغداران پسته' })).toBeVisible()
+  await expect(page.getByText('ذخیره محلی · بدون همگام‌سازی · پرداخت غیرفعال')).toBeVisible()
+  await expect(page.locator('.reference-features > button')).toHaveCount(4)
+  await expect(page.locator('.reference-brand-mark svg')).toBeVisible()
   expect(calls).toEqual([])
   expect(errors).toEqual([])
-  await page.goto('./#/subscription')
+  await page.goto('./#/settings')
   await expect(page.getByRole('heading', { name: 'داده‌ها و پشتیبان' })).toBeVisible()
   await expect(page.getByText('کارت بانکی یا اشتراک لازم نیست', { exact: false })).toBeVisible()
   await expect(page.getByRole('button', { name: 'انتخاب این طرح' })).toHaveCount(0)
@@ -45,21 +51,25 @@ test('task creation and completion work locally', async ({ page }) => {
   await page.getByRole('button', { name: 'ثبت یادآور', exact: true }).click()
   await expect(page.getByText('بازدید مستقل برگ‌ها', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'انجام بازدید مستقل برگ‌ها', exact: true }).click()
-  await expect(page.getByText('بازدید مستقل برگ‌ها', {exact: true})).not.toBeVisible()
+  await expect(page.getByText('بازدید مستقل برگ‌ها', { exact: true })).not.toBeVisible()
   await page.reload()
   await page.getByRole('button', { name: 'نمایش انجام‌شده‌ها' }).click()
-  await expect(page.getByRole('button', { name: 'بازگرداندن بازدید مستقل برگ‌ها', exact: true })).toBeVisible()
+  await expect(
+    page.getByRole('button', { name: 'بازگرداندن بازدید مستقل برگ‌ها', exact: true })
+  ).toBeVisible()
 })
 
 test('photo is normalized and saved, with no fabricated diagnosis', async ({ page }) => {
   await page.goto('./#/analysis')
-  await expect(page.getByText('ثبت عکس، نه تشخیص هوشمند.', { exact: false })).toBeVisible()
+  await expect(page.getByText('تحلیل واقعی هنوز فعال نیست.', { exact: false })).toBeVisible()
   await page.locator('input[type=file]').first().setInputFiles('public/images/pistachio-leaves.jpg')
-  await page.getByPlaceholder('علائم از چه زمانی شروع شده؟ آخرین آبیاری، کود یا سم‌پاشی چه زمانی بوده؟').fill('فقط یادداشت من، نه تشخیص')
-  await page.getByRole('button', { name: 'ذخیره عکس و یادداشت', exact: true }).click()
+  await page.getByLabel('توضیحات اختیاری').fill('فقط یادداشت من، نه تشخیص')
+  await page.getByRole('button', { name: 'ذخیره پرونده بدون تحلیل', exact: true }).click()
   await expect(page.getByRole('dialog')).toContainText('هیچ مدل یا کارشناس، تصویر را تحلیل نکرده')
   await expect(page.locator('.hypothesis')).toHaveCount(0)
-  expect(await page.getByRole('dialog').locator('.report-detail-image img').getAttribute('src')).toMatch(/^data:image\/jpeg;base64,/)
+  expect(
+    await page.getByRole('dialog').locator('.report-detail-image img').getAttribute('src')
+  ).toMatch(/^data:image\/jpeg;base64,/)
   await page.getByRole('button', { name: 'بستن', exact: true }).click()
   await page.goto('./#/reports')
   await page.reload()
@@ -72,7 +82,7 @@ test('photo is normalized and saved, with no fabricated diagnosis', async ({ pag
 
 test('backup download, erasure and confirmed restore work', async ({ page }) => {
   await addOrchard(page)
-  await page.goto('./#/subscription')
+  await page.goto('./#/settings')
   const downloadEvent = page.waitForEvent('download')
   await page.getByRole('button', { name: 'دریافت پشتیبان' }).click()
   const download = await downloadEvent
@@ -82,7 +92,7 @@ test('backup download, erasure and confirmed restore work', async ({ page }) => 
   expect(JSON.parse(content.replace(/^\uFEFF/, '')).orchards).toHaveLength(1)
   await page.getByRole('button', { name: 'حذف همه داده‌های محلی' }).click()
   await page.getByRole('button', { name: 'تأیید حذف همه داده‌ها' }).click()
-  await expect(page.getByRole('button', {name: 'بازگردانی پشتیبان'})).toBeEnabled()
+  await expect(page.getByRole('button', { name: 'بازگردانی پشتیبان' })).toBeEnabled()
   await expect(page.getByRole('status')).toContainText('اطلاعات محلی حذف شدند')
   await page.locator('input[type=file]').setInputFiles(path!)
   await expect(page.getByText('اطلاعات فعلی با فایل پشتیبان جایگزین شود؟')).toBeVisible()
@@ -93,7 +103,7 @@ test('backup download, erasure and confirmed restore work', async ({ page }) => 
 
 test('cached knowledge and local CRUD work completely offline', async ({ page, context }) => {
   await page.goto('./')
-  await expect(page.getByRole('heading', { name: 'باغ سالم، خیال آسوده' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'دستیار هوشمند باغداران پسته' })).toBeVisible()
   await page.evaluate(() => navigator.serviceWorker.ready)
   await page.waitForFunction(() => !!navigator.serviceWorker.controller)
   await context.setOffline(true)
@@ -109,7 +119,7 @@ test('cached knowledge and local CRUD work completely offline', async ({ page, c
 test('mobile layout and installation metadata are valid', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto('./')
-  await expect(page.getByRole('heading', { name: 'باغ سالم، خیال آسوده' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'دستیار هوشمند باغداران پسته' })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   const manifest = await page.evaluate(async () => {
     const href = document.querySelector<HTMLLinkElement>('link[rel=manifest]')!.href
@@ -118,15 +128,27 @@ test('mobile layout and installation metadata are valid', async ({ page }) => {
   expect(manifest.start_url).toBe('/Zehnyar/')
   expect(manifest.display).toBe('standalone')
   expect(manifest.icons).toHaveLength(2)
-  await expect(page.locator('link[rel=apple-touch-icon]')).toHaveAttribute('href', '/Zehnyar/icon-180.png')
+  await expect(page.locator('link[rel=apple-touch-icon]')).toHaveAttribute(
+    'href',
+    '/Zehnyar/icon-180.png'
+  )
 })
 
-
-test.afterEach(async ({page}, info) => {
+test.afterEach(async ({ page }, info) => {
   if (info.status !== info.expectedStatus) {
-    const diagnostic = await page.evaluate(() => ({url: location.href, hash: location.hash, text: document.body.innerText.slice(0, 7000), controlled: !!navigator.serviceWorker?.controller})).catch(() => ({url: page.url()}))
+    const diagnostic = await page
+      .evaluate(() => ({
+        url: location.href,
+        hash: location.hash,
+        text: document.body.innerText.slice(0, 7000),
+        controlled: !!navigator.serviceWorker?.controller,
+      }))
+      .catch(() => ({ url: page.url() }))
     await fs.writeFile(info.outputPath('ui-context.json'), JSON.stringify(diagnostic))
-    const value = JSON.stringify(diagnostic).replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A')
+    const value = JSON.stringify(diagnostic)
+      .replace(/%/g, '%25')
+      .replace(/\r/g, '%0D')
+      .replace(/\n/g, '%0A')
     console.log('::notice title=Standalone UI failure context::' + value)
   }
 })

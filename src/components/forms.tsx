@@ -574,7 +574,7 @@ export function ProfileModal({ ctx, onClose }: { ctx: AppContext; onClose: () =>
         </div>
         <div>
           <span>اعتبار بررسی</span>
-          <strong>{fa(Math.max(0, ctx.data.usage.limit - ctx.data.usage.used))} بررسی</strong>
+          <strong>{fa(ctx.data.credit_balance ?? 0)} بررسی</strong>
         </div>
       </div>
       <InfoBanner>

@@ -94,8 +94,8 @@ describe('Persian presentation and image selection', () => {
   it('rejects oversized images locally', () => {
     expect(
       checkImage(
-        new File([new Uint8Array(8 * 1024 * 1024 + 1)], 'leaf.jpg', { type: 'image/jpeg' })
+        new File([new Uint8Array(6 * 1024 * 1024 + 1)], 'leaf.jpg', { type: 'image/jpeg' })
       )
-    ).toContain('۸ مگابایت')
+    ).toContain('۶ مگابایت')
   })
 })

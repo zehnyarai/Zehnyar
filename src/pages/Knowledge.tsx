@@ -3,7 +3,7 @@ import { Bookmark, BookOpen, Search, ShieldCheck, X } from 'lucide-react'
 import type { AppContext } from '../types'
 import { fa } from '../api'
 import { Badge, EmptyState, InfoBanner, PageTitle } from '../components/ui'
-import { ArticleCard } from './Dashboard'
+import { ArticleCard } from '../components/records'
 
 export default function KnowledgePage({
   ctx,

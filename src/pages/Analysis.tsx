@@ -1,23 +1,33 @@
-import { IS_STANDALONE, assetUrl } from '../config'
 import { useEffect, useRef, useState } from 'react'
 import {
   ArrowLeft,
+  Bug,
   Camera,
-  Check,
-  CircleHelp,
   FileImage,
-  Leaf,
+  Info,
   ScanLine,
   ShieldCheck,
-  Sparkles,
   Trash2,
   Upload,
-  ZoomIn,
 } from 'lucide-react'
-import type { AnalysisData, AppContext, Report } from '../types'
+import type { AppContext, Report } from '../types'
+import { IS_STANDALONE } from '../config'
 import { api, checkImage, errorMessage, fa, takePhoto } from '../api'
-import { Badge, CheckList, InfoBanner, PageTitle, Spinner } from '../components/ui'
+import { Badge, InfoBanner, Spinner } from '../components/ui'
+import { ScientificPlan } from '../components/scientific'
+import { EMPTY_CONTEXT, SYMPTOMS, validateContext } from '../scientific'
+import type { DiagnosticContext } from '../scientific'
 
+const PARTS = ['برگ', 'میوه', 'شاخه و تنه', 'کل درخت', 'ریشه و طوقه', 'گل و جوانه']
+const STAGES = [
+  'خواب زمستانی',
+  'تورم جوانه',
+  'گل‌دهی',
+  'تشکیل میوه',
+  'رشد مغز',
+  'رسیدگی و برداشت',
+  'پس از برداشت',
+]
 export default function Analysis({
   ctx,
   initialFile,
@@ -27,62 +37,99 @@ export default function Analysis({
   initialFile?: File
   initialOrchard?: string
 }) {
-  const [file, setFile] = useState<File | undefined>(initialFile)
-  const [preview, setPreview] = useState('')
-  const [orchard, setOrchard] = useState(initialOrchard ?? ctx.data.orchards[0]?.id ?? '')
+  const [files, setFiles] = useState<File[]>(initialFile ? [initialFile] : [])
+  const [previews, setPreviews] = useState<string[]>([])
+  const [orchard, setOrchard] = useState(initialOrchard ?? '')
   const [part, setPart] = useState('برگ')
   const [notes, setNotes] = useState('')
+  const [context, setContext] = useState<DiagnosticContext>({ ...EMPTY_CONTEXT, symptoms: [] })
+  const [plan, setPlan] = useState<DiagnosticContext | null>(null)
   const [consent, setConsent] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [sampleBusy, setSampleBusy] = useState(false)
   const [error, setError] = useState('')
   const [drag, setDrag] = useState(false)
-  const upload = useRef<HTMLInputElement>(null)
-  const camera = useRef<HTMLInputElement>(null)
+  const upload = useRef<HTMLInputElement>(null),
+    camera = useRef<HTMLInputElement>(null)
+  const configured = !IS_STANDALONE && ctx.data.services.vision_configured
   useEffect(() => {
-    if (!file) {
-      setPreview('')
+    const urls = files.map((file) => URL.createObjectURL(file))
+    setPreviews(urls)
+    return () => urls.forEach((url) => URL.revokeObjectURL(url))
+  }, [files])
+  function select(incoming: File[]) {
+    const invalid = incoming.map(checkImage).find(Boolean)
+    if (invalid) {
+      setError(invalid)
       return
     }
-    const url = URL.createObjectURL(file)
-    setPreview(url)
-    return () => URL.revokeObjectURL(url)
-  }, [file])
-  function select(next?: File) {
-    if (!next) return
-    const err = checkImage(next)
-    if (err) {
-      setError(err)
+    if (files.length + incoming.length > 4) {
+      setError('حداکثر چهار تصویر: علامت نزدیک، پشت برگ، نمای تاج و بخش مرتبط.')
       return
     }
-    setFile(next)
+    setFiles((old) => [...old, ...incoming])
     setError('')
   }
-  async function analyze() {
-    if (!file || busy) return
+  function update<K extends keyof DiagnosticContext>(key: K, value: DiagnosticContext[K]) {
+    setContext((old) => ({ ...old, [key]: value }))
+    setPlan(null)
+  }
+  function chooseOrchard(value: string) {
+    setOrchard(value)
+    const o = ctx.data.orchards.find((o) => o.id === value)
+    if (o)
+      setContext((old) => ({
+        ...old,
+        province: o.province,
+        cultivar: o.cultivar,
+        age: String(o.age),
+        irrigation: o.irrigation,
+      }))
+    setPlan(null)
+  }
+  async function submit(mode: 'analyze' | 'save') {
+    if (busy || !files.length) return
     setError('')
-    if (!consent && !IS_STANDALONE) {
-      setError('لطفاً ارسال تصویر به سرویس تحلیل و محدودیت‌های بررسی را تأیید کنید.')
+    if (mode === 'analyze' && !configured) {
+      setError(
+        'مدل بینایی واقعی هنوز متصل نیست؛ تحلیل عکس انجام نمی‌شود. پرونده را می‌توانید ذخیره کنید و برنامه بررسیِ اطلاعات خودتان را ببینید.'
+      )
+      return
+    }
+    if (mode === 'analyze' && !consent) {
+      setError('ارسال تصاویر و اطلاعات باغ به سرویس تحلیل نیاز به تأیید آگاهانه شما دارد.')
+      return
+    }
+    if (mode === 'analyze' && (!ctx.data.user || ctx.data.user.is_demo)) {
+      ctx.openAuth()
+      return
+    }
+    let checked: DiagnosticContext
+    try {
+      checked = validateContext(context)
+    } catch (e) {
+      setError(errorMessage(e))
       return
     }
     setBusy(true)
     const body = new FormData()
-    body.append('image', file)
+    body.append('image', files[0])
+    files.slice(1).forEach((file) => body.append('additional_images', file))
     body.append('orchard_id', orchard)
     body.append('tree_part', part)
     body.append('notes', notes)
-    body.append('consent', 'true')
+    body.append('context', JSON.stringify(checked))
+    body.append('consent', String(consent))
     try {
-      const report = await api<Report>(IS_STANDALONE ? '/local/photos' : '/analyses', {
-        method: 'POST',
-        body,
-      })
+      const report = await api<Report>(
+        mode === 'analyze' ? '/analyses' : IS_STANDALONE ? '/local/photos' : '/photos',
+        { method: 'POST', body }
+      )
       await ctx.refresh()
       ctx.openReport(report)
       ctx.notify(
-        IS_STANDALONE
-          ? 'عکس و یادداشت روی دستگاه ذخیره شدند؛ تحلیلی انجام نشده.'
-          : 'گزارش بررسی ذخیره شد.',
+        mode === 'analyze'
+          ? 'گزارش غربالگری احتمالی ذخیره شد؛ نتیجه نیاز به تأیید دارد.'
+          : 'پرونده عکس و اطلاعات ذخیره شد؛ تصویر تحلیل نشده است.',
         'success'
       )
     } catch (e) {
@@ -91,321 +138,372 @@ export default function Analysis({
       setBusy(false)
     }
   }
-  async function sample() {
-    setSampleBusy(true)
-    try {
-      const result = await api<{ data: AnalysisData }>('/sample-report')
-      ctx.openReport({
-        id: 'example',
-        is_sample: 1,
-        data: result.data,
-        orchard_id: null,
-        orchard_name: 'نمونه آموزشی، نه باغ شما',
-        tree_part: 'برگ',
-        notes: '',
-        image_url: assetUrl('/images/pistachio-leaves.jpg'),
-        created_at: new Date().toISOString(),
-      })
-    } catch (e) {
-      setError(errorMessage(e))
-    } finally {
-      setSampleBusy(false)
-    }
-  }
   return (
-    <>
-      <PageTitle
-        eyebrow="ببین، بشناس، آگاهانه اقدام کن"
-        title={IS_STANDALONE ? 'ثبت عکس و یادداشت درخت' : 'بررسی هوشمند درخت پسته'}
-        subtitle="عکس روشن و اطلاعات باغ، شروع یک بررسی بهتر است."
-        action={
-          <Badge tone={ctx.data.services.vision_configured ? 'green' : 'amber'}>
-            <span className="status-dot" />
-            {IS_STANDALONE
-              ? 'محلی · رایگان'
-              : ctx.data.services.vision_configured
-                ? 'سرویس تنظیم شده'
-                : 'آماده اتصال به سرویس'}
-          </Badge>
-        }
-      />
-      <div className="analysis-stepper">
-        {['انتخاب تصویر', 'اطلاعات درخت', IS_STANDALONE ? 'ثبت روی دستگاه' : 'بررسی و اقدام'].map(
-          (s, i) => (
-            <div className={i === 0 && file ? 'step complete' : 'step'} key={s}>
-              <span>{i === 0 && file ? <Check size={15} /> : fa(i + 1)}</span>
-              <strong>{s}</strong>
-              {i < 2 && <div className="step-line" />}
-            </div>
-          )
-        )}
+    <div className="reference-page scan-page">
+      <div className="reference-heading">
+        <span className="feature-icon red">
+          <Bug size={28} />
+        </span>
+        <div>
+          <h1>اسکن و تشخیص احتمال آفت</h1>
+          <p>عکس برگ، میوه، شاخه، تنه یا هر بخش درخت پسته را همراه اطلاعات باغ ثبت کنید.</p>
+        </div>
+        <Badge tone={configured ? 'green' : 'amber'}>
+          {configured ? 'مدل بینایی تنظیم شده' : 'مدل واقعی متصل نیست'}
+        </Badge>
       </div>
-      {IS_STANDALONE && (
-        <InfoBanner>
-          <strong>ثبت عکس، نه تشخیص هوشمند.</strong> عکس و یادداشت فقط روی همین دستگاه نگهداری
-          می‌شوند. هیچ تصویر یا اطلاعاتی برای تحلیل به سرور ارسال نمی‌شود.
-        </InfoBanner>
-      )}
-      {!IS_STANDALONE && !ctx.data.services.vision_configured && (
-        <InfoBanner tone="warning">
-          <strong>تحلیل واقعی هنوز فعال نشده است.</strong> کلید و مدل بینایی باید توسط مدیر روی سرور
-          تنظیم شوند. نمونه گزارش فقط شکل نتیجه را نشان می‌دهد و عکس انتخابی شما را تحلیل نمی‌کند.
-        </InfoBanner>
-      )}
-      <div className="analysis-layout">
-        <div className="card analysis-form">
-          <div className="form-section-title">
-            <span>۱</span>
-            <div>
-              <h2>تصویر درخت</h2>
-              <p>بخشی را که می‌خواهی بررسی شود، واضح نشان بده.</p>
+      <div className="reference-alert">
+        <Info size={18} />
+        <p>
+          بررسی علمی باید مشاهدات تصویر، فرضیه‌ها و آزمایش لازم را جدا کند. از عکس تنها نمی‌توان
+          نیاز غذایی، نوع عامل بیماری یا دوز درمان را قطعی تعیین کرد.
+        </p>
+      </div>
+      <section className="reference-card scan-card">
+        <div
+          className={`reference-dropzone ${drag ? 'is-dragging' : ''} ${files.length ? 'with-previews' : ''}`}
+          onDragOver={(e) => {
+            e.preventDefault()
+            setDrag(true)
+          }}
+          onDragLeave={() => setDrag(false)}
+          onDrop={(e) => {
+            e.preventDefault()
+            setDrag(false)
+            if (!busy) select(Array.from(e.dataTransfer.files))
+          }}
+        >
+          {files.length ? (
+            <div className="photo-grid">
+              {files.map((file, i) => (
+                <figure key={`${file.name}-${i}`}>
+                  <img src={previews[i]} alt={`تصویر انتخاب‌شده ${fa(i + 1)} برای بررسی`} />
+                  <figcaption>
+                    <FileImage size={14} />
+                    <span>
+                      {i === 0 ? 'تصویر اصلی' : 'زاویه تکمیلی'} · {file.name}
+                    </span>
+                    <button
+                      type="button"
+                      className="icon-button"
+                      aria-label={`حذف تصویر ${i + 1}`}
+                      disabled={busy}
+                      onClick={() => setFiles((old) => old.filter((_, j) => j !== i))}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </figcaption>
+                </figure>
+              ))}
             </div>
-          </div>
-          <div
-            className={`analysis-dropzone ${drag ? 'is-dragging' : ''} ${preview ? 'has-image' : ''}`}
-            onDragOver={(e) => {
-              e.preventDefault()
-              setDrag(true)
-            }}
-            onDragLeave={() => setDrag(false)}
-            onDrop={(e) => {
-              e.preventDefault()
-              setDrag(false)
-              if (!busy) select(e.dataTransfer.files[0])
-            }}
-          >
-            {preview ? (
-              <>
-                <img src={preview} alt="تصویر انتخاب‌شده برای بررسی" />
-                <div className="preview-overlay">
-                  <span>
-                    <FileImage size={15} />
-                    {file?.name}
-                  </span>
-                  <button
-                    className="icon-button"
-                    aria-label="حذف تصویر انتخابی"
-                    onClick={() => setFile(undefined)}
-                    disabled={busy}
-                  >
-                    <Trash2 size={17} />
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="large-upload-icon">
-                  <Leaf size={34} strokeWidth={1.4} />
-                  <ScanLine size={68} className="upload-scan" strokeWidth={1} />
-                </div>
-                <h3>یک تصویر واضح از درخت انتخاب کن</h3>
-                <p>عکس را اینجا بکش یا از گالری انتخاب کن.</p>
-                <span>JPG، PNG یا WebP · حداکثر ۸ مگابایت</span>
-              </>
-            )}
-          </div>
+          ) : (
+            <>
+              <span className="camera-circle">
+                <Camera size={34} />
+              </span>
+              <h2>عکس برگ یا هر قسمت درخت را اینجا بارگذاری کنید</h2>
+              <p>JPG، PNG یا WebP — هر تصویر حداکثر ۶ مگابایت</p>
+              <p className="muted">تا ۴ زاویه از یک مسئله؛ نمای نزدیک، پشت برگ و نمای کامل درخت</p>
+            </>
+          )}
           <div className="upload-actions">
             <button
               className="button secondary"
+              disabled={busy || files.length >= 4}
               onClick={() => upload.current?.click()}
-              disabled={busy}
             >
-              <Upload size={16} />
-              {file ? 'انتخاب عکس دیگر' : 'انتخاب از گالری'}
+              <Upload size={18} />
+              {files.length ? 'افزودن زاویه دیگر' : 'انتخاب فایل'}
             </button>
             <button
               className="button secondary"
-              disabled={busy}
-              onClick={() => {
-                void takePhoto(() => camera.current?.click(), select).catch(() =>
-                  ctx.notify('عکس دریافت نشد؛ می‌توانید از گالری انتخاب کنید.')
-                )
-              }}
+              disabled={busy || files.length >= 4}
+              onClick={() =>
+                void takePhoto(
+                  () => camera.current?.click(),
+                  (file) => select([file])
+                ).catch((e) => setError(errorMessage(e)))
+              }
             >
-              <Camera size={16} />
+              <Camera size={18} />
               گرفتن عکس
             </button>
           </div>
-          <input
-            ref={upload}
-            type="file"
-            hidden
-            accept="image/jpeg,image/png,image/webp"
-            onChange={(e) => {
-              select(e.target.files?.[0])
-              e.target.value = ''
-            }}
-          />
-          <input
-            ref={camera}
-            type="file"
-            hidden
-            accept="image/*"
-            capture="environment"
-            onChange={(e) => {
-              select(e.target.files?.[0])
-              e.target.value = ''
-            }}
-          />
-          <div className="form-divider" />
-          <div className="form-section-title">
-            <span>۲</span>
-            <div>
-              <h2>کمی بیشتر از درخت بگو</h2>
-              <p>این اطلاعات، زمینه بررسی هستند؛ نه جایگزین آزمایش.</p>
-            </div>
-          </div>
-          <div className="form-grid">
-            <label>
-              باغ
-              <select value={orchard} onChange={(e) => setOrchard(e.target.value)} disabled={busy}>
-                <option value="">بدون باغ مشخص</option>
-                {ctx.data.orchards.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {o.name}
-                    {o.is_sample ? ' (نمونه)' : ''}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              بخش درخت
-              <select value={part} onChange={(e) => setPart(e.target.value)} disabled={busy}>
-                {['برگ', 'میوه', 'شاخه و تنه', 'کل درخت', 'ریشه و طوقه'].map((p) => (
-                  <option key={p}>{p}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <label className="full-label">
-            توضیحات اختیاری
-            <textarea
-              placeholder="علائم از چه زمانی شروع شده؟ آخرین آبیاری، کود یا سم‌پاشی چه زمانی بوده؟"
-              value={notes}
-              maxLength={1000}
-              rows={3}
-              disabled={busy}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-            <span className="character-count">{fa(notes.length)} / ۱٬۰۰۰</span>
+        </div>
+        <input
+          ref={upload}
+          type="file"
+          hidden
+          multiple
+          accept="image/jpeg,image/png,image/webp"
+          aria-label="انتخاب تصاویر درخت"
+          onChange={(e) => {
+            select(Array.from(e.target.files ?? []))
+            e.target.value = ''
+          }}
+        />
+        <input
+          ref={camera}
+          type="file"
+          hidden
+          accept="image/*"
+          capture="environment"
+          aria-label="دوربین درخت"
+          onChange={(e) => {
+            select(Array.from(e.target.files ?? []))
+            e.target.value = ''
+          }}
+        />
+        <div className="photo-guidance">
+          <ScanLine size={21} />
+          <p>
+            در نور طبیعی و بدون فیلتر عکس بگیرید. یک بخش سالم را هم برای مقایسه نشان دهید. برای عکس
+            ریشه، به درخت آسیب نزنید؛ نمونه‌برداری تخصصی لازم است.
+          </p>
+        </div>
+      </section>
+      <section className="reference-card diagnostic-form">
+        <h2>
+          <LeafIcon /> اطلاعات لازم برای بررسی علمی
+        </h2>
+        <p className="section-description">
+          زمینهٔ باغ، خطای بررسی را کمتر می‌کند؛ جای آزمایش و بازدید حضوری نیست.
+        </p>
+        <div className="reference-form-grid">
+          <label>
+            باغ
+            <select value={orchard} onChange={(e) => chooseOrchard(e.target.value)} disabled={busy}>
+              <option value="">بدون باغ مشخص</option>
+              {ctx.data.orchards.map((o) => (
+                <option value={o.id} key={o.id}>
+                  {o.name}
+                </option>
+              ))}
+            </select>
           </label>
-          {!IS_STANDALONE && (
-            <label className="consent-check">
-              <input
-                type="checkbox"
-                checked={consent}
-                onChange={(e) => setConsent(e.target.checked)}
-                disabled={busy}
-              />
-              <span>
-                می‌پذیرم تصویر پس از حذف اطلاعات مکانی فایل، برای سرویس تحلیل ارسال شود. نتیجه
-                احتمالی است و جای تشخیص کارشناس را نمی‌گیرد.
-              </span>
-            </label>
-          )}
-          {error && (
-            <div className="form-error" role="alert">
-              {error}
-              {error.includes('وارد حساب') && (
-                <button className="text-button" onClick={ctx.openAuth}>
-                  ورود به حساب
-                  <ArrowLeft size={14} />
-                </button>
+          <label>
+            بخش درخت
+            <select value={part} onChange={(e) => setPart(e.target.value)} disabled={busy}>
+              {PARTS.map((p) => (
+                <option key={p}>{p}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            استان / منطقه
+            <input
+              value={context.province}
+              maxLength={160}
+              onChange={(e) => update('province', e.target.value)}
+              placeholder="مثلاً کرمان، رفسنجان"
+              disabled={busy}
+            />
+          </label>
+          <label>
+            رقم و پایه (اگر می‌دانید)
+            <input
+              value={context.cultivar}
+              maxLength={160}
+              onChange={(e) => update('cultivar', e.target.value)}
+              placeholder="مثلاً احمدآقایی؛ پایه نامشخص"
+              disabled={busy}
+            />
+          </label>
+          <label>
+            سن درخت (سال)
+            <input
+              type="number"
+              min="0"
+              max="150"
+              value={context.age}
+              onChange={(e) => update('age', e.target.value)}
+              placeholder="نامشخص"
+              disabled={busy}
+            />
+          </label>
+          <label>
+            مرحله رشد
+            <select
+              value={context.stage}
+              onChange={(e) => update('stage', e.target.value)}
+              disabled={busy}
+            >
+              <option value="">نامشخص</option>
+              {STAGES.map((s) => (
+                <option key={s}>{s}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            مدت شروع علائم (روز)
+            <input
+              type="number"
+              min="0"
+              max="3650"
+              value={context.duration}
+              onChange={(e) => update('duration', e.target.value)}
+              placeholder="نامشخص"
+              disabled={busy}
+            />
+          </label>
+          <label>
+            درگیری تقریبی باغ (%)
+            <input
+              type="number"
+              min="0"
+              max="100"
+              value={context.affected_percent}
+              onChange={(e) => update('affected_percent', e.target.value)}
+              placeholder="مشاهده شما، نه محاسبه تصویر"
+              disabled={busy}
+            />
+          </label>
+          <label>
+            پراکندگی علائم
+            <select
+              value={context.distribution}
+              onChange={(e) => update('distribution', e.target.value)}
+              disabled={busy}
+            >
+              <option value="">نامشخص</option>
+              {['یک شاخه', 'یک درخت', 'چند درخت پراکنده', 'یک ردیف یا لکه باغ', 'بخش عمده باغ'].map(
+                (s) => (
+                  <option key={s}>{s}</option>
+                )
               )}
-            </div>
-          )}
+            </select>
+          </label>
+          <label>
+            روش / آخرین آبیاری
+            <input
+              value={context.irrigation}
+              maxLength={160}
+              onChange={(e) => update('irrigation', e.target.value)}
+              placeholder="روش، تاریخ و مشکل احتمالی"
+              disabled={busy}
+            />
+          </label>
+        </div>
+        <fieldset className="symptoms-fieldset" disabled={busy}>
+          <legend>چه نشانه‌هایی خودتان مشاهده کرده‌اید؟</legend>
+          <div className="symptom-options">
+            {SYMPTOMS.map((s) => (
+              <label key={s.id}>
+                <input
+                  type="checkbox"
+                  checked={context.symptoms.includes(s.id)}
+                  onChange={(e) =>
+                    update(
+                      'symptoms',
+                      e.target.checked
+                        ? [...context.symptoms, s.id]
+                        : context.symptoms.filter((id) => id !== s.id)
+                    )
+                  }
+                />
+                {s.label}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+        <label className="full-label">
+          سابقه کود، سم، تنش هوا یا آزمایش اخیر
+          <textarea
+            value={context.recent_inputs}
+            maxLength={1000}
+            rows={3}
+            onChange={(e) => update('recent_inputs', e.target.value)}
+            placeholder="نام و تاریخ مصرف، تنش اخیر و نتیجه آزمایش در صورت وجود؛ بدون اطلاعات شخصی"
+            disabled={busy}
+          />
+        </label>
+        <label className="full-label">
+          توضیحات اختیاری
+          <textarea
+            value={notes}
+            maxLength={1000}
+            rows={3}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="روند علائم، هدف شما و اطلاعاتی که در عکس معلوم نیست…"
+            disabled={busy}
+          />
+          <span className="character-count">{fa(notes.length)} / ۱٬۰۰۰</span>
+        </label>
+        {!IS_STANDALONE && (
+          <label className="consent-check">
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={(e) => setConsent(e.target.checked)}
+              disabled={busy}
+            />
+            <span>
+              اجازه می‌دهم تصاویرِ بازتولیدشده بدون EXIF/GPS و اطلاعات باغ و آزمایش‌های مرتبط به
+              سرویس بینایی ارسال شوند. نتیجه احتمالی و دقت علمی محلی آن تأیید نشده است.
+            </span>
+          </label>
+        )}
+        {!configured && (
+          <InfoBanner tone="warning">
+            <strong>تحلیل واقعی هنوز فعال نیست.</strong> مدل بینایی در این نصب تنظیم نشده؛ ذخیره عکس
+            یا برنامه آموزشی را به جای تحلیل علمی تصویر معرفی نمی‌کنیم.
+          </InfoBanner>
+        )}
+        {error && (
+          <div className="form-error" role="alert">
+            {error}
+            {error.includes('وارد حساب') && (
+              <button className="text-button" onClick={ctx.openAuth}>
+                ورود به حساب
+                <ArrowLeft size={15} />
+              </button>
+            )}
+          </div>
+        )}
+        <div className="analysis-main-actions">
           <button
-            className="button primary analysis-submit"
-            disabled={!file || busy}
-            onClick={() => {
-              void analyze()
-            }}
+            className="button primary"
+            disabled={busy || !files.length}
+            onClick={() => void submit('analyze')}
           >
             {busy ? (
-              <Spinner
-                label={IS_STANDALONE ? 'در حال ذخیره عکس…' : 'در حال ارسال و بررسی تصویر…'}
-              />
+              <Spinner />
             ) : (
               <>
-                <Sparkles size={18} />
-                {IS_STANDALONE ? 'ذخیره عکس و یادداشت' : 'بررسی تصویر'}
-                <ArrowLeft size={17} />
+                <Bug size={19} />
+                تحلیل تصویر و بررسی احتمال آفت
               </>
             )}
           </button>
-          {!IS_STANDALONE && (
-            <div className="analysis-credit">
-              <ShieldCheck size={13} />
-              اعتبار باقی‌مانده: {fa(Math.max(0, ctx.data.usage.limit - ctx.data.usage.used))} بررسی
-              · خطای سرویس اعتبار را کسر نمی‌کند.
-            </div>
-          )}
+          <button
+            className="button secondary"
+            disabled={busy || !files.length}
+            onClick={() => void submit('save')}
+          >
+            <Upload size={18} />
+            ذخیره پرونده بدون تحلیل
+          </button>
+          <button
+            className="button secondary"
+            disabled={busy}
+            onClick={() => {
+              try {
+                setPlan(validateContext(context))
+                setError('')
+              } catch (e) {
+                setError(errorMessage(e))
+              }
+            }}
+          >
+            <ShieldCheck size={18} />
+            نمایش برنامه بررسی و مراقبت
+          </button>
         </div>
-        <aside className="analysis-sidebar">
-          <section className="card photo-tips">
-            <div className="tip-icon">
-              <ZoomIn size={24} />
-            </div>
-            <h2>یک عکس بهتر، یک بررسی بهتر</h2>
-            <CheckList
-              items={[
-                'در نور طبیعی و بدون فیلتر عکس بگیر.',
-                'بخش آسیب‌دیده را از نزدیک و بدون تاری ثبت کن.',
-                'برای برگ، پشت و روی آن را در بررسی‌های جدا بفرست.',
-                'برای زمینه بیشتر، عکس کل درخت را هم نگه دار.',
-              ]}
-            />
-            <button
-              className="text-button"
-              onClick={() => {
-                const a = ctx.knowledge.articles.find((a) => a.id === 'sampling')
-                if (a) ctx.openArticle(a)
-              }}
-            >
-              راهنمای عکس و نمونه
-              <ArrowLeft size={15} />
-            </button>
-          </section>
-          {!IS_STANDALONE && (
-            <section className="sample-report-card">
-              <span className="tip-icon">
-                <FileImage size={22} />
-              </span>
-              <h3>نتیجه چه شکلی است؟</h3>
-              <p>
-                مشاهدات، فرضیه‌های محتمل، بررسی‌های تکمیلی و قدم‌های کم‌خطر را در نمونه گزارش ببین.
-              </p>
-              <button
-                className="button secondary"
-                onClick={() => {
-                  void sample()
-                }}
-                disabled={sampleBusy}
-              >
-                {sampleBusy ? (
-                  <Spinner />
-                ) : (
-                  <>
-                    مشاهده گزارش نمونه
-                    <ArrowLeft size={15} />
-                  </>
-                )}
-              </button>
-              <small>نمونه نمایشی؛ بدون تحلیل عکس شما</small>
-            </section>
-          )}
-          <div className="limitations">
-            <CircleHelp size={18} />
-            <div>
-              <strong>از عکس چه چیزی نمی‌فهمیم؟</strong>
-              <p>
-                مقدار دقیق عناصر، شوری، سلامت ریشه پنهان و عامل قطعی بیماری نیاز به اندازه‌گیری یا
-                آزمایش دارند.
-              </p>
-            </div>
-          </div>
-        </aside>
-      </div>
-    </>
+      </section>
+      {plan && <ScientificPlan context={plan} ctx={ctx} />}
+    </div>
   )
+}
+function LeafIcon() {
+  return <ShieldCheck size={22} />
 }

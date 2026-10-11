@@ -1,67 +1,85 @@
-import { IS_STANDALONE } from './config'
-import LocalSettings from './pages/LocalSettings'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   ArrowLeft,
-  Bell,
   BookOpen,
+  Bug,
   CalendarDays,
   Check,
-  ChevronLeft,
-  CircleHelp,
-  CreditCard,
-  FileChartColumn,
+  ChevronDown,
+  Download,
+  FileText,
+  FlaskConical,
   Home,
-  LayoutDashboard,
   Leaf,
+  LogOut,
   Menu,
-  PanelRightClose,
-  Search,
-  Settings2,
   ShieldCheck,
-  Sparkles,
+  TrendingUp,
   Trees,
   UserRound,
+  Users,
+  Wallet,
   X,
 } from 'lucide-react'
+import { IS_STANDALONE } from './config'
+import { api, errorMessage, fa } from './api'
 import type { AppContext, Article, Bootstrap, Knowledge, Orchard, Page, Report } from './types'
-import { api, errorMessage, fa, persianDate, today } from './api'
-import { Badge, Logo, Spinner } from './components/ui'
+import { Logo, Spinner } from './components/ui'
 import { AuthForm, OrchardForm, ProfileModal, TaskForm } from './components/forms'
 import { ArticleDetail, HelpModal, ReportDetail } from './components/details'
 import Dashboard from './pages/Dashboard'
 import Analysis from './pages/Analysis'
+import Laboratory from './pages/Laboratory'
+import Community from './pages/Community'
+import Market from './pages/Market'
+import Credits from './pages/Credits'
+import CreditAdmin from './pages/CreditAdmin'
+import Install from './pages/Install'
 import Orchards from './pages/Orchards'
 import Reports from './pages/Reports'
 import CalendarPage from './pages/Calendar'
 import KnowledgePage from './pages/Knowledge'
-import Subscription from './pages/Subscription'
+import LocalSettings from './pages/LocalSettings'
 import Admin from './pages/Admin'
 
 const paths: Record<Page, string> = {
   dashboard: '/',
   analysis: '/analysis',
+  laboratory: '/laboratory',
+  community: '/community',
+  market: '/market',
+  subscription: '/subscription',
+  admin: '/admin',
   orchards: '/orchards',
   reports: '/reports',
   calendar: '/calendar',
   knowledge: '/knowledge',
-  subscription: '/subscription',
-  admin: '/admin',
+  settings: '/settings',
+  install: '/install',
 }
-const titles: Record<Page, string> = {
-  dashboard: 'نمای کلی',
-  analysis: IS_STANDALONE ? 'ثبت عکس' : 'تحلیل هوشمند',
-  orchards: 'باغ‌های من',
-  reports: IS_STANDALONE ? 'عکس‌ها و یادداشت‌ها' : 'گزارش‌ها',
-  calendar: 'تقویم مراقبت',
-  knowledge: 'دانشنامه پسته',
-  subscription: IS_STANDALONE ? 'داده‌ها و پشتیبان' : 'اشتراک و پرداخت',
-  admin: 'پنل مدیریت',
+const NAV = [
+  { id: 'dashboard', label: 'خانه', icon: Home },
+  { id: 'analysis', label: 'اسکن آفت', icon: Bug },
+  { id: 'laboratory', label: 'تحلیل خاک و آب', icon: FlaskConical },
+  { id: 'community', label: 'دیوار تجربه', icon: Users },
+  { id: 'market', label: 'بازار و اقلیم', icon: TrendingUp },
+  { id: 'subscription', label: 'اعتبار من', icon: Wallet },
+  { id: 'admin', label: 'پنل مدیر', icon: ShieldCheck },
+] as const
+const TOOLS = [
+  { id: 'orchards', label: 'باغ‌های من', icon: Trees },
+  { id: 'reports', label: 'پرونده‌ها و عکس‌ها', icon: FileText },
+  { id: 'calendar', label: 'تقویم مراقبت', icon: CalendarDays },
+  { id: 'knowledge', label: 'دانشنامه پسته', icon: BookOpen },
+  { id: 'settings', label: 'داده‌ها و پشتیبان', icon: Download },
+] as const
+function pageFromPath() {
+  return (
+    (Object.entries(paths).find(
+      ([, path]) => path === (IS_STANDALONE ? location.hash.slice(1) || '/' : location.pathname)
+    )?.[0] as Page | undefined) ?? 'dashboard'
+  )
 }
-const pageFromPath = () =>
-  (Object.entries(paths).find(
-    ([, path]) => path === (IS_STANDALONE ? location.hash.slice(1) || '/' : location.pathname)
-  )?.[0] as Page | undefined) ?? 'dashboard'
 type ModalState =
   | { kind: 'auth' | 'task' | 'help' | 'privacy' | 'profile' }
   | { kind: 'orchard'; orchard?: Orchard }
@@ -69,29 +87,25 @@ type ModalState =
   | { kind: 'report'; report: Report }
 let initialRequest: Promise<[Bootstrap, Knowledge]> | null = null
 function initialize() {
-  if (!initialRequest)
-    initialRequest = Promise.all([
-      api<Bootstrap>('/bootstrap'),
-      api<Knowledge>('/knowledge'),
-    ]).finally(() => {
-      initialRequest = null
-    })
-  return initialRequest
+  return (initialRequest ??= Promise.all([
+    api<Bootstrap>('/bootstrap'),
+    api<Knowledge>('/knowledge'),
+  ]).finally(() => {
+    initialRequest = null
+  }))
 }
 
 export default function App() {
-  const [data, setData] = useState<Bootstrap | null>(null)
-  const [knowledge, setKnowledge] = useState<Knowledge | null>(null)
-  const [page, setPage] = useState<Page>(pageFromPath)
-  const [bootError, setBootError] = useState('')
-  const [attempt, setAttempt] = useState(0)
-  const [modal, setModal] = useState<ModalState | null>(null)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [mobile, setMobile] = useState(() => window.matchMedia('(max-width: 820px)').matches)
-  const [notifications, setNotifications] = useState(false)
-  const [search, setSearch] = useState('')
-  const [knowledgeSearch, setKnowledgeSearch] = useState('')
-  const [searchKey, setSearchKey] = useState(0)
+  const [data, setData] = useState<Bootstrap | null>(null),
+    [knowledge, setKnowledge] = useState<Knowledge | null>(null)
+  const [page, setPage] = useState<Page>(pageFromPath),
+    [bootError, setBootError] = useState(''),
+    [attempt, setAttempt] = useState(0)
+  const [modal, setModal] = useState<ModalState | null>(null),
+    [menu, setMenu] = useState(false),
+    [tools, setTools] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
+  const [adminTab, setAdminTab] = useState('receipts')
   const [analysisInput, setAnalysisInput] = useState<{
     file?: File
     orchard?: string
@@ -101,15 +115,7 @@ export default function App() {
     message: string
     type: 'success' | 'error' | 'info'
   } | null>(null)
-  const searchRef = useRef<HTMLInputElement>(null)
-  const notificationsRef = useRef<HTMLDivElement>(null)
   const closeModal = useCallback(() => setModal(null), [])
-  useEffect(() => {
-    const query = window.matchMedia('(max-width: 820px)')
-    const changed = () => setMobile(query.matches)
-    query.addEventListener('change', changed)
-    return () => query.removeEventListener('change', changed)
-  }, [])
   useEffect(() => {
     let active = true
     setBootError('')
@@ -130,7 +136,8 @@ export default function App() {
   useEffect(() => {
     const pop = () => {
       setPage(pageFromPath())
-      setSidebarOpen(false)
+      setMenu(false)
+      setTools(false)
     }
     window.addEventListener('popstate', pop)
     window.addEventListener('hashchange', pop)
@@ -141,34 +148,16 @@ export default function App() {
   }, [])
   useEffect(() => {
     if (!toast) return
-    const timer = setTimeout(() => setToast(null), 6000)
+    const timer = setTimeout(() => setToast(null), 6500)
     return () => clearTimeout(timer)
   }, [toast])
-  useEffect(() => {
-    const key = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault()
-        searchRef.current?.focus()
-      }
-    }
-    window.addEventListener('keydown', key)
-    return () => window.removeEventListener('keydown', key)
-  }, [])
-  useEffect(() => {
-    if (!notifications) return
-    const close = (e: MouseEvent) => {
-      if (!notificationsRef.current?.contains(e.target as Node)) setNotifications(false)
-    }
-    document.addEventListener('mousedown', close)
-    return () => document.removeEventListener('mousedown', close)
-  }, [notifications])
   const refresh = useCallback(async () => {
     setData(await api<Bootstrap>('/bootstrap'))
   }, [])
   const navigate = useCallback((next: Page) => {
     setPage(next)
-    setSidebarOpen(false)
-    setNotifications(false)
+    setMenu(false)
+    setTools(false)
     const target = IS_STANDALONE ? `#${paths[next]}` : paths[next]
     if ((IS_STANDALONE ? location.hash : location.pathname) !== target)
       history.pushState(null, '', target)
@@ -185,11 +174,18 @@ export default function App() {
     },
     [navigate]
   )
-  function submitSearch(e: React.FormEvent) {
-    e.preventDefault()
-    setKnowledgeSearch(search.trim())
-    setSearchKey((key) => key + 1)
-    navigate('knowledge')
+  async function logout() {
+    setSigningOut(true)
+    try {
+      await api('/auth/logout', { method: 'POST' })
+      await refresh()
+      navigate('dashboard')
+      notify('از حساب خارج شدید.')
+    } catch (e) {
+      notify(errorMessage(e), 'error')
+    } finally {
+      setSigningOut(false)
+    }
   }
   if (!data || !knowledge)
     return (
@@ -197,19 +193,14 @@ export default function App() {
         <Logo />
         {bootError ? (
           <>
-            <h1>ارتباط با باغت برقرار نشد</h1>
+            <h1>پستینو آماده نشد</h1>
             <p>{bootError}</p>
             <button className="button primary" onClick={() => setAttempt((a) => a + 1)}>
               تلاش دوباره
             </button>
           </>
         ) : (
-          <>
-            <div className="boot-leaf">
-              <Leaf size={36} />
-            </div>
-            <Spinner label="در حال آماده‌کردن پیشخوان باغ…" />
-          </>
+          <Spinner label="در حال آماده‌کردن پستینو…" />
         )}
       </div>
     )
@@ -221,330 +212,249 @@ export default function App() {
     notify,
     openArticle: (article) => setModal({ kind: 'article', article }),
     openReport: (report) => setModal({ kind: 'report', report }),
-    openAuth: () => (IS_STANDALONE ? navigate('subscription') : setModal({ kind: 'auth' })),
+    openAuth: () =>
+      IS_STANDALONE
+        ? notify('نسخه مستقل حساب سروری ندارد؛ اطلاعات روی دستگاه ذخیره می‌شوند.')
+        : setModal({ kind: 'auth' }),
     openOrchard: (orchard) => setModal({ kind: 'orchard', orchard }),
     openTask: () => setModal({ kind: 'task' }),
     startAnalysis,
   }
-  const nav = [
-    { id: 'dashboard' as const, icon: LayoutDashboard },
-    { id: 'analysis' as const, icon: Sparkles },
-    { id: 'orchards' as const, icon: Trees },
-    { id: 'reports' as const, icon: FileChartColumn },
-    { id: 'calendar' as const, icon: CalendarDays },
-    { id: 'knowledge' as const, icon: BookOpen },
-  ]
-  const pending = data.tasks.filter((t) => !t.done)
   return (
-    <div className="app-shell">
-      {sidebarOpen && (
-        <button
-          className="sidebar-backdrop"
-          aria-label="بستن منو"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-      <aside
-        id="sidebar-menu"
-        className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}
-        inert={!!modal || (mobile && !sidebarOpen)}
-        aria-hidden={!!modal || (mobile && !sidebarOpen)}
-      >
-        <div className="sidebar-brand">
+    <div className="reference-app">
+      <a className="skip-link" href="#main-content">
+        رفتن به محتوای صفحه
+      </a>
+      <header className="reference-header" inert={!!modal}>
+        <div className="reference-header-inner">
           <a
-            href="/"
-            aria-label="صفحه اصلی پستینو"
+            className="reference-brand"
+            href={IS_STANDALONE ? '#/' : '/'}
             onClick={(e) => {
               e.preventDefault()
               navigate('dashboard')
             }}
+            aria-label="صفحه اصلی پستینو"
           >
-            <Logo />
+            <span className="reference-brand-mark">
+              <Leaf size={28} />
+            </span>
+            <span>
+              <strong>دستیار هوشمند باغداران پسته</strong>
+              <small>
+                پستینو <span lang="en">/ Pestino</span>
+              </small>
+            </span>
           </a>
           <button
-            className="icon-button sidebar-close"
-            aria-label="بستن منو"
-            onClick={() => setSidebarOpen(false)}
+            className="icon-button reference-menu-button"
+            aria-label="باز کردن منو"
+            aria-expanded={menu}
+            aria-controls="reference-navigation"
+            onClick={() => setMenu(!menu)}
           >
-            <PanelRightClose size={21} />
+            {menu ? <X size={23} /> : <Menu size={23} />}
           </button>
-        </div>
-        <div className="sidebar-navigation">
-          <span className="nav-section-label">همراه باغ شما</span>
-          <nav aria-label="منوی اصلی">
-            {nav.map((item) => (
+          <nav
+            className={`reference-navigation ${menu ? 'is-open' : ''}`}
+            aria-label="منوی اصلی"
+            id="reference-navigation"
+          >
+            {NAV.map((n) => (
               <a
-                key={item.id}
-                href={IS_STANDALONE ? `#${paths[item.id]}` : paths[item.id]}
+                key={n.id}
+                className={page === n.id ? 'is-active' : ''}
+                href={IS_STANDALONE ? `#${paths[n.id]}` : paths[n.id]}
+                aria-current={page === n.id ? 'page' : undefined}
                 onClick={(e) => {
                   e.preventDefault()
-                  navigate(item.id)
+                  navigate(n.id)
                 }}
-                className={`nav-item ${page === item.id ? 'nav-active' : ''}`}
-                aria-current={page === item.id ? 'page' : undefined}
               >
-                <item.icon size={20} strokeWidth={1.7} />
-                <span>{titles[item.id]}</span>
-                {item.id === 'analysis' && !IS_STANDALONE && <span className="ai-badge">AI</span>}
-                {item.id === 'orchards' && (
-                  <span className="nav-count">{fa(data.orchards.length)}</span>
-                )}
-                {page === item.id && <ChevronLeft className="nav-active-arrow" size={15} />}
+                <n.icon size={17} />
+                <span>{n.label}</span>
               </a>
             ))}
           </nav>
-          <div className="nav-divider" />
-          <a
-            href="/subscription"
-            onClick={(e) => {
-              e.preventDefault()
-              navigate('subscription')
-            }}
-            className={`nav-item ${page === 'subscription' ? 'nav-active' : ''}`}
-          >
-            <CreditCard size={20} strokeWidth={1.7} />
-            <span>{titles.subscription}</span>
-          </a>
-        </div>
-        <div className="sidebar-bottom">
-          <div className="sidebar-tip">
-            <div className="sidebar-tip-leaf">
-              <Leaf size={29} strokeWidth={1.3} />
-            </div>
-            <strong>هر روز، یک قدم سبزتر</strong>
-            <p>
-              مراقبت‌های کوچک امروز،
-              <br />
-              تفاوت‌های بزرگ فردا.
-            </p>
-            <button onClick={() => setModal({ kind: 'help' })}>
-              از کجا شروع کنم؟
-              <ArrowLeft size={13} />
+          <div className="reference-header-actions">
+            <button className="button install-outline" onClick={() => navigate('install')}>
+              <Download size={17} />
+              نصب اپ
             </button>
-            <span className="tip-decor decor-1" />
-            <span className="tip-decor decor-2" />
-          </div>
-          {(data.user?.is_demo || data.user?.role === 'admin') && (
-            <a
-              className={`nav-item admin-nav ${page === 'admin' ? 'nav-active' : ''}`}
-              href="/admin"
-              onClick={(e) => {
-                e.preventDefault()
-                navigate('admin')
-              }}
+            <button
+              className="credit-pill"
+              onClick={() => navigate('subscription')}
+              aria-label="اعتبار من"
             >
-              <Settings2 size={19} />
-              <span>پنل مدیریت</span>
-              {data.user?.is_demo ? (
-                <span className="nav-mini">نمایش</span>
-              ) : (
-                <ShieldCheck size={14} />
-              )}
-            </a>
-          )}
-          <button
-            className="sidebar-user"
-            onClick={() =>
-              IS_STANDALONE
-                ? navigate('subscription')
-                : setModal({ kind: !data.user || data.user.is_demo ? 'auth' : 'profile' })
-            }
-          >
-            <span className="user-avatar">
-              {data.user?.name.slice(0, 1) ?? <UserRound size={18} />}
-            </span>
-            <span>
-              <strong>{data.user?.name ?? 'مهمان پستینو'}</strong>
-              <small>
+              <Wallet size={17} />
+              {IS_STANDALONE ? 'رایگان' : fa(data.credit_balance ?? 0)}
+            </button>
+            <button
+              className="icon-button account-button"
+              onClick={() =>
+                IS_STANDALONE
+                  ? navigate('settings')
+                  : setModal({ kind: !data.user || data.user.is_demo ? 'auth' : 'profile' })
+              }
+              aria-label="حساب و تنظیمات"
+            >
+              <UserRound size={19} />
+              <span className="reference-account-name">
                 {IS_STANDALONE
-                  ? 'روی دستگاه · رایگان'
+                  ? 'داده‌ها'
                   : !data.user || data.user.is_demo
-                    ? 'حساب آزمایشی · ورود'
-                    : data.usage.premium
-                      ? 'باغدار حرفه‌ای'
-                      : 'طرح همراه'}
-              </small>
-            </span>
-            <ChevronLeft size={16} />
-          </button>
-        </div>
-      </aside>
-      <div className="main-shell" inert={!!modal || (mobile && sidebarOpen)}>
-        <header className="topbar">
-          <div className="topbar-breadcrumb">
-            <button
-              className="icon-button mobile-menu"
-              aria-label="باز کردن منو"
-              aria-expanded={sidebarOpen}
-              aria-controls="sidebar-menu"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Menu size={23} />
+                    ? 'ورود'
+                    : data.user.name}
+              </span>
             </button>
-            <Home size={17} strokeWidth={1.6} />
-            <span>پیشخوان</span>
-            <ChevronLeft size={13} />
-            <strong>{titles[page]}</strong>
-          </div>
-          <form className="topbar-search" onSubmit={submitSearch}>
-            <Search size={17} />
-            <input
-              ref={searchRef}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="جستجو در دانشنامه…"
-              aria-label="جستجوی سراسری"
-            />
-            <kbd>⌘ K</kbd>
-          </form>
-          <div className="topbar-actions">
-            <span className="topbar-date">
-              <CalendarDays size={15} />
-              {persianDate(new Date(), { weekday: 'long' })}
-            </span>
-            <div ref={notificationsRef} className="notification-anchor">
+            {!IS_STANDALONE && data.user && !data.user.is_demo && (
               <button
-                className={`icon-button notification-button ${notifications ? 'selected-button' : ''}`}
-                aria-label="نمایش یادآورها"
-                aria-expanded={notifications}
-                onClick={() => setNotifications(!notifications)}
+                className="icon-button"
+                aria-label="خروج از حساب"
+                title="خروج از حساب"
+                disabled={signingOut}
+                onClick={() => void logout()}
               >
-                <Bell size={19} strokeWidth={1.7} />
-                {pending.length > 0 && <span />}
+                <LogOut size={18} />
               </button>
-              {notifications && (
-                <div className="notification-panel">
-                  <header>
-                    <strong>یادآورهای باغ</strong>
-                    <Badge tone="gray">{fa(pending.length)}</Badge>
-                  </header>
-                  {pending.length ? (
-                    pending.slice(0, 4).map((t) => (
-                      <button key={t.id} onClick={() => navigate('calendar')}>
-                        <span className="notification-leaf">
-                          <Leaf size={15} />
-                        </span>
-                        <div>
-                          <strong>{t.title}</strong>
-                          <small>
-                            {t.orchard_name ?? 'برنامه مراقبت'} ·{' '}
-                            {t.due_date === today() ? 'امروز' : persianDate(t.due_date)}
-                          </small>
-                        </div>
-                      </button>
-                    ))
-                  ) : (
-                    <p className="muted">همه کارها انجام شده است.</p>
-                  )}
-                  <button className="text-button" onClick={() => navigate('calendar')}>
-                    رفتن به تقویم
-                    <ArrowLeft size={14} />
-                  </button>
-                </div>
+            )}
+          </div>
+        </div>
+      </header>
+      <div className="reference-toolsbar" inert={!!modal}>
+        <div>
+          <span>همراه باغ شما</span>
+          <button className="tools-toggle" aria-expanded={tools} onClick={() => setTools(!tools)}>
+            دفتر باغ و دانشنامه
+            <ChevronDown size={15} />
+          </button>
+          <div className={`reference-tools ${tools ? 'tools-open' : ''}`}>
+            {TOOLS.map((n) => (
+              <button
+                key={n.id}
+                className={page === n.id ? 'active' : ''}
+                onClick={() => navigate(n.id)}
+              >
+                <n.icon size={15} />
+                {n.label}
+              </button>
+            ))}
+          </div>
+          <span
+            className={`connection-status ${data.services.vision_configured ? 'connected' : ''}`}
+          >
+            <span />
+            {data.services.vision_configured ? 'مدل بینایی تنظیم شده' : 'تحلیل تصویر: متصل نیست'}
+          </span>
+        </div>
+      </div>
+      <main
+        className={`reference-main ${page === 'dashboard' ? 'home-main' : ''}`}
+        id="main-content"
+        inert={!!modal}
+      >
+        {!IS_STANDALONE && (!data.user || !!data.user.is_demo) && (
+          <div className="demo-ribbon">
+            <span>فضای آزمایشی؛ داده‌های باغ اولیه نمونه‌اند.</span>
+            <button onClick={() => setModal({ kind: 'auth' })}>
+              ورود به حساب واقعی
+              <ArrowLeft size={14} />
+            </button>
+          </div>
+        )}
+        {page === 'dashboard' && <Dashboard ctx={ctx} />}
+        {page === 'analysis' && (
+          <Analysis
+            ctx={ctx}
+            initialFile={analysisInput.file}
+            initialOrchard={analysisInput.orchard}
+            key={analysisInput.key}
+          />
+        )}
+        {page === 'laboratory' && <Laboratory ctx={ctx} />}
+        {page === 'community' && <Community ctx={ctx} />}
+        {page === 'market' && <Market ctx={ctx} />}
+        {page === 'subscription' && <Credits ctx={ctx} />}
+        {page === 'admin' && (
+          <>
+            <div className="admin-view-tabs">
+              <button
+                className={adminTab === 'receipts' ? 'active' : ''}
+                onClick={() => setAdminTab('receipts')}
+              >
+                رسیدها و اعتبار
+              </button>
+              {!IS_STANDALONE && (
+                <button
+                  className={adminTab === 'services' ? 'active' : ''}
+                  onClick={() => setAdminTab('services')}
+                >
+                  سرویس‌ها و درگاه
+                </button>
               )}
             </div>
-            <button
-              className="icon-button topbar-help"
-              aria-label="راهنمای پستینو"
-              onClick={() => setModal({ kind: 'help' })}
-            >
-              <CircleHelp size={19} strokeWidth={1.7} />
-            </button>
-          </div>
-        </header>
-        <main className="main-content" id="main-content">
-          {IS_STANDALONE && (
-            <div className="demo-ribbon">
-              <span>
-                <span className="demo-dot" />
-                نسخه مستقل و رایگان · اطلاعات فقط روی همین دستگاه
-              </span>
-              <button onClick={() => navigate('subscription')}>
-                پشتیبان و تنظیمات
-                <ArrowLeft size={13} />
+            {adminTab === 'receipts' ? <CreditAdmin ctx={ctx} /> : <Admin ctx={ctx} />}
+          </>
+        )}
+        {page === 'orchards' && <Orchards ctx={ctx} />}
+        {page === 'reports' && <Reports ctx={ctx} />}
+        {page === 'calendar' && <CalendarPage ctx={ctx} />}
+        {page === 'knowledge' && <KnowledgePage ctx={ctx} />}
+        {page === 'settings' &&
+          (IS_STANDALONE ? (
+            <LocalSettings ctx={ctx} />
+          ) : (
+            <div className="reference-card online-settings">
+              <h1>حساب و داده‌های شما</h1>
+              <p>
+                در نسخه سروری، داده‌ها در حساب ذخیره می‌شوند. پرونده‌های تصویر و خروجی گزارش از بخش
+                پرونده‌ها در دسترس‌اند.
+              </p>
+              <button className="button primary" onClick={() => navigate('reports')}>
+                پرونده‌های من
+              </button>
+              <button
+                className="button secondary"
+                onClick={() =>
+                  setModal({ kind: !data.user || data.user.is_demo ? 'auth' : 'profile' })
+                }
+              >
+                حساب کاربری
               </button>
             </div>
-          )}
-          {!IS_STANDALONE && (!data.user || !!data.user.is_demo) && (
-            <div className="demo-ribbon">
-              <span>
-                <span className="demo-dot" />
-                فضای آزمایشی<span className="ribbon-separator">/</span>اطلاعات باغ و گزارش‌های
-                اولیه، نمونه‌اند.
-              </span>
-              <button onClick={() => setModal({ kind: 'auth' })}>
-                ورود به حساب واقعی
-                <ArrowLeft size={13} />
-              </button>
-            </div>
-          )}
-          {page === 'dashboard' && <Dashboard ctx={ctx} />}
-          {page === 'analysis' && (
-            <Analysis
-              ctx={ctx}
-              initialFile={analysisInput.file}
-              initialOrchard={analysisInput.orchard}
-              key={analysisInput.key}
-            />
-          )}
-          {page === 'orchards' && <Orchards ctx={ctx} />}
-          {page === 'reports' && <Reports ctx={ctx} />}
-          {page === 'calendar' && <CalendarPage ctx={ctx} />}
-          {page === 'knowledge' && (
-            <KnowledgePage ctx={ctx} initialSearch={knowledgeSearch} key={searchKey} />
-          )}
-          {page === 'subscription' &&
-            (IS_STANDALONE ? <LocalSettings ctx={ctx} /> : <Subscription ctx={ctx} />)}
-          {page === 'admin' && (IS_STANDALONE ? <LocalSettings ctx={ctx} /> : <Admin ctx={ctx} />)}
-          <footer className="app-footer">
-            <span>
-              <Leaf size={13} />
-              پستینو · با آگاهی، برای باغی ماندگار
-            </span>
-            <div>
-              <span className="version-label">
-                {IS_STANDALONE ? 'نسخه مستقل ۰.۱' : 'نسخه آزمایشی ۰.۱'}
-              </span>
-              <button onClick={() => setModal({ kind: 'privacy' })}>حریم خصوصی</button>
-              <span>·</span>
-              <button onClick={() => setModal({ kind: 'help' })}>راهنما</button>
-            </div>
-          </footer>
-        </main>
-      </div>
-      <nav className="mobile-bottom-nav" aria-label="دسترسی سریع" inert={!!modal || sidebarOpen}>
-        {[
-          { id: 'dashboard' as const, title: 'پیشخوان', icon: Home },
-          { id: 'analysis' as const, title: 'بررسی', icon: Sparkles },
-          { id: 'orchards' as const, title: 'باغ‌ها', icon: Trees },
-          { id: 'knowledge' as const, title: 'دانشنامه', icon: BookOpen },
-        ].map((n) => (
-          <button
-            key={n.id}
-            className={page === n.id ? 'active' : ''}
-            onClick={() => navigate(n.id)}
-          >
-            <n.icon size={19} />
-            <span>{n.title}</span>
-          </button>
-        ))}
-        <button onClick={() => setSidebarOpen(true)}>
-          <Menu size={19} />
-          <span>بیشتر</span>
-        </button>
-      </nav>
-      {modal?.kind === 'auth' && <AuthForm ctx={ctx} onClose={closeModal} />}{' '}
+          ))}
+        {page === 'install' && <Install ctx={ctx} />}
+      </main>
+      <footer className="reference-footer" inert={!!modal}>
+        <div>
+          <span>
+            <Leaf size={19} />
+            <strong>پستینو</strong> · با آگاهی، برای باغی ماندگار
+          </span>
+          <p>
+            {IS_STANDALONE
+              ? 'ذخیره محلی · بدون همگام‌سازی · پرداخت غیرفعال'
+              : 'نسخه سروری آزمایشی · وضعیت سرویس‌ها را بررسی کنید'}
+          </p>
+        </div>
+        <div>
+          <span>نسخه آزمایشی ۰.۲</span>
+          <button onClick={() => setModal({ kind: 'privacy' })}>حریم خصوصی</button>
+          <button onClick={() => setModal({ kind: 'help' })}>راهنما</button>
+        </div>
+      </footer>
+      {modal?.kind === 'auth' && <AuthForm ctx={ctx} onClose={closeModal} />}
       {modal?.kind === 'orchard' && (
         <OrchardForm ctx={ctx} orchard={modal.orchard} onClose={closeModal} />
-      )}{' '}
-      {modal?.kind === 'task' && <TaskForm ctx={ctx} onClose={closeModal} />}{' '}
-      {modal?.kind === 'article' && <ArticleDetail article={modal.article} onClose={closeModal} />}{' '}
+      )}
+      {modal?.kind === 'task' && <TaskForm ctx={ctx} onClose={closeModal} />}
+      {modal?.kind === 'article' && <ArticleDetail article={modal.article} onClose={closeModal} />}
       {modal?.kind === 'report' && (
         <ReportDetail ctx={ctx} report={modal.report} onClose={closeModal} />
-      )}{' '}
+      )}
       {(modal?.kind === 'help' || modal?.kind === 'privacy') && (
         <HelpModal onClose={closeModal} privacy={modal.kind === 'privacy'} />
-      )}{' '}
+      )}
       {modal?.kind === 'profile' && <ProfileModal ctx={ctx} onClose={closeModal} />}
       {toast && (
         <div className={`toast toast-${toast.type}`} role="status">

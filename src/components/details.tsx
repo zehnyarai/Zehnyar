@@ -1,4 +1,5 @@
 import { IS_STANDALONE, assetUrl } from '../config'
+import { ScientificPlan } from './scientific'
 import { useState } from 'react'
 import {
   ArrowLeft,
@@ -89,7 +90,7 @@ export function ReportDetail({
   const [confirm, setConfirm] = useState(false)
   const [busy, setBusy] = useState(false)
   const d = report.data
-  const record = d.provider === 'local-storage'
+  const record = ['local-storage', 'photo-storage'].includes(d.provider)
   async function download() {
     const text = [
       record
@@ -104,12 +105,17 @@ export function ReportDetail({
       '\nمشاهدات:',
       ...d.observations,
       '\nفرضیه‌های احتمالی:',
-      ...d.hypotheses.map(
-        (h) =>
-          `${h.name} — امتیاز غیرکالیبره مدل: ${fa(h.confidence * 100)}٪\n${h.evidence}\n${h.next_step}`
-      ),
+      ...d.hypotheses.map((h) => `${h.name} — فرضیه، نه تشخیص قطعی\n${h.evidence}\n${h.next_step}`),
       '\nاقدام بعدی:',
       ...d.actions,
+      '\nملاحظات تغذیه:',
+      ...(d.nutrition_considerations ?? []),
+      '\nراهبرد کیفیت و عملکرد:',
+      ...(d.yield_quality_plan ?? []),
+      '\nپایش و پیگیری:',
+      ...(d.monitoring_plan ?? []),
+      '\nمحدودیت‌ها:',
+      ...(d.limitations ?? []),
       '\nبررسی تکمیلی:',
       ...d.needed_tests,
       '\nپرسش‌ها:',
@@ -171,7 +177,7 @@ export function ReportDetail({
             <div className="report-summary-badges">
               <Badge
                 tone={
-                  record
+                  record || d.is_pistachio !== true
                     ? 'gray'
                     : d.urgency === 'high'
                       ? 'red'
@@ -182,11 +188,13 @@ export function ReportDetail({
               >
                 {record
                   ? 'ثبت عکس · بدون تحلیل'
-                  : d.urgency === 'high'
-                    ? 'ارجاع فوری به کارشناس'
-                    : d.urgency === 'medium'
-                      ? 'نیازمند بررسی تکمیلی'
-                      : 'پیگیری معمول'}
+                  : d.is_pistachio !== true
+                    ? 'شناسایی پسته تأیید نشده'
+                    : d.urgency === 'high'
+                      ? 'ارجاع فوری به کارشناس'
+                      : d.urgency === 'medium'
+                        ? 'نیازمند بررسی تکمیلی'
+                        : 'پیگیری معمول'}
               </Badge>
               {!!report.is_sample && <Badge tone="gray">نمونه نمایشی</Badge>}
             </div>
@@ -198,6 +206,20 @@ export function ReportDetail({
             </div>
           </div>
         </div>
+        {!!report.image_urls && report.image_urls.length > 1 && (
+          <div className="report-gallery">
+            {report.image_urls.map((url, i) => (
+              <img key={i} src={url} alt={`زاویه ${fa(i + 1)} پرونده درخت`} />
+            ))}
+          </div>
+        )}
+        {report.context && (
+          <div className="report-context">
+            اطلاعات ثبت‌شده باغدار: {report.context.province || 'منطقه نامشخص'} ·{' '}
+            {report.context.cultivar || 'رقم نامشخص'} · {report.context.stage || 'مرحله رشد نامشخص'}{' '}
+            · مدت علائم: {report.context.duration || 'نامشخص'} روز
+          </div>
+        )}
         <div className="tabs report-tabs">
           {[
             ['observations', record ? 'یادداشت و محدودیت' : 'مشاهدات و احتمال‌ها', FileSearch],
@@ -237,13 +259,8 @@ export function ReportDetail({
                 <div className="hypothesis" key={h.name}>
                   <header>
                     <strong>{h.name}</strong>
-                    <span>
-                      {fa(Math.round(h.confidence * 100))}٪ <small>امتیاز مدل</small>
-                    </span>
+                    <Badge tone="amber">نیازمند تأیید</Badge>
                   </header>
-                  <div className="confidence-track">
-                    <div style={{ width: `${h.confidence * 100}%` }} />
-                  </div>
                   <p>{h.evidence}</p>
                   <div className="hypothesis-next">
                     <ChevronLeft size={15} />
@@ -260,7 +277,8 @@ export function ReportDetail({
             )}
             {!record && (
               <p className="confidence-disclaimer">
-                امتیاز مدل کالیبره نشده است و احتمال واقعی بیماری یا دقت اندازه‌گیری‌شده نیست.
+                این فرضیه‌ها دقت علمیِ اندازه‌گیری‌شده یا تشخیص قطعی نیستند؛ درصد اطمینان غیرکالیبره
+                نمایش داده نمی‌شود.
               </p>
             )}
           </div>
@@ -289,6 +307,24 @@ export function ReportDetail({
                 <li key={i}>{q}</li>
               ))}
             </ul>
+            {!record && (
+              <div className="report-growth-section">
+                {[
+                  ['ملاحظات تغذیه و آزمایش', d.nutrition_considerations],
+                  ['راهبرد کیفیت و محصول', d.yield_quality_plan],
+                  ['برنامه پایش', d.monitoring_plan],
+                  ['محدودیت‌های نتیجه', d.limitations],
+                ].map(([label, items]) =>
+                  Array.isArray(items) && items.length ? (
+                    <section key={label as string}>
+                      <h3>{label as string}</h3>
+                      <CheckList items={items as string[]} />
+                    </section>
+                  ) : null
+                )}
+              </div>
+            )}
+            {record && report.context && <ScientificPlan context={report.context} ctx={ctx} />}
             <button
               className="button secondary"
               onClick={() => {
@@ -393,20 +429,20 @@ export function HelpModal({
           <h3>اطلاعاتی که ذخیره می‌شود</h3>
           <p>
             {IS_STANDALONE
-              ? 'اطلاعات باغ، یادآورها و عکس‌ها فقط در ذخیره‌سازی همین دستگاه‌اند. ورود اینترنتی یا همگام‌سازی ندارید. پاک‌کردن داده‌های برنامه یا مرورگر، یا حذف برنامه می‌تواند همه داده‌ها را از بین ببرد. دستگاه را با قفل صفحه محافظت کنید و نسخه پشتیبان بگیرید.'
+              ? 'اطلاعات باغ، یادآورها، عکس‌ها، آزمایش‌ها و مشاهدات بازار و اقلیم فقط در ذخیره‌سازی همین دستگاه‌اند. ورود اینترنتی یا همگام‌سازی ندارید. پاک‌کردن داده‌های برنامه یا مرورگر، یا حذف برنامه می‌تواند همه داده‌ها را از بین ببرد. دستگاه را با قفل صفحه محافظت کنید و نسخه پشتیبان بگیرید.'
               : 'اطلاعات حساب، مشخصات باغ، یادآورها و گزارش‌های شما در سرور ذخیره می‌شوند. در این نسخه موقعیت دقیق GPS دریافت نمی‌شود. عکس واقعی فقط برای صاحب حساب قابل دریافت است.'}
           </p>
           <h3>ارسال تصویر با رضایت شما</h3>
           <p>
             {IS_STANDALONE
               ? 'هیچ عکس یا مشخصات باغی از این نسخه برای سرور، پرداخت یا مدل بینایی ارسال نمی‌شود. عکس ذخیره‌شده از پیکسل‌ها دوباره ساخته می‌شود و اطلاعات EXIF/GPS اصلی در آن کپی نمی‌شوند. لینک منابع خارجی، در صورت انتخاب خودتان، با اینترنت باز می‌شود.'
-              : 'پس از تأیید شما، تصویر به سرویس بینایی تنظیم‌شده توسط مدیر ارسال می‌شود. اطلاعات EXIF و موقعیت فایل پیش از ذخیره و ارسال حذف می‌شوند. شرایط نگهداری سرویس خارجی باید پیش از عرضه عمومی اعلام و بررسی شود.'}
+              : 'پس از تأیید شما، تصاویر، اطلاعات زمینه باغ و حداکثر سه آزمایش مرتبط به سرویس بینایی تنظیم‌شده توسط مدیر ارسال می‌شوند. اطلاعات EXIF و موقعیت فایل پیش از ذخیره و ارسال حذف می‌شوند. شرایط نگهداری سرویس خارجی باید پیش از عرضه عمومی اعلام و بررسی شود.'}
           </p>
           <h3>حذف عکس و گزارش</h3>
           <p>
             {IS_STANDALONE
               ? 'از پرونده عکس می‌توانید آن را حذف کنید. در بخش داده‌ها و پشتیبان، حذف همه داده‌های محلی هم در دسترس است. فایل‌های پشتیبان قبلی مستقل‌اند و باید جداگانه توسط شما حذف شوند؛ این فایل‌ها رمزگذاری نشده‌اند.'
-              : 'از داخل گزارش می‌توانید تصویر و محتوای آن را حذف کنید. یک سابقه بدون محتوا برای محاسبه اعتبار نگه داشته می‌شود. سوابق پرداخت و رویدادهای امنیتی جدا هستند. حذف کامل حساب و سیاست نگهداری پشتیبان‌ها باید پیش از عرضه عمومی تکمیل شود.'}
+              : 'از داخل گزارش می‌توانید تصویر و محتوای آن را حذف کنید. یک سابقه بدون محتوا برای محاسبه اعتبار نگه داشته می‌شود. تصاویر رسید و سوابق پرداخت خصوصی‌اند و تنها صاحب حساب و مدیر مجاز آنها را می‌بینند؛ آنها و رویدادهای امنیتی جدا نگهداری می‌شوند. مدت نگهداری و درخواست حذف اسناد مالی هنوز برای عرضه عمومی نهایی نشده است. حذف کامل حساب و سیاست نگهداری پشتیبان‌ها باید پیش از عرضه عمومی تکمیل شود.'}
           </p>
           <h3>محدودیت علمی</h3>
           <p>

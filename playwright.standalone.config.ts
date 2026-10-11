@@ -9,7 +9,18 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+          ? {
+              executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH,
+              args: ['--no-sandbox', '--disable-dev-shm-usage'],
+            }
+          : {},
+      },
+    },
     { name: 'iphone-webkit', use: { ...devices['iPhone 13'], browserName: 'webkit' } },
   ],
   webServer: {

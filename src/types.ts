@@ -7,6 +7,11 @@ export type Page =
   | 'knowledge'
   | 'subscription'
   | 'admin'
+  | 'laboratory'
+  | 'community'
+  | 'market'
+  | 'settings'
+  | 'install'
 export interface User {
   id: string
   name: string
@@ -39,7 +44,7 @@ export interface Task {
 }
 export interface Hypothesis {
   name: string
-  confidence: number
+  confidence: number | null
   evidence: string
   next_step: string
 }
@@ -58,6 +63,10 @@ export interface AnalysisData {
   disclaimer: string
   provider: string
   knowledge_version: string
+  limitations?: string[]
+  nutrition_considerations?: string[]
+  yield_quality_plan?: string[]
+  monitoring_plan?: string[]
 }
 export interface Report {
   id: string
@@ -67,6 +76,8 @@ export interface Report {
   notes: string
   data: AnalysisData
   image_url: string | null
+  image_urls?: string[]
+  context?: import('./scientific').DiagnosticContext
   is_sample: number
   created_at: string
 }
@@ -93,6 +104,7 @@ export interface Bootstrap {
   reports: Report[]
   tasks: Task[]
   usage: { used: number; limit: number; premium: boolean }
+  credit_balance?: number
   services: Services
   plans: Plan[]
 }
@@ -145,6 +157,7 @@ export interface AdminData {
     subscription_is_sandbox?: number
   }[]
   metrics: { revenue_rial: number; payments: number; pending: number; users: number }
+  credit_balance?: number
   services: Services
 }
 export interface AppContext {

@@ -1,26 +1,16 @@
 import { useEffect, useId, useRef } from 'react'
 import type { ReactNode } from 'react'
-import { ArrowLeft, Check, CircleAlert, LoaderCircle, X } from 'lucide-react'
+import { ArrowLeft, Check, CircleAlert, Leaf, LoaderCircle, X } from 'lucide-react'
 
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <div className="brand">
       <div className="brand-mark">
-        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true">
-          <path
-            d="M24 37V22M24 28C10 28 11 13 11 13s14-1 13 15ZM24 22C24 10 37 10 37 10s1 13-13 15"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <Leaf size={29} strokeWidth={1.7} />
       </div>
       {!compact && (
         <div>
-          <strong>
-            پستینو<span className="brand-dot">.</span>
-          </strong>
+          <strong>پستینو</strong>
           <span>همراه هوشمند باغ شما</span>
         </div>
       )}

@@ -25,7 +25,7 @@ const config: CapacitorConfig = {
   appName: 'پستینو',
   webDir: 'dist',
   ...(publicUrl ? { server: { url: publicUrl, cleartext: false } } : {}),
-  android: { backgroundColor: '#f6f8f5' },
+  android: { backgroundColor: '#f7faf8' },
   plugins: { Camera: { presentationStyle: 'fullscreen' } },
 }
 export default config

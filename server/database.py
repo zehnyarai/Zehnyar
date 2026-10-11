@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from uuid import uuid4
+from .knowledge import KNOWLEDGE_VERSION
 
 
 def now_iso():
@@ -74,6 +75,33 @@ def initialize():
                 authority TEXT UNIQUE, status TEXT NOT NULL, ref_id TEXT,
                 created_at TEXT NOT NULL, paid_at TEXT
             );
+            CREATE TABLE IF NOT EXISTS report_images (
+                report_id TEXT NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
+                ordinal INTEGER NOT NULL, image_path TEXT NOT NULL,
+                PRIMARY KEY(report_id, ordinal)
+            );
+            CREATE TABLE IF NOT EXISTS field_records (
+                id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                kind TEXT NOT NULL, data TEXT NOT NULL, visibility TEXT NOT NULL DEFAULT 'private',
+                created_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS billing_settings (
+                id INTEGER PRIMARY KEY CHECK(id=1), card_number TEXT NOT NULL,
+                holder TEXT NOT NULL, bank TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS credit_receipts (
+                id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), name TEXT NOT NULL,
+                phone TEXT NOT NULL, tracking TEXT NOT NULL, tracking_key TEXT UNIQUE NOT NULL,
+                package_id TEXT NOT NULL, price_toman INTEGER NOT NULL, analyses INTEGER NOT NULL,
+                image_path TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', reason TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL, reviewed_at TEXT
+            );
+            CREATE TABLE IF NOT EXISTS credit_ledger (
+                id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), delta INTEGER NOT NULL,
+                kind TEXT NOT NULL, reason TEXT NOT NULL, created_at TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_field_user ON field_records(user_id,kind,created_at);
+            CREATE INDEX IF NOT EXISTS idx_credit_user ON credit_ledger(user_id,created_at);
             CREATE TABLE IF NOT EXISTS audit (
                 id TEXT PRIMARY KEY, actor_id TEXT, action TEXT NOT NULL,
                 entity_id TEXT, created_at TEXT NOT NULL
@@ -133,13 +161,13 @@ def sample_report(title="نمونه گزارش بررسی برگ", urgency="medi
         "summary": "این گزارش صرفاً نحوه نمایش نتیجه را نشان می‌دهد و هیچ تصویری را تشخیص نداده است. در تحلیل واقعی، مشاهدات، فرضیه‌های محتمل و اقدام بعدی جداگانه نمایش داده می‌شوند.",
         "quality": "نمونه نمایشی", "is_pistachio": None,
         "observations": ["در نسخه واقعی، فقط ویژگی‌های قابل مشاهده در تصویر اینجا ثبت می‌شوند.", "اطلاعات آب، خاک و ریشه از روی عکس قابل اندازه‌گیری نیست."],
-        "hypotheses": [{"name": "نیاز به بررسی افتراقی آفت و تنش محیطی", "confidence": 0.62,
-                        "evidence": "عدد اطمینان در این نمونه فرضی است؛ امتیاز مدل، دقت آزمایش‌شده نیست.",
+        "hypotheses": [{"name": "نیاز به بررسی افتراقی آفت و تنش محیطی", "confidence": None,
+                        "evidence": "نمونه نمایش ساختار؛ از تحلیل تصویر شما تولید نشده است.",
                         "next_step": "پشت و روی برگ، الگوی پراکندگی و سابقه آبیاری بررسی شود."}],
         "actions": ["از پشت و روی برگ و کل تاج عکس واضح تهیه کنید.", "زمان شروع علائم و آخرین آبیاری را ثبت کنید.", "پیش از مصرف سم یا کود، با کارشناس محلی مشورت کنید."],
         "needed_tests": ["اگر تغییر رنگ ادامه داشت، آزمایش برگ، خاک و آب طبق نظر کارشناس."],
         "follow_up_questions": ["علائم در یک درخت است یا چند بخش باغ؟", "آیا مصرف کود یا سم اخیر داشته‌اید؟"],
         "urgency": urgency, "knowledge_ids": ["sampling", "nutrition", "psylla"],
         "disclaimer": "نمونه نمایشی؛ جایگزین تشخیص حضوری یا آزمایش نیست.",
-        "provider": "demo", "knowledge_version": "2026-10-09.1",
+        "provider": "demo", "knowledge_version": KNOWLEDGE_VERSION,
     }

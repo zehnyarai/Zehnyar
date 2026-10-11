@@ -3,7 +3,7 @@ import { CalendarDays, Check, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lu
 import type { AppContext } from '../types'
 import { api, errorMessage, fa, persianDate, today } from '../api'
 import { Badge, EmptyState, PageTitle } from '../components/ui'
-import { TaskRow } from './Dashboard'
+import { TaskRow } from '../components/records'
 
 function shifted(day: string, delta: number) {
   const date = new Date(day + 'T12:00:00Z')

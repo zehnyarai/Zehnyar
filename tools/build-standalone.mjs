@@ -12,7 +12,7 @@ writeFileSync('dist/manifest.webmanifest', JSON.stringify({
   id: base, name: 'پستینو | Pestino', short_name: 'پستینو', lang: 'fa', dir: 'rtl',
   description: 'دفتر باغ، دانشنامه و عکس‌های پسته؛ مستقل و رایگان. بدون تحلیل خودکار یا پرداخت.',
   start_url: base, scope: base, display: 'standalone',
-  theme_color: '#245b45', background_color: '#f6f8f5',
+  theme_color: '#267c4d', background_color: '#f7faf8',
   icons: [192, 512].map(size => ({ src: `icon-${size}.png`, sizes: `${size}x${size}`, type: 'image/png', purpose: 'any' })),
 }, null, 2))
 function files(folder, prefix = '') {
@@ -22,7 +22,7 @@ function files(folder, prefix = '') {
   })
 }
 const paths = files('dist').filter(p => p !== 'sw.js' && !p.endsWith('.map'))
-const digest = createHash('sha256')
+const digest = createHash('sha256').update('public-precache-v2-origin-safe')
 for (const p of paths.sort()) digest.update(readFileSync(join('dist', p)))
 const version = digest.digest('hex').slice(0, 16)
 writeFileSync('dist/sw.js', `/* Generated for the local-only Pestino web edition. */
@@ -30,7 +30,7 @@ const CACHE = 'pestino-local-${version}';
 const BASE = ${JSON.stringify(base)};
 const ASSETS = ${JSON.stringify([base, ...paths.map(p => base + p)])};
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS.map(path => new Request(path, {cache: 'reload'})))).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', event => {
   event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('pestino-local-') && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));
@@ -40,10 +40,14 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin || !url.pathname.startsWith(BASE)) return;
   if (event.request.mode === 'navigate') {
-    event.respondWith(caches.open(CACHE).then(cache => cache.match(BASE)).then(cached => cached ? new Response(cached.body, {status: cached.status, headers: cached.headers}) : fetch(event.request)));
+    event.respondWith(caches.open(CACHE).then(cache => cache.match(BASE, {ignoreVary: true})).then(cached => cached ? new Response(cached.body, {status: cached.status, headers: cached.headers}) : fetch(event.request)));
     return;
   }
-  event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request)));
+  // Only build-owned public assets can ignore Vary: Origin. Vite/CDNs may
+  // vary module fetches (with Origin) from install precaching (without Origin).
+  // Private/API data are never cached, and unrelated URLs use the network.
+  if (!ASSETS.includes(url.pathname)) return;
+  event.respondWith(caches.open(CACHE).then(cache => cache.match(event.request, {ignoreVary: true})).then(cached => cached || fetch(event.request)));
 });
 `)
 writeFileSync('dist/.nojekyll', '')

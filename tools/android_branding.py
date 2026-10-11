@@ -1,27 +1,24 @@
 """Generate small legacy launcher/splash assets with Pillow, no remote fonts."""
 from pathlib import Path
-from PIL import Image, ImageDraw
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1] / "android/app/src/main/res"
-GREEN, LEAF, PAPER = "#295c45", "#ddecc2", "#f6f8f5"
-
-
-def curve(p0, p1, p2, p3):
-    return [tuple((1-t)**3*p0[i] + 3*(1-t)**2*t*p1[i] + 3*(1-t)*t*t*p2[i] + t**3*p3[i] for i in (0, 1)) for t in [n/50 for n in range(51)]]
+PAPER = "#f7faf8"
+BRAND = Path(__file__).resolve().parents[1] / "public/icon-512.png"
 
 
 def icon(size=432, foreground=False, round_=False):
-    image = Image.new("RGBA", (432, 432), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(image)
+    # The same reference leaf/circle is used in web, launcher and splash.
+    with Image.open(BRAND) as source:
+        mark = source.convert("RGBA")
     if not foreground:
-        if round_:
-            draw.ellipse((0, 0, 431, 431), fill=GREEN)
-        else:
-            draw.rounded_rectangle((0, 0, 431, 431), radius=98, fill=GREEN)
-    scale = lambda points: [(x*4, y*4) for x, y in points]
-    for points in [[(54, 79), (54, 48)], curve((54, 63), (30, 63), (31, 36), (31, 36)) + curve((31, 36), (31, 36), (56, 35), (54, 63)), curve((54, 49), (54, 28), (78, 28), (78, 28)) + curve((78, 28), (78, 28), (80, 52), (54, 56))]:
-        draw.line(scale(points), fill=LEAF, width=18, joint="curve")
-    return image.resize((size, size), Image.Resampling.LANCZOS)
+        return mark.resize((size, size), Image.Resampling.LANCZOS)
+    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    safe_size = round(size * 2 / 3)
+    mark = mark.resize((safe_size, safe_size), Image.Resampling.LANCZOS)
+    inset = (size - safe_size) // 2
+    canvas.paste(mark, (inset, inset), mark)
+    return canvas
 
 
 for folder, size in [("mdpi", 48), ("hdpi", 72), ("xhdpi", 96), ("xxhdpi", 144), ("xxxhdpi", 192)]:

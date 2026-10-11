@@ -4,7 +4,7 @@ import { FileSearch, Plus, Search, SlidersHorizontal } from 'lucide-react'
 import type { AppContext } from '../types'
 import { fa } from '../api'
 import { Badge, EmptyState, PageTitle } from '../components/ui'
-import { ReportRow } from './Dashboard'
+import { ReportRow } from '../components/records'
 
 export default function Reports({ ctx }: { ctx: AppContext }) {
   const [search, setSearch] = useState('')
@@ -12,7 +12,7 @@ export default function Reports({ ctx }: { ctx: AppContext }) {
   const [orchard, setOrchard] = useState('all')
   const reports = ctx.data.reports.filter(
     (r) =>
-      (filter === 'all' || r.data.urgency === filter) &&
+      (filter === 'all' || (r.data.is_pistachio === true && r.data.urgency === filter)) &&
       (orchard === 'all' || r.orchard_id === orchard) &&
       [r.data.title, r.orchard_name, r.tree_part, r.data.summary].join(' ').includes(search)
   )
