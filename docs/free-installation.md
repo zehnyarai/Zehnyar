@@ -4,9 +4,13 @@
 
 ## فایل اندروید
 
-هدف ساخت جدید: `installers/Pestino-0.2.0.apk` با طراحی مرجع، versionCode 3، نسخه release غیر-debug و امضای آزمایشی v1/v2/v3، برای Android 7+ (API 24). فایل فقط پس از ساخت و کنترل واقعی تحویل می‌شود؛ شاخص منبع و مشخصات فایل در `installers/BUILD.txt`، `package-info.txt` و فایل SHA-256 قرار می‌گیرند.
+فایل جدیدِ ساخته‌شده و تحویل‌شده: `installers/Pestino-0.2.0.apk` با طراحی مرجع، versionCode 3، نسخه release غیر-debug و امضای آزمایشی v1/v2/v3، برای Android 7+ (API 24). ساخت، امضا و نمایش اولیه در شبیه‌سازهای API 24 و 35 موفق شدند. شاخص منبع و مشخصات فایل در `installers/BUILD.txt`، `package-info.txt` و فایل SHA-256 قرار می‌گیرند.
 
-[دانلود طرح ۰.۲.۰ پس از تکمیل تحویل](https://raw.githubusercontent.com/zehnyarai/Zehnyar/arena/e819b607-zehnyar/installers/Pestino-0.2.0.apk)
+[دانلود اندروید طرح ۰.۲.۰](https://raw.githubusercontent.com/zehnyarai/Zehnyar/arena/e819b607-zehnyar/installers/Pestino-0.2.0.apk)
+
+اندازه واقعی: **۸٬۰۲۰٬۰۴۲ بایت**. SHA-256: `526ec672c19aa8b1893e2d76b41a00bb4fc296a7c42ec0e83a7077a4b755a835`.
+
+ساخت منبع `255c95b90fc510565eafe171c5e0f1ba70e14b38`، تحویل `8dba01d`، اجرای [38159919269](https://github.com/zehnyarai/Zehnyar/actions/runs/38159919269). jobهای apk، install API 24/35 و deliver موفق‌اند و مشاهده عنوان/دکمه در WebView در annotation آنها ثبت شده است. job وب همین اجرا با سیگنال خاتمه **exit 143** متوقف شد؛ نتیجه آن تأیید همه آزمون‌های WebKit نیست. درخواست rerun پذیرفته نشد. به همین دلیل موفقیت همه CI ادعا نمی‌شود و وضعیت cache/فرم‌ها در Chromium بر آزمون محلی مستقل تکیه دارد.
 
 [پوشه فایل‌ها و اطلاعات ساخت](https://github.com/zehnyarai/Zehnyar/tree/arena/e819b607-zehnyar/installers)
 
