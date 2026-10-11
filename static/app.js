@@ -21,6 +21,7 @@ const state = {
   matches: [],
   shown: PAGE_SIZE,
   filter: "all",
+  contextVerseId: null,
   selected: null,
   detailTab: "notes",
   searchTranslations: false,
@@ -228,11 +229,12 @@ function searchResearchFields() {
   const usageConcept = resolveConcept(usage);
   const synonymConcept = resolveConcept(synonyms);
   const concept = usageConcept || synonymConcept || resolveConcept(primary);
-  const splitArabic = (value, label, type, origin) => value.split(/[،,]/).map((item) => item.trim()).filter(Boolean).map((item) => ({
-    value: normalize(item), label: `${label}: ${item}`, type, scope: "arabic", origin,
+  const splitArabic = (value, label, type, origin, compact = false) => value.split(/[،,]/).map((item) => item.trim()).filter(Boolean).map((item) => ({
+    value: compact ? normalize(item).replaceAll(" ", "") : normalize(item), label: `${label}: ${item}`, type, scope: "arabic", origin,
   }));
   const terms = [
-    ...splitArabic(root, "ریشه / صورت", "exact", "ریشه یا صورتِ واردشده"),
+    // ریشه‌ها گاهی با فاصله وارد می‌شوند («ح ب ب»). پیکره فاصلهٔ میان حروف ریشه ندارد.
+    ...splitArabic(root, "ریشه / صورت", "exact", "ریشه یا صورتِ واردشده", true),
     ...splitArabic(keywords, "کلیدواژه", "exact", "کلیدواژهٔ واردشده"),
   ];
   if (usageConcept) {
@@ -259,6 +261,7 @@ function searchResearchFields() {
     .sort((a, b) => b.score - a.score || a.surah - b.surah || a.ayah - b.ayah);
   state.shown = PAGE_SIZE;
   state.filter = "all";
+  state.contextVerseId = state.matches[0]?.id || null;
   state.selected = null;
   status.textContent = "";
   renderResults();
@@ -279,7 +282,66 @@ function renderTermGroups() {
 }
 
 function resultsByFilter() {
-  return state.filter === "all" ? state.matches : state.matches.filter((item) => item.type === state.filter);
+  // «فهم آیه در سیاق» یک نمای تحلیلی است، نه یک لایهٔ حذف‌کنندهٔ نتایج.
+  return state.filter === "all" || state.filter === "context" ? state.matches : state.matches.filter((item) => item.type === state.filter);
+}
+
+function recordsForEvidence(evidence) {
+  if (!evidence?.value) return [];
+  const field = evidence.scope === "persian" ? "persianNormalized" : "arabicNormalized";
+  return state.corpus.filter((record) => record[field].includes(evidence.value));
+}
+
+function evidenceDistribution(verse) {
+  return verse.evidence.map((evidence) => {
+    const records = recordsForEvidence(evidence);
+    return {
+      ...evidence,
+      count: records.length,
+      surahs: new Set(records.map((record) => record.surah)).size,
+      references: records.slice(0, 6).map((record) => record.reference),
+    };
+  });
+}
+
+function closeReadingPrompts(verse) {
+  const label = verse.evidence[0]?.label || state.query;
+  const occurrence = evidenceDistribution(verse).find((item) => item.count)?.count;
+  return [
+    `«${label}» در جملهٔ این آیه چه چیزی را توصیف می‌کند و چه نشانه‌ای در خودِ عبارت برای آن دارید؟`,
+    "رابطهٔ آیه با جمله یا آیهٔ پیش و پس چیست: توضیح، تقابل، نتیجه، نمونه یا موضوعی تازه؟",
+    occurrence ? `این صورتِ جست‌وجو در پیکرهٔ فعلی ${faNumber(occurrence)} بار بازیابی شده است؛ پیش از تعمیم، همهٔ مواضع آن را مقایسه کنید.` : "برای سنجش ظرفیت معنایی، مواضع دیگرِ واژه و سیاق هر موضع را جداگانه مقایسه کنید.",
+  ];
+}
+
+function renderContextStudy() {
+  const container = $("#context-study");
+  if (state.filter !== "context") {
+    container.hidden = true;
+    container.innerHTML = "";
+    return;
+  }
+  const verse = state.matches.find((item) => item.id === state.contextVerseId) || state.matches[0];
+  if (!verse) {
+    container.hidden = true;
+    return;
+  }
+  state.contextVerseId = verse.id;
+  const localContext = getContext(verse);
+  const distributions = evidenceDistribution(verse);
+  const chooser = state.matches.slice(0, Math.max(state.shown, PAGE_SIZE));
+  container.hidden = false;
+  container.innerHTML = `<section class="context-workspace" aria-labelledby="context-reading-title">
+    <div class="context-workspace-head"><div><p class="eyebrow">فهم آیه در سیاق</p><h3 id="context-reading-title">خوانشِ متن‌محورِ ${escapeHTML(verse.reference)}</h3></div><span>${faNumber(verse.surah)}:${faNumber(verse.ayah)} · ${escapeHTML(verse.revelation)}</span></div>
+    <p class="reading-notice">این نما «تفسیر خودکار» نیست: دادهٔ دقیقِ بازیابی، پنجرهٔ پیش و پس، و پرسش‌های کنترلِ استنتاج را کنار هم می‌گذارد تا ظرفیت معناییِ آیه در متن آزموده شود.</p>
+    ${chooser.length > 1 ? `<div class="context-selector" role="list" aria-label="انتخاب آیه برای خوانش سیاق">${chooser.map((item) => `<button type="button" data-context-study-id="${escapeHTML(item.id)}" class="${item.id === verse.id ? "active" : ""}" role="listitem">${escapeHTML(item.reference)}</button>`).join("")}</div>` : ""}
+    <div class="context-window">${localContext.map((item) => `<article class="context-window-verse ${item.id === verse.id ? "current" : ""}"><b>${escapeHTML(item.reference)}${item.id === verse.id ? " · آیهٔ پژوهش" : ""}</b><p lang="ar" dir="rtl">${escapeHTML(item.arabic)}</p><small>${escapeHTML(item.persian)}</small></article>`).join("")}</div>
+    <div class="semantic-reading-grid">
+      <section><h4>شاهدِ بازیابی</h4><ul>${distributions.map((item) => `<li><b>${escapeHTML(item.label)}</b><span>${escapeHTML(item.source || "متن")}</span></li>`).join("")}</ul></section>
+      <section><h4>دامنهٔ قابل سنجش در پیکره</h4><ul>${distributions.map((item) => item.count ? `<li><b>${faNumber(item.count)} آیه در ${faNumber(item.surahs)} سوره</b><span>${escapeHTML(item.references.join("، "))}${item.count > item.references.length ? " …" : ""}</span></li>` : `<li><b>${escapeHTML(item.label)}</b><span>این مسیر روایی/پرونده‌ای است؛ آمارِ تطابق واژگانی ندارد.</span></li>`).join("")}</ul></section>
+      <section class="reading-questions"><h4>پرسش‌های ظرفیت معنایی</h4><ol>${closeReadingPrompts(verse).map((prompt) => `<li>${escapeHTML(prompt)}</li>`).join("")}</ol></section>
+    </div>
+  </section>`;
 }
 
 function renderResults() {
@@ -299,6 +361,7 @@ function renderResults() {
     button.classList.toggle("active", active);
     button.setAttribute("aria-selected", String(active));
   });
+  renderContextStudy();
   renderVerseList();
 }
 
@@ -321,7 +384,9 @@ function renderVerseList() {
   } else {
     list.innerHTML = visible.map(verseCard).join("");
   }
-  $("#result-progress").textContent = `${faNumber(visible.length)} از ${faNumber(filtered.length)} آیه در این لایه · ${faNumber(new Set(state.matches.map((item) => item.surah)).size)} سوره در کل مسیر`;
+  $("#result-progress").textContent = state.filter === "context"
+    ? `خوانش سیاق برای ${faNumber(filtered.length)} آیه در دسترس است؛ آیهٔ موردنظر را از نوار بالا انتخاب کنید.`
+    : `${faNumber(visible.length)} از ${faNumber(filtered.length)} آیه در این لایه · ${faNumber(new Set(state.matches.map((item) => item.surah)).size)} سوره در کل مسیر`;
   const loadMore = $("#load-more");
   loadMore.hidden = visible.length >= filtered.length;
   if (!loadMore.hidden) loadMore.textContent = `نمایش ${faNumber(Math.min(PAGE_SIZE, filtered.length - visible.length))} آیهٔ بعدی`;
@@ -368,49 +433,58 @@ function promptsForVerse() {
 }
 
 function detailPanelNotes(verse) {
-  const direct = verse.evidence.filter((item) => item.type !== "related");
-  return `<section class="detail-panel"><p class="eyebrow">نکات متن‌محور</p><h3>از چه مسیرى این آیه وارد پژوهش شد؟</h3>
-    <p class="reading-notice">این بخش، دادهٔ بازیابی و راهنمای خواندن است؛ برداشت تفسیریِ نهایی نیست.</p>
+  const distributions = evidenceDistribution(verse);
+  const lexicalRange = distributions.map((item) => item.count ? `${item.label}: ${faNumber(item.count)} آیه / ${faNumber(item.surahs)} سوره` : `${item.label}: مسیر غیرواژگانی`).join("؛ ");
+  return `<section class="detail-panel"><p class="eyebrow">نکات آیه ـ دادهٔ قابل بازبینی</p><h3>این آیه دقیقاً از چه مسیرى وارد پژوهش شد؟</h3>
+    <p class="reading-notice">«صورتِ بازیابی» با «معنای نهایی» یکی نیست. این کارت محلِ دادهٔ دقیق و مرزِ استنتاج است، نه تفسیرِ خودکار.</p>
     <ul class="study-list">
-      <li><b>واژه‌های شاهد</b>${escapeHTML(verse.evidence.map((item) => `${item.label} (${item.source})`).join("، "))}</li>
-      <li><b>سطح ارتباط</b>${escapeHTML(typeLabel(verse.type))}. ${verse.type === "related" ? "این پیوند برای مقایسه است و هم‌معنایی قطعی را نشان نمی‌دهد." : "تطابق در متن عربی یا عبارت انتخاب‌شده ثبت شده است."}</li>
-      <li><b>اصل خواندن</b>گوینده، مخاطب، فعل و قیدهای آیه را پیش از استخراج هر پیام مشخص کنید.</li>
+      <li><b>شناسهٔ متن</b>${escapeHTML(verse.reference)} · ${escapeHTML(verse.revelation)} · آیهٔ ${faNumber(verse.ayah)} از سورهٔ ${faNumber(verse.surah)}.</li>
+      <li><b>واژه/مسیر شاهد</b>${escapeHTML(verse.evidence.map((item) => `${item.label} (${item.source})`).join("، "))}</li>
+      <li><b>دامنهٔ مشاهده‌پذیر</b>${escapeHTML(lexicalRange || "برای این مسیر، آمار واژگانیِ مستقلی ثبت نشده است.")}</li>
+      <li><b>سطح ارتباط</b>${escapeHTML(typeLabel(verse.type))}. ${verse.type === "related" ? "این پیوند برای مقایسه است و هم‌معنایی قطعی یا مقصد سوره را ثابت نمی‌کند." : "تطابق در متن عربی یا عبارت انتخاب‌شده ثبت شده است."}</li>
+      <li><b>کنترل خوانش</b>فاعل/مفعول یا مخاطب، نفی و اثبات، قیدها و نسبتِ جمله با پیش و پس را از خودِ متن جداگانه ثبت کنید.</li>
     </ul></section>`;
 }
 
 function detailPanelFoundations(verse) {
   const evidenceKinds = [...new Set(verse.evidence.map((item) => typeLabel(item.type)))].join("، ");
-  return `<section class="detail-panel"><p class="eyebrow">اصول و مبانیِ خواندن آیه</p><h3>پیش از برداشت، پایه‌های بررسی را روشن کنید.</h3>
-    <ul class="study-list"><li><b>پایهٔ متن</b>متن عربیِ آیه، نقطهٔ آغاز است؛ ترجمه برای فهم فارسی کمک می‌کند اما جای تحلیلِ واژهٔ عربی را نمی‌گیرد.</li><li><b>پایهٔ بازیابی</b>این آیه با سطحِ «${escapeHTML(evidenceKinds)}» وارد مسیر شده است. سطحِ بازیابی را با معنای نهاییِ آیه یکی نگیرید.</li><li><b>پایهٔ سیاق</b>گوینده، مخاطب، پیوستگی پیش و پس و جایگاه آیه در سوره، پیش از تعمیم‌دادن بررسی می‌شود.</li><li><b>پایهٔ اختلاف دیدگاه</b>هر داوری تفسیری به منبع، مؤلف، جلد و صفحه نیاز دارد؛ در یادداشت پژوهش ثبتش کنید.</li></ul></section>`;
+  const hasArabicWitness = verse.evidence.some((item) => item.scope !== "persian" && item.value);
+  const contextSize = getContext(verse).length;
+  return `<section class="detail-panel"><p class="eyebrow">اصول و مبانیِ خواندن آیه</p><h3>چه چیزهایی باید پیش از هر برداشت کنترل شوند؟</h3>
+    <ul class="study-list"><li><b>پایهٔ متن</b>${hasArabicWitness ? "صورتِ عربیِ شاهد در پیکره دیده شده است؛ ترجمه فقط برای خوانش فارسیِ همراه آن است." : "این مسیر از ترجمه یا پروندهٔ روایی آمده است؛ برای تحلیل واژه، متن عربی را جداگانه بررسی کنید."}</li><li><b>پایهٔ بازیابی</b>این آیه با سطحِ «${escapeHTML(evidenceKinds)}» وارد مسیر شده است. سطحِ بازیابی، ادعای معنای نهاییِ آیه نیست.</li><li><b>پایهٔ سیاق نزدیک</b>${faNumber(contextSize)} آیه در پنجرهٔ پیش/خود/پسِ همین سوره در دسترس است. پیوستگی جمله‌ها را پیش از تعمیم بررسی کنید.</li><li><b>پایهٔ زبان</b>ریشه، صورت صرفی، نقش نحوی و مرجع ضمیر باید با منبع زبان‌شناختیِ معتبر کنترل شوند؛ پیکرهٔ فعلی تحلیل صرفیِ ادعایی تولید نمی‌کند.</li><li><b>پایهٔ اختلاف دیدگاه</b>هر داوری تفسیری به منبع، مؤلف، جلد و صفحه نیاز دارد؛ آن را در یادداشت پژوهش ثبت کنید.</li></ul></section>`;
 }
 
 function detailPanelFramework(verse) {
+  const direct = verse.evidence.filter((item) => item.type !== "related");
   const equivalents = state.terms.filter((item) => item.type === "equivalent");
   const related = state.terms.filter((item) => item.type === "related");
-  return `<section class="detail-panel"><p class="eyebrow">چارچوب معنایی و مبانی بررسی</p><h3>مفهوم را به جایِ یک برچسبِ کلی، لایه‌لایه بخوانید.</h3>
-    <p>مفهومِ پایه: <b>${escapeHTML(state.concept?.title || state.query)}</b>. واژه‌های زیر مسیرِ بازیابی‌اند و نه معادل‌سازیِ تفسیریِ قطعی.</p>
-    <div class="semantic-columns"><div class="semantic-box"><h4>معادل‌های قرآنیِ فعال</h4>${equivalents.map((item) => `<span>${escapeHTML(item.label)}</span>`).join("") || "<span>—</span>"}</div><div class="semantic-box related"><h4>پیوندهای مرتبطِ فعال</h4>${related.map((item) => `<span>${escapeHTML(item.label)}</span>`).join("") || "<span>—</span>"}</div></div>
-    <ul class="study-list"><li><b>مبنای اول</b>خودِ واژهٔ عربی، پیش از ترجمه و برداشت، بررسی می‌شود.</li><li><b>مبنای دوم</b>پیوند مرتبط باید در همان سیاق آزموده شود؛ صرفِ حضور یک ریشه، نتیجهٔ مفهومی نمی‌سازد.</li></ul></section>`;
+  const directLabel = direct.map((item) => item.label).join("، ") || "شاهدِ مستقیمِ واژگانی در این کارت ثبت نشده است";
+  return `<section class="detail-panel"><p class="eyebrow">چارچوب معنایی ـ لایه‌های جدا</p><h3>ظرفیت معنایی را با لایه‌هایش بخوانید، نه با یک برچسب.</h3>
+    <p>پرسشِ پایه: <b>${escapeHTML(state.concept?.title || state.query)}</b>. در این آیه، نقطهٔ شروعِ قابل مشاهده <b>${escapeHTML(directLabel)}</b> است.</p>
+    <div class="semantic-columns"><div class="semantic-box"><h4>لایهٔ متن و معادل‌ها</h4>${equivalents.map((item) => `<span>${escapeHTML(item.label)}</span>`).join("") || `<span>${escapeHTML(directLabel)}</span>`}</div><div class="semantic-box related"><h4>لایهٔ پیوندهای نیازمند آزمون</h4>${related.map((item) => `<span>${escapeHTML(item.label)}</span>`).join("") || "<span>در این جست‌وجو پیوند مرتبطی فعال نشده است.</span>"}</div></div>
+    <ul class="study-list"><li><b>لایهٔ اول: دلالت در جمله</b>واژه در این جمله به چه چیز، کنش یا نسبتی اشاره می‌کند؟ پاسخ باید با ساختار خودِ آیه سنجیده شود.</li><li><b>لایهٔ دوم: توزیع قرآنی</b>مواضع دیگرِ همان صورت را مقایسه کنید؛ اشتراکِ صورت به‌تنهایی اشتراکِ کارکرد را ثابت نمی‌کند.</li><li><b>لایهٔ سوم: پیوند مفهومی</b>هر پیوند مرتبط فقط یک فرضیهٔ پژوهش است تا با سیاق و منبع تفسیری آزموده شود.</li></ul></section>`;
 }
 
 function detailPanelMessages(verse) {
-  return `<section class="detail-panel"><p class="eyebrow">پیام‌های قابل بررسی</p><h3>پیام را از متن استخراج کنید، نه از یک کارت آماده.</h3>
-    <p class="reading-notice">برای حفظ امانت متن، این بخش «پرسشِ استخراج پیام» می‌دهد، نه یک تفسیرِ خودکار و قطعی.</p>
-    <ul class="study-list">${promptsForVerse().map((prompt, index) => `<li><b>پرسش ${faNumber(index + 1)}</b>${escapeHTML(prompt)}</li>`).join("")}<li><b>پیوند با این آیه</b>بررسی کنید «${escapeHTML(verse.evidence[0]?.label || state.query)}» در این آیه چه نقشی دارد و چه چیزی را نمی‌توان از آن نتیجه گرفت.</li></ul></section>`;
+  const prompts = [...promptsForVerse(), ...closeReadingPrompts(verse)].filter((item, index, items) => items.indexOf(item) === index);
+  return `<section class="detail-panel"><p class="eyebrow">پیام‌های قابل بررسی</p><h3>از دادهٔ آیه به پرسشِ پیام برسید، نه به یک جمع‌بندیِ آماده.</h3>
+    <p class="reading-notice">این‌ها پرسش‌های قابل پیگیری‌اند، نه پیام‌های منسوب به قرآن. هر پاسخ تفسیری باید به متن، سیاق و منبعِ دقیق تکیه کند.</p>
+    <ul class="study-list">${prompts.map((prompt, index) => `<li><b>پرسش ${faNumber(index + 1)}</b>${escapeHTML(prompt)}</li>`).join("")}<li><b>ثبت نتیجهٔ موقت</b>اگر پاسخی یافتید، دلیلِ لفظی، آیه‌های مقایسه‌ای و مأخذ تفسیری را در «یادداشت من» همراه با جلد و صفحه ثبت کنید.</li></ul></section>`;
 }
 
 function detailPanelContext(verse) {
   const context = getContext(verse);
-  return `<section class="detail-panel"><p class="eyebrow">آیه در سیاق سوره</p><h3>پیش و پسِ آیه را کنار هم بخوانید.</h3><p>این پنجرهٔ خطی جای مطالعهٔ کامل سوره را نمی‌گیرد، اما از بریده‌خوانی جلوگیری می‌کند.</p>
-    <div class="context-grid">${context.map((item) => `<button class="context-verse ${item.id === verse.id ? "current" : ""}" data-context-id="${escapeHTML(item.id)}" type="button"><b>${escapeHTML(item.reference)}</b><p>${escapeHTML(item.persian)}</p></button>`).join("")}</div></section>`;
+  return `<section class="detail-panel"><p class="eyebrow">آیه در سیاق سوره</p><h3>پیش و پسِ آیه را کنار هم بخوانید.</h3><p>پنجرهٔ خطیِ زیر جای مطالعهٔ کامل سوره را نمی‌گیرد، اما دادهٔ لازم برای پرهیز از بریده‌خوانی را نشان می‌دهد. برای جزئیاتِ توزیع و پرسش‌ها، «فهم آیه در سیاق» در صفحهٔ پیشین را باز کنید.</p>
+    <div class="context-grid">${context.map((item) => `<button class="context-verse ${item.id === verse.id ? "current" : ""}" data-context-id="${escapeHTML(item.id)}" type="button"><b>${escapeHTML(item.reference)}${item.id === verse.id ? " · آیهٔ پژوهش" : ""}</b><p class="context-arabic" lang="ar" dir="rtl">${escapeHTML(item.arabic)}</p><p>${escapeHTML(item.persian)}</p></button>`).join("")}</div></section>`;
 }
 
 function detailPanelQuran(verse) {
   const sameSurah = state.matches.filter((item) => item.surah === verse.surah && item.id !== verse.id).slice(0, 5);
   const surahs = new Set(state.matches.map((item) => item.surah)).size;
+  const distributions = evidenceDistribution(verse).filter((item) => item.count);
   return `<section class="detail-panel"><p class="eyebrow">آیه در نسبت با کل قرآن</p><h3>جای این آیه در مسیرِ همین پژوهش</h3>
-    <ul class="study-list"><li><b>پوشش بازیابی</b>${faNumber(state.matches.length)} آیه در ${faNumber(surahs)} سوره، بر پایهٔ واژه‌های فعالِ همین پرسش پیدا شده‌اند.</li><li><b>مرز نتیجه</b>این شمارش، اهمیت تفسیری یا همهٔ ارتباط‌های ممکن میان آیات را رتبه‌بندی نمی‌کند.</li></ul>
-    ${sameSurah.length ? `<div class="related-verses">${sameSurah.map((item) => `<button class="related-verse" type="button" data-related-id="${escapeHTML(item.id)}">${escapeHTML(item.reference)} · ${escapeHTML(item.evidence[0]?.label || "شاهد")}</button>`).join("")}</div>` : "<p>در این مسیر، شاهدِ دیگری از همین سوره در فهرست فعلی نیست.</p>"}</section>`;
+    <ul class="study-list"><li><b>پوشش پرسش فعلی</b>${faNumber(state.matches.length)} آیه در ${faNumber(surahs)} سوره، بر پایهٔ واژه‌های فعالِ همین جست‌وجو بازیابی شده‌اند.</li>${distributions.map((item) => `<li><b>توزیعِ «${escapeHTML(item.label)}»</b>${faNumber(item.count)} آیه در ${faNumber(item.surahs)} سوره؛ مواضع نخست: ${escapeHTML(item.references.join("، "))}${item.count > item.references.length ? " …" : ""}</li>`).join("")}<li><b>مرز نتیجه</b>این شمارش، اهمیت تفسیری یا همهٔ ارتباط‌های ممکن میان آیات را رتبه‌بندی نمی‌کند؛ سیاق و منابع تفسیریِ ارجاع‌دار لازم‌اند.</li></ul>
+    ${sameSurah.length ? `<div class="related-verses">${sameSurah.map((item) => `<button class="related-verse" type="button" data-related-id="${escapeHTML(item.id)}">${escapeHTML(item.reference)} · ${escapeHTML(item.evidence[0]?.label || "شاهد")}</button>`).join("")}</div>` : "<p>در مسیر فعلی، شاهدِ دیگری از همین سوره بازیابی نشده است.</p>"}</section>`;
 }
 
 function detailPanelNotebook(verse) {
@@ -629,6 +703,13 @@ $$("[data-surah-tab]").forEach((button) => button.addEventListener("click", () =
 $("#verse-list").addEventListener("click", (event) => {
   const card = event.target.closest("[data-verse-id]");
   if (card) openVerse(card.dataset.verseId);
+});
+
+$("#context-study").addEventListener("click", (event) => {
+  const selector = event.target.closest("[data-context-study-id]");
+  if (!selector) return;
+  state.contextVerseId = selector.dataset.contextStudyId;
+  renderContextStudy();
 });
 
 $("#load-more").addEventListener("click", () => {

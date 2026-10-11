@@ -86,6 +86,16 @@ class QuranResearchTests(unittest.TestCase):
         self.assertGreater(len(arabic_matches), 0)
         self.assertFalse(any(main.normalize("عشق") in record["arabic_normalized"] for record in main.CORPUS))
 
+    def test_context_reading_workspace_is_present_in_the_offline_ui(self):
+        static_dir = Path(main.STATIC_DIR)
+        html = (static_dir / "index.html").read_text(encoding="utf-8")
+        script = (static_dir / "app.js").read_text(encoding="utf-8")
+        self.assertIn('data-filter="context"', html)
+        self.assertIn("فهم آیه در سیاق", html)
+        self.assertIn('id="context-study"', html)
+        self.assertIn("function renderContextStudy()", script)
+        self.assertIn("function evidenceDistribution(verse)", script)
+
     def test_initial_story_library_uses_valid_quran_ranges(self):
         story_index = json.loads((Path(main.STATIC_DIR) / "story-index.json").read_text(encoding="utf-8"))
         self.assertEqual(len(story_index["stories"]), len(main.STORY_RANGES))
