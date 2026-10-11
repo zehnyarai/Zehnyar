@@ -1,6 +1,7 @@
 const CORPUS_URL = "static/offline-corpus.json";
 const LEXICON_URL = "static/concept-lexicon.json";
 const STORY_INDEX_URL = "static/story-index.json";
+const TOPIC_CATALOG_URL = "static/topic-catalog.json";
 const NOTEBOOK_KEY = "zehnyar-verse-notebook-v2";
 const PAGE_SIZE = 12;
 
@@ -11,6 +12,8 @@ const state = {
   corpus: [],
   recordById: new Map(),
   lexicon: null,
+  concepts: [],
+  topicCategories: [],
   stories: [],
   libraryMode: null,
   selectedSurah: null,
@@ -120,10 +123,13 @@ function recordFromTuple(tuple) {
 }
 
 async function loadData() {
-  const [corpusResponse, lexiconResponse, storyResponse] = await Promise.all([fetch(CORPUS_URL), fetch(LEXICON_URL), fetch(STORY_INDEX_URL)]);
-  if (!corpusResponse.ok || !lexiconResponse.ok || !storyResponse.ok) throw new Error("پیکرهٔ محلی یا فهرست پژوهش در دسترس نیست.");
+  const [corpusResponse, lexiconResponse, storyResponse, catalogResponse] = await Promise.all([fetch(CORPUS_URL), fetch(LEXICON_URL), fetch(STORY_INDEX_URL), fetch(TOPIC_CATALOG_URL)]);
+  if (!corpusResponse.ok || !lexiconResponse.ok || !storyResponse.ok || !catalogResponse.ok) throw new Error("پیکرهٔ محلی یا فهرست پژوهش در دسترس نیست.");
   const corpus = await corpusResponse.json();
   state.lexicon = await lexiconResponse.json();
+  const catalog = await catalogResponse.json();
+  state.concepts = [...(state.lexicon.concepts || []), ...(catalog.concepts || [])];
+  state.topicCategories = catalog.categories || [];
   state.stories = (await storyResponse.json()).stories || [];
   state.corpus = corpus.verses.map(recordFromTuple);
   state.recordById = new Map(state.corpus.map((record) => [record.id, record]));
@@ -133,17 +139,18 @@ async function loadData() {
 
 function renderStarters() {
   const priority = ["محبت و عشق", "عدالت", "رحمت", "خانواده", "علم و اندیشه", "آزادی و اختیار", "دعا و عبادت", "توبه"];
-  const concepts = [...(state.lexicon?.concepts || [])].sort((a, b) => {
+  const concepts = [...state.concepts].sort((a, b) => {
     const aIndex = priority.indexOf(a.title);
     const bIndex = priority.indexOf(b.title);
     return (aIndex < 0 ? 99 : aIndex) - (bIndex < 0 ? 99 : bIndex);
   });
-  $("#starter-list").innerHTML = concepts.map((concept) => `<button class="starter" type="button" data-concept="${escapeHTML(concept.aliases[0])}">${escapeHTML(concept.title)}</button>`).join("");
+  const featured = concepts.slice(0, 12);
+  $("#starter-list").innerHTML = `${featured.map((concept) => `<button class="starter" type="button" data-concept="${escapeHTML(concept.aliases[0])}">${escapeHTML(concept.title)}</button>`).join("")}<button class="starter starter-catalog" type="button" data-open-topic-library="true">همهٔ ${faNumber(concepts.length)} مسیر موضوعی ←</button>`;
 }
 
 function resolveConcept(query) {
   const normalized = normalize(query);
-  const matches = (state.lexicon?.concepts || []).flatMap((concept) => (concept.aliases || []).map((alias) => ({ concept, alias: normalize(alias) })))
+  const matches = state.concepts.flatMap((concept) => (concept.aliases || []).map((alias) => ({ concept, alias: normalize(alias) })))
     .filter((item) => item.alias && normalized.includes(item.alias))
     .sort((a, b) => b.alias.length - a.alias.length);
   return matches[0]?.concept || null;
@@ -375,12 +382,31 @@ function verseCard(verse) {
   </button>`;
 }
 
+function emptyLayerNotice() {
+  const topicName = state.concept?.title || state.query;
+  if (state.filter === "equivalent") {
+    const equivalents = state.terms.filter((term) => term.type === "equivalent");
+    const body = equivalents.length
+      ? `واژه‌های معادلِ فعال بررسی شدند، اما در پیکرهٔ فعلی برای «${topicName}» شاهدی در این لایه بازنگشت.`
+      : `این جست‌وجو با ریشه یا صورتِ عربی آغاز شده است. برای «${topicName}» هنوز معادلِ قرآنیِ بازبینی‌شده‌ای در واژه‌نامهٔ محلی ثبت نشده؛ برنامه به‌جای ساختنِ مترادفِ حدسی، این مرز را آشکار می‌کند.`;
+    return `<section class="layer-notice"><p class="eyebrow">لایهٔ معادل قرآنی</p><h3>این لایه بررسی شد؛ شاهدِ مستقلی ندارد.</h3><p>${escapeHTML(body)}</p><p>برای خودِ آیه، «فهم آیه در سیاق» را باز کنید؛ برای گسترش موضوع، از نقشهٔ موضوعات یک مسیر واژگانیِ صریح برگزینید.</p></section>`;
+  }
+  if (state.filter === "related") {
+    const related = state.terms.filter((term) => term.type === "related");
+    const body = related.length
+      ? `پیوندهای مرتبطِ فعال برای «${topicName}» جست‌وجو شدند، ولی در پیکرهٔ فعلی شاهدی بازنگشت.`
+      : `برای «${topicName}» پیوندِ مرتبطِ بازبینی‌شده‌ای فعال نشده است. این نتیجه، خلأ داده را نشان می‌دهد و از افزودنِ ارتباط معناییِ بی‌دلیل جلوگیری می‌کند.`;
+    return `<section class="layer-notice"><p class="eyebrow">لایهٔ پیوندهای مرتبط</p><h3>پیوند حدسی جای داده را نگرفته است.</h3><p>${escapeHTML(body)}</p><p>در نقشهٔ موضوعات، موضوع‌های گسترده‌تر با واژه‌های عربیِ آشکار در دسترس‌اند؛ هر پیوند مرتبط در آن‌ها جداگانه برچسب می‌خورد.</p></section>`;
+  }
+  return `<section class="layer-notice"><p class="eyebrow">نتیجه‌ای در این لایه نیست</p><h3>دامنهٔ جست‌وجو را بررسی کنید.</h3><p>می‌توانید یک صورت عربی، کلیدواژهٔ دقیق یا مسیر موضوعی دیگر وارد کنید.</p></section>`;
+}
+
 function renderVerseList() {
   const filtered = resultsByFilter();
   const visible = filtered.slice(0, state.shown);
   const list = $("#verse-list");
   if (!visible.length) {
-    list.replaceChildren($("#empty-result-template").content.cloneNode(true));
+    list.innerHTML = emptyLayerNotice();
   } else {
     list.innerHTML = visible.map(verseCard).join("");
   }
@@ -537,7 +563,7 @@ function surahRecords(surah) {
 
 function topicHitsForSurah(surah, layer) {
   const records = surahRecords(surah);
-  return (state.lexicon?.concepts || []).map((concept) => {
+  return state.concepts.map((concept) => {
     const terms = layer === "direct" ? concept.equivalents : concept.related;
     const count = records.filter((record) => (terms || []).some(([term]) => record.arabicNormalized.includes(normalize(term)))).length;
     return { title: concept.title, count };
@@ -551,6 +577,14 @@ function openLibrary(mode, shouldNavigate = true) {
     $("#library-title").textContent = "پژوهش در ۱۱۴ سوره";
     $("#library-description").textContent = "هر سوره یک پروندهٔ مستقل دارد: نکات متن‌محور، پرسش‌های پیام، موضوعات صریحِ واژگانی و پیوندهای مرتبط. این برچسب‌ها جای تفسیر منبع‌دار را نمی‌گیرند.";
     $("#library-list").innerHTML = surahs.map((surah) => `<button class="library-card" type="button" data-surah="${surah.surah}"><b>${faNumber(surah.surah)} · ${escapeHTML(surah.surahName)}</b><span>${escapeHTML(surah.revelation)} · ${faNumber(surahRecords(surah.surah).length)} آیه</span><i>←</i></button>`).join("");
+  } else if (mode === "topics") {
+    const byId = new Map(state.concepts.map((concept) => [concept.id, concept]));
+    $("#library-title").textContent = "نقشهٔ گستردهٔ موضوعات قرآن";
+    $("#library-description").textContent = `${faNumber(state.concepts.length)} مسیر واژگانیِ شفاف در پنج حوزه آماده است. هر موضوع با واژه‌های عربیِ قابل مشاهده جست‌وجو می‌شود؛ این فهرست، نقشهٔ ورود به متن است نه فهرستِ تفسیرهای قطعی.`;
+    $("#library-list").innerHTML = state.topicCategories.map((category) => {
+      const concepts = category.topics.map((id) => byId.get(id)).filter(Boolean);
+      return `<section class="topic-category"><p class="eyebrow">${escapeHTML(category.title)}</p><p>${escapeHTML(category.description)}</p><div class="topic-catalog-list">${concepts.map((concept) => `<button type="button" data-topic-concept="${escapeHTML(concept.id)}">${escapeHTML(concept.title)}</button>`).join("")}</div></section>`;
+    }).join("");
   } else {
     $("#library-title").textContent = "داستان‌ها و مسیرهای روایی قرآن";
     $("#library-description").textContent = "هر مسیر روایی، بازهٔ آیات و پرسشِ خوانش خود را دارد. فهرست فعلی مسیرهای آغازین است و برای پوشش کامل‌تر، با منابعِ چندگانه نسخه‌بندی می‌شود.";
@@ -649,7 +683,7 @@ function restoreFromHistory() {
   const hash = location.hash;
   if (hash.startsWith("#library/")) {
     const mode = decodeURIComponent(hash.slice(9));
-    if (["surahs", "stories"].includes(mode)) {
+    if (["surahs", "stories", "topics"].includes(mode)) {
       openLibrary(mode, false);
       return;
     }
@@ -683,12 +717,19 @@ $("#concept-form").addEventListener("submit", (event) => {
 
 $("#starter-list").addEventListener("click", (event) => {
   const button = event.target.closest("[data-concept]");
-  if (button) runStarter(button.dataset.concept);
+  if (button) return runStarter(button.dataset.concept);
+  if (event.target.closest("[data-open-topic-library]")) openLibrary("topics");
 });
 
+$("#open-topic-library").addEventListener("click", () => openLibrary("topics"));
 $("#open-surah-library").addEventListener("click", () => openLibrary("surahs"));
 $("#open-story-library").addEventListener("click", () => openLibrary("stories"));
 $("#library-list").addEventListener("click", (event) => {
+  const topic = event.target.closest("[data-topic-concept]");
+  if (topic) {
+    const concept = state.concepts.find((item) => item.id === topic.dataset.topicConcept);
+    if (concept) return runStarter(concept.aliases[0] || concept.title);
+  }
   const surah = event.target.closest("[data-surah]");
   if (surah) return openSurah(surah.dataset.surah);
   const story = event.target.closest("[data-story]");

@@ -96,6 +96,16 @@ class QuranResearchTests(unittest.TestCase):
         self.assertIn("function renderContextStudy()", script)
         self.assertIn("function evidenceDistribution(verse)", script)
 
+    def test_broad_topic_catalog_is_grouped_and_lexically_traceable(self):
+        catalog = json.loads((Path(main.STATIC_DIR) / "topic-catalog.json").read_text(encoding="utf-8"))
+        concepts = {concept["id"]: concept for concept in catalog["concepts"]}
+        category_ids = [topic for category in catalog["categories"] for topic in category["topics"]]
+        self.assertGreaterEqual(len(concepts), 90)
+        self.assertEqual(len(category_ids), len(set(category_ids)))
+        self.assertEqual(set(category_ids), set(concepts))
+        self.assertTrue(all(concept["equivalents"] for concept in concepts.values()))
+        self.assertTrue(all(concept["related"] for concept in concepts.values()))
+
     def test_initial_story_library_uses_valid_quran_ranges(self):
         story_index = json.loads((Path(main.STATIC_DIR) / "story-index.json").read_text(encoding="utf-8"))
         self.assertEqual(len(story_index["stories"]), len(main.STORY_RANGES))
