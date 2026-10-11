@@ -75,6 +75,15 @@
         <div id="surah-panels" class="detail-panels"></div>
       </section>
 
+      <section id="story-screen" class="screen story-screen" hidden aria-labelledby="story-title">
+        <div class="screen-topbar"><button class="back-button" data-go="library" type="button">← کتابخانهٔ داستان‌ها</button><button id="story-open-passages" class="save-button" type="button">خواندن همهٔ آیات مسیر</button></div>
+        <article class="detail-verse story-hero"><p id="story-reference" class="detail-reference">—</p><h2 id="story-title">—</h2><p id="story-description" class="detail-persian"></p></article>
+        <div class="study-tabs" role="tablist" aria-label="پروندهٔ پژوهش داستان">
+          <button class="active" data-story-tab="route" type="button">مسیر و آیات</button><button data-story-tab="elements" type="button">عناصر روایت</button><button data-story-tab="principles" type="button">قاعده‌های قابل بررسی</button><button data-story-tab="applications" type="button">کاربست امروز</button><button data-story-tab="method" type="button">الگوریتم پژوهش</button>
+        </div>
+        <div id="story-panels" class="detail-panels"></div>
+      </section>
+
       <section id="results-screen" class="screen results-screen" hidden aria-labelledby="results-title">
         <div class="screen-topbar">
           <button class="back-button" data-go="search" type="button">← جست‌وجوی تازه</button>
@@ -120,6 +129,7 @@
           <button data-detail-tab="messages" type="button" role="tab" aria-selected="false">پیام‌های قابل بررسی</button>
           <button data-detail-tab="context" type="button" role="tab" aria-selected="false">سیاق سوره</button>
           <button data-detail-tab="quran" type="button" role="tab" aria-selected="false">نسبت با قرآن</button>
+          <button data-detail-tab="tafsir" type="button" role="tab" aria-selected="false">تفاسیر منبع‌دار</button>
           <button data-detail-tab="notebook" type="button" role="tab" aria-selected="false">یادداشت من</button>
         </div>
         <div id="detail-panels" class="detail-panels"></div>
@@ -141,8 +151,8 @@
     <dialog id="sources-dialog" class="dialog" aria-labelledby="sources-title">
       <form method="dialog"><button class="dialog-close" aria-label="بستن">×</button></form>
       <p class="eyebrow">منابع و حدود استفاده</p>
-      <h2 id="sources-title">متن و ترجمه</h2>
-      <p>متن عربیِ برنامه: Tanzil Uthmani. ترجمهٔ فعلی: QuranEnc، Ihsan Elahi Zaheer. واژه‌نامهٔ مفهومی، یک ابزار بازیابی و آغاز پژوهش است؛ جای تفسیر معتبر را نمی‌گیرد.</p>
+      <h2 id="sources-title">متن، ترجمه و تفسیر</h2>
+      <p>متن عربیِ برنامه: Tanzil Uthmani. ترجمهٔ فعلی: QuranEnc، Ihsan Elahi Zaheer. برای هر آیه دو متن تفسیریِ بدون‌ویرایش در تب «تفاسیر منبع‌دار» آمده است: ترجمهٔ فارسی المختصر و التفسير الميسر؛ نام اثر، نسخه و پیوند آن‌ها در همان پرونده ثبت شده است. واژه‌نامهٔ مفهومی ابزار بازیابی است، نه جایگزین تفسیر معتبر.</p>
       <a href="https://github.com/zehnyarai/Zehnyar#readme" target="_blank" rel="noreferrer">راهنمای پروژه ↗</a>
     </dialog>
 

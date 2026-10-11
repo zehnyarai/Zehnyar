@@ -106,6 +106,27 @@ class QuranResearchTests(unittest.TestCase):
         self.assertTrue(all(concept["equivalents"] for concept in concepts.values()))
         self.assertTrue(all(concept["related"] for concept in concepts.values()))
 
+    def test_full_cited_tafsir_sources_cover_the_complete_corpus(self):
+        static_dir = Path(main.STATIC_DIR)
+        registry = json.loads((static_dir / "tafsir-sources.json").read_text(encoding="utf-8"))
+        self.assertEqual(len(registry["sources"]), 2)
+        for source in registry["sources"]:
+            payload = json.loads((static_dir / source["file"].removeprefix("static/")).read_text(encoding="utf-8"))
+            verse_total = sum(len(ayahs) for ayahs in payload["verses"].values())
+            self.assertEqual(verse_total, 6236)
+            self.assertEqual(payload["edition"]["version"], source["version"])
+            self.assertTrue(source["sourceUrl"].startswith("https://quranenc.com/"))
+
+    def test_all_initial_story_dossiers_have_anchored_material(self):
+        static_dir = Path(main.STATIC_DIR)
+        story_index = json.loads((static_dir / "story-index.json").read_text(encoding="utf-8"))
+        dossiers = json.loads((static_dir / "story-dossiers.json").read_text(encoding="utf-8"))["dossiers"]
+        self.assertEqual(set(dossiers), {story["id"] for story in story_index["stories"]})
+        for dossier in dossiers.values():
+            self.assertTrue(dossier["stages"])
+            self.assertTrue(dossier["principles"])
+            self.assertTrue(dossier["applications"])
+
     def test_initial_story_library_uses_valid_quran_ranges(self):
         story_index = json.loads((Path(main.STATIC_DIR) / "story-index.json").read_text(encoding="utf-8"))
         self.assertEqual(len(story_index["stories"]), len(main.STORY_RANGES))
