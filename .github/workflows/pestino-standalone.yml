@@ -25,7 +25,24 @@ jobs:
         run: npm run build:standalone
       - run: npx playwright install --with-deps chromium webkit
       - name: Test local storage, photos, backups and fully offline operation
-        run: npm run test:standalone -- --reporter=github
+        # The log is kept in the runner so failures can be annotated for the API, because
+        # this project's sandbox cannot download the raw job log from the CDN.
+        run: |
+          set +e
+          npm run test:standalone -- --reporter=line > /tmp/e2e.log 2>&1
+          code=$?
+          tail -c 200000 /tmp/e2e.log
+          python3 - <<'PYCONTEXT'
+          from pathlib import Path
+          log = Path('/tmp/e2e.log')
+          lines = log.read_text(errors='ignore').splitlines() if log.exists() else []
+          keep = [l for l in lines if l.strip()]
+          for line in keep[-25:]:
+              print('::notice title=Standalone E2E log::' + line.replace('%', '%25')[:900])
+          for line in [l for l in keep if 'Error:' in l or l.strip().startswith('expect') or '›' in l and 'failed' in l][:25]:
+              print('::error title=Standalone E2E failure::' + line.replace('%', '%25')[:900])
+          PYCONTEXT
+          exit $code
       - name: Expose failed browser context without external log downloads
         if: failure()
         run: |
