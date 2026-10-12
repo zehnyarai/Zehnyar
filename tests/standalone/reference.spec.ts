@@ -312,9 +312,7 @@ test('offline admin panel connects the model and keeps the owner ledger honest',
   await page.getByRole('checkbox', { name: /تأیید می‌کنم شماره کارت/ }).check()
   await page.getByRole('button', { name: 'ذخیره کارت مقصد' }).click()
   await expect(
-    page
-      .locator('.local-admin-page .local-settings-card p.muted')
-      .filter({ hasText: 'کارت ثبت‌شده' })
+    page.locator('.local-admin-page p.muted').filter({ hasText: 'کارت ثبت‌شده' })
   ).toContainText(/9401\s*-\s*6524\s*-\s*7311\s*-\s*6063/)
   await page.getByLabel('نام پرداخت‌کننده').fill('باغدار نمونه')
   await page.getByLabel('مبلغ (تومان)').fill('990000')
