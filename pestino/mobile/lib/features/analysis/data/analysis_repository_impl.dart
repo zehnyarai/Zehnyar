@@ -27,7 +27,7 @@ class AnalysisRepositoryImpl implements AnalysisRepository {
       });
 
   @override
-  Future<AnalysisPage> list({String? cursor, String? farmId, int limit = 20}) => _guard(() async {
+  Future<AnalysisListPage> list({String? cursor, String? farmId, int limit = 20}) => _guard(() async {
         final res = await _dio.get<Map<String, dynamic>>(
           '/analyses',
           queryParameters: {
@@ -39,7 +39,7 @@ class AnalysisRepositoryImpl implements AnalysisRepository {
         final items = (res.data!['items'] as List)
             .map((e) => AnalysisSummary.fromJson(e as Map<String, dynamic>))
             .toList();
-        return AnalysisPage(items: items, nextCursor: res.data!['nextCursor'] as String?);
+        return AnalysisListPage(items: items, nextCursor: res.data!['nextCursor'] as String?);
       });
 
   @override

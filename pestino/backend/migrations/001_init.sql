@@ -2,7 +2,7 @@
 -- PostgreSQL 13+. Each migration file is executed inside a transaction by the runner.
 
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- gen_random_uuid() is built into PostgreSQL 13+, so no extension is required.
 
 -- ---------------------------------------------------------------------------
 -- Users & authentication

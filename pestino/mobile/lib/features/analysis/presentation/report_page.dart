@@ -157,7 +157,7 @@ class _ReportBody extends StatelessWidget {
           PestinoCard(
             child: Column(
               children: [
-                for (final ref in r.references)
+                for (final reference in r.references)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Row(
@@ -165,8 +165,8 @@ class _ReportBody extends StatelessWidget {
                       children: [
                         const Icon(Icons.menu_book_outlined, size: 18, color: AppColors.earth500),
                         const SizedBox(width: 10),
-                        Expanded(child: Text(ref.citation, style: const TextStyle(fontSize: 13, height: 1.6))),
-                        if (!ref.verified)
+                        Expanded(child: Text(reference.citation, style: const TextStyle(fontSize: 13, height: 1.6))),
+                        if (!reference.verified)
                           const Padding(
                             padding: EdgeInsets.only(right: 6),
                             child: StatusChip(label: 'در انتظار بازبینی', color: AppColors.warning),

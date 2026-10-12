@@ -1,6 +1,6 @@
 # Pestino — Database design
 
-PostgreSQL 15+ (uses `gen_random_uuid()` from `pgcrypto`/core). Schema: `backend/migrations/001_init.sql`.
+PostgreSQL 13+. No extensions are required (`gen_random_uuid()` is built in). Schema: `backend/migrations/001_init.sql`.
 Run with `npm run db:migrate`. Each migration runs in a transaction.
 
 ## Entities

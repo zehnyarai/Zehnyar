@@ -25,6 +25,8 @@ The app shows Persian text per code (`core/errors/app_failure.dart`).
 
 ## Auth
 
+Public (no token): `/auth/*`, `/subscriptions/plans`, `/health`. Everything else requires a bearer token.
+
 | Method | Path | Body / notes | Response |
 |---|---|---|---|
 | POST | `/auth/otp/request` | `{ "phone": "09121234567" }` | 202 `{ "expiresIn": 120, "devCode"?: "123456" }` (`devCode` only when `OTP_DEV_ECHO=true`, never in production) |
@@ -100,8 +102,8 @@ Note: `references` contains only entries from the curated knowledge base. `verif
 
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/knowledge?kind=pest&q=psylla` | `kind` ∈ `pest | disease | nutrient | environmental`. 200 `{ "items": [KnowledgeSummary] }` |
-| GET | `/knowledge/:slug` | 200 `{ "article": KnowledgeArticle }`; 404 `ARTICLE_NOT_FOUND` |
+| GET | `/knowledge?kind=pest&q=psylla` | Requires bearer token. `kind` ∈ `pest | disease | nutrient | environmental`. 200 `{ "items": [KnowledgeSummary] }` |
+| GET | `/knowledge/:slug` | Requires bearer token. 200 `{ "article": KnowledgeArticle }`; 404 `ARTICLE_NOT_FOUND` |
 
 KnowledgeSummary: `slug, kind, titleFa, titleEn, summaryFa`.
 KnowledgeArticle: summary fields + `symptoms[], causes[], management[], images[], attributes` (pest: `scientificName, damageType, monitoringMethod`; disease: `pathogen, pathogenType`; otherwise null), `references[]`.

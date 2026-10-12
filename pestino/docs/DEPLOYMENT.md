@@ -3,7 +3,7 @@
 ## Requirements
 
 - Node.js 20.11 or newer, npm.
-- PostgreSQL 15 or newer, with a dedicated database and user.
+- PostgreSQL 13 or newer (no extensions needed), with a dedicated database and user.
 - A reverse proxy or load balancer that terminates TLS (Nginx, Caddy, or a cloud LB). Set `TRUST_PROXY` to the number of proxy hops.
 - Persistent disk for uploads (`UPLOAD_DIR`) or, preferably, object storage (see `DATABASE.md`, known gaps).
 - A Gemini API key with billing and a data-usage policy that fits the privacy policy.

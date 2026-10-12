@@ -13,5 +13,5 @@ cd backend && npm ci && npm run typecheck && npm test
 cd ../mobile && tool/bootstrap.sh
 ```
 
-Status: backend complete and tested. The mobile code has not been compiled on a Flutter toolchain yet.
+Status: backend typechecked, built, and tested against PostgreSQL 16 (36 tests pass). Mobile code parses cleanly and has unit tests for the pure-Dart logic, but has not yet been compiled by the Flutter toolchain.
 Blocking items before launch: SMS provider for OTP delivery, store IAP receipt verification, and expert review of knowledge references.
