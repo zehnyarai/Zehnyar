@@ -16,7 +16,7 @@ on:
 env:
   # Default API for device testing (temporary test backend). Override with the
   # workflow_dispatch input. Production builds must use the real HTTPS API URL.
-  DEFAULT_API_BASE_URL: https://8080-ihtuco4ka7r8v1sv715w6.e2b.app
+  DEFAULT_API_BASE_URL: https://8080-iylqzvd51zrjor4p6kxj8.e2b.app
 
 permissions:
   contents: read
