@@ -19,17 +19,17 @@ export default function Install({ ctx }: { ctx: AppContext }) {
           <Smartphone size={34} />
           <h2>اندروید</h2>
           <p>
-            نسخه آزمایشی با فایل‌های داخل اپ، برای اندروید ۷ به بالا. همه نسخه‌های ساخته‌شده و
-            اطلاعات بررسی فایل در پوشه نصب قرار دارند.
+            نسخه آزمایشی پژوهش/رابط برای اندروید ۷ به بالا؛ نه نسخه نهایی تحلیل عکس. همه نسخه‌های
+            ساخته‌شده و اطلاعات بررسی فایل در پوشه نصب قرار دارند.
           </p>
           <a
             className="button primary"
-            href="https://raw.githubusercontent.com/zehnyarai/Zehnyar/arena/e819b607-zehnyar/installers/Pestino-0.2.0.apk"
+            href="https://raw.githubusercontent.com/zehnyarai/Zehnyar/arena/e819b607-zehnyar/installers/Pestino-0.3.0.apk"
             target="_blank"
             rel="noreferrer"
           >
             <Download size={18} />
-            APK پستینو ۰.۲.۰ — طرح جدید
+            APK پستینو ۰.۳.۰ — آزمایش پژوهش و رابط
           </a>
           <p className="section-description">
             از APK قدیمی انتظار رابط جدید نداشته باشید؛ نام نسخه و اطلاعات ساخت همراه فایل را کنترل

@@ -276,3 +276,9 @@ it('works without randomUUID on an older Android WebView, retaining secure rando
     vi.unstubAllGlobals()
   }
 })
+
+it('cannot pretend that a Gemini laboratory endpoint exists in an offline installer', async () => {
+  const boot = await localApi<Bootstrap>('/bootstrap')
+  expect(boot.services.lab_ai_configured).toBe(false)
+  await expect(localApi('/lab-analyses', post({ consent: true }))).rejects.toThrow()
+})

@@ -19,7 +19,7 @@ def test_online_build_rejects_incomplete_or_temporary_hosts(url):
 
 
 def test_online_build_checks_actual_server_identity():
-    responses = [{"status": "ok", "app": "pestino"}, {"info": {"title": "Pestino API"}}]
+    responses = [{"status": "ok", "app": "pestino", "services": {"vision_configured": True, "vision_verified": True}}, {"info": {"title": "Pestino API"}, "paths": {"/api/analyses": {}, "/api/vision/status": {}}}]
     with patch("tools.check_online_server.get_json", side_effect=responses) as get:
         assert verify_server("https://pestino.example/")["app"] == "pestino"
         assert get.call_args_list[0].args[0] == "https://pestino.example/api/health"

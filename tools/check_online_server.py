@@ -23,12 +23,12 @@ def validate_url(value):
 
 
 def get_json(url):
-    request = Request(url, headers={"Accept": "application/json", "User-Agent": "Pestino-APK-build/0.1.0"})
+    request = Request(url, headers={"Accept": "application/json", "User-Agent": "Pestino-APK-build/0.2.0"})
     with urlopen(request, timeout=25) as response:
         return json.load(response)
 
 
-def verify_server(url):
+def verify_server(url, require_vision=True):
     root = validate_url(url)
     # A free pilot host can take time to wake. A bounded retry is for the remote
     # build job only, not a long-lived process or local dev-server polling.
@@ -41,6 +41,13 @@ def verify_server(url):
                 raise ValueError("This address is not the expected Pestino API")
             if schema.get("info", {}).get("title") != "Pestino API":
                 raise ValueError("The published server is a different application")
+            if require_vision:
+                services = health.get('services', {})
+                if not services.get('vision_configured') or not services.get('vision_verified'):
+                    raise ValueError('The image service has not returned a recent validated image response; this is not an activated photo-analysis build')
+                paths = schema.get('paths', {})
+                if '/api/analyses' not in paths or '/api/vision/status' not in paths:
+                    raise ValueError('The image analysis/status endpoints are missing')
             return health
         except (HTTPError, URLError, TimeoutError, OSError, ValueError) as error:
             last_error = error
@@ -53,4 +60,4 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         sys.exit("Usage: python tools/check_online_server.py https://YOUR_PUBLIC_HOST")
     verify_server(sys.argv[1])
-    print("Published Pestino API verified; this does not verify diagnosis or payment services.")
+    print("Published Pestino API and recent image-response connection verified; scientific accuracy and payments are NOT verified.")

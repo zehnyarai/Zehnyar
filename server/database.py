@@ -102,6 +102,14 @@ def initialize():
             );
             CREATE INDEX IF NOT EXISTS idx_field_user ON field_records(user_id,kind,created_at);
             CREATE INDEX IF NOT EXISTS idx_credit_user ON credit_ledger(user_id,created_at);
+            CREATE TABLE IF NOT EXISTS vision_connection (
+                id INTEGER PRIMARY KEY CHECK(id=1), identity TEXT NOT NULL,
+                succeeded INTEGER NOT NULL, checked_at TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS billing_price_quotes (
+                sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+                id TEXT UNIQUE NOT NULL, data TEXT NOT NULL, created_at TEXT NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS audit (
                 id TEXT PRIMARY KEY, actor_id TEXT, action TEXT NOT NULL,
                 entity_id TEXT, created_at TEXT NOT NULL
@@ -115,6 +123,9 @@ def initialize():
         for table, column, definition in [
             ("payments", "is_sandbox", "INTEGER NOT NULL DEFAULT 0"),
             ("users", "subscription_is_sandbox", "INTEGER NOT NULL DEFAULT 0"),
+            ("reports", "report_kind", "TEXT NOT NULL DEFAULT 'photo'"),
+            ("credit_receipts", "quote_id", "TEXT NOT NULL DEFAULT ''"),
+            ("credit_receipts", "price_snapshot", "TEXT NOT NULL DEFAULT '{}'"),
         ]:
             existing = {r[1] for r in db.execute(f"PRAGMA table_info({table})")}
             if column not in existing:
@@ -147,7 +158,7 @@ def seed_demo(db, user_id):
     ]:
         report = sample_report(title, urgency)
         report["sample_image"] = f"/images/{image}"
-        db.execute("INSERT INTO reports VALUES (?,?,?,?,?,?,?,?,?,?)", (
+        db.execute("INSERT INTO reports (id,user_id,orchard_id,tree_part,notes,data,image_path,status,is_sample,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)", (
             uid(), user_id, orchard_one if part == "برگ" else orchard_two,
             part, "این یک گزارش نمونه است و از تحلیل عکس شما تولید نشده است.",
             json.dumps(report, ensure_ascii=False), None, "complete", 1,

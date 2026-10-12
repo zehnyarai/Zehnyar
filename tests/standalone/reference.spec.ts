@@ -142,3 +142,28 @@ test('credit and admin reference fields exist but no money or dummy card is acti
   await expect(page.getByRole('button', { name: 'ذخیره اطلاعات کارت', exact: true })).toBeDisabled()
   await expect(page.locator('.admin-credits tbody tr')).toHaveCount(0)
 })
+
+test('dated research library works offline and distinguishes source evidence from diagnosis', async ({
+  page,
+}) => {
+  await page.goto('./#/knowledge')
+  await page.getByRole('button', { name: 'پژوهش و نوآوری', exact: true }).click()
+  await expect(page.locator('.research-card')).toHaveCount(24)
+  await page.setViewportSize({ width: 390, height: 844 })
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.getByLabel('جستجوی پژوهش پسته').fill('آفلاتوکسین')
+  await expect(
+    page.locator('.research-card').filter({ hasText: 'آفلاتوکسین با حسگر طیفی' })
+  ).toBeVisible()
+  const card = page.locator('.research-card').filter({ hasText: 'آفلاتوکسین با حسگر طیفی' })
+  await card.getByText('کاربرد در باغ، حدود شواهد و منبع', { exact: true }).click()
+  await expect(card).toContainText('دقت پستینو نیست')
+  await expect(card.locator('a')).toHaveAttribute(
+    'href',
+    'https://pmc.ncbi.nlm.nih.gov/articles/PMC11902545/'
+  )
+  await page.context().setOffline(true)
+  await page.reload()
+  await page.getByRole('button', { name: 'پژوهش و نوآوری', exact: true }).click()
+  await expect(page.locator('.research-card')).toHaveCount(24)
+})

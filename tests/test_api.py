@@ -27,8 +27,10 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setenv("COOKIE_SECURE", "false")
     monkeypatch.setenv("ADMIN_EMAIL", ADMIN_EMAIL)
     monkeypatch.setenv("ADMIN_PASSWORD", ADMIN_PASSWORD)
-    for name in ["VISION_MODEL", "GROQ_API_KEY", "OPENAI_API_KEY", "ZARINPAL_MERCHANT_ID", "PUBLIC_BASE_URL", "MANUAL_PAYMENTS_ENABLED", "OLLAMA_BASE_URL"]:
+    for name in ["VISION_MODEL", "GROQ_API_KEY", "OPENAI_API_KEY", "ZARINPAL_MERCHANT_ID", "PUBLIC_BASE_URL", "MANUAL_PAYMENTS_ENABLED", "OLLAMA_BASE_URL", "GEMINI_API_KEY", "GEMINI_REQUESTS_ENABLED"]:
         monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("BILLING_PRICING_MODE", "fixed") # Explicit legacy test prices; no current rate claim.
+    monkeypatch.setenv("LOAD_OWNER_DRAFT", "false")
     ATTEMPTS.clear()
     with TestClient(app) as instance:
         yield instance
@@ -428,7 +430,7 @@ def test_render_public_url_fallback_and_override(client, monkeypatch):
 def test_health_identifies_pestino_without_leaking_secrets(client):
     result = client.get("/api/health").json()
     assert result["app"] == "pestino"
-    assert result["version"] == "0.2.0"
+    assert result["version"] == "0.3.0"
     assert "GROQ_API_KEY" not in str(result)
 
 

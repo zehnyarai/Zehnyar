@@ -84,6 +84,12 @@ export interface Report {
 export interface Services {
   vision_configured: boolean
   vision_provider: string
+  vision_model?: string
+  vision_verified?: boolean
+  vision_checked_at?: string | null
+  vision_connection_state?: 'unconfigured' | 'untested' | 'responded' | 'failed' | 'expired'
+  vision_scientifically_validated?: boolean
+  lab_ai_configured?: boolean
   payment_configured: boolean
   payment_sandbox: boolean
   knowledge_version: string

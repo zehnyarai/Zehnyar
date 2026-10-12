@@ -100,6 +100,12 @@ function serialize<T>(operation: () => Promise<T>): Promise<T> {
 const services = {
   vision_configured: false,
   vision_provider: 'none',
+  vision_model: '',
+  vision_verified: false,
+  vision_checked_at: null,
+  vision_connection_state: 'unconfigured' as const,
+  vision_scientifically_validated: false,
+  lab_ai_configured: false,
   payment_configured: false,
   payment_sandbox: true,
   knowledge_version: knowledgeData.version,
@@ -391,6 +397,7 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       path.startsWith('/auth/') ||
       path.startsWith('/admin/') ||
       path === '/analyses' ||
+      path.startsWith('/lab-analyses') ||
       path.startsWith('/payments/')
     ) {
       throw new LocalError(

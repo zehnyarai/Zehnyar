@@ -142,7 +142,38 @@ export function validateField<K extends FieldKind>(kind: K, raw: unknown): Field
   } else throw new Error('نوع داده معتبر نیست.')
   return result as FieldPayloads[K]
 }
-export const EMPTY_BILLING = {
+export interface DollarPricing {
+  mode: 'usd' | 'fixed'
+  ready: boolean
+  receiving_requested: boolean
+  quote_id: string
+  expires_at?: string | null
+  confirmed?: boolean
+  rate_toman_per_usd?: string | null
+  rate_date?: string | null
+  today?: string
+  source?: string
+  source_url?: string
+  usd_prices?: Record<string, string>
+  notice?: string
+}
+export interface BillingConfig {
+  enabled: boolean
+  card_number: string
+  holder: string
+  bank: string
+  notice: string
+  pricing?: DollarPricing
+  packages: {
+    id: string
+    name: string
+    analyses: number
+    price_toman: number | null
+    price_usd?: string | null
+    description: string
+  }[]
+}
+export const EMPTY_BILLING: BillingConfig = {
   enabled: false,
   card_number: '',
   holder: '',
@@ -173,13 +204,23 @@ export const EMPTY_BILLING = {
     },
   ],
 }
-export type BillingConfig = typeof EMPTY_BILLING
 export interface CreditReceipt {
   id: string
   name: string
   phone: string
   tracking: string
   package_id: string
+  price_toman?: number
+  analyses?: number
+  price_snapshot?: {
+    mode: string
+    quote_id?: string
+    price_usd?: string
+    rate_toman_per_usd?: string
+    rate_date?: string
+    source?: string
+    price_toman?: number
+  }
   status: 'pending' | 'approved' | 'rejected'
   created_at: string
   image_url: string

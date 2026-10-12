@@ -54,6 +54,24 @@ export default function Credits({ ctx }: { ctx: AppContext }) {
     }
   }, [])
   useEffect(() => {
+    const expires = config.pricing?.expires_at
+    if (!expires || !config.pricing?.ready) return
+    const delay = Date.parse(expires) - Date.now()
+    if (!Number.isFinite(delay)) return
+    const timer = window.setTimeout(
+      () => {
+        setConfig((c) => ({
+          ...c,
+          enabled: false,
+          notice: 'اعتبار نرخ روز تمام شده؛ تا تأیید نرخ جدید، واریز نکنید.',
+        }))
+        void reload().catch((e) => setError(errorMessage(e)))
+      },
+      Math.max(0, delay)
+    )
+    return () => window.clearTimeout(timer)
+  }, [config.pricing?.expires_at, config.pricing?.ready])
+  useEffect(() => {
     if (!receipt) {
       setPreview('')
       return
@@ -89,6 +107,7 @@ export default function Credits({ ctx }: { ctx: AppContext }) {
     body.append('phone', phone)
     body.append('tracking', tracking)
     body.append('package_id', selected)
+    body.append('quote_id', config.pricing?.quote_id ?? '')
     try {
       await api('/billing/receipts', { method: 'POST', body })
       await reload()
@@ -178,6 +197,20 @@ export default function Credits({ ctx }: { ctx: AppContext }) {
             ? 'بسته انتخاب‌شده باید با مبلغ واریزی شما تطبیق داشته باشد.'
             : 'قیمت‌های زیر صرفاً ساختار نمونه مطابق تصویرند؛ خرید و فروش فعال نشده است.'}
         </p>
+        {config.pricing?.mode === 'usd' && (
+          <InfoBanner tone="warning">
+            قیمت‌ها بر مبنای دلار و نرخ ثبت‌شده مدیر محاسبه می‌شوند؛ فید خودکار دلار فعال نیست.{' '}
+            {config.pricing.ready ? (
+              <>
+                نرخ: {fa(Number(config.pricing.rate_toman_per_usd))} تومان برای هر دلار ·{' '}
+                {persianDate(config.pricing.rate_date!)} · منبع: {config.pricing.source}
+              </>
+            ) : (
+              <>مبلغ بسته‌ها یا نرخ معتبر امروز هنوز تأیید نشده؛ واریز نکنید.</>
+            )}{' '}
+            گرد کردن رو به بالا تا هزار تومان است.
+          </InfoBanner>
+        )}
         <div className="credit-packages">
           {config.packages.map((p, i) => (
             <label className={selected === p.id ? 'selected' : ''} key={p.id}>
@@ -189,15 +222,20 @@ export default function Credits({ ctx }: { ctx: AppContext }) {
                 onChange={() => setSelected(p.id)}
               />
               <strong>{p.name}</strong>
-              {i > 0 && <span className="orange-tag">{i === 1 ? 'پرطرفدار' : 'بهترین قیمت'}</span>}
+              {i > 0 && <span className="orange-tag">{i === 1 ? 'بسته فصلی' : 'باغ بزرگ'}</span>}
               <div>
-                <b>{fa(p.price_toman)}</b>
+                <b>{p.price_toman === null ? 'تعیین نشده' : fa(p.price_toman)}</b>
                 <small>تومان</small>
               </div>
               <p>
                 {fa(p.analyses)} تحلیل — {p.description}
               </p>
-              <small>({fa(p.price_toman / p.analyses, 0)} تومان هر تحلیل)</small>
+              {p.price_toman !== null && (
+                <small>({fa(p.price_toman / p.analyses, 0)} تومان هر تحلیل)</small>
+              )}
+              {p.price_usd && (
+                <small>{fa(Number(p.price_usd), 2)} دلار برای بسته؛ پرداخت به تومان</small>
+              )}
             </label>
           ))}
         </div>

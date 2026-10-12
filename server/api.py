@@ -28,8 +28,13 @@ from starlette.concurrency import run_in_threadpool
 from .database import connect, initialize, now_iso, sample_report, seed_demo, uid
 from .knowledge import ARTICLES, CATEGORIES, KNOWLEDGE_VERSION
 from .scientific import read_context, photo_record
+from . import gemini, vision_readiness
+from .vision_config import register_vision_configuration
+from .research import evidence_pack
 from .billing import billing_config, ledger_balance, register_billing_routes
 from .fieldwork import register_field_routes
+from .laboratory import register_laboratory_routes
+from .operator_settings import seed_owner_draft
 from .security import SESSION_COOKIE, check_password, new_session, password_hash, rate_limit, token_hash
 
 load_dotenv()
@@ -64,9 +69,9 @@ def secure_cookie():
 
 
 def vision_settings():
-    provider = os.getenv("VISION_PROVIDER", "groq").lower()
-    model = os.getenv("VISION_MODEL", "")
-    key = os.getenv("OPENAI_API_KEY", "") if provider == "openai" else (os.getenv("GROQ_API_KEY", "") if provider == "groq" else "")
+    provider = os.getenv("VISION_PROVIDER", "groq").strip().lower()
+    model = os.getenv("VISION_MODEL", "").strip()
+    key = os.getenv("OPENAI_API_KEY", "") if provider == "openai" else (os.getenv("GROQ_API_KEY", "") if provider == "groq" else os.getenv("GEMINI_API_KEY", "") if provider == "gemini" else "")
     return provider, model, key
 
 
@@ -76,19 +81,24 @@ def ollama_configured():
 
 
 def payment_configured():
-    return bool(os.getenv("ZARINPAL_MERCHANT_ID") and public_base_url().startswith("https://"))
+    return bool(os.getenv("BILLING_PRICING_MODE", "usd").lower() == "fixed" and os.getenv("ZARINPAL_MERCHANT_ID") and public_base_url().startswith("https://"))
 
 
 def service_status():
     provider, model, key = vision_settings()
-    return {
-        "vision_configured": bool(model and ((key and provider in {"openai", "groq"}) or (provider == "ollama" and ollama_configured()))),
+    result = {
+        "vision_configured": bool(model and ((key and provider in {"openai", "groq"}) or (provider == "ollama" and ollama_configured()) or (provider == "gemini" and gemini.configured(model, key)))),
+        "vision_model": gemini.model_name(model) or "" if provider == "gemini" else "",
+        "lab_ai_configured": bool(provider == "gemini" and gemini.configured(model, key)),
         "vision_provider": provider, "payment_configured": payment_configured(),
         "payment_sandbox": os.getenv("ZARINPAL_SANDBOX", "true").lower() == "true",
         "knowledge_version": KNOWLEDGE_VERSION,
         "knowledge_reviewed": False,
         "weather_configured": False,
     }
+
+    result.update(vision_readiness.status((provider, model, key), result['vision_configured']))
+    return result
 
 
 def session_user(request, db):
@@ -163,6 +173,8 @@ def audit(db, actor, action, entity):
 @asynccontextmanager
 async def lifespan(_):
     initialize()
+    with connect() as db:
+        seed_owner_draft(db)
     # Single-process deployment: recover requests interrupted by server restart.
     with connect() as db:
         for row in db.execute("SELECT image_path FROM reports WHERE status='processing'"):
@@ -219,7 +231,7 @@ class RequestSizeLimit:
         await self.app(scope, limited_receive, send)
 
 
-app = FastAPI(title="Pestino API", version="0.2.0", lifespan=lifespan, docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None)
+app = FastAPI(title="Pestino API", version="0.3.0", lifespan=lifespan, docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None)
 app.add_middleware(RequestSizeLimit)
 
 
@@ -254,6 +266,12 @@ def health():
     return {"status": "ok", "app": "pestino", "version": app.version, "demo_enabled": demo_enabled(), "services": service_status()}
 
 
+@app.get('/api/vision/status')
+def image_service_status():
+    services = service_status()
+    return {key: services[key] for key in ('vision_configured','vision_provider','vision_model','vision_verified','vision_checked_at','vision_connection_state','vision_scientifically_validated')}
+
+
 @app.get("/api/bootstrap")
 def bootstrap(request: Request, response: Response):
     with connect() as db:
@@ -268,7 +286,7 @@ def bootstrap(request: Request, response: Response):
             new_session(db, user_id, response, secure_cookie())
             user = db.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
         orchards = [dict(r) for r in db.execute("SELECT * FROM orchards WHERE user_id=? ORDER BY created_at", (user["id"],))]
-        reports = [serialize_report(r, db) for r in db.execute("SELECT r.*,o.name orchard_name FROM reports r LEFT JOIN orchards o ON o.id=r.orchard_id WHERE r.user_id=? AND r.status IN ('complete','recorded') ORDER BY r.created_at DESC", (user["id"],))]
+        reports = [serialize_report(r, db) for r in db.execute("SELECT r.*,o.name orchard_name FROM reports r LEFT JOIN orchards o ON o.id=r.orchard_id WHERE r.user_id=? AND r.report_kind='photo' AND r.status IN ('complete','recorded') ORDER BY r.created_at DESC", (user["id"],))]
         tasks = [dict(r) for r in db.execute("SELECT t.*,o.name orchard_name FROM tasks t LEFT JOIN orchards o ON o.id=t.orchard_id WHERE t.user_id=? ORDER BY t.due_date,t.created_at", (user["id"],))]
         return {"user": public_user(user), "orchards": orchards, "reports": reports, "tasks": tasks, "usage": usage(db, user),
             "credit_balance": ledger_balance(db, user["id"]), "services": service_status(), "plans": PLANS}
@@ -279,6 +297,12 @@ def knowledge(response: Response):
     response.headers["Cache-Control"] = "public, max-age=3600"
     return {"version": KNOWLEDGE_VERSION, "articles": ARTICLES, "categories": CATEGORIES, "reviewed": False,
             "notice": "گردآوری آموزشی اولیه؛ به‌روزرسانی زنده و تأیید متخصص محلی هنوز فعال نشده است. مراجع خارج از ایران باید با مقررات و شرایط محلی تطبیق داده شوند."}
+
+
+@app.get('/api/research')
+def research_catalog(response: Response):
+    response.headers['Cache-Control'] = 'public, max-age=3600'
+    return json.loads((ROOT / 'src/data/research.json').read_text())
 
 
 @app.get("/api/sample-report")
@@ -517,7 +541,7 @@ def normalize_image(raw):
 
 async def analyze_with_provider(image, context):
     provider, model, key = vision_settings()
-    if provider not in {'openai','groq','ollama'} or (provider == 'ollama' and not ollama_configured()):
+    if provider not in {'openai','groq','ollama','gemini'} or (provider == 'ollama' and not ollama_configured()) or (provider == 'gemini' and not gemini.configured(model, key)):
         raise HTTPException(503, 'مدل بینایی معتبر تنظیم نشده است.')
     endpoint = "https://api.openai.com/v1/chat/completions" if provider == "openai" else "https://api.groq.com/openai/v1/chat/completions"
     if provider == 'ollama':
@@ -549,6 +573,7 @@ Set confidence to null; no calibrated diagnostic accuracy is available. Never gi
 or image is insufficient, return no disease hypothesis, say so, request better images.
 Use provided educational guides conservatively; not locally certified prescriptions.
 Output only JSON matching the supplied schema, no markdown, no extra fields."""
+    system += "\nCurated research context (not a diagnostic training dataset, not locally reviewed; farmer-context selection, not image identification): " + json.dumps(evidence_pack(context), ensure_ascii=False)
     payload = {
         "model": model, "temperature": 0.1, "max_tokens": 4000,
         "response_format": {"type": "json_object"},
@@ -561,34 +586,39 @@ Output only JSON matching the supplied schema, no markdown, no extra fields."""
         ],
     }
     try:
-        async with httpx.AsyncClient(timeout=75) as client:
-            response = await client.post(endpoint, headers={"Authorization": f"Bearer {key}"} if key else {}, json=payload)
-            response.raise_for_status()
-            content = response.json()["choices"][0]["message"]["content"]
-            parsed = VisionResult.model_validate_json(content)
-            result = parsed.model_dump()
-            allowed_ids = {a["id"] for a in ARTICLES}
-            result["knowledge_ids"] = [k for k in result["knowledge_ids"] if k in allowed_ids]
-            for hypothesis in result['hypotheses']:
-                hypothesis['confidence'] = None
-            text = json.dumps(result, ensure_ascii=False)
-            if re.search(r"\d[\d.,٫٬]*\s*(?:میلی[\s‌-]?لیتر|سی[\s‌-]?سی|کیلو[\s‌-]?گرم|گرم|لیتر|ppm|در[\s‌-]?هزار)", text, re.IGNORECASE):
-                raise ValueError("Unmeasured application dose is not allowed")
-            if re.search(r'(?:دقت|اطمینان|احتمال)[^{}\n]{0,60}\d[\d.,٫٬]*\s*[%٪]', text):
-                raise ValueError('Uncalibrated accuracy percentage is not allowed')
-            if result["is_pistachio"] is not True:
-                result['urgency'] = 'low' # Identification pending, not a clinical triage score.
-                result['nutrition_considerations'] = []
-                result['yield_quality_plan'] = []
-                result['monitoring_plan'] = []
-                result["hypotheses"] = []
-                result["actions"] = ["عکس واضح‌تری از برگ، میوه یا تاج درخت پسته بفرستید و نوع گیاه را با کارشناس تأیید کنید."]
-            result.update({"provider": provider, "model": model, "knowledge_version": KNOWLEDGE_VERSION,
-                           "references": [{"id": a["id"], "sources": a["sources"]} for a in ARTICLES if a["id"] in result["knowledge_ids"]],
-                           "disclaimer": "غربالگری احتمالی، نه تشخیص قطعی یا دقت علمی اندازه‌گیری‌شده. تصمیم درباره سم، کود، حذف درخت و برنامه محصول نیاز به کارشناس و آزمایش دارد."})
-            return result
+        if provider == 'gemini':
+            content = await gemini.generate_content(model, key, system + "\nEducational guides (not locally validated): " + json.dumps(guide, ensure_ascii=False), context, VisionResult.model_json_schema(), images)
+        else:
+            async with httpx.AsyncClient(timeout=75) as client:
+                response = await client.post(endpoint, headers={"Authorization": f"Bearer {key}"} if key else {}, json=payload)
+                response.raise_for_status()
+                content = response.json()["choices"][0]["message"]["content"]
+        parsed = VisionResult.model_validate_json(content)
+        result = parsed.model_dump()
+        allowed_ids = {a["id"] for a in ARTICLES}
+        result["knowledge_ids"] = [k for k in result["knowledge_ids"] if k in allowed_ids]
+        for hypothesis in result['hypotheses']:
+            hypothesis['confidence'] = None
+        text = json.dumps(result, ensure_ascii=False)
+        if re.search(r"\d[\d.,٫٬]*\s*(?:میلی[\s‌-]?لیتر|سی[\s‌-]?سی|کیلو[\s‌-]?گرم|گرم|گرام|لیتر|kg\b|g\b|ml\b|cc\b|ppm|در[\s‌-]?هزار)", text, re.IGNORECASE):
+            raise ValueError("Unmeasured application dose is not allowed")
+        if re.search(r'(?:دقت|اطمینان|احتمال|confidence|accuracy|probability)[^{}\n]{0,60}\d[\d.,٫٬]*\s*[%٪]', text, re.IGNORECASE):
+            raise ValueError('Uncalibrated accuracy percentage is not allowed')
+        if result["is_pistachio"] is not True:
+            result['urgency'] = 'low' # Identification pending, not a clinical triage score.
+            result['nutrition_considerations'] = []
+            result['yield_quality_plan'] = []
+            result['monitoring_plan'] = []
+            result["hypotheses"] = []
+            result["actions"] = ["عکس واضح‌تری از برگ، میوه یا تاج درخت پسته بفرستید و نوع گیاه را با کارشناس تأیید کنید."]
+        result.update({"provider": provider, "model": model, "knowledge_version": KNOWLEDGE_VERSION,
+                       "references": [{"id": a["id"], "sources": a["sources"]} for a in ARTICLES if a["id"] in result["knowledge_ids"]],
+                       "disclaimer": "غربالگری احتمالی، نه تشخیص قطعی یا دقت علمی اندازه‌گیری‌شده. تصمیم درباره سم، کود، حذف درخت و برنامه محصول نیاز به کارشناس و آزمایش دارد."})
+        vision_readiness.record((provider, model, key), True)
+        return result
     except (httpx.HTTPError, KeyError, ValueError, ValidationError, TypeError):
         # Never forward provider errors or fabricate a successful diagnosis.
+        vision_readiness.record((provider, model, key), False)
         logger.warning("Vision provider failed or returned invalid structured data")
         raise HTTPException(502, "سرویس بررسی تصویر پاسخ معتبر نداد. اعتبار شما کسر نشد؛ بعداً دوباره تلاش کنید.")
 
@@ -615,6 +645,26 @@ def photo_paths(report_id, count):
 def save_extra_photos(db, report_id, paths):
     for i, path in enumerate(paths[1:], 1):
         db.execute('INSERT INTO report_images VALUES (?,?,?)', (report_id, i, str(path.resolve())))
+
+
+@app.post('/api/admin/vision/test')
+async def test_image_service(request: Request, image: UploadFile = File(...), tree_part: str = Form('برگ'), consent: bool = Form(False)):
+    with connect() as db:
+        admin = require_admin(request, db)
+        admin_id = admin['id']
+    if tree_part not in TREE_PARTS:
+        raise HTTPException(422, 'بخش درخت معتبر نیست.')
+    if not service_status()['vision_configured']:
+        raise HTTPException(503, 'کلید امن، مدل و مجوز استفاده از سهمیه هنوز تنظیم نشده‌اند؛ اتصال زنده فعال نشده است.')
+    if not consent:
+        raise HTTPException(422, 'آزمون واقعی تصویر به رضایت ارسال به ارائه‌دهنده و تأیید مصرف سهمیه Google نیاز دارد.')
+    rate_limit(f'vision-check:{admin_id}', 3, 3600)
+    normalized = await read_photo_set(image, [])
+    # The owner's private test never creates a customer invoice/credit charge,
+    # never persists the uploaded file, and never substitutes a sample result.
+    result = await analyze_with_provider(normalized[0], {'tree_part': tree_part, 'notes': 'آزمون اتصال واقعی توسط مدیر؛ نه ارزیابی دقت علمی'})
+    return {'image_response_received': True, 'services': service_status(), 'result': result,
+            'notice': 'پاسخ واقعی ساختارمند، نه اثبات دقت علمی پسته. اعتبار داخلی کسر نشد؛ سهمیه/هزینه Google تابع حساب مالک است.'}
 
 
 @app.post('/api/photos', status_code=201)
@@ -680,7 +730,7 @@ async def create_analysis(request: Request, image: UploadFile = File(...), addit
         db.execute('BEGIN IMMEDIATE')
         fresh_user = require_user(request, db, real=True)
         allowance = usage(db, fresh_user)
-        use_purchased_credit = billing_config(db, service_status)['enabled'] and ledger_balance(db, user_id) > 0
+        use_purchased_credit = ledger_balance(db, user_id) > 0
         if not use_purchased_credit and allowance['used'] >= allowance['limit']:
             raise HTTPException(402, 'اعتبار بررسی تصویر در این بازه تمام شده است.')
         db.execute('INSERT INTO reports (id,user_id,orchard_id,tree_part,notes,data,image_path,status,created_at) VALUES (?,?,?,?,?,?,?,?,?)', (report_id, user_id, orchard_id or None, tree_part, notes, '{}', str(paths[0].resolve()), 'processing', now_iso()))
@@ -709,7 +759,7 @@ async def create_analysis(request: Request, image: UploadFile = File(...), addit
 def get_report(report_id: str, request: Request):
     with connect() as db:
         user = require_user(request, db)
-        row = db.execute("SELECT r.*,o.name orchard_name FROM reports r LEFT JOIN orchards o ON o.id=r.orchard_id WHERE r.id=? AND r.user_id=? AND r.status IN ('complete','recorded')", (report_id, user["id"])).fetchone()
+        row = db.execute("SELECT r.*,o.name orchard_name FROM reports r LEFT JOIN orchards o ON o.id=r.orchard_id WHERE r.id=? AND r.user_id=? AND r.report_kind='photo' AND r.status IN ('complete','recorded')", (report_id, user["id"])).fetchone()
         if not row:
             raise HTTPException(404, "گزارش پیدا نشد.")
         return serialize_report(row, db)
@@ -729,7 +779,7 @@ def report_image(report_id: str, request: Request):
 def report_extra_image(report_id: str, ordinal: int, request: Request):
     with connect() as db:
         user = require_user(request, db)
-        row = db.execute("SELECT i.image_path FROM report_images i JOIN reports r ON r.id=i.report_id WHERE r.id=? AND r.user_id=? AND r.status IN ('complete','recorded') AND i.ordinal=?", (report_id, user['id'], ordinal)).fetchone()
+        row = db.execute("SELECT i.image_path FROM report_images i JOIN reports r ON r.id=i.report_id WHERE r.id=? AND r.user_id=? AND r.report_kind='photo' AND r.status IN ('complete','recorded') AND i.ordinal=?", (report_id, user['id'], ordinal)).fetchone()
         if not row or not Path(row[0]).is_file():
             raise HTTPException(404, 'تصویر پیدا نشد.')
         return FileResponse(row[0], media_type='image/jpeg')
@@ -934,8 +984,10 @@ def export_payments(request: Request):
     return Response("\ufeff" + stream.getvalue(), media_type="text/csv; charset=utf-8", headers={"Content-Disposition": 'attachment; filename="pestino-payments.csv"'})
 
 
+register_vision_configuration(app, require_admin, audit)
 register_field_routes(app, require_user, require_admin, own_orchard, audit)
 register_billing_routes(app, require_user, require_admin, service_status, normalize_image, audit)
+register_laboratory_routes(app, require_user, own_orchard, service_status, vision_settings, usage, audit)
 
 
 @app.get("/{path:path}", include_in_schema=False)

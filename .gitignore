@@ -29,3 +29,5 @@ android/build/
 apk-output/
 
 deliverables/
+
+.private/

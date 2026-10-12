@@ -7,6 +7,8 @@ import { api, errorMessage, fa, persianDate } from '../api'
 import { IS_STANDALONE } from '../config'
 import { Badge, InfoBanner, Modal, Spinner } from '../components/ui'
 import { receiptLabels } from './Credits'
+import PricingAdmin from '../components/PricingAdmin'
+import VisionActivation from '../components/VisionActivation'
 
 interface BillingAdmin {
   config: BillingConfig
@@ -168,7 +170,6 @@ export default function CreditAdmin({ ctx }: { ctx: AppContext }) {
                     maxLength={100}
                     placeholder="نام مالک حساب مقصد"
                     onChange={(e) => setHolder(e.target.value)}
-                    required
                   />
                 </label>
                 <label>
@@ -178,7 +179,6 @@ export default function CreditAdmin({ ctx }: { ctx: AppContext }) {
                     maxLength={80}
                     placeholder="بانک مقصد"
                     onChange={(e) => setBank(e.target.value)}
-                    required
                   />
                 </label>
               </div>
@@ -201,6 +201,8 @@ export default function CreditAdmin({ ctx }: { ctx: AppContext }) {
             اتصال مدل فعال می‌شود؛ شماره کارت را قبل از نمایش عمومی کنترل کنید.
           </p>
         </section>
+        <VisionActivation ctx={ctx} allowed={allowed} />
+        <PricingAdmin ctx={ctx} allowed={allowed} reload={load} />
         {error && (
           <div className="form-error" role="alert">
             {error}
@@ -323,6 +325,20 @@ export default function CreditAdmin({ ctx }: { ctx: AppContext }) {
             {data.config.packages.find((p) => p.id === review.package_id)?.name ??
               review.package_id}
           </p>
+          {review.price_toman !== undefined && (
+            <p>
+              مبلغ ثابت این رسید: <strong>{fa(review.price_toman)} تومان</strong> ·{' '}
+              {fa(review.analyses ?? 0)} تحلیل
+            </p>
+          )}
+          {review.price_snapshot?.mode === 'usd' && (
+            <InfoBanner>
+              پیشنهاد ثبت‌شده: {fa(Number(review.price_snapshot.price_usd), 2)} دلار × نرخ{' '}
+              {fa(Number(review.price_snapshot.rate_toman_per_usd))} تومان · تاریخ:{' '}
+              {review.price_snapshot.rate_date} · منبع: {review.price_snapshot.source}. مبلغ را با
+              واریز واقعی تطبیق دهید؛ نرخ امروز روی این رسید اعمال نمی‌شود.
+            </InfoBanner>
+          )}
           {review.status !== 'pending' && review.reason && <p>یادداشت بررسی: {review.reason}</p>}
           {review.status === 'pending' && (
             <>

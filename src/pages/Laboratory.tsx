@@ -19,6 +19,7 @@ import type { LabInput } from '../fieldwork'
 import { useFieldRecords } from '../useFieldRecords'
 import { Badge, CheckList, InfoBanner, Spinner } from '../components/ui'
 import { SourceLinks } from '../components/scientific'
+import LabAI from '../components/LabAI'
 import { IS_STANDALONE } from '../config'
 
 export default function Laboratory({ ctx }: { ctx: AppContext }) {
@@ -35,6 +36,7 @@ export default function Laboratory({ ctx }: { ctx: AppContext }) {
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false),
     [saved, setSaved] = useState(false)
+  const [aiBusy, setAiBusy] = useState(false)
   const records = useFieldRecords('labs')
   function changeKind(next: LabKind) {
     setKind(next)
@@ -148,127 +150,129 @@ export default function Laboratory({ ctx }: { ctx: AppContext }) {
             interpret()
           }}
         >
-          <div className="lab-grid">
-            {(kind === 'soil' ? SOIL_FIELDS : WATER_FIELDS).map((f) => (
-              <label key={`${kind}-${f.key}`}>
-                {f.label}
-                {f.unit && <span dir="ltr"> ({f.unit})</span>}
-                <input
-                  type="number"
-                  step="any"
-                  min={0}
-                  max={f.max}
-                  value={inputs[f.key] ?? ''}
-                  placeholder="—"
-                  onChange={(e) => {
-                    setInputs((old) => ({ ...old, [f.key]: e.target.value }))
-                    invalidate()
-                  }}
-                />
-              </label>
-            ))}
-          </div>
-          <details
-            className="sampling-details"
-            open={method === 'unknown' && inputs.ec !== undefined}
-          >
-            <summary>
-              <ChevronDown size={17} />
-              روش آزمایش و اطلاعات نمونه — برای تفسیر معتبر مهم است
-            </summary>
-            <div className="reference-form-grid">
-              <label>
-                روش اندازه‌گیری EC
-                <select
-                  value={method}
-                  onChange={(e) => {
-                    setMethod(e.target.value)
-                    invalidate()
-                  }}
-                >
-                  {kind === 'soil' ? (
-                    <>
-                      <option value="unknown">نامشخص؛ طبقه‌بندی ECe انجام نشود</option>
-                      <option value="saturated">عصاره اشباع (ECe)</option>
-                      <option value="1:5">عصاره ۱:۵</option>
-                      <option value="1:2.5">عصاره ۱:۲٫۵</option>
-                    </>
-                  ) : (
-                    <option value="water">آب — ECw بر حسب dS/m</option>
-                  )}
-                </select>
-              </label>
-              <label>
-                تاریخ نمونه‌برداری
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => {
-                    setDate(e.target.value)
-                    setSaved(false)
-                  }}
-                  required
-                />
-              </label>
-              <label>
-                باغ
-                <select
-                  value={orchard}
-                  onChange={(e) => {
-                    setOrchard(e.target.value)
-                    setSaved(false)
-                  }}
-                >
-                  <option value="">بدون باغ مشخص</option>
-                  {ctx.data.orchards.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                {kind === 'soil' ? 'عمق و محل نمونه (cm)' : 'محل نمونه آب'}
-                <input
-                  value={depth}
-                  maxLength={80}
-                  placeholder={
-                    kind === 'soil'
-                      ? 'مثلاً ۰ تا ۳۰؛ طبق دستور آزمایشگاه'
-                      : 'چاه / استخر / خروجی آبیاری'
-                  }
-                  onChange={(e) => {
-                    setDepth(e.target.value)
-                    setSaved(false)
-                  }}
-                />
-              </label>
+          <fieldset disabled={busy || aiBusy}>
+            <div className="lab-grid">
+              {(kind === 'soil' ? SOIL_FIELDS : WATER_FIELDS).map((f) => (
+                <label key={`${kind}-${f.key}`}>
+                  {f.label}
+                  {f.unit && <span dir="ltr"> ({f.unit})</span>}
+                  <input
+                    type="number"
+                    step="any"
+                    min={0}
+                    max={f.max}
+                    value={inputs[f.key] ?? ''}
+                    placeholder="—"
+                    onChange={(e) => {
+                      setInputs((old) => ({ ...old, [f.key]: e.target.value }))
+                      invalidate()
+                    }}
+                  />
+                </label>
+              ))}
             </div>
-            <label className="full-label">
-              روش استخراج عناصر / توضیحات آزمایشگاه
-              <textarea
-                value={notes}
-                maxLength={1000}
-                rows={2}
-                placeholder="مثلاً فسفر Olsen، آهن و روی DTPA؛ روش نیتروژن، بافت، پایه و سابقه باغ"
-                onChange={(e) => {
-                  setNotes(e.target.value)
-                  setSaved(false)
-                }}
-              />
-            </label>
-          </details>
-          {error && (
-            <div className="form-error" role="alert">
-              {error}
+            <details
+              className="sampling-details"
+              open={method === 'unknown' && inputs.ec !== undefined}
+            >
+              <summary>
+                <ChevronDown size={17} />
+                روش آزمایش و اطلاعات نمونه — برای تفسیر معتبر مهم است
+              </summary>
+              <div className="reference-form-grid">
+                <label>
+                  روش اندازه‌گیری EC
+                  <select
+                    value={method}
+                    onChange={(e) => {
+                      setMethod(e.target.value)
+                      invalidate()
+                    }}
+                  >
+                    {kind === 'soil' ? (
+                      <>
+                        <option value="unknown">نامشخص؛ طبقه‌بندی ECe انجام نشود</option>
+                        <option value="saturated">عصاره اشباع (ECe)</option>
+                        <option value="1:5">عصاره ۱:۵</option>
+                        <option value="1:2.5">عصاره ۱:۲٫۵</option>
+                      </>
+                    ) : (
+                      <option value="water">آب — ECw بر حسب dS/m</option>
+                    )}
+                  </select>
+                </label>
+                <label>
+                  تاریخ نمونه‌برداری
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => {
+                      setDate(e.target.value)
+                      setSaved(false)
+                    }}
+                    required
+                  />
+                </label>
+                <label>
+                  باغ
+                  <select
+                    value={orchard}
+                    onChange={(e) => {
+                      setOrchard(e.target.value)
+                      setSaved(false)
+                    }}
+                  >
+                    <option value="">بدون باغ مشخص</option>
+                    {ctx.data.orchards.map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  {kind === 'soil' ? 'عمق و محل نمونه (cm)' : 'محل نمونه آب'}
+                  <input
+                    value={depth}
+                    maxLength={80}
+                    placeholder={
+                      kind === 'soil'
+                        ? 'مثلاً ۰ تا ۳۰؛ طبق دستور آزمایشگاه'
+                        : 'چاه / استخر / خروجی آبیاری'
+                    }
+                    onChange={(e) => {
+                      setDepth(e.target.value)
+                      setSaved(false)
+                    }}
+                  />
+                </label>
+              </div>
+              <label className="full-label">
+                روش استخراج عناصر / توضیحات آزمایشگاه
+                <textarea
+                  value={notes}
+                  maxLength={1000}
+                  rows={2}
+                  placeholder="مثلاً فسفر Olsen، آهن و روی DTPA؛ روش نیتروژن، بافت، پایه و سابقه باغ"
+                  onChange={(e) => {
+                    setNotes(e.target.value)
+                    setSaved(false)
+                  }}
+                />
+              </label>
+            </details>
+            {error && (
+              <div className="form-error" role="alert">
+                {error}
+              </div>
+            )}
+            <div className="center-actions">
+              <button className="button primary" type="submit">
+                <FlaskConical size={19} />
+                تحلیل و توصیه
+              </button>
             </div>
-          )}
-          <div className="center-actions">
-            <button className="button primary" type="submit">
-              <FlaskConical size={19} />
-              تحلیل و توصیه
-            </button>
-          </div>
+          </fieldset>
         </form>
       </section>
       {result && (
@@ -306,7 +310,11 @@ export default function Laboratory({ ctx }: { ctx: AppContext }) {
           <InfoBanner tone="warning">{result.report.limitations.join(' ')}</InfoBanner>
           <SourceLinks />
           <div className="analysis-main-actions">
-            <button className="button primary" disabled={busy || saved} onClick={() => void save()}>
+            <button
+              className="button primary"
+              disabled={busy || aiBusy || saved}
+              onClick={() => void save()}
+            >
               {busy ? (
                 <Spinner />
               ) : (
@@ -341,6 +349,21 @@ export default function Laboratory({ ctx }: { ctx: AppContext }) {
           </div>
         </section>
       )}
+      <LabAI
+        ctx={ctx}
+        busy={aiBusy || busy}
+        setBusy={setAiBusy}
+        readSample={() => ({
+          kind,
+          values: parseLabValues(kind, inputs),
+          method,
+          sample_date: date,
+          depth,
+          orchard_id: orchard || null,
+          notes,
+        })}
+        revision={JSON.stringify({ kind, inputs, method, date, depth, orchard, notes })}
+      />
       <section className="reference-card lab-history">
         <h2>
           <History size={21} />

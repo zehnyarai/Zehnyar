@@ -1,4 +1,5 @@
 """Opt-in, admin-reviewed transfer receipts. Disabled by default; never auto-paid."""
+import json
 import os
 import re
 import sqlite3
@@ -9,6 +10,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from starlette.concurrency import run_in_threadpool
 from .database import connect, now_iso, uid
+from .pricing import pricing_config, receipt_quote, register_pricing_routes
 from .security import rate_limit
 
 PACKAGES = [
@@ -32,11 +34,16 @@ def ledger_balance(db, user_id):
 def billing_config(db, services, private=False):
     row = db.execute('SELECT * FROM billing_settings WHERE id=1').fetchone()
     bank = {key: row[key] if row else '' for key in ['card_number', 'holder', 'bank']}
-    enabled = bool(os.getenv('MANUAL_PAYMENTS_ENABLED', 'false').lower() == 'true' and services()['vision_configured'] and all(bank.values()))
-    return {'enabled': enabled, **(bank if private or enabled else {key: '' for key in bank}), 'packages': PACKAGES, 'notice': 'رسید تنها پس از تطبیق واقعی و تصمیم مدیر بررسی می‌شود.' if enabled else 'دریافت وجه فعال نیست. هیچ واریزی انجام ندهید؛ قیمت‌ها فقط ساختار نمونه‌اند.'}
+    pricing = pricing_config(db, PACKAGES)
+    globally_allowed = os.getenv('MANUAL_PAYMENTS_ENABLED', '').lower() != 'false'
+    enabled = bool(globally_allowed and pricing['receiving_requested'] and pricing['ready'] and services()['vision_configured'] and all(bank.values()))
+    return {'enabled': enabled, **(bank if private or enabled else {key: '' for key in bank}), 'packages': pricing['packages'], 'pricing': {k:v for k,v in pricing.items() if k != 'packages'}, 'notice': 'رسید تنها پس از تطبیق واقعی مبلغ پیشنهاد قیمت و تصمیم مدیر بررسی می‌شود.' if enabled else 'دریافت وجه فعلاً غیرفعال است. هیچ واریزی انجام ندهید؛ فعال‌سازی نیازمند مقصد تأییدشده، مدل آماده و قیمت/نرخ معتبر است.'}
 
 def serialize_receipt(row):
     data = {key: row[key] for key in ['id', 'name', 'phone', 'tracking', 'package_id', 'status', 'created_at', 'reason']}
+    data['price_toman'] = row['price_toman']
+    data['analyses'] = row['analyses']
+    data['price_snapshot'] = json.loads(row['price_snapshot'])
     data['image_url'] = f"/api/billing/receipts/{row['id']}/image"
     if 'user_name' in row.keys():
         data['user_name'] = row['user_name']
@@ -62,10 +69,12 @@ class BankInput(BaseModel):
 
     @model_validator(mode='after')
     def bank_valid(self):
-        if not self.card_number and not self.holder and not self.bank:
-            return self
-        if not re.fullmatch(r'[0-9]{16}', self.card_number) or len(self.holder) < 2 or len(self.bank) < 2:
-            raise ValueError('A complete bank destination is required')
+        if (self.holder and len(self.holder) < 2) or (self.bank and len(self.bank) < 2):
+            raise ValueError('Invalid bank display information')
+        if not self.card_number:
+            return self # Private draft; billing remains disabled.
+        if not re.fullmatch(r'[0-9]{16}', self.card_number):
+            raise ValueError('Card must have 16 digits')
         digits = [int(c) for c in self.card_number]
         checksum = sum((digit * 2 - 9 if digit * 2 > 9 else digit * 2) if i % 2 == 0 else digit for i, digit in enumerate(digits))
         if checksum % 10 or len(set(digits)) == 1:
@@ -85,6 +94,7 @@ class ReviewInput(BaseModel):
 
 
 def register_billing_routes(app, require_user, require_admin, services, normalize_image, audit):
+    register_pricing_routes(app, require_admin, PACKAGES, audit)
     @app.get('/api/billing/config')
     def public_config():
         with connect() as db:
@@ -97,13 +107,13 @@ def register_billing_routes(app, require_user, require_admin, services, normaliz
             return credit_account(db, user['id'])
 
     @app.post('/api/billing/receipts', status_code=201)
-    async def submit_receipt(request: Request, image: UploadFile = File(...), name: str = Form(...), phone: str = Form(''), tracking: str = Form(...), package_id: str = Form(...)):
+    async def submit_receipt(request: Request, image: UploadFile = File(...), name: str = Form(...), phone: str = Form(''), tracking: str = Form(...), package_id: str = Form(...), quote_id: str = Form('')):
         with connect() as db:
             user = require_user(request, db, real=True)
             user_id = user['id']
             if not billing_config(db, services)['enabled']:
-                raise HTTPException(503, 'دریافت وجه فعال نیست؛ واریزی انجام ندهید.')
-            package = next((p for p in PACKAGES if p['id'] == package_id), None)
+                raise HTTPException(503, 'دریافت وجه فعال نیست؛ واریزی انجام ندهید. برای واریز قبلی با مدیر تطبیق دهید و دوباره واریز نکنید.')
+            package, snapshot = receipt_quote(db, package_id, quote_id, PACKAGES)
             if not package or not 2 <= len(name.strip()) <= 80 or len(phone) > 20 or not 4 <= len(tracking.strip()) <= 100:
                 raise HTTPException(422, 'اطلاعات رسید یا بسته معتبر نیست.')
             if db.execute('SELECT COUNT(*) FROM credit_receipts WHERE user_id=?', (user_id,)).fetchone()[0] >= 500:
@@ -122,7 +132,7 @@ def register_billing_routes(app, require_user, require_admin, services, normaliz
         try:
             path.write_bytes(normalized)
             with connect() as db:
-                db.execute('INSERT INTO credit_receipts (id,user_id,name,phone,tracking,tracking_key,package_id,price_toman,analyses,image_path,created_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)', (record_id, user_id, name.strip(), phone.strip(), tracking.strip(), canonical_tracking, package_id, package['price_toman'], package['analyses'], str(path.resolve()), now_iso()))
+                db.execute('INSERT INTO credit_receipts (id,user_id,name,phone,tracking,tracking_key,package_id,price_toman,analyses,image_path,created_at,quote_id,price_snapshot) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)', (record_id, user_id, name.strip(), phone.strip(), tracking.strip(), canonical_tracking, package_id, package['price_toman'], package['analyses'], str(path.resolve()), now_iso(), quote_id, json.dumps(snapshot, ensure_ascii=False)))
                 audit(db, user_id, 'receipt_submitted', record_id)
                 return serialize_receipt(db.execute('SELECT * FROM credit_receipts WHERE id=?', (record_id,)).fetchone())
         except BaseException as error:

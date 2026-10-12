@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 import type { AppContext, Report } from '../types'
 import { IS_STANDALONE } from '../config'
-import { api, checkImage, errorMessage, fa, takePhoto } from '../api'
+import { api, checkImage, errorMessage, fa, takePhoto, persianDate } from '../api'
 import { Badge, InfoBanner, Spinner } from '../components/ui'
 import { ScientificPlan } from '../components/scientific'
 import { EMPTY_CONTEXT, SYMPTOMS, validateContext } from '../scientific'
@@ -51,6 +51,7 @@ export default function Analysis({
   const upload = useRef<HTMLInputElement>(null),
     camera = useRef<HTMLInputElement>(null)
   const configured = !IS_STANDALONE && ctx.data.services.vision_configured
+  const verified = configured && !!ctx.data.services.vision_verified
   useEffect(() => {
     const urls = files.map((file) => URL.createObjectURL(file))
     setPreviews(urls)
@@ -124,8 +125,15 @@ export default function Analysis({
         mode === 'analyze' ? '/analyses' : IS_STANDALONE ? '/local/photos' : '/photos',
         { method: 'POST', body }
       )
-      await ctx.refresh()
       ctx.openReport(report)
+      try {
+        await ctx.refresh()
+      } catch {
+        ctx.notify(
+          'گزارش دریافت شد؛ بازخوانی موجودی/تاریخچه ممکن نشد. دوباره تحلیل ارسال نکنید.',
+          'error'
+        )
+      }
       ctx.notify(
         mode === 'analyze'
           ? 'گزارش غربالگری احتمالی ذخیره شد؛ نتیجه نیاز به تأیید دارد.'
@@ -148,8 +156,12 @@ export default function Analysis({
           <h1>اسکن و تشخیص احتمال آفت</h1>
           <p>عکس برگ، میوه، شاخه، تنه یا هر بخش درخت پسته را همراه اطلاعات باغ ثبت کنید.</p>
         </div>
-        <Badge tone={configured ? 'green' : 'amber'}>
-          {configured ? 'مدل بینایی تنظیم شده' : 'مدل واقعی متصل نیست'}
+        <Badge tone={verified ? 'green' : 'amber'}>
+          {verified
+            ? 'مدل پاسخ تصویری داده است'
+            : configured
+              ? 'تنظیم شده؛ نیازمند آزمون زنده'
+              : 'مدل واقعی متصل نیست'}
         </Badge>
       </div>
       <div className="reference-alert">
@@ -443,10 +455,43 @@ export default function Analysis({
             </span>
           </label>
         )}
+        {configured && (
+          <InfoBanner tone={verified ? 'info' : 'warning'}>
+            مدل تنظیم‌شده:{' '}
+            <strong dir="ltr">
+              {ctx.data.services.vision_model || ctx.data.services.vision_provider}
+            </strong>
+            .
+            {verified ? (
+              <>
+                {' '}
+                آخرین پاسخ معتبر تصویری: {persianDate(ctx.data.services.vision_checked_at!)}. این
+                وضعیت اثبات دقت علمی یا تشخیص قطعی نیست.
+              </>
+            ) : (
+              <>
+                {' '}
+                هنوز پاسخ واقعی اخیر برای این تنظیمات تأیید نشده است؛ کلید یا روشن‌کردن گزینه
+                به‌تنهایی اثبات اتصال نیست. هر درخواست فقط با رضایت شما ارسال می‌شود.
+              </>
+            )}
+          </InfoBanner>
+        )}
         {!configured && (
           <InfoBanner tone="warning">
             <strong>تحلیل واقعی هنوز فعال نیست.</strong> مدل بینایی در این نصب تنظیم نشده؛ ذخیره عکس
             یا برنامه آموزشی را به جای تحلیل علمی تصویر معرفی نمی‌کنیم.
+            {IS_STANDALONE ? (
+              <p>
+                این APK نشانی سرویس آنلاین ندارد. اینترنت به‌تنهایی آن را به Gemini متصل نمی‌کند؛
+                نسخه آنلاین باید به سرور واقعی و دارای کلید امن متصل شود.
+              </p>
+            ) : (
+              <p>
+                مدیر باید کلید Gemini و مدل مجاز را در تنظیمات امن سرور فعال کند؛ کلید به کاربران
+                داده نمی‌شود.
+              </p>
+            )}
           </InfoBanner>
         )}
         {error && (
