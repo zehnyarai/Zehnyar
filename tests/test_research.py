@@ -24,3 +24,9 @@ def test_model_pack_is_small_and_keeps_limitations_not_treatment_rates():
 
 def test_shared_source_has_no_duplicate_parallel_copy():
     assert DATA == json.loads(Path('src/data/research.json').read_text())
+
+
+def test_container_runtime_includes_the_shared_research_registry():
+    docker = Path('Dockerfile').read_text()
+    runtime = docker.split('FROM python:',1)[1]
+    assert 'COPY src/data ./src/data' in runtime

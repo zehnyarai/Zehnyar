@@ -14,6 +14,8 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt && useradd --create-home app && mkdir /data && chown app:app /data
 COPY main.py ./
 COPY server ./server
+# The API/model reads the same curated JSON as the offline app.
+COPY src/data ./src/data
 COPY --from=frontend /app/dist ./dist
 USER app
 VOLUME ["/data"]
