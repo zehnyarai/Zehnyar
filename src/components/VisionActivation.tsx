@@ -5,6 +5,7 @@ import type { AnalysisData, AppContext, Services } from '../types'
 import { IS_STANDALONE } from '../config'
 import { CheckList, InfoBanner, Spinner } from './ui'
 import GeminiConfiguration from './GeminiConfiguration'
+import DirectVision from './DirectVision'
 
 export default function VisionActivation({ ctx, allowed }: { ctx: AppContext; allowed: boolean }) {
   const input = useRef<HTMLInputElement>(null)
@@ -19,7 +20,19 @@ export default function VisionActivation({ ctx, allowed }: { ctx: AppContext; al
     result: AnalysisData
     notice: string
   } | null>(null)
-  const configured = !IS_STANDALONE && ctx.data.services.vision_configured
+  const configured = !!ctx.data.services.vision_configured
+  // The offline edition never talks to the project server: its activation lives on the device.
+  if (IS_STANDALONE)
+    return (
+      <>
+        <DirectVision ctx={ctx} />
+        <InfoBanner>
+          در نسخه مستقل، همین بخش جای پنل مدیریت سرور را می‌گیرد: کلید روی خودِ گوشی می‌ماند و در
+          فایل نصب یا پشتیبان نیست. نتایج همچنان غربالگری احتمالی‌اند و اعتبار علمی محلی برای آن‌ها
+          اندازه‌گیری نشده است.
+        </InfoBanner>
+      </>
+    )
   async function test() {
     if (!allowed || !file || !configured) return
     if (!consent) {

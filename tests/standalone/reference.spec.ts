@@ -120,7 +120,8 @@ test('four image views are stored, disconnected analysis never produces a diagno
   await page.getByLabel('انتخاب تصاویر درخت').setInputFiles([file, file, file, file])
   await expect(page.locator('.photo-grid figure')).toHaveCount(4)
   await page.getByRole('button', { name: 'تحلیل تصویر و بررسی احتمال آفت', exact: true }).click()
-  await expect(page.getByRole('alert')).toContainText('مدل بینایی واقعی هنوز متصل نیست')
+  // The offline edition asks for the owner's own key instead of claiming a server model.
+  await expect(page.getByRole('alert')).toContainText('تحلیل عکس روی این دستگاه فعال نیست')
   await expect(page.locator('.hypothesis')).toHaveCount(0)
   await page.getByRole('button', { name: 'ذخیره پرونده بدون تحلیل', exact: true }).click()
   await expect(page.getByRole('dialog')).toContainText('هیچ مدل یا کارشناس، تصویر را تحلیل نکرده')
@@ -166,4 +167,100 @@ test('dated research library works offline and distinguishes source evidence fro
   await page.reload()
   await page.getByRole('button', { name: 'پژوهش و نوآوری', exact: true }).click()
   await expect(page.locator('.research-card')).toHaveCount(24)
+})
+
+test('offline edition offers on-device key activation and refuses to fake analysis', async ({
+  page,
+}) => {
+  const calls: string[] = []
+  // Any Google call is stubbed: this test must never hit the network.
+  page.on('request', (request) => {
+    if (request.url().includes('generativelanguage.googleapis.com')) calls.push(request.url())
+  })
+  page.on('requestfailed', (request) => {
+    if (request.url().includes('generativelanguage.googleapis.com'))
+      calls.push(`FAILED ${request.url()}`)
+  })
+  await page.route('**://generativelanguage.googleapis.com/**', async (route) => {
+    const probe = String(route.request().postData() ?? '').includes('connection test')
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        candidates: [
+          {
+            finishReason: 'STOP',
+            content: {
+              parts: [
+                {
+                  text: JSON.stringify(
+                    probe
+                      ? { ok: true, model: 'gemini-2.5-flash' }
+                      : {
+                          title: 'برگ پسته',
+                          summary: 'لکه روشن روی برگ دیده می‌شود؛ آزمایش برگ لازم است.',
+                          quality: 'نور کافی',
+                          is_pistachio: true,
+                          observations: ['لکه روشن روی برگ یک'],
+                          hypotheses: [
+                            {
+                              name: 'تنش محیطی',
+                              evidence: 'بدون بافت قارچی',
+                              next_step: 'پایش هفتگی',
+                            },
+                          ],
+                          actions: ['برگ‌های آلوده را جدا کنید'],
+                          needed_tests: ['آزمایش برگ'],
+                          follow_up_questions: [],
+                          urgency: 'medium',
+                          limitations: ['آزمایش خاک انجام نشده'],
+                          nutrition_considerations: [],
+                          yield_quality_plan: [],
+                          monitoring_plan: ['عکس هفتگی'],
+                          knowledge_ids: ['sampling'],
+                        }
+                  ),
+                },
+              ],
+            },
+          },
+        ],
+      }),
+    })
+  })
+  await page.goto('./#/settings')
+  await expect(
+    page.getByRole('heading', { name: /تحلیل هوشمند عکس و آزمایش با کلید شخصی شما/ })
+  ).toBeVisible()
+  await expect(page.getByText('غیرفعال', { exact: true })).toBeVisible()
+  await page.getByLabel(/^مدل/).fill('gemini-2.5-flash')
+  await page.getByLabel(/^کلید API شخصی/).fill('AIzaSyStandaloneExampleKey123')
+  await page.getByRole('button', { name: 'ذخیره روی این دستگاه' }).click()
+  await expect(page.getByText('ثبت شده؛ بدون آزمون')).toBeVisible()
+  await page.getByRole('button', { name: 'آزمون اتصال' }).click()
+  // The stub answers the plain-text probe shape only for the connection test.
+  // Wait for the visible success state before reading the recorded requests: the
+  // network event can arrive a moment after the click returns.
+  await expect(page.getByText(/آزمون اتصال موفق شد/)).toBeVisible()
+  expect(calls.length).toBeGreaterThan(0)
+  expect(calls[0]).toContain('gemini-2.5-flash:generateContent')
+  expect(calls[0]).not.toContain('AIza')
+  expect(await page.evaluate(() => document.body.innerText)).not.toContain('AIzaSyStandalone')
+  const stored = await page.evaluate(() =>
+    JSON.stringify(localStorage.getItem('pestino-direct-vision'))
+  )
+  expect(stored).toContain('AIzaSyStandaloneExampleKey123')
+  // The stored key must never be part of the exportable backup.
+  const backup = await page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve) => {
+      const open = indexedDB.open('pestino-local-v1', 1)
+      open.onsuccess = () => resolve(open.result)
+    })
+    return await new Promise<string>((resolve, reject) => {
+      const req = db.transaction('state').objectStore('state').get('data')
+      req.onsuccess = () => resolve(JSON.stringify(req.result ?? {}))
+      req.onerror = () => reject(req.error)
+    })
+  })
+  expect(backup).not.toContain('AIzaSyStandalone')
 })

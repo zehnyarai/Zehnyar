@@ -1,20 +1,48 @@
-/** Local-only edition. No account, network API, payment or fabricated diagnosis. */
-import type { AnalysisData, Bootstrap, Knowledge, Orchard, Report, Task } from './types'
+/**
+ * Local-only edition. No account, server, hosted payment or fabricated diagnosis.
+ * Photo/soil/water interpretation is optional: it needs the owner's own Google key,
+ * kept only on this device (see visionDirect.ts) and never bundled in the app.
+ */
+import type { AnalysisData, Bootstrap, Knowledge, Orchard, Report, Services, Task } from './types'
 import knowledgeData from './data/knowledge.json'
 import { assetUrl } from './config'
 import { EMPTY_CONTEXT, validateContext } from './scientific'
+import type { DiagnosticContext } from './scientific'
 import { EMPTY_BILLING, validateField } from './fieldwork'
-import type { FieldKind, FieldRecord } from './fieldwork'
+import type { FieldKind, FieldRecord, LabInput } from './fieldwork'
+import {
+  analyzePhotosDirect,
+  clearDirectSettings,
+  directSettings,
+  interpretLabDirect,
+  saveDirectSettings,
+  testDirectConnection,
+} from './visionDirect'
 
 const DB_NAME = 'pestino-local-v1'
 const KEY = 'data'
 const MAX_BACKUP_BYTES = 32 * 1024 * 1024
+export interface LabAssessment {
+  id: string
+  created_at: string
+  input: LabInput
+  units: Record<string, string>
+  calculations: { key: string; label: string; value: number; formula: string }[]
+  result: Record<string, unknown> & {
+    title: string
+    summary: string
+    provider: string
+    model: string
+    disclaimer: string
+  }
+}
 interface State {
   version: 1
   orchards: Orchard[]
   tasks: Task[]
   reports: Report[]
   fields: Record<FieldKind, FieldRecord<FieldKind>[]>
+  assessments: LabAssessment[]
 }
 export class LocalError extends Error {
   status = 400
@@ -25,6 +53,7 @@ const emptyState = (): State => ({
   tasks: [],
   reports: [],
   fields: { labs: [], experiences: [], prices: [], climate: [] },
+  assessments: [],
 })
 const uid = () => {
   if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
@@ -97,20 +126,49 @@ function serialize<T>(operation: () => Promise<T>): Promise<T> {
   queue = next.catch(() => {})
   return next
 }
-const services = {
-  vision_configured: false,
-  vision_provider: 'none',
-  vision_model: '',
-  vision_verified: false,
-  vision_checked_at: null,
-  vision_connection_state: 'unconfigured' as const,
-  vision_scientifically_validated: false,
-  lab_ai_configured: false,
-  payment_configured: false,
-  payment_sandbox: true,
-  knowledge_version: knowledgeData.version,
-  knowledge_reviewed: false,
-  weather_configured: false,
+const VERIFIED_WINDOW_MS = 24 * 60 * 60 * 1000
+/** Reported from the on-device key only; an unconfigured device claims nothing. */
+export function serviceStatus(): Services {
+  const settings = directSettings()
+  const ready = !!settings.key
+  const verified =
+    ready &&
+    settings.ok &&
+    !!settings.checked_at &&
+    Date.now() - Date.parse(settings.checked_at) < VERIFIED_WINDOW_MS
+  return {
+    vision_configured: ready,
+    vision_provider: ready ? 'gemini' : 'none',
+    vision_model: ready ? settings.model : '',
+    vision_verified: verified,
+    vision_checked_at: verified ? settings.checked_at : null,
+    vision_connection_state: !ready
+      ? 'unconfigured'
+      : settings.checked_at
+        ? verified
+          ? 'responded'
+          : 'expired'
+        : 'untested',
+    vision_scientifically_validated: false,
+    lab_ai_configured: ready,
+    payment_configured: false,
+    payment_sandbox: true,
+    knowledge_version: knowledgeData.version,
+    knowledge_reviewed: false,
+    weather_configured: false,
+  }
+}
+/** Never returns the stored key; the device only reports whether one exists. */
+function visionStatus() {
+  const settings = directSettings()
+  return {
+    model: settings.model,
+    key_present: !!settings.key,
+    checked_at: settings.checked_at,
+    connection_ok: !!settings.ok,
+    note: settings.note,
+    storage: 'دستگاه شما (خارج از فایل پشتیبان)',
+  }
 }
 export function localKnowledge(): Knowledge {
   return {
@@ -257,7 +315,7 @@ function bootstrap(state: State): Bootstrap {
       orchard_name: state.orchards.find((o) => o.id === t.orchard_id)?.name ?? null,
     })),
     usage: { used: 0, limit: 0, premium: false },
-    services,
+    services: serviceStatus(),
     plans: [],
   }
 }
@@ -348,6 +406,83 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       }
       state.reports.unshift(record)
       result = record
+      modified = true
+    } else if (path === '/local/vision' && method === 'GET') result = visionStatus()
+    else if (path === '/local/vision' && method === 'PUT') {
+      saveDirectSettings(
+        String(body.model ?? ''),
+        body.key === undefined ? undefined : String(body.key)
+      )
+      result = visionStatus()
+    } else if (path === '/local/vision' && method === 'DELETE') {
+      clearDirectSettings()
+      result = visionStatus()
+    } else if (path === '/local/vision/test' && method === 'POST') {
+      // A text-only call: it proves key, model and network; it does not prove image accuracy.
+      await testDirectConnection()
+      result = visionStatus()
+    } else if (path === '/local/analyses' && method === 'POST') {
+      const settings = directSettings()
+      if (!settings.key)
+        throw new LocalError(
+          'تحلیل عکس روی این دستگاه فعال نیست؛ کلید شخصی خود را در بخش تنظیمات ثبت کنید.'
+        )
+      if (body.consent !== true)
+        throw new LocalError('برای ارسال تصویر به Google، رضایت آگاهانه لازم است.')
+      const report = state.reports.find((r) => r.id === String(body.report_id ?? ''))
+      if (!report) throw new LocalError('پرونده عکس پیدا نشد.')
+      const analysis = await analyzePhotosDirect(
+        report.image_urls?.length ? report.image_urls : [report.image_url ?? ''],
+        report.context ?? { ...EMPTY_CONTEXT }
+      )
+      report.data = analysis
+      result = report
+      modified = true
+    } else if (path.startsWith('/local/analyses/') && method === 'DELETE') {
+      const report = state.reports.find((r) => r.id === path.slice('/local/analyses/'.length))
+      if (!report) throw new LocalError('پرونده عکس پیدا نشد.')
+      // Delete the screening text only; the photo and notes the farmer saved stay untouched.
+      report.data = photoData(report.tree_part, report.notes)
+      result = { ok: true }
+      modified = true
+    } else if (path === '/local/lab-analyses' && method === 'GET') result = state.assessments
+    else if (path === '/local/lab-analyses' && method === 'POST') {
+      if (!directSettings().key)
+        throw new LocalError(
+          'تفسیر هوشمند آزمایش روی این دستگاه فعال نیست؛ کلید شخصی خود را ثبت کنید.'
+        )
+      if (body.consent !== true)
+        throw new LocalError('برای ارسال اعداد آزمایش به Google، رضایت آگاهانه لازم است.')
+      const sample = validateField('labs', body.sample) as LabInput
+      orchardId(state, sample.orchard_id)
+      const linked = state.orchards.find((o) => o.id === sample.orchard_id)
+      const context: DiagnosticContext = {
+        ...EMPTY_CONTEXT,
+        province: linked?.province ?? '',
+        cultivar: linked?.cultivar ?? '',
+        age: linked ? String(linked.age) : '',
+        irrigation: linked?.irrigation ?? '',
+      }
+      const { result: assessment, units, calculations } = await interpretLabDirect(sample, context)
+      if (state.assessments.length >= 200) state.assessments.length = 199
+      const record: LabAssessment = {
+        id: uid(),
+        created_at: new Date().toISOString(),
+        input: sample,
+        units,
+        calculations,
+        result: assessment as LabAssessment['result'],
+      }
+      state.assessments.unshift(record)
+      result = record
+      modified = true
+    } else if (path.startsWith('/local/lab-analyses/') && method === 'DELETE') {
+      const i = state.assessments.findIndex(
+        (r) => r.id === path.slice('/local/lab-analyses/'.length)
+      )
+      if (i < 0) throw new LocalError('تفسیر آزمایش پیدا نشد.')
+      state.assessments.splice(i, 1)
+      result = { ok: true }
       modified = true
     } else if (path.startsWith('/reports/') && method === 'DELETE') {
       const i = state.reports.findIndex((r) => r.id === path.slice('/reports/'.length))
@@ -496,6 +631,35 @@ export function validateBackup(content: string): State {
     }
   })
   uniqueIds(state.reports)
+  if (raw.assessments !== undefined) {
+    if (!Array.isArray(raw.assessments) || raw.assessments.length > 200)
+      throw new LocalError('تاریخچه تفسیر آزمایش معتبر نیست.')
+    state.assessments = raw.assessments.map((value) => {
+      const a = object(value)
+      const sample = validateField('labs', a.input) as LabInput
+      const result = object(a.result)
+      const units = object(a.units ?? {})
+      return {
+        id: id(a.id),
+        created_at: text(a.created_at, 'زمان ثبت', 40, 1),
+        input: sample,
+        units: Object.fromEntries(Object.entries(units).map(([k, v]) => [k, text(v, 'واحد', 40)])),
+        calculations: Array.isArray(a.calculations)
+          ? a.calculations.slice(0, 8).map((c) => {
+              const item = object(c)
+              return {
+                key: text(item.key, 'کلید', 20, 1),
+                label: text(item.label, 'برچسب', 80, 1),
+                value: number(item.value, 'مقدار', -1000000, 1000000),
+                formula: text(item.formula, 'فرمول', 200),
+              }
+            })
+          : [],
+        result: result as unknown as LabAssessment['result'],
+      }
+    })
+    uniqueIds(state.assessments)
+  }
   if (raw.fields !== undefined) {
     const fields = object(raw.fields)
     for (const kind of ['labs', 'experiences', 'prices', 'climate'] as FieldKind[]) {

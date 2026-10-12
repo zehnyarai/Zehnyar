@@ -5,6 +5,7 @@ import { errorMessage, fa, today } from '../api'
 import { eraseLocalData, exportBackup, restoreBackup, validateBackup } from '../standalone'
 import { saveTextFile } from '../files'
 import { Badge, InfoBanner, PageTitle, Spinner } from '../components/ui'
+import DirectVision from '../components/DirectVision'
 
 export default function LocalSettings({ ctx }: { ctx: AppContext }) {
   const input = useRef<HTMLInputElement>(null)
@@ -32,8 +33,10 @@ export default function LocalSettings({ ctx }: { ctx: AppContext }) {
       />
       <InfoBanner>
         <strong>اطلاعات فقط روی همین دستگاه ذخیره می‌شوند.</strong> حساب اینترنتی و همگام‌سازی
-        ندارید. تشخیص هوشمند عکس و پرداخت واقعی در این نسخه غیرفعال‌اند.
+        ندارید و هیچ هزینه‌ای لازم نیست. تحلیل هوشمند عکس و آزمایش اختیاری است و با کلید شخصی خودتان
+        روی همین دستگاه انجام می‌شود؛ دریافت وجه در این نسخه فعال نیست.
       </InfoBanner>
+      <DirectVision ctx={ctx} />
       <section className="card local-settings-card">
         <h2>
           <HardDrive size={22} /> دفتر باغ شما

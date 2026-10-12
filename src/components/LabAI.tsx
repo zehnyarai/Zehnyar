@@ -53,7 +53,9 @@ export default function LabAI({
   setBusy: (busy: boolean) => void
   revision: string
 }) {
-  const enabled = !IS_STANDALONE && !!ctx.data.services.lab_ai_configured
+  // Offline edition: enabled by the owner's own on-device Google key.
+  const enabled = !!ctx.data.services.lab_ai_configured
+  const base = IS_STANDALONE ? '/local/lab-analyses' : '/lab-analyses'
   const [consent, setConsent] = useState(false),
     [error, setError] = useState('')
   const [result, setResult] = useState<LabAssessment | null>(null)
@@ -65,8 +67,8 @@ export default function LabAI({
   }, [revision])
   useEffect(() => {
     let active = true
-    if (IS_STANDALONE || !ctx.data.user) return
-    void api<LabAssessment[]>('/lab-analyses')
+    if (!ctx.data.user) return
+    void api<LabAssessment[]>(IS_STANDALONE ? '/local/lab-analyses' : '/lab-analyses')
       .then((rows) => {
         if (active) setHistory(rows)
       })
@@ -81,7 +83,9 @@ export default function LabAI({
     setError('')
     if (!enabled) {
       setError(
-        'Gemini هنوز در این نصب فعال نیست. کلید به‌صورت امن روی سرور تنظیم می‌شود، نه داخل APK یا چت.'
+        IS_STANDALONE
+          ? 'تفسیر هوشمند آزمایش روی این دستگاه فعال نیست؛ در «داده‌ها و پشتیبان» کلید شخصی Google خود را ثبت کنید. محاسبات آموزشی بالا بدون آن هم کار می‌کنند.'
+          : 'Gemini هنوز در این نصب فعال نیست. کلید به‌صورت امن روی سرور تنظیم می‌شود، نه داخل APK یا چت.'
       )
       return
     }
@@ -103,7 +107,7 @@ export default function LabAI({
     setBusy(true)
     setResult(null)
     try {
-      const response = await api<LabAssessment>('/lab-analyses', {
+      const response = await api<LabAssessment>(base, {
         method: 'POST',
         body: JSON.stringify({ sample, consent: true }),
       })
@@ -124,7 +128,7 @@ export default function LabAI({
     if (!confirm('گزارش Gemini حذف شود؟ اعتبار تحلیل موفق بازگردانده نمی‌شود.')) return
     setBusy(true)
     try {
-      await api(`/lab-analyses/${row.id}`, { method: 'DELETE' })
+      await api(`${base}/${row.id}`, { method: 'DELETE' })
       setHistory((rows) => rows.filter((r) => r.id !== row.id))
       if (result?.id === row.id) setResult(null)
     } catch (e) {
@@ -140,19 +144,24 @@ export default function LabAI({
       </h2>
       <p className="section-description">
         این بخش جدا از محاسبات آموزشی است: نتایج واقعی واردشده، واحد، روش، تاریخ و زمینه باغ را به
-        مدل سروری می‌فرستد. هیچ تصویری در این بخش تحلیل نمی‌شود.
+        مدل می‌فرستد. هیچ تصویری در این بخش تحلیل نمی‌شود.{' '}
+        {IS_STANDALONE &&
+          'در نسخه مستقل، این فراخوانی از خودِ همین دستگاه و با کلید شخصی شما انجام می‌شود.'}
       </p>
       {!enabled && (
         <InfoBanner tone="warning">
-          اتصال Gemini هنوز فعال نیست. محاسبات SAR/RSC و تفسیر آموزشی بالا مستقل از مدل کار می‌کنند.
-          APK مستقل ۰.۲.۰ کلید یا اتصال Google ندارد.
+          {IS_STANDALONE
+            ? 'کلید شخصی Google روی این دستگاه ثبت نشده است. محاسبات SAR/RSC و تفسیر آموزشی بالا مستقل از مدل کار می‌کنند؛ برای تفسیر مدل، کلید را در «داده‌ها و پشتیبان» ثبت کنید.'
+            : 'اتصال Gemini هنوز فعال نیست. محاسبات SAR/RSC و تفسیر آموزشی بالا مستقل از مدل کار می‌کنند. APK مستقل کلید یا اتصال Google ندارد.'}
         </InfoBanner>
       )}
       {enabled && (
         <InfoBanner>
           مدل تنظیم‌شده: <strong dir="ltr">{ctx.data.services.vision_model || 'Gemini'}</strong>؛
-          تنظیم مدل به‌معنی اثبات اتصال یا اعتبار علمی آن نیست. هر تفسیر موفق یک نوبت از سهمیه مشترک
-          عکس و آزمایش مصرف می‌کند.
+          تنظیم مدل به‌معنی اثبات اتصال یا اعتبار علمی آن نیست.{' '}
+          {IS_STANDALONE
+            ? 'سهمیهٔ حساب شخصی شما مصرف می‌شود و این برنامه هیچ سهمیه‌ای نمی‌فروشد.'
+            : 'هر تفسیر موفق یک نوبت از سهمیه مشترک عکس و آزمایش مصرف می‌کند.'}
         </InfoBanner>
       )}
       <label className="consent-check">
@@ -186,7 +195,9 @@ export default function LabAI({
         <article className="lab-ai-result">
           <header>
             <h3>{result.result.title}</h3>
-            <Badge tone="amber">Gemini · تفسیر احتمالی آزمایش</Badge>
+            <Badge tone="amber">
+              {IS_STANDALONE ? 'کلید شخصی شما' : 'Gemini'} · تفسیر احتمالی آزمایش
+            </Badge>
           </header>
           <p>{result.result.summary}</p>
           <InfoBanner tone="warning">{result.result.disclaimer}</InfoBanner>

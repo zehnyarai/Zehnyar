@@ -70,21 +70,21 @@ jobs:
       - name: Verify package and signature
         run: |
           mkdir -p apk-output
-          cp android/app/build/outputs/apk/debug/app-debug.apk apk-output/Pestino-0.3.0-test.apk
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose apk-output/Pestino-0.3.0-test.apk
-          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging apk-output/Pestino-0.3.0-test.apk > apk-output/package-info.txt
+          cp android/app/build/outputs/apk/debug/app-debug.apk apk-output/Pestino-0.4.0-test.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose apk-output/Pestino-0.4.0-test.apk
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging apk-output/Pestino-0.4.0-test.apk > apk-output/package-info.txt
           grep -q "name='ir.pestino.app'" apk-output/package-info.txt
           grep -q 'پستینو' apk-output/package-info.txt
           python3 - <<'PY'
           import json, os, zipfile
-          with zipfile.ZipFile('apk-output/Pestino-0.3.0-test.apk') as apk:
+          with zipfile.ZipFile('apk-output/Pestino-0.4.0-test.apk') as apk:
               config = json.loads(apk.read('assets/capacitor.config.json'))
               assert config['appId'] == 'ir.pestino.app'
               assert config['appName'] == 'پستینو'
               assert config['server']['url'] == os.environ['CAPACITOR_SERVER_URL']
               assert 'classes.dex' in apk.namelist()
           PY
-          (cd apk-output && sha256sum Pestino-0.3.0-test.apk > Pestino-0.3.0-test.apk.sha256)
+          (cd apk-output && sha256sum Pestino-0.4.0-test.apk > Pestino-0.4.0-test.apk.sha256)
       - uses: actions/upload-artifact@v4
         with:
           name: pestino-test-apk

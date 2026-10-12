@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { Bootstrap, Orchard } from './types'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Bootstrap, Orchard, Report } from './types'
 import {
   eraseLocalData,
   exportBackup,
@@ -9,6 +9,8 @@ import {
   restoreBackup,
   validateBackup,
 } from './standalone'
+import { setFetchImplementation } from './visionDirect'
+import { EMPTY_CONTEXT } from './scientific'
 
 const orchard = {
   name: 'باغ آزمون',
@@ -281,4 +283,170 @@ it('cannot pretend that a Gemini laboratory endpoint exists in an offline instal
   const boot = await localApi<Bootstrap>('/bootstrap')
   expect(boot.services.lab_ai_configured).toBe(false)
   await expect(localApi('/lab-analyses', post({ consent: true }))).rejects.toThrow()
+})
+
+describe('device-direct analysis with the owner key (offline edition)', () => {
+  const key = 'AIzaSyExampleExampleExample123'
+  const sample = {
+    kind: 'water',
+    values: { ec: 2.1, sodium: 260, calcium: 88, magnesium: 30, bicarbonate: 210, carbonate: 0 },
+    method: 'water',
+    sample_date: '2026-10-01',
+    depth: '',
+    orchard_id: null,
+    notes: 'چاه عمیق باغ',
+  }
+  const lab = {
+    title: 'آب چاه',
+    summary: 'نمونه تک‌نقطه‌ای است.',
+    findings: ['شوری نیازمند پایش فصلی است'],
+    nutrition_considerations: [],
+    irrigation_considerations: ['زهکشی بررسی شود'],
+    care_plan: [],
+    yield_quality_plan: [],
+    needed_tests: ['آزمایش خاک'],
+    limitations: ['تکرار نمونه لازم است'],
+    follow_up_questions: [],
+    knowledge_ids: ['salinity'],
+  }
+  const screening = {
+    title: 'برگ پسته',
+    summary: 'لکه روشن روی برگ دیده می‌شود.',
+    quality: 'نور کافی',
+    is_pistachio: true,
+    observations: ['لکه روی برگ یک'],
+    hypotheses: [{ name: 'تنش محیطی', evidence: 'بدون بافت قارچی', next_step: 'پایش هفتگی' }],
+    actions: ['برگ آلوده جدا شود'],
+    needed_tests: ['آزمایش برگ'],
+    follow_up_questions: [],
+    urgency: 'medium',
+    limitations: ['آزمایش انجام نشده'],
+    nutrition_considerations: [],
+    yield_quality_plan: [],
+    monitoring_plan: ['عکس هفتگی'],
+    knowledge_ids: ['sampling'],
+  }
+  const store = new Map<string, string>()
+  let calls: { url: string; init: RequestInit }[] = []
+  beforeEach(async () => {
+    store.clear()
+    calls = []
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => void store.set(k, v),
+      removeItem: (k: string) => void store.delete(k),
+    })
+    setFetchImplementation((async (url: string, init: RequestInit) => {
+      calls.push({ url, init })
+      const body = String(init.body)
+      const payload = body.includes('connection test')
+        ? { ok: true, model: 'gemini-2.5-flash' }
+        : body.includes('laboratory')
+          ? lab
+          : screening
+      return new Response(
+        JSON.stringify({
+          candidates: [
+            { finishReason: 'STOP', content: { parts: [{ text: JSON.stringify(payload) }] } },
+          ],
+        }),
+        { status: 200 }
+      )
+    }) as unknown as typeof fetch)
+    await eraseLocalData()
+  })
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    setFetchImplementation(null)
+  })
+  it('stays unconfigured until the owner stores a key, and never echoes the key back', async () => {
+    expect((await localApi<Bootstrap>('/bootstrap')).services.vision_configured).toBe(false)
+    await expect(
+      localApi('/local/analyses', post({ report_id: 'x', consent: true }))
+    ).rejects.toThrow('کلید شخصی')
+    const stored = await localApi<{ key_present: boolean; model: string }>('/local/vision', {
+      method: 'PUT',
+      body: JSON.stringify({ model: 'gemini-2.5-flash', key }),
+    })
+    expect(stored.key_present).toBe(true)
+    expect(JSON.stringify(stored)).not.toContain(key)
+    const boot = await localApi<Bootstrap>('/bootstrap')
+    expect(boot.services.vision_configured).toBe(true)
+    expect(boot.services.lab_ai_configured).toBe(true)
+    expect(boot.services.vision_verified).toBe(false)
+    expect(calls).toHaveLength(0)
+  })
+  it('proves the connection with a text call, then interprets a laboratory sample', async () => {
+    await localApi('/local/vision', {
+      method: 'PUT',
+      body: JSON.stringify({ model: 'gemini-2.5-flash', key }),
+    })
+    vi.stubGlobal('fetch', fetch)
+    const tested = await localApi<{ connection_ok: boolean }>('/local/vision/test', {
+      method: 'POST',
+    })
+    expect(tested.connection_ok).toBe(true)
+    expect(calls[0].url).toContain('gemini-2.5-flash:generateContent')
+    expect(calls[0].url).not.toContain('AIza')
+    await expect(localApi('/local/lab-analyses', post({ sample, consent: false }))).rejects.toThrow(
+      'رضایت'
+    )
+    const assessment = await localApi<{
+      id: string
+      units: Record<string, string>
+      calculations: unknown[]
+      result: { model: string; disclaimer: string }
+    }>('/local/lab-analyses', post({ sample, consent: true }))
+    expect(assessment.units.sodium).toBe('mg/L')
+    expect(assessment.calculations.length).toBeGreaterThan(0)
+    expect(assessment.result.model).toBe('gemini-2.5-flash')
+    expect(assessment.result.disclaimer).toContain('نه آزمایش مستقل')
+    expect(await localApi<unknown[]>('/local/lab-analyses')).toHaveLength(1)
+    expect((await exportBackup()).includes(assessment.id)).toBe(true)
+    await localApi(`/local/lab-analyses/${assessment.id}`, { method: 'DELETE' })
+    expect(await localApi<unknown[]>('/local/lab-analyses')).toHaveLength(0)
+  })
+  it('screens a saved orchard photo without losing the original file, and can drop the text', async () => {
+    const pixels = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA=='
+    const backup = JSON.stringify({
+      app: 'pestino',
+      version: 1,
+      orchards: [],
+      tasks: [],
+      reports: [
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          orchard_id: null,
+          tree_part: 'برگ',
+          notes: 'لکه روشن',
+          image_url: pixels,
+          context: { ...EMPTY_CONTEXT, symptoms: [] },
+          created_at: '2026-10-01T10:00:00.000Z',
+        },
+      ],
+      fields: { labs: [], experiences: [], prices: [], climate: [] },
+    })
+    await restoreBackup(backup)
+    await localApi('/local/vision', {
+      method: 'PUT',
+      body: JSON.stringify({ model: 'gemini-2.5-flash', key }),
+    })
+    const analyzed = await localApi<Report>(
+      '/local/analyses',
+      post({ report_id: '11111111-1111-4111-8111-111111111111', consent: true })
+    )
+    expect(analyzed.data.provider).toBe('gemini-direct-byo-key')
+    expect(analyzed.data.hypotheses[0].confidence).toBeNull()
+    expect(analyzed.image_url).toBe(pixels)
+    const sent = JSON.parse(String(calls[0].init.body)) as {
+      contents: { parts: { inlineData?: { data: string } }[] }[]
+    }
+    expect(sent.contents[0].parts.some((p) => p.inlineData?.data === pixels.split(',')[1])).toBe(
+      true
+    )
+    await localApi('/local/analyses/11111111-1111-4111-8111-111111111111', { method: 'DELETE' })
+    const cleared = (await localApi<Bootstrap>('/bootstrap')).reports[0]
+    expect(cleared.data.provider).toBe('local-storage')
+    expect(cleared.image_url).toBe(pixels)
+  })
 })

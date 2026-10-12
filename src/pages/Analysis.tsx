@@ -15,6 +15,7 @@ import { IS_STANDALONE } from '../config'
 import { api, checkImage, errorMessage, fa, takePhoto, persianDate } from '../api'
 import { Badge, InfoBanner, Spinner } from '../components/ui'
 import { ScientificPlan } from '../components/scientific'
+import { KeyRound } from 'lucide-react'
 import { EMPTY_CONTEXT, SYMPTOMS, validateContext } from '../scientific'
 import type { DiagnosticContext } from '../scientific'
 
@@ -50,7 +51,8 @@ export default function Analysis({
   const [drag, setDrag] = useState(false)
   const upload = useRef<HTMLInputElement>(null),
     camera = useRef<HTMLInputElement>(null)
-  const configured = !IS_STANDALONE && ctx.data.services.vision_configured
+  // In the offline edition this reflects the owner's own on-device key.
+  const configured = ctx.data.services.vision_configured
   const verified = configured && !!ctx.data.services.vision_verified
   useEffect(() => {
     const urls = files.map((file) => URL.createObjectURL(file))
@@ -92,7 +94,9 @@ export default function Analysis({
     setError('')
     if (mode === 'analyze' && !configured) {
       setError(
-        'مدل بینایی واقعی هنوز متصل نیست؛ تحلیل عکس انجام نمی‌شود. پرونده را می‌توانید ذخیره کنید و برنامه بررسیِ اطلاعات خودتان را ببینید.'
+        IS_STANDALONE
+          ? 'تحلیل عکس روی این دستگاه فعال نیست. در «داده‌ها و پشتیبان» کلید شخصی Google خود را ثبت کنید یا پرونده را بدون تحلیل ذخیره کنید.'
+          : 'مدل بینایی واقعی هنوز متصل نیست؛ تحلیل عکس انجام نمی‌شود. پرونده را می‌توانید ذخیره کنید و برنامه بررسیِ اطلاعات خودتان را ببینید.'
       )
       return
     }
@@ -121,10 +125,19 @@ export default function Analysis({
     body.append('context', JSON.stringify(checked))
     body.append('consent', String(consent))
     try {
-      const report = await api<Report>(
-        mode === 'analyze' ? '/analyses' : IS_STANDALONE ? '/local/photos' : '/photos',
+      // Offline edition: the photo set is stored on the device first, then screened with
+      // the owner's own key. A failed screening never destroys the saved photos.
+      const saved = await api<Report>(
+        IS_STANDALONE ? '/local/photos' : mode === 'analyze' ? '/analyses' : '/photos',
         { method: 'POST', body }
       )
+      const report =
+        IS_STANDALONE && mode === 'analyze'
+          ? await api<Report>('/local/analyses', {
+              method: 'POST',
+              body: JSON.stringify({ report_id: saved.id, consent: true }),
+            })
+          : saved
       ctx.openReport(report)
       try {
         await ctx.refresh()
@@ -136,7 +149,7 @@ export default function Analysis({
       }
       ctx.notify(
         mode === 'analyze'
-          ? 'گزارش غربالگری احتمالی ذخیره شد؛ نتیجه نیاز به تأیید دارد.'
+          ? 'گزارش غربالگری احتمالی ساخته شد؛ عکس‌ها هم روی دستگاه ذخیره شدند. نتیجه نیاز به تأیید کارشناس دارد.'
           : 'پرونده عکس و اطلاعات ذخیره شد؛ تصویر تحلیل نشده است.',
         'success'
       )
@@ -158,12 +171,32 @@ export default function Analysis({
         </div>
         <Badge tone={verified ? 'green' : 'amber'}>
           {verified
-            ? 'مدل پاسخ تصویری داده است'
+            ? IS_STANDALONE
+              ? 'کلید شما آزموده شده است'
+              : 'مدل پاسخ تصویری داده است'
             : configured
-              ? 'تنظیم شده؛ نیازمند آزمون زنده'
-              : 'مدل واقعی متصل نیست'}
+              ? 'تنظیم شده؛ نیازمند آزمون اتصال'
+              : IS_STANDALONE
+                ? 'کلید شخصی ثبت نشده'
+                : 'مدل واقعی متصل نیست'}
         </Badge>
       </div>
+      {IS_STANDALONE && !configured && (
+        <div className="reference-alert">
+          <Info size={18} />
+          <p>
+            برای فعال‌کردن تحلیل عکس، کلید شخصی Google خود را در بخش «داده‌ها و پشتیبان» این برنامه
+            ثبت کنید؛ سرور و هزینه‌ای لازم نیست.
+          </p>
+          <button
+            className="button secondary small"
+            onClick={() => ctx.navigate('settings')}
+            type="button"
+          >
+            <KeyRound size={16} /> ثبت کلید شخصی
+          </button>
+        </div>
+      )}
       <div className="reference-alert">
         <Info size={18} />
         <p>

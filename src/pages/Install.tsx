@@ -24,7 +24,7 @@ export default function Install({ ctx }: { ctx: AppContext }) {
           </p>
           <a
             className="button primary"
-            href="https://raw.githubusercontent.com/zehnyarai/Zehnyar/arena/e819b607-zehnyar/installers/Pestino-0.3.0.apk"
+            href="https://raw.githubusercontent.com/zehnyarai/Zehnyar/arena/e819b607-zehnyar/installers/Pestino-0.4.0.apk"
             target="_blank"
             rel="noreferrer"
           >
