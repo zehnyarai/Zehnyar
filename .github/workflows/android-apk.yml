@@ -53,8 +53,26 @@ jobs:
 
       - run: flutter pub get
 
+      # Converts analyzer findings into GitHub annotations so they are visible in the
+      # check-run annotations even when job logs are not available.
       - name: Analyze
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        run: |
+          flutter analyze --format=machine > analyze.txt 2>&1 || true
+          python3 - <<'PY'
+          import sys
+          errors = 0
+          for line in open("analyze.txt", encoding="utf-8", errors="replace"):
+              parts = line.rstrip("\n").split("|", 7)
+              if len(parts) < 8 or parts[0] not in ("ERROR", "WARNING", "INFO"):
+                  continue
+              sev, _, code, path, ln, col, _, msg = parts
+              level = {"ERROR": "error", "WARNING": "warning"}.get(sev, "notice")
+              if sev == "ERROR":
+                  errors += 1
+              print(f"::{level} file={path},line={ln},col={col}::[{code}] {msg}")
+          print(f"Analyzer errors: {errors}")
+          sys.exit(1 if errors else 0)
+          PY
 
       - name: Unit tests
         run: flutter test
