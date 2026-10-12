@@ -1,2 +1,2 @@
-Built source commit: f26d8209490aa8ed59bf13ceba0d6c43b6196355
+Built source commit: 93912694ddb7405c2975182b6cbf86dc2a061b1d
 This APK is a non-debug, test-key-signed local-only compatibility build. Photo screening and soil/water interpretation run only when the owner stores their own Google API key on the device; a text-only connection test must pass first. No hosted model, no account, no payment, no accuracy claim.
