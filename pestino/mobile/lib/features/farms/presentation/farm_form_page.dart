@@ -6,6 +6,8 @@ import '../../../core/errors/app_failure.dart';
 import '../../../core/utils/persian.dart';
 import '../../../core/widgets/common_widgets.dart';
 import '../domain/farm_entities.dart';
+import '../../ai/domain/ai_repository.dart';
+import '../../ai/presentation/ai_assist_sheet.dart';
 import 'farm_providers.dart';
 
 /// Create (farmId == null) or edit a farm.
@@ -148,6 +150,28 @@ class _FarmFormState extends ConsumerState<_FarmForm> {
     return _parseDouble(v) == null ? 'عدد معتبر وارد کنید' : null;
   }
 
+  /// Asks the backend for a short AI hint about one field, with the farm's context.
+  Future<void> _help(String field, String? displayValue) async {
+    if (displayValue == null || displayValue.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ابتدا برای این فیلد یک مقدار انتخاب کنید.')));
+      return;
+    }
+    await showAiAssistSheet(
+      context,
+      feature: 'farm_form_help',
+      field: field,
+      value: displayValue,
+      details: AiAssistDetails(
+        province: _province.text.trim(),
+        city: _city.text.trim(),
+        pistachioVariety: _variety,
+        treeAgeYears: int.tryParse(_treeAge.text.trim()),
+        irrigationMethod: FarmFormPage.irrigationOptions[_irrigation] ?? _irrigation,
+        soilType: _soilTypes[_soilType] ?? _soilType,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -206,7 +230,10 @@ class _FarmFormState extends ConsumerState<_FarmForm> {
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             initialValue: _variety,
-            decoration: const InputDecoration(labelText: 'رقم پسته'),
+            decoration: InputDecoration(
+              labelText: 'رقم پسته',
+              suffixIcon: _AiHelpButton(tooltip: 'کمک هوشمند رقم', onPressed: () => _help('رقم پسته', _variety)),
+            ),
             items: [
               for (final v in _withCurrent(FarmFormPage.varieties, _variety)) DropdownMenuItem(value: v, child: Text(v)),
             ],
@@ -216,14 +243,26 @@ class _FarmFormState extends ConsumerState<_FarmForm> {
           const _SectionLabel('آبیاری و خاک'),
           DropdownButtonFormField<String>(
             initialValue: _irrigation,
-            decoration: const InputDecoration(labelText: 'روش آبیاری'),
+            decoration: InputDecoration(
+              labelText: 'روش آبیاری',
+              suffixIcon: _AiHelpButton(
+                tooltip: 'کمک هوشمند آبیاری',
+                onPressed: () => _help('روش آبیاری', FarmFormPage.irrigationOptions[_irrigation] ?? _irrigation),
+              ),
+            ),
             items: [for (final e in FarmFormPage.irrigationOptions.entries) DropdownMenuItem(value: e.key, child: Text(e.value))],
             onChanged: (v) => setState(() => _irrigation = v),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             initialValue: _soilType,
-            decoration: const InputDecoration(labelText: 'نوع خاک'),
+            decoration: InputDecoration(
+              labelText: 'نوع خاک',
+              suffixIcon: _AiHelpButton(
+                tooltip: 'کمک هوشمند خاک',
+                onPressed: () => _help('نوع خاک', _soilTypes[_soilType] ?? _soilType),
+              ),
+            ),
             items: [
               for (final e in _soilTypes.entries) DropdownMenuItem(value: e.key, child: Text(e.value)),
               if (_soilType != null && !_soilTypes.containsKey(_soilType))
@@ -246,6 +285,23 @@ class _FarmFormState extends ConsumerState<_FarmForm> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Small sparkle button shown inside a form field.
+class _AiHelpButton extends StatelessWidget {
+  const _AiHelpButton({required this.tooltip, required this.onPressed});
+
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: tooltip,
+      icon: const Icon(Icons.auto_awesome_rounded),
+      onPressed: onPressed,
     );
   }
 }

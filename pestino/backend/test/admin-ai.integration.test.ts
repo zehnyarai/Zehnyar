@@ -63,7 +63,7 @@ describe('Admin AI controls (integration)', { skip }, () => {
     assert.equal(req.status, 202);
     const ver = await api('POST', '/api/v1/auth/otp/verify', { json: { phone, code: req.json.devCode } });
     assert.equal(ver.status, 200, JSON.stringify(ver.json));
-    return { token: ver.json.tokens.accessToken as string, id: ver.json.user.id as string };
+    return { token: ver.json.tokens.accessToken as string, refresh: ver.json.tokens.refreshToken as string, id: ver.json.user.id as string };
   }
 
   before(async () => {
@@ -264,5 +264,77 @@ describe('Admin AI controls (integration)', { skip }, () => {
     assert.deepEqual(keys, ['farm_form_help', 'image_analysis', 'report_explain']);
     const vision = res.json.items.find((i: { key: string }) => i.key === 'image_analysis');
     assert.equal(vision.editablePrompt, false);
+  });
+
+  test('admin password login: correct password, wrong password, non-admin, lockout and recovery', async () => {
+    const { hashPassword } = await import('../src/lib/password.js');
+    const PASS = 'Admin-Pass-2026';
+    const u = await login('09121110010');
+    await db.query("UPDATE users SET role = 'admin', password_hash = $2 WHERE id = $1", [u.id, await hashPassword(PASS)]);
+    const post = (phone: string, password: string) => api('POST', '/api/v1/admin/auth/login', { json: { phone, password } });
+
+    const ok = await post('09121110010', PASS);
+    assert.equal(ok.status, 200, JSON.stringify(ok.json));
+    assert.equal(ok.json.user.role, 'admin');
+    assert.ok(ok.json.tokens.accessToken && ok.json.tokens.refreshToken);
+    assert.ok(!ok.raw.includes(PASS), 'password must never be echoed');
+    const me = await api('GET', '/api/v1/admin/ai/settings', { token: ok.json.tokens.accessToken });
+    assert.equal(me.status, 200, 'session from admin login must reach admin API');
+
+    const wrong = await post('09121110010', 'wrong-password-123');
+    assert.equal(wrong.status, 401);
+    assert.equal(wrong.json.error.code, 'INVALID_CREDENTIALS');
+    const unknown = await post('09129999999', PASS);
+    assert.equal(unknown.status, 401);
+    assert.equal(unknown.json.error.message, wrong.json.error.message, 'errors must not reveal which accounts exist');
+
+    // Five failures lock the account; even the right password is refused during the lock.
+    // 1 failure above + 4 here = the 5th failure, which locks the account.
+    for (let i = 0; i < 4; i++) await post('09121110010', 'bad-password-xx');
+    const blocked = await post('09121110010', PASS);
+    assert.equal(blocked.status, 429);
+    assert.equal(blocked.json.error.code, 'ACCOUNT_LOCKED');
+
+    await db.query('UPDATE users SET password_locked_until = NULL, password_failed_count = 0 WHERE id = $1', [u.id]);
+    const recovered = await post('09121110010', PASS);
+    assert.equal(recovered.status, 200);
+
+    // A farmer with a password is still not an admin.
+    const farmer = await login('09121110011');
+    await db.query('UPDATE users SET password_hash = $2 WHERE id = $1', [farmer.id, await hashPassword(PASS)]);
+    const notAdmin = await post('09121110011', PASS);
+    assert.equal(notAdmin.status, 401);
+
+    const audit = await api('GET', '/api/v1/admin/audit?limit=50', { token: ok.json.tokens.accessToken });
+    assert.ok(audit.json.items.some((i: { action: string }) => i.action === 'admin.login'));
+    assert.ok(audit.json.items.some((i: { action: string }) => i.action === 'admin.login_locked'));
+    assert.ok(!audit.raw.includes(PASS), 'audit must never contain passwords');
+  });
+
+  test('admin stats and user management (deactivation revokes sessions)', async () => {
+    const admin = await login('09121110020');
+    await db.query("UPDATE users SET role = 'admin' WHERE id = $1", [admin.id]);
+    const target = await login('09121110021');
+
+    const stats = await api('GET', '/api/v1/admin/stats', { token: admin.token });
+    assert.equal(stats.status, 200);
+    assert.ok(stats.json.stats.users.total >= 2);
+    assert.equal(typeof stats.json.stats.ai.callsLast7Days, 'number');
+
+    const search = await api('GET', '/api/v1/admin/users?q=0912111002', { token: admin.token });
+    assert.ok(search.json.items.some((i: { id: string }) => i.id === target.id));
+    assert.ok(!JSON.stringify(search.json).includes('password'), 'user list must not expose credentials');
+
+    const self = await api('PATCH', `/api/v1/admin/users/${admin.id}`, { token: admin.token, json: { isActive: false } });
+    assert.equal(self.status, 400);
+    assert.equal(self.json.error.code, 'SELF_DEACTIVATION');
+
+    const off = await api('PATCH', `/api/v1/admin/users/${target.id}`, { token: admin.token, json: { isActive: false } });
+    assert.equal(off.status, 200);
+    const refresh = await api('POST', '/api/v1/auth/refresh', { json: { refreshToken: target.refresh } });
+    assert.equal(refresh.status, 401, 'deactivated user cannot refresh the session');
+
+    const badId = await api('PATCH', '/api/v1/admin/users/not-a-uuid', { token: admin.token, json: { isActive: true } });
+    assert.equal(badId.status, 400);
   });
 });

@@ -105,6 +105,16 @@ class ProfilePage extends ConsumerWidget {
                   trailing: const Icon(Icons.chevron_left_rounded),
                   onTap: () => context.push(AppRoutes.knowledge),
                 ),
+                if (user?.role == 'admin') ...[
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.admin_panel_settings_rounded, color: AppColors.earth700),
+                    title: const Text('پنل مدیریت'),
+                    subtitle: const Text('آمار، هوش مصنوعی، کاربران و ممیزی'),
+                    trailing: const Icon(Icons.chevron_left_rounded),
+                    onTap: () => context.push(AppRoutes.adminHome),
+                  ),
+                ],
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.privacy_tip_outlined),

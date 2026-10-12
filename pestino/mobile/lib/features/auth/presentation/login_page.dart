@@ -103,7 +103,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.4, color: Colors.white))
                           : const Text('دریافت کد ورود'),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: () => context.push(AppRoutes.adminLogin),
+                      icon: const Icon(Icons.admin_panel_settings_outlined, size: 18),
+                      label: const Text('ورود مدیران'),
+                    ),
+                    const SizedBox(height: 12),
                     Text(
                       'با ورود به پستینو، شرایط استفاده و سیاست حریم خصوصی را می‌پذیرید.',
                       style: theme.textTheme.bodySmall?.copyWith(color: AppColors.inkSoft),

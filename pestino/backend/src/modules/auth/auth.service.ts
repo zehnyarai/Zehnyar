@@ -127,6 +127,20 @@ export class AuthService {
     });
   }
 
+  /** Starts a session for an already-authenticated account (used by the admin password login). */
+  async createSession(
+    userId: string,
+    meta: { userAgent?: string },
+  ): Promise<{ user: PublicUser; tokens: TokenPair }> {
+    return withTransaction(this.deps.db, async (client) => {
+      const res = await client.query<UserRow>('SELECT * FROM users WHERE id = $1', [userId]);
+      const userRow = res.rows[0];
+      if (!userRow || !userRow.is_active) throw AppError.forbidden('ACCOUNT_DISABLED', 'This account is disabled');
+      const tokens = await this.issueTokens(client, userRow, meta.userAgent, randomUUID());
+      return { user: toPublicUser(userRow), tokens };
+    });
+  }
+
   /** Refresh-token rotation with reuse detection. */
   async refresh(refreshToken: string, meta: { userAgent?: string }): Promise<TokenPair> {
     const hash = sha256(refreshToken);

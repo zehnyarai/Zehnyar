@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/admin/presentation/admin_home_page.dart';
+import '../features/admin/presentation/admin_login_page.dart';
 import '../features/analysis/domain/analysis_entities.dart';
 import '../features/analysis/presentation/analysis_page.dart';
 import '../features/analysis/presentation/report_page.dart';
@@ -37,6 +39,8 @@ class AppRoutes {
   static const profile = '/profile';
   static const knowledge = '/knowledge';
   static const paywall = '/paywall';
+  static const adminLogin = '/admin/login';
+  static const adminHome = '/admin';
 
   static String farm(String id) => '/farms/$id';
   static String farmEdit(String id) => '/farms/$id/edit';
@@ -59,13 +63,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       final loc = state.matchedLocation;
       final onSplash = loc == AppRoutes.splash;
       final onAuthFlow = loc == AppRoutes.login || loc == AppRoutes.otp;
+      // Admin screens handle their own access checks (login page and role check in the admin home).
+      final onAdmin = loc == AppRoutes.adminLogin || loc.startsWith(AppRoutes.adminHome);
 
       switch (auth.status) {
         case AuthStatus.unknown:
           return onSplash ? null : AppRoutes.splash;
         case AuthStatus.unauthenticated:
-          return onAuthFlow ? null : AppRoutes.login;
+          return (onAuthFlow || onAdmin) ? null : AppRoutes.login;
         case AuthStatus.authenticated:
+          if (onAdmin) return null;
           if (!(onSplash || onAuthFlow)) return null;
           final needsSetup = (auth.user?.province ?? '').isEmpty;
           return needsSetup ? AppRoutes.onboarding : AppRoutes.dashboard;
@@ -80,6 +87,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: AppRoutes.onboarding, builder: (_, __) => const OnboardingPage()),
       GoRoute(path: AppRoutes.paywall, builder: (_, __) => const PaywallPage()),
+      GoRoute(path: AppRoutes.adminLogin, builder: (_, __) => const AdminLoginPage()),
+      GoRoute(path: AppRoutes.adminHome, builder: (_, __) => const AdminHomePage()),
       GoRoute(
         path: AppRoutes.analysis,
         builder: (_, state) => AnalysisPage(initialFarmId: state.uri.queryParameters['farmId']),

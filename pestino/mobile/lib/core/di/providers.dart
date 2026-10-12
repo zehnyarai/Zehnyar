@@ -5,6 +5,10 @@ import '../storage/token_store.dart';
 import '../../features/auth/data/auth_repository_impl.dart';
 import '../../features/auth/domain/auth_repository.dart';
 import '../../features/auth/presentation/auth_controller.dart';
+import '../../features/admin/data/admin_repository_impl.dart';
+import '../../features/admin/domain/admin_repository.dart';
+import '../../features/ai/data/ai_repository_impl.dart';
+import '../../features/ai/domain/ai_repository.dart';
 import '../../features/analysis/data/analysis_repository_impl.dart';
 import '../../features/analysis/domain/analysis_repository.dart';
 import '../../features/farms/data/farm_repository_impl.dart';
@@ -43,4 +47,12 @@ final knowledgeRepositoryProvider = Provider<KnowledgeRepository>((ref) {
 
 final subscriptionRepositoryProvider = Provider<SubscriptionRepository>((ref) {
   return SubscriptionRepositoryImpl(ref.watch(apiClientProvider));
+});
+
+final adminRepositoryProvider = Provider<AdminRepository>((ref) {
+  return AdminRepositoryImpl(api: ref.watch(apiClientProvider), tokens: ref.watch(tokenStoreProvider));
+});
+
+final aiRepositoryProvider = Provider<AiRepository>((ref) {
+  return AiRepositoryImpl(ref.watch(apiClientProvider));
 });

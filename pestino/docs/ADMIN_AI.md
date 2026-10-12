@@ -1,6 +1,8 @@
 # Admin panel & AI controls
 
-**Status:** backend API implemented and tested (`migrations/002_ai_admin.sql`). The web admin UI and the in-app field-help buttons are not built yet.
+**Status:** backend API and the in-app admin panel are implemented. Field-help buttons are in the farm form. Tests run against PostgreSQL (see `backend/test`).
+
+The admin panel lives inside the mobile app. It is reached from the profile (admin accounts only) or from the **ورود مدیران** link on the login page. It uses its own password sign-in, not the farmer OTP flow.
 
 ## Goal
 
@@ -88,6 +90,10 @@ Admin status is re-read from the database on every request, so revoking admin ta
 | PATCH | `/ai/features/:key` | any subset of `enabled, model, systemPrompt, maxOutputTokens, temperature, dailyLimitFree, dailyLimitPremium` | `{ item }`. `systemPrompt` on `image_analysis` returns `400 PROMPT_NOT_EDITABLE`. |
 | GET | `/ai/usage?days=1..90` | – | `{ items: [{ feature, status, calls, inputTokens, outputTokens, avgLatencyMs }] }` |
 | GET | `/audit?limit=1..200` | – | `{ items }` newest first |
+| GET | `/stats` | – | `{ stats }`: users, analyses (24 h, 7 d, failed), premium subscriptions, AI calls, errors, tokens (7 d) |
+| GET | `/users?q=&limit=` | – | `{ items }`: id, phone, name, role, isActive, last login. Search by phone or name. |
+| PATCH | `/users/:userId` | `{ isActive }` | `{ user }`. Deactivating revokes the user's refresh tokens. Admins cannot deactivate themselves. |
+| POST | `/auth/login` | `{ phone, password }` | `{ user, tokens }`. Public, not under the admin guard. |
 
 Errors use the standard envelope `{ error: { code, message } }`. Codes added here: `ADMIN_REQUIRED` (403), `PROMPT_NOT_EDITABLE` (400), `ENCRYPTION_NOT_CONFIGURED` (400), `AI_DISABLED` (503), `AI_NOT_CONFIGURED` (503), `AI_KEY_UNREADABLE` (503).
 
@@ -98,17 +104,28 @@ Errors use the standard envelope `{ error: { code, message } }`. Codes added her
 | GET | `/ai/features` | Lists enabled and disabled text helpers so the app can show or hide buttons. |
 | POST | `/ai/assist` | Body: `{ feature: "farm_form_help" \| "report_explain", field (≤60), value (≤500), context? }`. Response: `{ feature, text, model, disclaimer, flags, remainingToday }`. Errors: `AI_FEATURE_DISABLED` (403), `AI_QUOTA_EXCEEDED` (402), `AI_DISABLED` (503). |
 
+## Admin sign-in and accounts
+
+Admins sign in with a phone number and password at `POST /api/v1/admin/auth/login`. This is separate from farmer OTP login.
+
+- Passwords are hashed with scrypt (`N=32768, r=8, p=1`, random 16-byte salt). Only the hash is stored.
+- Minimum policy: 12 characters, letters and digits, no spaces.
+- After **5 consecutive wrong passwords** the account is locked for **15 minutes** (`429 ACCOUNT_LOCKED`). A successful login resets the counter.
+- Every failure returns the same `401 INVALID_CREDENTIALS`, so the response does not reveal which numbers are admins. The login endpoint has a per-IP limit of 20 requests per 15 minutes.
+- Every attempt (`admin.login`, `admin.login_failed`, `admin.login_locked`) is written to the audit log. Passwords are never logged.
+- The returned tokens are normal access and refresh tokens. The admin role is still re-checked in the database on every admin request.
+
 ## Bootstrapping the first admin
 
-There is no sign-up path for admins. Run once on the server, after the user has logged in at least once:
+There is no sign-up path for admins. Run once on the server, after the user has logged in with OTP at least once. The password comes from the environment, so it does not appear in shell history:
 
 ```bash
 cd pestino/backend
-npm run admin:promote -- 09XXXXXXXXX          # grant
-npm run admin:promote -- 09XXXXXXXXX --revoke # revoke
+ADMIN_PASSWORD='choose-a-long-password-2026' npm run admin:promote -- 09XXXXXXXXX  # grant
+npm run admin:promote -- 09XXXXXXXXX --revoke                                     # revoke
 ```
 
-The action is written to `admin_audit_logs` with `actor = null`, `details.via = "cli"`.
+Granting admin without a valid `ADMIN_PASSWORD` is refused. The action is written to `admin_audit_logs` with `actor = null`, `details.via = "cli"`.
 
 ## Operational notes
 
@@ -116,8 +133,19 @@ The action is written to `admin_audit_logs` with `actor = null`, `details.via = 
 - Gemini access depends on region. Host the backend where the Gemini API is reachable and where your privacy policy allows sending farm photos and location text to Google.
 - Usage rows are never pruned automatically. Add a retention job (for example 13 months) before production.
 
+## In-app admin panel (Flutter)
+
+Four tabs:
+
+1. **آمار**: users, analyses, premium subscriptions, AI calls, errors and tokens (7 days).
+2. **هوش مصنوعی**: write-only Gemini key (save, delete, test), default model, timeout, global AI switch; per-feature switch, daily limits, model, and system prompt (for editable features).
+3. **کاربران**: search and activate or deactivate accounts (with confirmation).
+4. **ممیزی**: audit log of admin actions and sign-in events.
+
+Farm form: each of the variety, irrigation and soil fields has a sparkle button that calls `POST /ai/assist` with the field value and farm context. The answer appears in a sheet with the disclaimer and the remaining daily quota.
+
 ## Not yet built
 
-- Web admin panel UI (the API above is ready for it).
-- Field-help buttons in the Flutter farm form (`POST /ai/assist`).
+- Two-factor sign-in for admins (planned: OTP after the password).
 - Price per token and monthly cost estimate (token counts are stored, prices are not).
+- A retention job for usage and audit logs.

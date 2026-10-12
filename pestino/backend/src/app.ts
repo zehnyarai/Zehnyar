@@ -18,6 +18,7 @@ import { AiSettingsService } from './modules/ai/ai-settings.service.js';
 import { AiAssistService } from './modules/ai/ai-assist.service.js';
 import { aiRoutes } from './modules/ai/ai.routes.js';
 import { adminRoutes } from './modules/admin/admin.routes.js';
+import { AdminAuthService } from './modules/admin/admin-auth.service.js';
 import { LocalImageStorage } from './lib/storage.js';
 import type { SmsSender } from './lib/sms.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
@@ -94,7 +95,11 @@ export function createApp(deps: AppDeps): Express {
   api.use('/knowledge', knowledgeRoutes({ knowledge, jwtSecret: env.JWT_ACCESS_SECRET }));
   api.use('/subscriptions', subscriptionsRoutes({ db, env }));
   api.use('/ai', aiRoutes({ assist: aiAssist, settings: aiSettings, jwtSecret: env.JWT_ACCESS_SECRET }));
-  api.use('/admin', adminRoutes({ db, jwtSecret: env.JWT_ACCESS_SECRET, settings: aiSettings, gemini: deps.ai }));
+  const adminAuth = new AdminAuthService({ db, auth });
+  api.use(
+    '/admin',
+    adminRoutes({ db, jwtSecret: env.JWT_ACCESS_SECRET, settings: aiSettings, gemini: deps.ai, adminAuth }),
+  );
 
   app.use('/api/v1', api);
   app.use(notFoundHandler);

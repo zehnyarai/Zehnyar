@@ -43,6 +43,19 @@ class AppFailure implements Exception {
     'PAYMENT_NOT_CONFIGURED': 'خرید درون‌برنامه‌ای به‌زودی فعال می‌شود.',
     'VALIDATION_FAILED': 'اطلاعات واردشده کامل یا معتبر نیست.',
     'INTERNAL_ERROR': 'خطای غیرمنتظره‌ای رخ داد. لطفاً دوباره تلاش کنید.',
+    'INVALID_CREDENTIALS': 'شماره موبایل یا رمز عبور نادرست است.',
+    'ACCOUNT_LOCKED': 'به دلیل تلاش‌های ناموفق زیاد، ورود این حساب موقتاً بسته شده است. ۱۵ دقیقه بعد دوباره تلاش کنید.',
+    'ACCOUNT_DISABLED': 'این حساب غیرفعال شده است.',
+    'ADMIN_REQUIRED': 'این بخش فقط برای مدیران است.',
+    'SELF_DEACTIVATION': 'امکان غیرفعال کردن حساب مدیریتی خودتان وجود ندارد.',
+    'USER_NOT_FOUND': 'کاربر پیدا نشد.',
+    'AI_DISABLED': 'هوش مصنوعی موقتاً خاموش است.',
+    'AI_FEATURE_DISABLED': 'این قابلیت هوش مصنوعی فعلاً در دسترس نیست.',
+    'AI_QUOTA_EXCEEDED': 'سقف استفاده‌ی امروز از این قابلیت تمام شده است. فردا دوباره امتحان کنید.',
+    'AI_NOT_CONFIGURED': 'سرویس هوش مصنوعی هنوز تنظیم نشده است.',
+    'AI_KEY_UNREADABLE': 'تنظیمات کلید هوش مصنوعی روی سرور خوانده نشد. با پشتیبانی تماس بگیرید.',
+    'ENCRYPTION_NOT_CONFIGURED': 'رمزنگاری کلید روی سرور تنظیم نشده است.',
+    'PROMPT_NOT_EDITABLE': 'دستورالعمل این قابلیت توسط سامانه مدیریت می‌شود.',
   };
 
   /// Converts any thrown error into an [AppFailure] with a Persian message.
