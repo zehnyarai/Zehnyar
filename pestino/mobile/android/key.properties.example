@@ -1,0 +1,8 @@
+# Copy to android/key.properties (ignored by Git) and fill in your values.
+# Create the keystore once and keep a backup in a password manager. Losing it
+# means you can never publish updates to the same app listing.
+#   keytool -genkey -v -keystore ~/pestino-upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias pestino
+storePassword=CHANGE_ME
+keyPassword=CHANGE_ME
+keyAlias=pestino
+storeFile=/absolute/path/to/pestino-upload.jks
