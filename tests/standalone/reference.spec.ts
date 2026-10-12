@@ -312,8 +312,10 @@ test('offline admin panel connects the model and keeps the owner ledger honest',
   await page.getByRole('checkbox', { name: /تأیید می‌کنم شماره کارت/ }).check()
   await page.getByRole('button', { name: 'ذخیره کارت مقصد' }).click()
   await expect(
-    page.locator('.local-admin-page').getByText('9401 - 6524 - 7311 - 6063')
-  ).toBeVisible()
+    page
+      .locator('.local-admin-page .local-settings-card p.muted')
+      .filter({ hasText: 'کارت ثبت‌شده' })
+  ).toContainText(/9401\s*-\s*6524\s*-\s*7311\s*-\s*6063/)
   await page.getByLabel('نام پرداخت‌کننده').fill('باغدار نمونه')
   await page.getByLabel('مبلغ (تومان)').fill('990000')
   await page.getByLabel('تاریخ واریز').fill('2026-10-12')
@@ -322,6 +324,8 @@ test('offline admin panel connects the model and keeps the owner ledger honest',
   await expect(page.locator('.local-admin-page')).toContainText('ثبت دستی، نه تأیید بانکی')
   // The credits screen shows the same card with the manual wording, not a gateway flow.
   await page.goto('./#/subscription')
-  await expect(page.locator('.bank-card-display')).toContainText('9401 - 6524 - 7311 - 6063')
+  await expect(page.locator('.bank-card-display')).toContainText(
+    /9401\s*-\s*6524\s*-\s*7311\s*-\s*6063/
+  )
   await expect(page.locator('.info-banner').filter({ hasText: 'حالت دریافت دستی' })).toBeVisible()
 })
