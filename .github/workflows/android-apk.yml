@@ -5,7 +5,7 @@ name: Android debug APK
 on:
   push:
     branches: [arena/2d850d62-zehnyar]
-    paths: [".github/workflows/android-apk.yml"]
+    paths: [".github/workflows/android-apk.yml", "pestino/mobile/**"]
   workflow_dispatch:
     inputs:
       api_base_url:
