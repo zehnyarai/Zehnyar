@@ -13,9 +13,10 @@
     "build": "tsc -p tsconfig.json",
     "start": "node --env-file-if-exists=.env dist/src/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --import tsx --test --test-reporter=spec test/*.test.ts",
+    "test": "node --import tsx --test --test-concurrency=1 --test-reporter=spec test/*.test.ts",
     "db:migrate": "node --import tsx --env-file-if-exists=.env scripts/migrate.ts",
-    "db:seed": "node --import tsx --env-file-if-exists=.env scripts/seed-knowledge.ts"
+    "db:seed": "node --import tsx --env-file-if-exists=.env scripts/seed-knowledge.ts",
+    "admin:promote": "node --import tsx --env-file-if-exists=.env scripts/promote-admin.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",

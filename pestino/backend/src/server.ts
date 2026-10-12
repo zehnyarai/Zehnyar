@@ -3,6 +3,7 @@ import { createPool } from './db/pool.js';
 import { migrate } from './db/migrate.js';
 import { createApp } from './app.js';
 import { GeminiVisionClient } from './modules/ai/gemini.client.js';
+import { AiSettingsService } from './modules/ai/ai-settings.service.js';
 import { DevLogSmsSender, UnconfiguredSmsSender, type SmsSender } from './lib/sms.js';
 import { LocalImageStorage } from './lib/storage.js';
 import { logger } from './lib/logger.js';
@@ -19,12 +20,20 @@ async function main() {
   // Production must use a real SMS adapter; the dev sender only logs codes.
   const sms: SmsSender = env.NODE_ENV === 'production' ? new UnconfiguredSmsSender() : new DevLogSmsSender();
 
+  // Gemini settings are read from the database on every call (admin panel), with environment fallbacks.
+  const aiSettings = new AiSettingsService(db, env);
   const app = createApp({
     env,
     db,
     sms,
-    ai: new GeminiVisionClient({ apiKey: env.GEMINI_API_KEY, model: env.GEMINI_MODEL, timeoutMs: env.GEMINI_TIMEOUT_MS }),
+    ai: new GeminiVisionClient({
+      apiKey: env.GEMINI_API_KEY,
+      model: env.GEMINI_MODEL,
+      timeoutMs: env.GEMINI_TIMEOUT_MS,
+      runtime: () => aiSettings.resolveRuntime(),
+    }),
     storage: new LocalImageStorage(env.UPLOAD_DIR),
+    aiSettings,
   });
 
   const server = app.listen(env.PORT, env.HOST, () => {

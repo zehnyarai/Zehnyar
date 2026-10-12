@@ -22,6 +22,7 @@ Validated at start-up by `src/config/env.ts`. The process refuses to start on in
 | `OTP_HMAC_SECRET` | yes | ≥ 32 random characters, must differ from the JWT secret in production |
 | `OTP_DEV_ECHO` | yes | must be `false` in production |
 | `GEMINI_API_KEY` | yes | server-side only; never shipped to the app |
+| `AI_SETTINGS_ENCRYPTION_KEY` | yes in production (≥32 chars) | master secret that encrypts the Gemini key saved from the admin panel. Losing it makes the stored key unreadable (the env key still works). |
 | `GEMINI_MODEL`, `GEMINI_TIMEOUT_MS` | no | default `gemini-2.5-flash`, 45 s |
 | `UPLOAD_DIR`, `MAX_UPLOAD_MB` | no | default `./storage/uploads`, 8 MB |
 | `FREE_MONTHLY_ANALYSES`, `FREE_MAX_FARMS` | no | default 5 and 1 |

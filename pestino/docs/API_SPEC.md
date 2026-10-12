@@ -121,3 +121,8 @@ PlanInfo: `code, nameFa, monthlyAnalyses (null = unlimited), maxFarms (null = un
 ## Health
 
 `GET /health` (outside `/api/v1`): liveness with a database check.
+
+
+## Admin & AI controls
+
+Admin endpoints (`/admin/*`) and user AI helpers (`/ai/*`) are specified in [ADMIN_AI.md](ADMIN_AI.md).

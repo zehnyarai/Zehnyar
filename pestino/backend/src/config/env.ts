@@ -35,6 +35,8 @@ const envSchema = z
     GEMINI_API_KEY: z.string().min(10, 'GEMINI_API_KEY is required'),
     GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
     GEMINI_TIMEOUT_MS: z.coerce.number().int().positive().default(45000),
+    /** Master secret that encrypts the admin-managed Gemini key in the database. Required in production. */
+    AI_SETTINGS_ENCRYPTION_KEY: z.string().min(32, 'AI_SETTINGS_ENCRYPTION_KEY must be at least 32 chars').optional(),
 
     UPLOAD_DIR: z.string().default('./storage/uploads'),
     MAX_UPLOAD_MB: z.coerce.number().positive().default(8),
@@ -57,6 +59,9 @@ const envSchema = z
     if (env.NODE_ENV === 'production') {
       if (env.OTP_DEV_ECHO) {
         ctx.addIssue({ code: 'custom', path: ['OTP_DEV_ECHO'], message: 'Must be false in production' });
+      }
+      if (!env.AI_SETTINGS_ENCRYPTION_KEY) {
+        ctx.addIssue({ code: 'custom', path: ['AI_SETTINGS_ENCRYPTION_KEY'], message: 'Required in production' });
       }
       if (env.JWT_ACCESS_SECRET === env.OTP_HMAC_SECRET) {
         ctx.addIssue({ code: 'custom', path: ['OTP_HMAC_SECRET'], message: 'Must differ from JWT secret' });

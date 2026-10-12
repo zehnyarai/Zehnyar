@@ -11,6 +11,7 @@ import { GeminiVisionClient } from '../ai/gemini.client.js';
 import { buildSystemPrompt, buildUserPrompt, PROMPT_VERSION, SAFETY_DISCLAIMER_FA, SEASON_FA, CATEGORY_FA } from '../ai/prompt.js';
 import { applySafetyRules, confidenceLabelFa } from '../ai/safety.js';
 import type { AiReport } from '../ai/report.schema.js';
+import type { AiSettingsService } from '../ai/ai-settings.service.js';
 import type { AnalysisCategory, AnalysisSeason } from './analyses.schemas.js';
 
 export interface CreateAnalysisInput {
@@ -70,6 +71,7 @@ export interface AnalysisDeps {
   knowledge: KnowledgeService;
   farms: FarmsService;
   ai: GeminiVisionClient;
+  aiSettings: AiSettingsService;
 }
 
 export class AnalysesService {
@@ -120,6 +122,12 @@ export class AnalysesService {
         );
       }
     }
+    // Admin switches: the feature may be disabled, or use an admin-selected model. Throws before any upstream call.
+    const aiFeature = await this.deps.aiSettings.resolveFeature('image_analysis');
+    const dailyLimit = plan.code === 'premium' ? aiFeature.dailyLimitPremium : aiFeature.dailyLimitFree;
+    if ((await this.deps.aiSettings.countUserCallsLast24h(input.userId, 'image_analysis')) >= dailyLimit) {
+      throw new AppError(402, 'AI_QUOTA_EXCEEDED', `You have reached the daily limit of ${dailyLimit} analyses.`);
+    }
 
     const farm = input.farmId ? await this.deps.farms.getOwned(input.userId, input.farmId) : null;
 
@@ -151,9 +159,12 @@ export class AnalysesService {
     const started = Date.now();
     try {
       const catalog = await this.deps.knowledge.catalogForPrompt();
-      const { report, model } = await this.deps.ai.analyze({
+      const { report, model, inputTokens, outputTokens, latencyMs: aiLatency } = await this.deps.ai.analyze({
         image: input.file,
         mimeType: mime,
+        model: aiFeature.model ?? undefined,
+        maxOutputTokens: aiFeature.maxOutputTokens,
+        temperature: aiFeature.temperature,
         systemPrompt: buildSystemPrompt(),
         userPrompt: buildUserPrompt({
           category: input.category,
@@ -174,6 +185,16 @@ export class AnalysesService {
             : null,
           catalog,
         }),
+      });
+
+      await this.deps.aiSettings.recordUsage({
+        userId: input.userId,
+        feature: 'image_analysis',
+        model,
+        status: 'ok',
+        inputTokens,
+        outputTokens,
+        latencyMs: aiLatency,
       });
 
       const { report: safe, flags } = applySafetyRules(report);
@@ -210,6 +231,16 @@ export class AnalysesService {
       return toAnalysisDto(updated.rows[0], true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'unknown error';
+      await this.deps.aiSettings.recordUsage({
+        userId: input.userId,
+        feature: 'image_analysis',
+        model: aiFeature.model ?? env.GEMINI_MODEL,
+        status: err instanceof AppError && err.code === 'AI_BLOCKED' ? 'blocked' : 'error',
+        inputTokens: null,
+        outputTokens: null,
+        latencyMs: Date.now() - started,
+        errorCode: err instanceof AppError ? err.code : 'UNKNOWN',
+      });
       await db.query(
         `UPDATE analyses SET status = 'failed', error_message = $2, latency_ms = $3, completed_at = now() WHERE id = $1`,
         [row.id, message.slice(0, 500), Date.now() - started],

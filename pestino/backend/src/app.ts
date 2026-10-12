@@ -14,6 +14,10 @@ import { KnowledgeService } from './modules/knowledge/knowledge.service.js';
 import { knowledgeRoutes } from './modules/knowledge/knowledge.routes.js';
 import { subscriptionsRoutes } from './modules/subscriptions/subscriptions.routes.js';
 import { GeminiVisionClient } from './modules/ai/gemini.client.js';
+import { AiSettingsService } from './modules/ai/ai-settings.service.js';
+import { AiAssistService } from './modules/ai/ai-assist.service.js';
+import { aiRoutes } from './modules/ai/ai.routes.js';
+import { adminRoutes } from './modules/admin/admin.routes.js';
 import { LocalImageStorage } from './lib/storage.js';
 import type { SmsSender } from './lib/sms.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
@@ -25,6 +29,8 @@ export interface AppDeps {
   sms: SmsSender;
   ai: GeminiVisionClient;
   storage: LocalImageStorage;
+  /** Shared with the admin API. Created from env when not supplied. */
+  aiSettings?: AiSettingsService;
 }
 
 /** Builds the Express application. Dependencies are injected so tests can run without network. */
@@ -38,7 +44,7 @@ export function createApp(deps: AppDeps): Express {
   app.use(
     cors({
       origin: env.CORS_ORIGINS.length ? env.CORS_ORIGINS : false,
-      methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
       allowedHeaders: ['Authorization', 'Content-Type'],
       maxAge: 600,
     }),
@@ -68,7 +74,9 @@ export function createApp(deps: AppDeps): Express {
   const auth = new AuthService({ db, env, sms: deps.sms });
   const farms = new FarmsService(db, env);
   const knowledge = new KnowledgeService(db);
-  const analyses = new AnalysesService({ db, env, storage: deps.storage, knowledge, farms, ai: deps.ai });
+  const aiSettings = deps.aiSettings ?? new AiSettingsService(db, env);
+  const analyses = new AnalysesService({ db, env, storage: deps.storage, knowledge, farms, ai: deps.ai, aiSettings });
+  const aiAssist = new AiAssistService({ db, env, settings: aiSettings, gemini: deps.ai });
 
   const api = express.Router();
   // Strict limiter for authentication (brute-force & SMS-pumping protection).
@@ -85,6 +93,8 @@ export function createApp(deps: AppDeps): Express {
   api.use('/analyses', analysesRoutes({ analyses, jwtSecret: env.JWT_ACCESS_SECRET, env }));
   api.use('/knowledge', knowledgeRoutes({ knowledge, jwtSecret: env.JWT_ACCESS_SECRET }));
   api.use('/subscriptions', subscriptionsRoutes({ db, env }));
+  api.use('/ai', aiRoutes({ assist: aiAssist, settings: aiSettings, jwtSecret: env.JWT_ACCESS_SECRET }));
+  api.use('/admin', adminRoutes({ db, jwtSecret: env.JWT_ACCESS_SECRET, settings: aiSettings, gemini: deps.ai }));
 
   app.use('/api/v1', api);
   app.use(notFoundHandler);
