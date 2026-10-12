@@ -1,0 +1,74 @@
+[
+  {
+    "key": "mehrnejad2002",
+    "citation": "Mehrnejad, M.R. (2002). Bionomics of the common pistachio psylla, Agonoscena pistaciae, in Iran. Acta Horticulturae 591: III International Symposium on Pistachios and Almonds.",
+    "doi": "10.17660/ActaHortic.2002.591.82",
+    "url": "https://www.actahort.org/books/591/591_82.htm",
+    "year": 2002,
+    "verified": false
+  },
+  {
+    "key": "mehrnejad2010",
+    "citation": "Mehrnejad, M.R. (2010). Potential biological control agents of the common pistachio psylla, Agonoscena pistaciae, a review. Entomofauna 31: 317-340.",
+    "doi": null,
+    "url": null,
+    "year": 2010,
+    "verified": false
+  },
+  {
+    "key": "saremi2008",
+    "citation": "Saremi, H., Okhovvat, S.M., Saremi, Ha. (2008). Pistachio gummosis disease caused by Phytophthora species and its control management with soil solarisation method in Iran. Communications in Agricultural and Applied Biological Sciences 73(2): 179-187.",
+    "doi": null,
+    "url": "https://pubmed.ncbi.nlm.nih.gov/19226755/",
+    "year": 2008,
+    "verified": false
+  },
+  {
+    "key": "michailides1992",
+    "citation": "Michailides, T.J., Morgan, D.P. (1992). Effects of temperature and wetness duration on infection of pistachio by Botryosphaeria dothidea and management of disease by reducing duration of irrigation. Phytopathology 82: 1399-1406.",
+    "doi": null,
+    "url": null,
+    "year": 1992,
+    "verified": false
+  },
+  {
+    "key": "ma2002",
+    "citation": "Ma, Z., Michailides, T.J. (2002). Characterization of Botryosphaeria dothidea isolates collected from pistachio and other plant hosts in California. Phytopathology 92(5): 519-526.",
+    "doi": "10.1094/PHYTO.2002.92.5.519",
+    "url": "https://pubmed.ncbi.nlm.nih.gov/18943026/",
+    "year": 2002,
+    "verified": false
+  },
+  {
+    "key": "apsnet_blight",
+    "citation": "APS (American Phytopathological Society). Panicle and Shoot Blight of Pistachio: A Major Threat to the California Pistachio Industry. APSnet Features.",
+    "doi": null,
+    "url": "https://www.apsnet.org/edcenter/apsnetfeatures/Pages/Pistachio.aspx",
+    "year": null,
+    "verified": false
+  },
+  {
+    "key": "ferguson2005_manual",
+    "citation": "Ferguson, L. (Ed.) (2005). Pistachio Production Manual, 4th Edition. University of California Agriculture and Natural Resources (UC ANR).",
+    "doi": null,
+    "url": "https://ucanr.edu/site/california-pistachio-research/pistachio-manual-2005",
+    "year": 2005,
+    "verified": false
+  },
+  {
+    "key": "beede2005_nutrients",
+    "citation": "Beede, R.H., Brown, P., Kallsen, C., Weinbaum, S.A. (2005). Diagnosing and correcting nutrient deficiencies. In: Ferguson, L. (Ed.) Pistachio Production Manual, 4th Edition, pp. 147-157.",
+    "doi": null,
+    "url": "https://www.cdfa.ca.gov/is/ffldrs/frep/FertilizationGuidelines/Pistachio.html",
+    "year": 2005,
+    "verified": false
+  },
+  {
+    "key": "ferguson2005_tree",
+    "citation": "Ferguson, L., Polito, V., Kallsen, C. (2005). The pistachio tree; botany and physiology and factors that affect yield. In: Ferguson, L. (Ed.) Pistachio Production Manual, 4th Edition, pp. 31-39.",
+    "doi": null,
+    "url": null,
+    "year": 2005,
+    "verified": false
+  }
+]
