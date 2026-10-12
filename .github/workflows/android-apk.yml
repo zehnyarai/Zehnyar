@@ -3,12 +3,20 @@ name: Android debug APK
 # Builds an installable debug APK for testing on a physical device.
 # Run manually: Actions -> "Android debug APK" -> Run workflow, then enter the API base URL.
 on:
+  push:
+    branches: [arena/2d850d62-zehnyar]
+    paths: [".github/workflows/android-apk.yml"]
   workflow_dispatch:
     inputs:
       api_base_url:
         description: "API base URL, e.g. https://api.example.com (no trailing slash)"
-        required: true
+        required: false
         type: string
+
+env:
+  # Default API for device testing (temporary test backend). Override with the
+  # workflow_dispatch input. Production builds must use the real HTTPS API URL.
+  DEFAULT_API_BASE_URL: https://8080-ihtuco4ka7r8v1sv715w6.e2b.app
 
 permissions:
   contents: read
@@ -52,7 +60,11 @@ jobs:
         run: flutter test
 
       - name: Build debug APK
-        run: flutter build apk --debug --dart-define=API_BASE_URL=${{ inputs.api_base_url }}
+        run: |
+          API_URL="${{ inputs.api_base_url }}"
+          if [ -z "$API_URL" ]; then API_URL="$DEFAULT_API_BASE_URL"; fi
+          echo "Building against $API_URL"
+          flutter build apk --debug --dart-define=API_BASE_URL="$API_URL"
 
       - uses: actions/upload-artifact@v4
         with:
