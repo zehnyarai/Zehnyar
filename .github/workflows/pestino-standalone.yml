@@ -195,7 +195,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          printf 'Built source commit: %s\nThis APK is a non-debug, test-key-signed local-only compatibility build, with no image diagnosis or payment.\n' "$GITHUB_SHA" > installers/BUILD.txt
+          printf 'Built source commit: %s\nThis APK is a non-debug, test-key-signed local-only compatibility build. Photo screening and soil/water interpretation run only when the owner stores their own Google API key on the device; a text-only connection test must pass first. No hosted model, no account, no payment, no accuracy claim.\n' "$GITHUB_SHA" > installers/BUILD.txt
           git add installers/Pestino-0.4.0.apk installers/Pestino-0.4.0.apk.sha256 installers/package-info.txt installers/signature-info.txt installers/signature-v1-info.txt installers/BUILD.txt
           git commit -m 'Deliver verified self-contained Pestino Android installer' || exit 1
           git push origin arena/e819b607-zehnyar
