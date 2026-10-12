@@ -134,14 +134,19 @@ test('credit and admin reference fields exist but no money or dummy card is acti
   await page.goto('./#/subscription')
   await expect(page.getByText('دریافت وجه غیرفعال است.', { exact: true })).toBeVisible()
   await expect(page.locator('.credit-packages label')).toHaveCount(3)
+  // The server receipt upload stays hidden in the standalone edition; manual entry lives
+  // in the owner panel instead. No gateway flow may appear to be available here.
   await expect(
     page.getByRole('button', { name: 'ثبت رسید و درخواست اعتبار', exact: true })
-  ).toBeDisabled()
+  ).toBeHidden()
+  await expect(page.getByRole('button', { name: 'رفتن به دفتر دریافت در پنل مدیر' })).toBeVisible()
   await expect(page.locator('.bank-card-display')).toContainText('شماره کارت تنظیم نشده')
   await page.goto('./#/admin')
-  await expect(page.getByLabel('شماره کارت ۱۶ رقمی *')).toBeDisabled()
-  await expect(page.getByRole('button', { name: 'ذخیره اطلاعات کارت', exact: true })).toBeDisabled()
-  await expect(page.locator('.admin-credits tbody tr')).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'پنل مدیر (نسخه مستقل)' })).toBeVisible()
+  await expect(page.getByLabel('شماره کارت ۱۶ رقمی')).toHaveValue('')
+  await expect(page.locator('.receipt-ledger')).toHaveCount(0)
+  await expect(page.locator('.local-admin-page')).toContainText('دفتر دریافت وجه (ثبت دستی)')
+  await expect(page.locator('.local-admin-page')).toContainText('نیازمند تنظیم')
 })
 
 test('dated research library works offline and distinguishes source evidence from diagnosis', async ({
@@ -318,5 +323,5 @@ test('offline admin panel connects the model and keeps the owner ledger honest',
   // The credits screen shows the same card with the manual wording, not a gateway flow.
   await page.goto('./#/subscription')
   await expect(page.locator('.bank-card-display')).toContainText('9401 - 6524 - 7311 - 6063')
-  await expect(page.getByText(/حالت دریافت دستی/)).toBeVisible()
+  await expect(page.locator('.info-banner').filter({ hasText: 'حالت دریافت دستی' })).toBeVisible()
 })
