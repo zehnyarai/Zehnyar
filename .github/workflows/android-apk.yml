@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -44,11 +44,14 @@ jobs:
       - name: Flutter version
         run: flutter --version
 
-      # Generates the Gradle wrapper and other missing Android files.
-      # Existing Pestino files (Gradle config, manifests, MainActivity) are kept.
-      - name: Generate missing Android scaffolding
+      # flutter create generates the template (Gradle wrapper, etc.). Our Android files
+      # are then copied back on top, so signing config, manifests and Gradle version stay ours.
+      - name: Generate Android project (template + Pestino overrides)
         run: |
+          SAVED="$(mktemp -d)"
+          cp -r android "$SAVED"/
           flutter create --platforms=android --org ir.pestino --project-name pestino .
+          cp -r "$SAVED"/android/. android/
           rm -f test/widget_test.dart
 
       - run: flutter pub get
