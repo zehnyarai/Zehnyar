@@ -92,8 +92,12 @@ jobs:
           cat build.log | tail -150
           if [ $code -ne 0 ]; then
             python3 - <<'PY'
-          lines = open("build.log", encoding="utf-8", errors="replace").read().splitlines()
-          msg = "\n".join(lines[-120:]).replace("%", "%25").replace("\r", "").replace("\n", "%0A")
+          import re
+          text = open("build.log", encoding="utf-8", errors="replace").read()
+          lines = [l.strip() for l in re.split(r"[\r\n]+", text)]
+          # Drop progress-bar noise (SDK/NDK downloads) so the real error stays visible.
+          lines = [l for l in lines if l and "%" not in l and not l.startswith("[") and "Downloading" not in l and "Unzipping" not in l]
+          msg = "\n".join(lines[-100:])[-30000:].replace("%", "%25").replace("\n", "%0A")
           print(f"::error title=APK build failed::{msg}")
           PY
           fi
