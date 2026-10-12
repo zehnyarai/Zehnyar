@@ -103,6 +103,12 @@ jobs:
           fi
           exit $code
 
+      - name: Locate APK outputs (diagnostics)
+        if: always()
+        run: |
+          echo "::notice title=APK search::$(find build -name '*.apk' 2>/dev/null | tr '\n' ' ')"
+          echo "::notice title=Gradle outputs::$(find android/app/build -maxdepth 4 -type d 2>/dev/null | head -30 | tr '\n' ' ')"
+
       - uses: actions/upload-artifact@v4
         with:
           name: pestino-debug-apk
