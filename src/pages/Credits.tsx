@@ -5,6 +5,7 @@ import type { BillingConfig, CreditAccount } from '../fieldwork'
 import { EMPTY_BILLING } from '../fieldwork'
 import { api, checkImage, errorMessage, fa, persianDate } from '../api'
 import { Badge, InfoBanner, Spinner } from '../components/ui'
+import { IS_STANDALONE } from '../config'
 
 export const receiptLabels = { pending: 'در انتظار تأیید', approved: 'تأییدشده', rejected: 'ردشده' }
 export default function Credits({ ctx }: { ctx: AppContext }) {
@@ -154,6 +155,13 @@ export default function Credits({ ctx }: { ctx: AppContext }) {
           در نسخه مستقل رایگان‌اند.
         </InfoBanner>
       )}
+      {IS_STANDALONE && config.enabled && (
+        <InfoBanner>
+          <strong>حالت دریافت دستی (بدون درگاه بانکی):</strong> این کارت را مالک همین دستگاه ثبت
+          کرده است. واریز فقط با هماهنگی خودش انجام می‌شود و تأیید آن دستی است؛ برنامه هیچ وجهی
+          نمی‌گیرد و هیچ تأیید خودکاری از بانک نمی‌گیرد.
+        </InfoBanner>
+      )}
       {loading && <Spinner label="خواندن وضعیت اعتبار…" />}
       <section className="reference-card transfer-card">
         <h2>
@@ -185,9 +193,13 @@ export default function Credits({ ctx }: { ctx: AppContext }) {
           </button>
         </div>
         <p className="section-description">
-          {config.enabled
-            ? 'پس از واریز، تصویر رسید و کد پیگیری را ارسال کنید. اعتبار فقط پس از بررسی واقعی مدیر اضافه می‌شود.'
-            : 'شماره کارت نمونه یا اطلاعات بانکی شما از تصاویر کپی نشده است. تا فعال‌سازی صریح مالک، هیچ وجهی واریز نکنید.'}
+          {IS_STANDALONE
+            ? config.enabled
+              ? 'مبلغ را کارت‌به‌کارت واریز کنید و کد پیگیری را برای مالک دستگاه بفرستید؛ ثبت دریافتی در پنل مدیر (دفتر دستی) انجام می‌شود.'
+              : 'کارت مقصد در پنل مدیر ← «کارت مقصد واریز» ثبت می‌شود. تا آن زمان واریزی انجام ندهید.'
+            : config.enabled
+              ? 'پس از واریز، تصویر رسید و کد پیگیری را ارسال کنید. اعتبار فقط پس از بررسی واقعی مدیر اضافه می‌شود.'
+              : 'شماره کارت نمونه یا اطلاعات بانکی شما از تصاویر کپی نشده است. تا فعال‌سازی صریح مالک، هیچ وجهی واریز نکنید.'}
         </p>
       </section>
       <section className="reference-card package-selection">
@@ -240,7 +252,19 @@ export default function Credits({ ctx }: { ctx: AppContext }) {
           ))}
         </div>
       </section>
-      <section className="reference-card receipt-form-card">
+      {IS_STANDALONE && (
+        <section className="reference-card receipt-form-card">
+          <h2>مرحله ۳ — ثبت دریافتی (دفتر دستی)</h2>
+          <p className="section-description">
+            در نسخه مستقل، سرور و حسابرسی وجود ندارد؛ دریافتی‌های واقعی را مالک دستگاه در «پنل مدیر
+            ← دفتر دریافت» ثبت می‌کند. این ثبت، سند بانکی یا تأیید خودکار نیست.
+          </p>
+          <button className="button secondary" type="button" onClick={() => ctx.navigate('admin')}>
+            <Wallet size={17} /> رفتن به دفتر دریافت در پنل مدیر
+          </button>
+        </section>
+      )}
+      <section className="reference-card receipt-form-card" hidden={IS_STANDALONE}>
         <h2>مرحله ۳ — ارسال رسید واریز</h2>
         <form
           onSubmit={(e) => {
@@ -321,7 +345,7 @@ export default function Credits({ ctx }: { ctx: AppContext }) {
           </div>
         )}
       </section>
-      <section className="reference-card receipt-status">
+      <section className="reference-card receipt-status" hidden={IS_STANDALONE}>
         <h2>
           <History size={22} />
           وضعیت درخواست‌های من
@@ -349,7 +373,7 @@ export default function Credits({ ctx }: { ctx: AppContext }) {
           ))
         )}
       </section>
-      <section className="reference-card credit-history">
+      <section className="reference-card credit-history" hidden={IS_STANDALONE}>
         <h2>
           <History size={22} />
           تاریخچه اعتبار

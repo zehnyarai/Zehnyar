@@ -9,7 +9,10 @@ import { assetUrl } from './config'
 import { EMPTY_CONTEXT, validateContext } from './scientific'
 import type { DiagnosticContext } from './scientific'
 import { EMPTY_BILLING, validateField } from './fieldwork'
+import type { BillingConfig } from './fieldwork'
 import type { FieldKind, FieldRecord, LabInput } from './fieldwork'
+import { emptyBilling, receiptsTotal, validateCard, validateReceipt } from './localAdmin'
+import type { LocalBilling, LocalReceipt } from './localAdmin'
 import {
   analyzePhotosDirect,
   clearDirectSettings,
@@ -43,6 +46,7 @@ interface State {
   reports: Report[]
   fields: Record<FieldKind, FieldRecord<FieldKind>[]>
   assessments: LabAssessment[]
+  billing: LocalBilling
 }
 export class LocalError extends Error {
   status = 400
@@ -54,6 +58,7 @@ const emptyState = (): State => ({
   reports: [],
   fields: { labs: [], experiences: [], prices: [], climate: [] },
   assessments: [],
+  billing: emptyBilling(),
 })
 const uid = () => {
   if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
@@ -99,6 +104,12 @@ async function load(): Promise<State> {
         ...emptyState(),
         ...req.result,
         fields: { ...emptyState().fields, ...req.result?.fields },
+        billing: {
+          card: req.result?.billing?.card ?? null,
+          receipts: Array.isArray(req.result?.billing?.receipts)
+            ? (req.result.billing.receipts as LocalReceipt[])
+            : [],
+        },
       })
     req.onerror = () =>
       reject(new LocalError('خواندن داده‌های دستگاه ممکن نشد. داده‌ها را پاک نکنید.'))
@@ -293,6 +304,31 @@ async function normalizedPhoto(file: File): Promise<string> {
     return canvas.toDataURL('image/jpeg', 0.82)
   } finally {
     URL.revokeObjectURL(url)
+  }
+}
+const MANUAL_NOTICE =
+  'حالت دریافت دستی: کارت مقصد را خودِ مالک دستگاه ثبت کرده و تأیید واریز، دستی است. درگاه بانکی، تأیید خودکار و اعتبار سروری وجود ندارد؛ وجهی بدون هماهنگی واریز نکنید.'
+function billingConfig(state: State): BillingConfig {
+  const card = state.billing.card
+  return {
+    ...EMPTY_BILLING,
+    enabled: !!card,
+    card_number: card?.card_number ?? '',
+    holder: card?.holder ?? '',
+    bank: card?.bank ?? '',
+    notice: card
+      ? `${MANUAL_NOTICE} این کارت در تاریخ ${card.confirmed_at.slice(0, 10)} توسط مالک دستگاه تأیید شده است.`
+      : EMPTY_BILLING.notice,
+  }
+}
+function billingView(state: State) {
+  return {
+    mode: 'manual' as const,
+    enabled: !!state.billing.card,
+    card: state.billing.card,
+    receipts: state.billing.receipts,
+    total_toman: receiptsTotal(state.billing.receipts),
+    notice: MANUAL_NOTICE,
   }
 }
 function bootstrap(state: State): Bootstrap {
@@ -490,12 +526,54 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       state.reports.splice(i, 1)
       result = { ok: true }
       modified = true
-    } else if (path === '/billing/config' && method === 'GET') result = EMPTY_BILLING
+    } else if (path === '/billing/config' && method === 'GET') result = billingConfig(state)
     else if (path === '/billing/my' && method === 'GET')
-      result = { balance: 0, purchased: 0, used: 0, receipts: [], history: [] }
-    else if (path.startsWith('/billing/'))
+      result = {
+        balance: 0,
+        purchased: receiptsTotal(state.billing.receipts),
+        used: 0,
+        receipts: [],
+        history: [],
+      }
+    else if (path === '/local/billing' && method === 'GET') result = billingView(state)
+    else if (path === '/local/billing' && method === 'PUT') {
+      // The owner's own destination card. Arithmetic cannot tell 6063…9401 from
+      // 9401…6063, so an explicit confirmation of the typed digits is required.
+      const checked = validateCard(body)
+      const previous = state.billing.card
+      state.billing.card = {
+        ...checked,
+        confirmed_at: new Date().toISOString(),
+        updated_at: previous ? previous.updated_at : new Date().toISOString(),
+      }
+      result = billingView(state)
+      modified = true
+    } else if (path === '/local/billing/card' && method === 'DELETE') {
+      state.billing.card = null
+      result = billingView(state)
+      modified = true
+    } else if (path === '/local/billing/receipts' && method === 'POST') {
+      const checked = validateReceipt(body)
+      if (state.billing.receipts.length >= 500)
+        throw new LocalError('سقف ۵۰۰ دریافت در این دستگاه پر شده است.')
+      const record: LocalReceipt = {
+        ...checked,
+        id: uid(),
+        created_at: new Date().toISOString(),
+      }
+      state.billing.receipts.unshift(record)
+      result = record
+      modified = true
+    } else if (path.startsWith('/local/billing/receipts/') && method === 'DELETE') {
+      const id = path.slice('/local/billing/receipts/'.length)
+      const i = state.billing.receipts.findIndex((r) => r.id === id)
+      if (i < 0) throw new LocalError('دریافت ثبت‌شده پیدا نشد.')
+      state.billing.receipts.splice(i, 1)
+      result = { ok: true }
+      modified = true
+    } else if (path.startsWith('/billing/'))
       throw new LocalError(
-        'دریافت وجه و مدیریت اعتبار سروری در نسخه مستقل فعال نیست؛ وجهی واریز نکنید.'
+        'درگاه بانکی و تأیید خودکار واریز در نسخه مستقل وجود ندارد؛ فقط دفتر دریافت دستی در پنل مدیر فعال است.'
       )
     else if (path.startsWith('/field-records/')) {
       const [kind, recordId] = path.slice('/field-records/'.length).split('/') as [
@@ -631,6 +709,32 @@ export function validateBackup(content: string): State {
     }
   })
   uniqueIds(state.reports)
+  if (raw.billing !== undefined) {
+    const billing = object(raw.billing)
+    state.billing = emptyBilling()
+    if (billing.card) {
+      const checked = validateCard({ ...object(billing.card), confirmed: true })
+      const card = object(billing.card)
+      state.billing.card = {
+        ...checked,
+        confirmed_at: text(card.confirmed_at, 'تأیید کارت', 40, 1),
+        updated_at: text(card.updated_at, 'به‌روزرسانی کارت', 40, 1),
+      }
+    }
+    if (billing.receipts !== undefined) {
+      if (!Array.isArray(billing.receipts) || billing.receipts.length > 500)
+        throw new LocalError('دفتر دریافت‌های پشتیبان معتبر نیست.')
+      state.billing.receipts = billing.receipts.map((value) => {
+        const r = object(value)
+        return {
+          ...validateReceipt(r),
+          id: id(r.id),
+          created_at: text(r.created_at, 'زمان ثبت', 40, 1),
+        }
+      })
+      uniqueIds(state.billing.receipts)
+    }
+  }
   if (raw.assessments !== undefined) {
     if (!Array.isArray(raw.assessments) || raw.assessments.length > 200)
       throw new LocalError('تاریخچه تفسیر آزمایش معتبر نیست.')

@@ -9,6 +9,7 @@ import { Badge, InfoBanner, Modal, Spinner } from '../components/ui'
 import { receiptLabels } from './Credits'
 import PricingAdmin from '../components/PricingAdmin'
 import VisionActivation from '../components/VisionActivation'
+import LocalAdminPanel from '../components/LocalAdminPanel'
 
 interface BillingAdmin {
   config: BillingConfig
@@ -23,7 +24,9 @@ interface BillingAdmin {
   }[]
 }
 export default function CreditAdmin({ ctx }: { ctx: AppContext }) {
-  const allowed = !IS_STANDALONE && ctx.data.user?.role === 'admin'
+  // The offline edition gets a real panel instead of a disabled server form.
+  if (IS_STANDALONE) return <LocalAdminPanel ctx={ctx} />
+  const allowed = ctx.data.user?.role === 'admin'
   const [data, setData] = useState<BillingAdmin>({
       config: EMPTY_BILLING,
       receipts: [],

@@ -450,3 +450,120 @@ describe('device-direct analysis with the owner key (offline edition)', () => {
     expect(cleared.image_url).toBe(pixels)
   })
 })
+
+describe('owner card and manual receipt ledger in the offline panel', () => {
+  const card = {
+    card_number: '۹۴۰۱ ۶۵۲۴ ۷۳۱۱ ۶۰۶۳',
+    holder: 'احمد قرائی سلطان آبادی',
+    bank: 'بانک ملی ایران',
+  }
+  const receipt = {
+    payer: 'باغدار نمونه',
+    amount_toman: 990_000,
+    paid_at: '2026-10-12',
+    reference: '123456',
+    note: '',
+  }
+  const empty = async () => {
+    const view = await localApi<{ enabled: boolean; card: unknown; receipts: unknown[] }>(
+      '/local/billing'
+    )
+    return view
+  }
+  beforeEach(async () => {
+    vi.stubGlobal('localStorage', { removeItem: vi.fn() })
+    await eraseLocalData()
+  })
+  it('starts closed, and shows nothing to the credits page before a card exists', async () => {
+    const view = await empty()
+    expect(view.enabled).toBe(false)
+    expect(view.card).toBeNull()
+    const config = await localApi<{ enabled: boolean; card_number: string }>('/billing/config')
+    expect(config.enabled).toBe(false)
+    expect(config.card_number).toBe('')
+    const mine = await localApi<{ purchased: number }>('/billing/my')
+    expect(mine.purchased).toBe(0)
+  })
+  it('refuses a card without visual confirmation, then stores normalised digits', async () => {
+    await expect(
+      localApi('/local/billing', {
+        method: 'PUT',
+        body: JSON.stringify({ ...card, confirmed: false }),
+      })
+    ).rejects.toThrow('تطبیق')
+    await expect(
+      localApi('/local/billing', {
+        method: 'PUT',
+        body: JSON.stringify({ ...card, card_number: '1111', confirmed: true }),
+      })
+    ).rejects.toThrow('شماره کارت')
+    const saved = await localApi<{ card: { card_number: string; holder: string } }>(
+      '/local/billing',
+      {
+        method: 'PUT',
+        body: JSON.stringify({ ...card, confirmed: true }),
+      }
+    )
+    expect(saved.card.card_number).toBe('9401652473116063')
+    const config = await localApi<{ enabled: boolean; card_number: string; notice: string }>(
+      '/billing/config'
+    )
+    expect(config.enabled).toBe(true)
+    expect(config.notice).toContain('دستی')
+    // The notice must state that automatic verification does not exist.
+    expect(config.notice).toContain('تأیید خودکار و اعتبار سروری وجود ندارد')
+  })
+  it('records and deletes manual receipts without claiming bank verification', async () => {
+    await localApi('/local/billing', {
+      method: 'PUT',
+      body: JSON.stringify({ ...card, confirmed: true }),
+    })
+    await expect(
+      localApi('/local/billing/receipts', post({ ...receipt, amount_toman: 10 }))
+    ).rejects.toThrow('مبلغ')
+    const row = await localApi<{ id: string }>('/local/billing/receipts', post(receipt))
+    const view = await localApi<{
+      receipts: { id: string }[]
+      total_toman: number
+      notice: string
+    }>('/local/billing')
+    expect(view.receipts).toHaveLength(1)
+    expect(view.total_toman).toBe(990_000)
+    expect(view.notice).toContain('درگاه بانکی')
+    const mine = await localApi<{ purchased: number }>('/billing/my')
+    expect(mine.purchased).toBe(990_000)
+    await localApi(`/local/billing/receipts/${row.id}`, { method: 'DELETE' })
+    expect((await empty()).receipts).toHaveLength(0)
+  })
+  it('keeps card and ledger in the backup, but still rejects an invalid one', async () => {
+    await localApi('/local/billing', {
+      method: 'PUT',
+      body: JSON.stringify({ ...card, confirmed: true }),
+    })
+    await localApi('/local/billing/receipts', post(receipt))
+    const backup = await exportBackup()
+    expect(backup).toContain('9401652473116063')
+    expect(backup).toContain('باغدار نمونه')
+    await eraseLocalData()
+    expect((await empty()).enabled).toBe(false)
+    await restoreBackup(backup)
+    const view = await localApi<{ enabled: boolean; receipts: unknown[] }>('/local/billing')
+    expect(view.enabled).toBe(true)
+    expect(view.receipts).toHaveLength(1)
+    const forged = JSON.parse(backup) as { billing: { card: { card_number: string } } }
+    forged.billing.card.card_number = '1111111111111111'
+    await expect(restoreBackup(JSON.stringify(forged))).rejects.toThrow()
+  })
+  it('removes only the card when the owner deletes it', async () => {
+    await localApi('/local/billing', {
+      method: 'PUT',
+      body: JSON.stringify({ ...card, confirmed: true }),
+    })
+    await localApi('/local/billing/receipts', post(receipt))
+    const view = await localApi<{ enabled: boolean; receipts: unknown[] }>('/local/billing/card', {
+      method: 'DELETE',
+    })
+    expect(view.enabled).toBe(false)
+    expect(view.receipts).toHaveLength(1)
+  })
+})

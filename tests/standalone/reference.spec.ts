@@ -264,3 +264,59 @@ test('offline edition offers on-device key activation and refuses to fake analys
   })
   expect(backup).not.toContain('AIzaSyStandalone')
 })
+
+test('offline admin panel connects the model and keeps the owner ledger honest', async ({
+  page,
+}) => {
+  await page.route('**://generativelanguage.googleapis.com/**', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        candidates: [
+          {
+            finishReason: 'STOP',
+            content: { parts: [{ text: JSON.stringify({ ok: true, model: 'gemini-2.5-flash' }) }] },
+          },
+        ],
+      }),
+    })
+  })
+  await page.goto('./#/admin')
+  await expect(page.getByRole('heading', { name: 'پنل مدیر (نسخه مستقل)' })).toBeVisible()
+  // Every capability is listed with its real state, including the ones that cannot work here.
+  const board = page.locator('.capability-list li')
+  await expect(board.filter({ hasText: 'تحلیل عکس برگ' })).toContainText('نیازمند تنظیم')
+  await expect(board.filter({ hasText: 'درگاه بانکی' })).toContainText('در این نسخه ممکن نیست')
+  await expect(board.filter({ hasText: 'نسخه iPhone' })).toContainText('در این نسخه ممکن نیست')
+  await expect(board.filter({ hasText: 'فایل نصبی اندروید' })).toContainText('فعال')
+  await expect(board.filter({ hasText: 'SAR' })).toContainText('فعال')
+  // Connect the model from the admin panel itself.
+  await page.getByLabel(/^مدل/).fill('gemini-2.5-flash')
+  await page.getByLabel(/^کلید API شخصی/).fill('AIzaSyAdminPanelExampleKey123')
+  await page.getByRole('button', { name: 'ذخیره روی این دستگاه' }).click()
+  await page.getByRole('button', { name: 'آزمون اتصال' }).click()
+  await expect(page.getByText(/آزمون اتصال موفق شد/)).toBeVisible()
+  await expect(board.filter({ hasText: 'تحلیل عکس برگ' })).toContainText('فعال')
+  // Card + ledger: confirmation is required, then the receipt is recorded.
+  await page.getByLabel('شماره کارت ۱۶ رقمی').fill('9401 6524 7311 6063')
+  await page.getByLabel('نام صاحب کارت').fill('احمد قرائی سلطان آبادی')
+  await page.getByLabel('نام بانک').fill('بانک ملی ایران')
+  await page.getByRole('button', { name: 'ذخیره کارت مقصد' }).click()
+  await expect(page.getByRole('alert')).toContainText('تطبیق')
+  await page.getByRole('checkbox', { name: /تأیید می‌کنم شماره کارت/ }).check()
+  await page.getByRole('button', { name: 'ذخیره کارت مقصد' }).click()
+  await expect(
+    page.locator('.local-admin-page').getByText('9401 - 6524 - 7311 - 6063')
+  ).toBeVisible()
+  await page.getByLabel('نام پرداخت‌کننده').fill('باغدار نمونه')
+  await page.getByLabel('مبلغ (تومان)').fill('990000')
+  await page.getByLabel('تاریخ واریز').fill('2026-10-12')
+  await page.getByRole('button', { name: 'ثبت در دفتر دریافتی‌ها' }).click()
+  await expect(page.locator('.receipt-ledger')).toContainText('باغدار نمونه')
+  await expect(page.locator('.local-admin-page')).toContainText('ثبت دستی، نه تأیید بانکی')
+  // The credits screen shows the same card with the manual wording, not a gateway flow.
+  await page.goto('./#/subscription')
+  await expect(page.locator('.bank-card-display')).toContainText('9401 - 6524 - 7311 - 6063')
+  await expect(page.getByText(/حالت دریافت دستی/)).toBeVisible()
+})
