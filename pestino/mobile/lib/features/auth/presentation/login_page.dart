@@ -8,6 +8,7 @@ import '../../../core/errors/app_failure.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/persian.dart';
 import '../../../app/router.dart';
+import 'otp_page.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});

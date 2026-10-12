@@ -208,7 +208,7 @@ class _FarmFormState extends ConsumerState<_FarmForm> {
             initialValue: _variety,
             decoration: const InputDecoration(labelText: 'رقم پسته'),
             items: [
-              for (final v in _withCurrent(varieties, _variety)) DropdownMenuItem(value: v, child: Text(v)),
+              for (final v in _withCurrent(FarmFormPage.varieties, _variety)) DropdownMenuItem(value: v, child: Text(v)),
             ],
             onChanged: (v) => setState(() => _variety = v),
           ),
