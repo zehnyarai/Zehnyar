@@ -1,4 +1,4 @@
-package: name='ir.pestino.app' versionCode='8' versionName='0.6.1' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+package: name='ir.pestino.app' versionCode='9' versionName='0.6.2' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
 sdkVersion:'24'
 targetSdkVersion:'36'
 uses-permission: name='android.permission.INTERNET'
