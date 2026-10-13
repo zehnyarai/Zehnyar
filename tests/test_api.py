@@ -430,7 +430,7 @@ def test_render_public_url_fallback_and_override(client, monkeypatch):
 def test_health_identifies_pestino_without_leaking_secrets(client):
     result = client.get("/api/health").json()
     assert result["app"] == "pestino"
-    assert result["version"] == "0.5.0"
+    assert result["version"] == "0.6.0"
     assert "GROQ_API_KEY" not in str(result)
 
 
@@ -669,3 +669,80 @@ def test_manual_receipt_tracking_normalizes_persian_digits(client, monkeypatch):
     assert client.post('/api/billing/receipts', files={'image':('r.jpg',photo(),'image/jpeg')}, data=payload).status_code == 409
     payload['tracking'] = '----'
     assert client.post('/api/billing/receipts', files={'image':('r.jpg',photo(),'image/jpeg')}, data=payload).status_code == 422
+
+
+def test_guest_login_needs_no_phone_email_or_code(client):
+    """One-tap entry: no SMS, no email, no password — but still a usable real account."""
+    response = client.post("/api/auth/guest")
+    assert response.status_code == 200
+    assert response.json()["ok"] is True
+    with connect() as db:
+        token = response.cookies.get(SESSION_COOKIE)
+        row = db.execute(
+            "SELECT u.name,u.email,u.password_hash,u.is_demo,u.role FROM sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=?",
+            (service.token_hash(token),),
+        ).fetchone()
+    # A guest is a real (non-demo) user so photo/lab analysis is not blocked...
+    assert row["is_demo"] == 0
+    assert row["role"] == "user"
+    assert row["name"] == "باغدار مهمان"
+    # ...but there is no credential to recover, and the app must say so instead of pretending.
+    assert row["email"] is None
+    assert row["password_hash"] is None
+    state = client.get("/api/bootstrap").json()
+    assert state["user"]["name"] == "باغدار مهمان"
+    assert state["user"]["email"] is None
+    assert state["user"]["is_demo"] == 0
+
+
+def test_guest_login_reuses_an_existing_session_and_clears_demo_fixtures(client):
+    first = client.post("/api/auth/guest")
+    assert first.status_code == 200
+    with connect() as db:
+        # The fixture also creates the admin row, so count only farmer accounts here.
+        before = db.execute("SELECT COUNT(*) FROM users WHERE is_demo=0 AND role='user'").fetchone()[0]
+    again = client.post("/api/auth/guest")
+    assert again.status_code == 200
+    assert again.json()["existing"] is True
+    with connect() as db:
+        after = db.execute("SELECT COUNT(*) FROM users WHERE is_demo=0 AND role='user'").fetchone()[0]
+        samples = db.execute("SELECT COUNT(*) FROM orchards WHERE is_sample=1").fetchone()[0]
+    # No duplicate account is created and leftover demo fixtures are removed.
+    assert after == before == 1
+    assert samples == 0
+
+
+def test_guest_can_use_analysis_while_anonymous(client, monkeypatch, tmp_path):
+    """Guests get the real analysis path; the limit is the honest free quota, not a login wall."""
+    monkeypatch.setenv("VISION_PROVIDER", "gemini")
+    monkeypatch.setenv("VISION_MODEL", "gemini-3.1-pro-preview")
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    monkeypatch.setenv("GEMINI_REQUESTS_ENABLED", "true")
+    client.post("/api/auth/guest")
+    image = io.BytesIO()
+    Image.new("RGB", (600, 600), (120, 180, 90)).save(image, format="JPEG")
+    image.seek(0)
+
+    async def fake(image_bytes, context):
+        return service.VisionResult(
+            title="برگ پسته",
+            summary="غربالگری آزمون",
+            quality="نور کافی",
+            is_pistachio=True,
+            observations=["لکه روشن"],
+            hypotheses=[],
+            actions=["پایش"],
+            needed_tests=[],
+            follow_up_questions=[],
+            urgency="low",
+            knowledge_ids=["sampling"],
+        ).model_dump()
+
+    monkeypatch.setattr(service, "analyze_with_provider", fake)
+    response = client.post(
+        "/api/analyses",
+        files={"image": ("leaf.jpg", image.getvalue(), "image/jpeg")},
+        data={"tree_part": "برگ", "notes": "لکه روشن", "consent": "true"},
+    )
+    assert response.status_code == 201, response.text
+    assert response.json()["data"]["title"] == "برگ پسته"

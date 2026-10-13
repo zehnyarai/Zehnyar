@@ -47,6 +47,21 @@ export function AuthForm({ ctx, onClose }: { ctx: AppContext; onClose: () => voi
       setBusy(false)
     }
   }
+  async function guest() {
+    if (busy) return
+    setBusy(true)
+    setError('')
+    try {
+      await api('/auth/guest', { method: 'POST', body: '{}' })
+      await ctx.refresh()
+      onClose()
+      ctx.notify('وارد شدید؛ هیچ رمز یا شماره‌ای لازم نبود.', 'success')
+    } catch (e) {
+      setError(errorMessage(e))
+    } finally {
+      setBusy(false)
+    }
+  }
   return (
     <Modal
       title="به پستینو خوش آمدی"
@@ -157,9 +172,24 @@ export function AuthForm({ ctx, onClose }: { ctx: AppContext; onClose: () => voi
           )}
         </button>
       </form>
+      <div className="guest-entry">
+        <button
+          className="button secondary full-width"
+          type="button"
+          disabled={busy}
+          onClick={() => void guest()}
+        >
+          <UserRound size={17} /> ورود بدون ثبت‌نام (مهمان)
+        </button>
+        <p className="muted">
+          بدون شماره همراه، ایمیل یا کد. باغ و پرونده‌های خود را همان‌جا ثبت می‌کنید؛ تنها تفاوت این
+          حساب، نبود رمز بازیابی است.
+        </p>
+      </div>
       <p className="auth-note">
         <ShieldCheck size={14} />
-        ورود پیامکی و بازیابی رمز هنوز فعال نیست. در نسخه فعلی از ایمیل و رمز استفاده می‌شود.
+        هیچ شماره همراه یا کد پیامکی لازم نیست. می‌توانید همین حالا و بدون ثبت‌نام وارد شوید؛ ایمیل
+        و رمز فقط برای نگه‌داشتن حساب روی دستگاه‌های دیگر است.
       </p>
       {mode === 'register' && (
         <p className="auth-note">

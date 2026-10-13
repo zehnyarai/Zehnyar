@@ -6,6 +6,7 @@ import { EMPTY_BILLING } from '../fieldwork'
 import { api, checkImage, errorMessage, fa, persianDate } from '../api'
 import { Badge, InfoBanner, Spinner } from '../components/ui'
 import { IS_STANDALONE } from '../config'
+import { hasAdminLock, isUnlocked } from '../localAccess'
 
 export const receiptLabels = { pending: 'در انتظار تأیید', approved: 'تأییدشده', rejected: 'ردشده' }
 export default function Credits({ ctx }: { ctx: AppContext }) {
@@ -17,6 +18,9 @@ export default function Credits({ ctx }: { ctx: AppContext }) {
       receipts: [],
       history: [],
     })
+  // The full card number is hidden while the owner panel is locked.
+  const [showCard, setShowCard] = useState(!hasAdminLock() || isUnlocked())
+  const cardLocked = hasAdminLock() && !isUnlocked()
   const [selected, setSelected] = useState('season'),
     [name, setName] = useState(ctx.data.user?.is_demo ? '' : (ctx.data.user?.name ?? '')),
     [phone, setPhone] = useState(''),
@@ -172,11 +176,29 @@ export default function Credits({ ctx }: { ctx: AppContext }) {
           <div>
             <strong dir="ltr">
               {config.card_number
-                ? config.card_number.match(/.{1,4}/g)?.join('-')
+                ? showCard
+                  ? config.card_number.match(/.{1,4}/g)?.join('-')
+                  : `•••• - •••• - •••• - ${config.card_number.slice(-4)}`
                 : 'شماره کارت تنظیم نشده'}
             </strong>
             <p>به نام: {config.holder || '—'}</p>
             <p>بانک: {config.bank || '—'}</p>
+            {IS_STANDALONE && cardLocked && (
+              <button
+                className="text-button"
+                type="button"
+                onClick={() =>
+                  showCard
+                    ? setShowCard(false)
+                    : ctx.notify(
+                        'پنل مدیر قفل است؛ برای نمایش کامل شماره کارت، ابتدا در پنل مدیر رمز خود را وارد کنید.',
+                        'info'
+                      )
+                }
+              >
+                {showCard ? 'پنهان کردن شماره کارت' : 'نمایش کامل شماره کارت'}
+              </button>
+            )}
           </div>
           <button
             className="button secondary small"

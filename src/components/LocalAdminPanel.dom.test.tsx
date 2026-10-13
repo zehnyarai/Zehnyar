@@ -184,9 +184,11 @@ describe('offline owner panel (real DOM, real device-storage layer)', () => {
       }),
     })
     render(<Credits ctx={ctx} />)
-    await waitFor(() => expect(document.querySelector('.bank-card-display')).toBeTruthy())
-    expect(document.querySelector('.bank-card-display')?.textContent).toContain(
-      '9401-6524-7311-6063'
+    // The card arrives with the async bootstrap, so wait on the content, not the element.
+    await waitFor(() =>
+      expect(document.querySelector('.bank-card-display')?.textContent).toContain(
+        '9401-6524-7311-6063'
+      )
     )
     await waitFor(() =>
       expect(document.body.textContent).toContain('حالت دریافت دستی (بدون درگاه بانکی)')
@@ -196,5 +198,103 @@ describe('offline owner panel (real DOM, real device-storage layer)', () => {
     )
     expect(receiptButton === undefined || receiptButton.closest('[hidden]')).toBeTruthy()
     expect(document.body.textContent).toContain('رفتن به دفتر دریافت در پنل مدیر')
+  })
+})
+
+describe('admin gate protects the owner panel without ever locking the owner out', () => {
+  it('opens the panel by default, offers to define a password, and asks for it afterwards', async () => {
+    const user = userEvent.setup()
+    const { default: CreditAdmin } = await import('../pages/CreditAdmin')
+    render(<CreditAdmin ctx={ctx} />)
+    // No password exists yet: the panel is reachable and the lock is offered, not forced.
+    await waitFor(() => expect(document.querySelector('.local-admin-page')).toBeTruthy())
+    expect(document.body.textContent).toContain('رمز مدیر را خودتان تعریف کنید')
+    expect(document.body.textContent).toContain('قفل پنل مدیر: تعریف نشده')
+
+    await user.type(screen.getByLabelText(/^رمز مدیر \(حداقل/), 'bagh-peste-1404')
+    await user.type(screen.getByLabelText('تکرار رمز'), 'bagh-peste-1404')
+    await user.type(screen.getByLabelText(/^راهنمای رمز/), 'سال تولد باغ')
+    await user.click(screen.getByRole('button', { name: /ذخیره رمز مدیر/ }))
+    await waitFor(() => expect(document.body.textContent).toContain('قفل پنل مدیر: فعال'))
+
+    // Locking now hides the panel behind the owner's own password.
+    await user.click(screen.getByRole('button', { name: /قفل کردن الان/ }))
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'ورود به پنل مدیر' })).toBeTruthy()
+    )
+    expect(document.querySelector('.local-admin-page')).toBeNull()
+    expect(document.body.textContent).toContain('راهنمای خودتان: سال تولد باغ')
+
+    await user.type(screen.getByLabelText('رمز مدیر'), 'wrong-password')
+    await user.click(screen.getByRole('button', { name: /باز کردن پنل مدیر/ }))
+    await waitFor(() =>
+      expect(document.querySelector('.form-error')?.textContent).toContain('رمز درست نیست')
+    )
+    expect(document.querySelector('.local-admin-page')).toBeNull()
+
+    await user.type(screen.getByLabelText('رمز مدیر'), 'bagh-peste-1404')
+    await user.click(screen.getByRole('button', { name: /باز کردن پنل مدیر/ }))
+    await waitFor(() => expect(document.querySelector('.local-admin-page')).toBeTruthy())
+  })
+
+  it('lets a forgetful owner drop the lock with a typed confirmation, keeping the data', async () => {
+    const user = userEvent.setup()
+    const { setAdminPassword } = await import('../localAccess')
+    const { localApi } = await import('../standalone')
+    await localApi('/local/billing', {
+      method: 'PUT',
+      body: JSON.stringify({
+        card_number: '9401 6524 7311 6063',
+        holder: 'احمد قرائی سلطان آبادی',
+        bank: 'بانک ملی ایران',
+        confirmed: true,
+      }),
+    })
+    await setAdminPassword('bagh-peste-1404')
+    // Defining the password unlocks the current session, so lock it to test recovery.
+    const { lockNow } = await import('../localAccess')
+    lockNow()
+    const { default: CreditAdmin } = await import('../pages/CreditAdmin')
+    render(<CreditAdmin ctx={ctx} />)
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'ورود به پنل مدیر' })).toBeTruthy()
+    )
+    await user.click(screen.getByRole('button', { name: 'رمز را فراموش کرده‌ام' }))
+    await waitFor(() => expect(document.body.textContent).toContain('قفل مدیر را بردارید'))
+    await user.type(screen.getByLabelText(/برای تأیید، عبارت/), 'چیز دیگری')
+    await user.click(screen.getByRole('button', { name: /برداشتن قفل/ }))
+    await waitFor(() =>
+      expect(document.querySelector('.form-error')?.textContent).toContain('دقیقاً')
+    )
+    await user.clear(screen.getByLabelText(/برای تأیید، عبارت/))
+    await user.type(screen.getByLabelText(/برای تأیید، عبارت/), 'حذف رمز مدیر')
+    await user.click(screen.getByRole('button', { name: /برداشتن قفل/ }))
+    await waitFor(() => expect(document.querySelector('.local-admin-page')).toBeTruthy())
+    const view = await localApi<{ card: { card_number: string } | null }>('/local/billing')
+    expect(view.card?.card_number).toBe('9401652473116063')
+  })
+
+  it('hides the full card number on the credits page while the panel is locked', async () => {
+    const { setAdminPassword, lockNow } = await import('../localAccess')
+    const { localApi } = await import('../standalone')
+    await localApi('/local/billing', {
+      method: 'PUT',
+      body: JSON.stringify({
+        card_number: '9401 6524 7311 6063',
+        holder: 'احمد قرائی سلطان آبادی',
+        bank: 'بانک ملی ایران',
+        confirmed: true,
+      }),
+    })
+    await setAdminPassword('bagh-peste-1404')
+    lockNow()
+    render(<Credits ctx={ctx} />)
+    await waitFor(() => expect(document.querySelector('.bank-card-display')).toBeTruthy())
+    await waitFor(() =>
+      expect(document.querySelector('.bank-card-display')?.textContent).toContain('6063')
+    )
+    const shown = document.querySelector('.bank-card-display')?.textContent ?? ''
+    expect(shown).not.toContain('9401 - 6524')
+    expect(shown).toContain('••••')
   })
 })

@@ -231,7 +231,7 @@ class RequestSizeLimit:
         await self.app(scope, limited_receive, send)
 
 
-app = FastAPI(title="Pestino API", version="0.5.0", lifespan=lifespan, docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None)
+app = FastAPI(title="Pestino API", version="0.6.0", lifespan=lifespan, docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None)
 app.add_middleware(RequestSizeLimit)
 
 
@@ -361,6 +361,38 @@ def register(data: Registration, request: Request, response: Response):
         new_session(db, user_id, response, secure_cookie())
         audit(db, user_id, "register", user_id)
     return {"ok": True}
+
+
+@app.post("/api/auth/guest")
+def guest_login(request: Request, response: Response):
+    """One-tap entry without a phone number, email, password or SMS code.
+
+    The account is a real (non-demo) user so photo/lab analysis and backups work, but it
+    has no credentials: it cannot be recovered on another device or after cookie loss.
+    """
+    rate_limit(f"guest-login:{request.client.host}", 20, 3600)
+    with connect() as db:
+        existing = session_user(request, db)
+        if existing and existing["is_demo"]:
+            # Upgrade the throwaway demo row instead of leaving the fixtures behind.
+            db.execute("DELETE FROM reports WHERE user_id=? AND is_sample=1", (existing["id"],))
+            db.execute("DELETE FROM tasks WHERE user_id=? AND is_sample=1", (existing["id"],))
+            db.execute("DELETE FROM orchards WHERE user_id=? AND is_sample=1", (existing["id"],))
+            db.execute("UPDATE users SET is_demo=0 WHERE id=?", (existing["id"],))
+            db.execute("DELETE FROM sessions WHERE user_id=?", (existing["id"],))
+            user_id = existing["id"]
+        elif existing:
+            new_session(db, existing["id"], response, secure_cookie())
+            return {"ok": True, "existing": True}
+        else:
+            user_id = uid()
+            db.execute(
+                "INSERT INTO users (id,name,role,is_demo,created_at) VALUES (?,?,?,?,?)",
+                (user_id, "باغدار مهمان", "user", 0, now_iso()),
+            )
+        new_session(db, user_id, response, secure_cookie())
+        audit(db, user_id, "guest_login", user_id)
+    return {"ok": True, "existing": False}
 
 
 @app.post("/api/auth/login")

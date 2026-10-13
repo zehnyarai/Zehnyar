@@ -2439,3 +2439,87 @@ body {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Offline owner panel: capability board, ledger and the admin gate. */
+.local-admin-page .capability-group {
+  margin-top: 18px;
+}
+.local-admin-page .capability-group > h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  color: var(--muted);
+}
+.capability-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.capability-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border: 1px solid var(--border);
+  border-inline-start-width: 4px;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #fff;
+}
+.capability-item.active {
+  border-inline-start-color: #267c4d;
+}
+.capability-item.setup {
+  border-inline-start-color: #d98324;
+}
+.capability-item.offline-blocked {
+  border-inline-start-color: #b3432f;
+}
+.capability-item .capability-icon {
+  display: inline-flex;
+  margin-top: 2px;
+}
+.capability-item p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+.capability-item small {
+  display: block;
+  margin-top: 6px;
+  color: var(--green);
+}
+.receipt-ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.receipt-ledger th,
+.receipt-ledger td {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 10px;
+  text-align: start;
+}
+.admin-gate-card,
+.admin-gate-bar {
+  margin-bottom: 16px;
+}
+.admin-gate-bar h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-forgot {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+.guest-entry {
+  border-top: 1px solid var(--border);
+  margin-top: 16px;
+  padding-top: 14px;
+}
+.guest-entry .muted {
+  margin: 8px 0 0;
+  font-size: 13px;
+}
