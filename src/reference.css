@@ -669,6 +669,24 @@ body {
   line-height: 1.95;
   margin: 25px 0;
 }
+/* The offline edition used to hide this box, so a missed tap must be impossible to miss. */
+.reference-page .consent-check.attention {
+  border: 2px solid #d97706;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #fff7ed;
+  animation: consent-pulse 1.2s ease-in-out 2;
+}
+@keyframes consent-pulse {
+  50% {
+    box-shadow: 0 0 0 6px rgba(217, 119, 6, 0.18);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reference-page .consent-check.attention {
+    animation: none;
+  }
+}
 .center-actions {
   display: flex;
   justify-content: center;

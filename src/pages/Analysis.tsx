@@ -46,11 +46,13 @@ export default function Analysis({
   const [context, setContext] = useState<DiagnosticContext>({ ...EMPTY_CONTEXT, symptoms: [] })
   const [plan, setPlan] = useState<DiagnosticContext | null>(null)
   const [consent, setConsent] = useState(false)
+  const [needConsent, setNeedConsent] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [drag, setDrag] = useState(false)
   const upload = useRef<HTMLInputElement>(null),
-    camera = useRef<HTMLInputElement>(null)
+    camera = useRef<HTMLInputElement>(null),
+    consentBox = useRef<HTMLInputElement>(null)
   // In the offline edition this reflects the owner's own on-device key.
   const configured = ctx.data.services.vision_configured
   const verified = configured && !!ctx.data.services.vision_verified
@@ -101,7 +103,18 @@ export default function Analysis({
       return
     }
     if (mode === 'analyze' && !consent) {
-      setError('ارسال تصاویر و اطلاعات باغ به سرویس تحلیل نیاز به تأیید آگاهانه شما دارد.')
+      // The consent box used to be hidden in the offline edition, so this dead end was the
+      // only thing a farmer could reach. Now the box is always on screen and we take the
+      // owner straight to it instead of only printing an error.
+      setNeedConsent(true)
+      if (IS_STANDALONE)
+        setError(
+          'برای شروع، کادر «رضایت آگاهانه» را در همین صفحه تیک بزنید؛ بدون آن هیچ عکسی به Google فرستاده نمی‌شود.'
+        )
+      else setError('ارسال تصاویر و اطلاعات باغ به سرویس تحلیل نیاز به تأیید آگاهانه شما دارد.')
+      // jsdom has no scrollIntoView; the focus hint is what the tests assert.
+      consentBox.current?.scrollIntoView?.({ block: 'center', behavior: 'smooth' })
+      consentBox.current?.focus()
       return
     }
     if (mode === 'analyze' && (!ctx.data.user || ctx.data.user.is_demo)) {
@@ -135,7 +148,7 @@ export default function Analysis({
         IS_STANDALONE && mode === 'analyze'
           ? await api<Report>('/local/analyses', {
               method: 'POST',
-              body: JSON.stringify({ report_id: saved.id, consent: true }),
+              body: JSON.stringify({ report_id: saved.id, consent }),
             })
           : saved
       ctx.openReport(report)
@@ -474,20 +487,36 @@ export default function Analysis({
           />
           <span className="character-count">{fa(notes.length)} / ۱٬۰۰۰</span>
         </label>
-        {!IS_STANDALONE && (
-          <label className="consent-check">
-            <input
-              type="checkbox"
-              checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
-              disabled={busy}
-            />
-            <span>
-              اجازه می‌دهم تصاویرِ بازتولیدشده بدون EXIF/GPS و اطلاعات باغ و آزمایش‌های مرتبط به
-              سرویس بینایی ارسال شوند. نتیجه احتمالی و دقت علمی محلی آن تأیید نشده است.
-            </span>
-          </label>
-        )}
+        <label className={needConsent && !consent ? 'consent-check attention' : 'consent-check'}>
+          <input
+            ref={consentBox}
+            type="checkbox"
+            checked={consent}
+            onChange={(e) => {
+              setConsent(e.target.checked)
+              if (e.target.checked) {
+                setNeedConsent(false)
+                setError('')
+              }
+            }}
+            disabled={busy}
+          />
+          <span>
+            {IS_STANDALONE ? (
+              <>
+                با تیک‌زدن این کادر اجازه می‌دهم تصویر بدون EXIF/GPS و اطلاعات باغ و آزمایش‌های
+                مرتبط، با کلید شخصی خودم مستقیماً به سرویس Google ارسال شود. روی طرح رایگان Google،
+                محتوای درخواست‌ها برای بهبود محصولات گوگل استفاده می‌شود. نتیجه احتمالی است و دقت
+                علمی محلی آن تأیید نشده است.
+              </>
+            ) : (
+              <>
+                اجازه می‌دهم تصاویرِ بازتولیدشده بدون EXIF/GPS و اطلاعات باغ و آزمایش‌های مرتبط به
+                سرویس بینایی ارسال شوند. نتیجه احتمالی و دقت علمی محلی آن تأیید نشده است.
+              </>
+            )}
+          </span>
+        </label>
         {configured && (
           <InfoBanner tone={verified ? 'info' : 'warning'}>
             مدل تنظیم‌شده:{' '}

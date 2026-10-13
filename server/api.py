@@ -231,7 +231,7 @@ class RequestSizeLimit:
         await self.app(scope, limited_receive, send)
 
 
-app = FastAPI(title="Pestino API", version="0.6.1", lifespan=lifespan, docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None)
+app = FastAPI(title="Pestino API", version="0.6.2", lifespan=lifespan, docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None)
 app.add_middleware(RequestSizeLimit)
 
 
