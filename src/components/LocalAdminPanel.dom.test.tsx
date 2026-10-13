@@ -140,6 +140,63 @@ describe('offline owner panel (real DOM, real device-storage layer)', () => {
     )
   })
 
+  it('offers only free Gemini models and explains why a paid one fails', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal('fetch', async (input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.includes('/models?'))
+        return new Response(
+          JSON.stringify({
+            models: [
+              { name: 'models/gemini-2.5-flash', supportedGenerationMethods: ['generateContent'] },
+              {
+                name: 'models/gemini-3.1-pro-preview',
+                supportedGenerationMethods: ['generateContent'],
+              },
+            ],
+          }),
+          { status: 200 }
+        )
+      // Google answers a paid-only model on a free key with 429 and "limit: 0".
+      if (url.includes('gemini-3.1-pro-preview'))
+        return new Response(
+          JSON.stringify({ error: { message: 'generate_content_free_tier_requests, limit: 0' } }),
+          { status: 429 }
+        )
+      return new Response(JSON.stringify(gemini({ ok: true, model: 'gemini-2.5-flash' })), {
+        status: 200,
+      })
+    })
+    render(<LocalAdminPanel ctx={ctx} />)
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'پنل مدیر (نسخه مستقل)' })).toBeTruthy()
+    )
+    const options = Array.from(document.querySelectorAll('#pestino-direct-models option')).map(
+      (o) => o.getAttribute('value') ?? ''
+    )
+    expect(options).toContain('gemini-2.5-flash')
+    expect(options).not.toContain('gemini-3.1-pro-preview')
+    expect(document.body.textContent).toContain('بهبود محصولات گوگل')
+
+    await user.type(screen.getByLabelText(/^کلید API شخصی/), 'AIzaSyDomFreeTierExample1234')
+    await user.click(screen.getByRole('button', { name: /ذخیره روی این دستگاه/ }))
+    await waitFor(() => expect(calls.some((c) => c.url === '/local/vision')).toBe(true))
+
+    await user.click(screen.getByRole('button', { name: /گرفتن فهرست مدل‌های مجاز این کلید/ }))
+    await waitFor(() => expect(calls.some((c) => c.url === '/local/vision/models')).toBe(true))
+
+    await user.click(screen.getByRole('button', { name: /آزمون همهٔ مدل‌های رایگان پیشنهادی/ }))
+    await waitFor(() => expect(calls.some((c) => c.url === '/local/vision/probe')).toBe(true))
+    await waitFor(() =>
+      expect(document.querySelector('.probe-table tbody tr.ok')?.textContent ?? '').toContain(
+        'کار کرد'
+      )
+    )
+    const rows = Array.from(document.querySelectorAll('.probe-table tbody tr'))
+    expect(rows.length).toBeGreaterThan(1)
+    expect(rows.every((r) => (r.textContent ?? '').includes('کار کرد'))).toBe(true)
+  })
+
   it('requires visual confirmation of the card, then records and deletes a manual receipt', async () => {
     const user = userEvent.setup()
     render(<LocalAdminPanel ctx={ctx} />)

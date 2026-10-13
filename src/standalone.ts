@@ -14,10 +14,13 @@ import type { FieldKind, FieldRecord, LabInput } from './fieldwork'
 import { emptyBilling, receiptsTotal, validateCard, validateReceipt } from './localAdmin'
 import type { LocalBilling, LocalReceipt } from './localAdmin'
 import {
+  FREE_TIER_NOTICE,
   analyzePhotosDirect,
   clearDirectSettings,
   directSettings,
   interpretLabDirect,
+  listDirectModels,
+  probeDirectModels,
   saveDirectSettings,
   testDirectConnection,
 } from './visionDirect'
@@ -179,6 +182,7 @@ function visionStatus() {
     connection_ok: !!settings.ok,
     note: settings.note,
     storage: 'دستگاه شما (خارج از فایل پشتیبان)',
+    free_tier_notice: FREE_TIER_NOTICE,
   }
 }
 export function localKnowledge(): Knowledge {
@@ -453,6 +457,13 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
     } else if (path === '/local/vision' && method === 'DELETE') {
       clearDirectSettings()
       result = visionStatus()
+    } else if (path === '/local/vision/models' && method === 'GET') {
+      result = await listDirectModels()
+    } else if (path === '/local/vision/probe' && method === 'POST') {
+      const asked = Array.isArray(body.models) ? body.models.map(String) : []
+      const models = asked.length ? asked : directSettings().model ? [directSettings().model] : []
+      if (!models.length) throw new LocalError('ابتدا یک مدل انتخاب یا فهرست مدل‌ها را بگیرید.')
+      result = { results: await probeDirectModels(models), notice: FREE_TIER_NOTICE }
     } else if (path === '/local/vision/test' && method === 'POST') {
       // A text-only call: it proves key, model and network; it does not prove image accuracy.
       await testDirectConnection()

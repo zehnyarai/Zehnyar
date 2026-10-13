@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { KeyRound, PlugZap, Save, ShieldCheck, Trash2 } from 'lucide-react'
+import { Gauge, KeyRound, ListChecks, PlugZap, Save, ShieldCheck, Trash2 } from 'lucide-react'
 import { api, errorMessage, persianDate } from '../api'
 import type { AppContext } from '../types'
+import { DEFAULT_DIRECT_MODEL, FREE_MODELS, FREE_TIER_NOTICE } from '../visionDirect'
+import type { ProbeResult } from '../visionDirect'
 import { Badge, CheckList, InfoBanner, Spinner } from './ui'
 
 interface DirectStatus {
@@ -11,8 +13,8 @@ interface DirectStatus {
   connection_ok: boolean
   note: string
   storage: string
+  free_tier_notice?: string
 }
-const MODELS = ['gemini-3.1-pro-preview', 'gemini-3.1-flash', 'gemini-2.5-pro', 'gemini-2.5-flash']
 
 /**
  * On-device activation for the offline edition: the owner's own Google key lives only
@@ -21,7 +23,9 @@ const MODELS = ['gemini-3.1-pro-preview', 'gemini-3.1-flash', 'gemini-2.5-pro', 
 export default function DirectVision({ ctx }: { ctx: AppContext }) {
   const key = useRef<HTMLInputElement>(null)
   const [status, setStatus] = useState<DirectStatus | null>(null)
-  const [model, setModel] = useState(MODELS[0])
+  const [model, setModel] = useState(DEFAULT_DIRECT_MODEL)
+  const [probe, setProbe] = useState<ProbeResult[] | null>(null)
+  const [listed, setListed] = useState<string[] | null>(null)
   const [busy, setBusy] = useState(false),
     [error, setError] = useState('')
   useEffect(() => {
@@ -73,6 +77,45 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
       ok ? 'success' : 'error'
     )
   }
+  async function fetchModels() {
+    setBusy(true)
+    setError('')
+    try {
+      const rows = await api<{ id: string; label: string; note: string }[]>('/local/vision/models')
+      setListed(rows.map((r) => r.id))
+      ctx.notify(`${rows.length} مدل مجاز برای این کلید پیدا شد.`, 'success')
+    } catch (e) {
+      setError(errorMessage(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+  async function probeModels() {
+    // Text-only probes: they cost a little quota but prove which models really work.
+    const candidates = FREE_MODELS.map((m) => m.id)
+    setBusy(true)
+    setError('')
+    setProbe(null)
+    try {
+      const response = await api<{ results: ProbeResult[] }>('/local/vision/probe', {
+        method: 'POST',
+        body: JSON.stringify({ models: candidates }),
+      })
+      setProbe(response.results)
+      const first = response.results.find((r) => r.ok)
+      if (first) setModel(first.model)
+      ctx.notify(
+        first
+          ? `این مدل‌ها کار کردند؛ «${first.model}» انتخاب شد.`
+          : 'هیچ‌کدام از مدل‌های پیشنهادی پاس نشد؛ دلیل هر کدام را ببینید.',
+        first ? 'success' : 'error'
+      )
+    } catch (e) {
+      setError(errorMessage(e))
+    } finally {
+      setBusy(false)
+    }
+  }
   async function remove() {
     if (!confirm('کلید ذخیره‌شده روی این دستگاه پاک شود؟ تا ثبت دوباره، تحلیل غیرفعال می‌ماند.'))
       return
@@ -109,6 +152,9 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
         هیچ درصد دقت علمی برای این خروجی اندازه‌گیری نشده است. تصمیم نهایی با کارشناس و آزمایش محلی
         است.
       </InfoBanner>
+      <InfoBanner tone="warning">
+        <Gauge size={18} /> {status?.free_tier_notice ?? FREE_TIER_NOTICE}
+      </InfoBanner>
       <fieldset disabled={busy}>
         <label>
           مدل
@@ -117,14 +163,30 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
             dir="ltr"
             value={model}
             onChange={(e) => setModel(e.target.value)}
-            placeholder="gemini-3.1-pro-preview"
+            placeholder={DEFAULT_DIRECT_MODEL}
           />
         </label>
         <datalist id="pestino-direct-models">
-          {MODELS.map((m) => (
+          {[...new Set([...FREE_MODELS.map((m) => m.id), ...(listed ?? [])])].map((m) => (
             <option key={m} value={m} />
           ))}
         </datalist>
+        <ul className="free-model-notes">
+          {FREE_MODELS.slice(0, 4).map((m) => (
+            <li key={m.id}>
+              <button type="button" className="text-button" onClick={() => setModel(m.id)}>
+                <span dir="ltr">{m.id}</span>
+              </button>{' '}
+              — {m.label}: {m.note}
+            </li>
+          ))}
+        </ul>
+        <p className="muted">
+          فهرست رسمی گوگل (به‌روز ۲۰۲۶-۱۰-۱۳): روی حالت رایگان، مدل‌های Flash و Flash-Lite و Gemini
+          2.5 Pro رایگان‌اند؛ <span dir="ltr">gemini-3.1-pro-preview</span> و مدل‌های تصویری/ویدیویی
+          رایگان نیستند و روی کلید رایگان خطای سهمیه می‌دهند. نام مدل‌ها هر چند وقت عوض می‌شود؛
+          دکمه‌های زیر وضعیت واقعی کلید خودتان را مشخص می‌کنند.
+        </p>
         <label>
           کلید API شخصی Google (فقط روی همین دستگاه)
           <input
@@ -157,6 +219,20 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
             <PlugZap size={17} /> آزمون اتصال
           </button>
           <button
+            className="button secondary"
+            disabled={busy || !status?.key_present}
+            onClick={() => void fetchModels()}
+          >
+            <ListChecks size={17} /> گرفتن فهرست مدل‌های مجاز این کلید
+          </button>
+          <button
+            className="button secondary"
+            disabled={busy || !status?.key_present}
+            onClick={() => void probeModels()}
+          >
+            <Gauge size={17} /> آزمون همهٔ مدل‌های رایگان پیشنهادی
+          </button>
+          <button
             className="button danger ghost"
             disabled={busy || !status?.key_present}
             onClick={() => void remove()}
@@ -169,6 +245,42 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
       {error && (
         <div className="form-error" role="alert">
           {error}
+        </div>
+      )}
+      {probe && (
+        <div className="table-scroll">
+          <table className="probe-table">
+            <thead>
+              <tr>
+                <th>مدل</th>
+                <th>نتیجه</th>
+                <th>دلیل</th>
+              </tr>
+            </thead>
+            <tbody>
+              {probe.map((row) => (
+                <tr key={row.model} className={row.ok ? 'ok' : 'failed'}>
+                  <td dir="ltr">
+                    {row.model}{' '}
+                    {row.ok && (
+                      <button
+                        type="button"
+                        className="text-button"
+                        onClick={() => {
+                          setModel(row.model)
+                          ctx.notify(`مدل «${row.model}» انتخاب شد؛ حالا ذخیره کنید.`, 'info')
+                        }}
+                      >
+                        انتخاب
+                      </button>
+                    )}
+                  </td>
+                  <td>{row.ok ? 'کار کرد' : 'کار نکرد'}</td>
+                  <td>{row.detail}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
       {status && (

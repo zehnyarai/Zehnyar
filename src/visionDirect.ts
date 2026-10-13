@@ -15,8 +15,74 @@ import { SOIL_FIELDS, WATER_FIELDS } from './scientific'
 import type { LabValues } from './scientific'
 
 export const DIRECT_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/'
-export const DEFAULT_DIRECT_MODEL = 'gemini-3.1-pro-preview'
+/** ListModels lives on the collection itself, without the trailing slash. */
+export const MODELS_ENDPOINT = DIRECT_ENDPOINT.replace(/\/$/, '')
+export const DEFAULT_DIRECT_MODEL = 'gemini-2.5-flash'
 const STORAGE_KEY = 'pestino-direct-vision'
+
+/**
+ * Free-tier facts checked against ai.google.dev pricing on 2026-10-13:
+ * Gemini 3.8 Flash, 3.6 Flash, 3.5 Flash-Lite, 3.1 Flash-Lite, 2.5 Pro, 2.5 Flash and
+ * 2.5 Flash-Lite are "Free of charge" on the Free tier, while Gemini 3.1 Pro Preview and
+ * all image/video generation models are "Not available" there. Quota numbers change, so
+ * this list is only a starting suggestion and the app verifies each model against the
+ * owner's own key before using it.
+ */
+export interface FreeModel {
+  id: string
+  label: string
+  note: string
+}
+export const FREE_MODELS: FreeModel[] = [
+  {
+    id: 'gemini-2.5-flash',
+    label: 'Gemini 2.5 Flash (پیشنهاد پیش‌فرض)',
+    note: 'چندوجهی و پایدار؛ روی سهمیه رایگان روزانه سخاوتمندانه‌تر است. برای عکس باغ و تفسیر آزمایش مناسب است.',
+  },
+  {
+    id: 'gemini-3.8-flash',
+    label: 'Gemini 3.8 Flash (دقیق‌تر، سهمیه کم‌تر)',
+    note: 'جدیدترین Flash رایگان؛ روی سهمیه رایگان سهمیه روزانهٔ کمتری دارد، پس برای چند تحلیل مهم خوب است.',
+  },
+  {
+    id: 'gemini-3.6-flash',
+    label: 'Gemini 3.6 Flash',
+    note: 'Flash نسل قبل؛ روی سهمیه رایگان رایگان است.',
+  },
+  {
+    id: 'gemini-3.5-flash-lite',
+    label: 'Gemini 3.5 Flash-Lite',
+    note: 'سبک و سریع؛ سهمیه روزانهٔ رایگان بیشتری دارد ولی دقت عکس کم‌تر از Flash است.',
+  },
+  {
+    id: 'gemini-3.1-flash-lite',
+    label: 'Gemini 3.1 Flash-Lite',
+    note: 'سبک و ارزان؛ برای متن و حجم بالا، نه ظرافت زیاد در عکس.',
+  },
+  {
+    id: 'gemini-2.5-flash-lite',
+    label: 'Gemini 2.5 Flash-Lite',
+    note: 'سبک‌ترین گزینه؛ برای طبقه‌بندی ساده.',
+  },
+  {
+    id: 'gemini-2.5-pro',
+    label: 'Gemini 2.5 Pro (تنها Pro رایگان، سهمیهٔ روزانه بسیار کم)',
+    note: 'استدلال قوی‌تر با سهمیهٔ روزانهٔ خیلی کم روی حالت رایگان؛ برای چند تحلیل پیچیده در روز.',
+  },
+]
+/** Models that look plausible but are paid-only; listed so the app can say why they fail. */
+export const PAID_ONLY_MODELS = [
+  'gemini-3.1-pro-preview',
+  'gemini-omni-1.1-flash',
+  'gemini-omni-flash-preview',
+  'gemini-3.1-flash-image',
+  'gemini-3.1-flash-lite-image',
+  'gemini-3-pro-image',
+  'gemini-2.5-flash-image',
+]
+export const FREE_TIER_NOTICE =
+  'روی حالت رایگان Google، محتوای درخواست‌ها (از جمله عکس باغ) ممکن است برای بهبود محصولات گوگل استفاده شود؛ روی حالت پرداختی این‌طور نیست. اگر این برای شما مهم است، عکس‌های حساس را نفرستید یا حساب پرداختی استفاده کنید.'
+
 const MAX_TEXT = 48000
 
 export interface DirectSettings {
@@ -382,6 +448,158 @@ export function setFetchImplementation(impl: FetchLike | null) {
   fetchImpl = impl ?? ((...args) => fetch(...args))
 }
 
+/** Google's message with any key-like token stripped, so it is safe to show the owner. */
+export function safeProviderMessage(body: string): string {
+  try {
+    const parsed = JSON.parse(body) as { error?: { message?: string; status?: string } }
+    const message = parsed.error?.message ?? ''
+    return message.replace(/AIza[0-9A-Za-z_\-]{8,}/g, '***').slice(0, 400)
+  } catch {
+    return body.replace(/AIza[0-9A-Za-z_\-]{8,}/g, '***').slice(0, 200)
+  }
+}
+
+/**
+ * Turns a provider failure into the honest reason, using Google's own message.
+ * The common case in 2026 is a paid-only model being called by a free-tier key: it
+ * returns 429 with "limit: 0", which looks like "quota finished" but actually means
+ * "this model has no free quota at all".
+ */
+export function providerError(status: number, body: string, model: string): DirectError {
+  const detail = safeProviderMessage(body)
+  const lower = detail.toLowerCase()
+  const paidOnly = PAID_ONLY_MODELS.includes(model)
+  if (status === 429) {
+    if (lower.includes('limit: 0') || lower.includes('free_tier') || paidOnly)
+      return new DirectError(
+        `مدل «${model}» روی سهمیهٔ رایگان Google سهمیه ندارد (پاسخ Google: ${detail}). یک مدل رایگان مثل gemini-2.5-flash یا gemini-3.6-flash انتخاب کنید یا در پنل Google صورت‌حساب را فعال کنید.`,
+        429
+      )
+    return new DirectError(
+      `سهمیهٔ این مدل تمام شده است (پاسخ Google: ${detail}). سهمیهٔ روزانه نیمه‌شب وقت کالیفرنیا بازنشانی می‌شود؛ یا مدل سبک‌تر را امتحان کنید.`,
+      429
+    )
+  }
+  if (status === 400)
+    return new DirectError(
+      lower.includes('api key')
+        ? `کلید API پذیرفته نشد (پاسخ Google: ${detail}). کلید را دوباره از aistudio.google.com/apikey بسازید.`
+        : `درخواست پذیرفته نشد (پاسخ Google: ${detail}). نام مدل را بررسی کنید.`,
+      400
+    )
+  if (status === 403)
+    return new DirectError(
+      `دسترسی رد شد (پاسخ Google: ${detail}). بررسی کنید «Generative Language API» در پروژهٔ همین کلید فعال باشد و کلید محدود به سرویس دیگری نباشد.`,
+      403
+    )
+  if (status === 404)
+    return new DirectError(
+      `این نام مدل برای این کلید پیدا نشد (پاسخ Google: ${detail}). فهرست مدل‌های مجاز را بگیرید و یکی را انتخاب کنید.`,
+      404
+    )
+  if (status >= 500)
+    return new DirectError(
+      `سرور Google خطا داد (پاسخ Google: ${detail}). چند دقیقه بعد دوباره تلاش کنید.`,
+      status
+    )
+  return new DirectError(`Google پاسخ ${status} داد (${detail})؛ نتیجه‌ای ساخته نشد.`, status)
+}
+
+/** Models this key may call, straight from the API instead of a hardcoded guess. */
+export async function listDirectModels(settings?: DirectSettings): Promise<FreeModel[]> {
+  const current = settings ?? directSettings()
+  const key = validKey(current.key)
+  if (!key) throw new DirectError('کلید شخصی روی این دستگاه ثبت نشده است.')
+  let response: Response
+  try {
+    response = await fetchImpl(`${MODELS_ENDPOINT}?pageSize=1000`, {
+      method: 'GET',
+      headers: { 'x-goog-api-key': key },
+    })
+  } catch {
+    throw new DirectError(
+      'برای گرفتن فهرست مدل‌ها اتصال به Google برقرار نشد؛ اینترنت/فیلترشکن را بررسی کنید.',
+      0
+    )
+  }
+  const body = await response.text()
+  if (!response.ok) throw providerError(response.status, body, 'models.list')
+  let parsed: { models?: { name?: string; supportedGenerationMethods?: string[] }[] }
+  try {
+    parsed = JSON.parse(body) as typeof parsed
+  } catch {
+    throw new DirectError('فهرست مدل‌ها قابل خواندن نبود.', 502)
+  }
+  const allowed = new Set(FREE_MODELS.map((m) => m.id))
+  const rows = (parsed.models ?? [])
+    .filter((m) => (m.supportedGenerationMethods ?? []).includes('generateContent'))
+    .map((m) => (m.name ?? '').replace(/^models\//, ''))
+    .filter((id) => /^[a-zA-Z0-9._-]+$/.test(id))
+    .map((id) => {
+      const known = FREE_MODELS.find((m) => m.id === id)
+      return {
+        id,
+        label: known?.label ?? id,
+        note:
+          known?.note ??
+          (allowed.has(id) ? '' : 'از فهرست این کلید؛ وضعیت رایگان بودنش را با آزمون زیر بسنجید.'),
+      }
+    })
+  if (!rows.length) throw new DirectError('این کلید هیچ مدل متنی مجازی ندارد.', 404)
+  return rows
+}
+
+export interface ProbeResult {
+  model: string
+  ok: boolean
+  detail: string
+}
+/**
+ * Small text-only call per candidate. This is the only honest way to know whether a
+ * model actually works with the owner's key and free quota on this account.
+ */
+export async function probeDirectModels(
+  models: string[],
+  settings?: DirectSettings
+): Promise<ProbeResult[]> {
+  const results: ProbeResult[] = []
+  for (const model of models.slice(0, 10)) {
+    const id = validModel(model)
+    if (!id) {
+      results.push({ model, ok: false, detail: 'نام مدل معتبر نیست.' })
+      continue
+    }
+    try {
+      const text = await generateDirect({
+        system: 'Answer only with JSON {"ok":true}.',
+        schema: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['ok'],
+          properties: { ok: { type: 'boolean' } },
+        },
+        payload: { task: 'connection test' },
+        settings: { ...(settings ?? directSettings()), model: id },
+      })
+      const ok = (JSON.parse(text) as { ok?: boolean }).ok === true
+      results.push({
+        model: id,
+        ok,
+        detail: ok
+          ? 'پاسخ معتبر گرفت؛ این مدل با کلید شما کار می‌کند.'
+          : 'پاسخ بی‌ربط بود؛ این مدل تأیید نشد.',
+      })
+    } catch (e) {
+      results.push({
+        model: id,
+        ok: false,
+        detail: e instanceof DirectError ? e.message : 'خطای نامشخص؛ این مدل تأیید نشد.',
+      })
+    }
+  }
+  return results
+}
+
 export async function generateDirect(options: {
   system: string
   schema: unknown
@@ -429,24 +647,7 @@ export async function generateDirect(options: {
     )
   }
   const body = await response.text()
-  if (!response.ok) {
-    if (response.status === 400)
-      throw new DirectError(
-        'کلید یا نام مدل پذیرفته نشد. کلید را در پنل Google بررسی و مدل را تصحیح کنید.',
-        400
-      )
-    if (response.status === 403)
-      throw new DirectError(
-        'دسترسی این کلید به API رد شد؛ دسترسی کلید و محدودیت‌های آن را بررسی کنید.',
-        403
-      )
-    if (response.status === 429)
-      throw new DirectError('سهمیه یا محدودیت نرخ این حساب پر شده است؛ بعداً تلاش کنید.', 429)
-    throw new DirectError(
-      `Google پاسخ ${response.status} داد؛ نتیجه‌ای ساخته نشد.`,
-      response.status
-    )
-  }
+  if (!response.ok) throw providerError(response.status, body, model)
   let data: Record<string, unknown>
   try {
     data = JSON.parse(body) as Record<string, unknown>
@@ -574,6 +775,19 @@ export function labCalculations(sample: LabInput) {
 /** Small text-only call that proves key+model+network without spending an image. */
 export async function testDirectConnection(): Promise<DirectSettings> {
   const current = directSettings()
+  try {
+    return await runConnectionTest(current)
+  } catch (e) {
+    // Persist the honest reason (already sanitised) so the owner can read it later.
+    const note = e instanceof DirectError ? e.message : 'آزمون اتصال ناموفق بود.'
+    storage()?.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...current, checked_at: new Date().toISOString(), ok: false, note })
+    )
+    throw e
+  }
+}
+async function runConnectionTest(current: DirectSettings): Promise<DirectSettings> {
   const text = await generateDirect({
     system: 'Answer only with JSON {"ok":true,"model":"<model id>"}.',
     schema: {

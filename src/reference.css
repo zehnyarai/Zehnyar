@@ -2523,3 +2523,35 @@ body {
   margin: 8px 0 0;
   font-size: 13px;
 }
+
+/* Model discovery and free-tier probing in the owner panel. */
+.free-model-notes {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.probe-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  margin-top: 12px;
+}
+.probe-table th,
+.probe-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 8px;
+  text-align: start;
+  vertical-align: top;
+}
+.probe-table tr.ok td:nth-child(2) {
+  color: #267c4d;
+  font-weight: 600;
+}
+.probe-table tr.failed td:nth-child(2) {
+  color: #b3432f;
+  font-weight: 600;
+}

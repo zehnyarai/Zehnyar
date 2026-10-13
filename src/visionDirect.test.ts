@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   DEFAULT_DIRECT_MODEL,
+  FREE_MODELS,
+  FREE_TIER_NOTICE,
+  listDirectModels,
+  probeDirectModels,
+  providerError,
+  safeProviderMessage,
   DirectError,
   analyzePhotosDirect,
   clearDirectSettings,
@@ -136,12 +142,15 @@ describe('device-direct vision (owner key)', () => {
     await expect(testDirectConnection()).rejects.toThrow('اتصال مستقیم از این دستگاه')
     expect(directSettings().ok).toBe(false)
   })
-  it('surfaces provider errors without inventing output', async () => {
+  it("surfaces Google's own reason without inventing output", async () => {
     saveDirectSettings('gemini-2.5-flash', 'AIzaSyExampleExampleExample123')
-    stub({ error: { message: 'API key not valid' } }, 400)
-    await expect(testDirectConnection()).rejects.toThrow('کلید یا نام مدل پذیرفته نشد')
-    stub({ error: { message: 'quota' } }, 429)
-    await expect(testDirectConnection()).rejects.toThrow('سهمیه')
+    stub({ error: { message: 'API key not valid. Please pass a valid API key.' } }, 400)
+    await expect(testDirectConnection()).rejects.toThrow('کلید API پذیرفته نشد')
+    stub({ error: { message: 'Quota exceeded' } }, 429)
+    await expect(testDirectConnection()).rejects.toThrow('سهمیهٔ این مدل تمام شده')
+    // The failure reason is remembered on the device for later review.
+    expect(directSettings().ok).toBe(false)
+    expect(directSettings().note).toContain('سهمیه')
   })
   it('sanitizes photo screening: no confidence, no invented guide ids, non-pistachio locked down', () => {
     const result = sanitizePhotoResult(photo)
@@ -237,5 +246,97 @@ describe('device-direct vision (owner key)', () => {
     })
     expect(clean.limitations).toHaveLength(1)
     expect(clean.findings).toHaveLength(1)
+  })
+
+  it('explains a paid-only model instead of blaming the owner (Gemini 3.1 Pro is not free)', async () => {
+    // Google returns 429 with "limit: 0" for a model without free quota, which reads like
+    // "you ran out of quota" even though the model is simply not on the free tier.
+    const paid = providerError(
+      429,
+      JSON.stringify({
+        error: {
+          code: 429,
+          status: 'RESOURCE_EXHAUSTED',
+          message: 'Quota exceeded for metric: generate_content_free_tier_requests, limit: 0',
+        },
+      }),
+      'gemini-3.1-pro-preview'
+    )
+    expect(paid.message).toContain('سهمیهٔ رایگان Google سهمیه ندارد')
+    expect(paid.message).toContain('gemini-2.5-flash')
+    const quota = providerError(
+      429,
+      JSON.stringify({ error: { message: 'RPD limit reached' } }),
+      'gemini-2.5-flash'
+    )
+    expect(quota.message).toContain('نیمه‌شب')
+    const forbidden = providerError(
+      403,
+      JSON.stringify({ error: { message: 'PERMISSION_DENIED' } }),
+      'gemini-2.5-flash'
+    )
+    expect(forbidden.message).toContain('Generative Language API')
+    const missing = providerError(
+      404,
+      JSON.stringify({ error: { message: 'models/x is not found' } }),
+      'gemini-nope'
+    )
+    expect(missing.message).toContain('فهرست مدل‌های مجاز')
+  })
+  it('never leaks a key from a provider error body', () => {
+    const message = safeProviderMessage(
+      JSON.stringify({ error: { message: 'API key not valid: AIzaSyLeakedExampleKey123' } })
+    )
+    expect(message).not.toContain('AIzaSyLeakedExampleKey123')
+    expect(message).toContain('***')
+    expect(safeProviderMessage('not json AIzaSyLeakedExampleKey123')).not.toContain('AIzaSyLeaked')
+  })
+  it('keeps the default model inside the verified free list and excludes paid-only ones', () => {
+    const ids = FREE_MODELS.map((m) => m.id)
+    expect(ids).toContain(DEFAULT_DIRECT_MODEL)
+    for (const paid of ['gemini-3.1-pro-preview', 'gemini-3.1-flash-image'])
+      expect(ids).not.toContain(paid)
+    expect(FREE_TIER_NOTICE).toContain('بهبود محصولات گوگل')
+  })
+  it('lists only models this key may actually call', async () => {
+    saveDirectSettings('gemini-2.5-flash', 'AIzaSyExampleExampleExample123')
+    const calls = stub({
+      models: [
+        { name: 'models/gemini-2.5-flash', supportedGenerationMethods: ['generateContent'] },
+        { name: 'models/gemini-embedding-2', supportedGenerationMethods: ['embedContent'] },
+        { name: 'models/gemini-3.6-flash', supportedGenerationMethods: ['generateContent'] },
+        { name: 'models/bad name!', supportedGenerationMethods: ['generateContent'] },
+      ],
+    })
+    const rows = await listDirectModels()
+    expect(rows.map((r) => r.id)).toEqual(['gemini-2.5-flash', 'gemini-3.6-flash'])
+    expect(calls[0].url).toContain('/models?pageSize=1000')
+    expect(calls[0].url).not.toContain('AIza')
+    expect((calls[0].init.headers as Record<string, string>)['x-goog-api-key']).toBe(
+      'AIzaSyExampleExampleExample123'
+    )
+  })
+  it('probes each candidate model and reports per-model reasons', async () => {
+    saveDirectSettings('gemini-2.5-flash', 'AIzaSyExampleExampleExample123')
+    let call = 0
+    setFetchImplementation((async () => {
+      call += 1
+      if (call === 1)
+        return new Response(
+          JSON.stringify({
+            candidates: [{ finishReason: 'STOP', content: { parts: [{ text: '{"ok":true}' }] } }],
+          }),
+          { status: 200 }
+        )
+      return new Response(
+        JSON.stringify({ error: { message: 'generate_content_free_tier_requests, limit: 0' } }),
+        { status: 429 }
+      )
+    }) as unknown as typeof fetch)
+    const rows = await probeDirectModels(['gemini-2.5-flash', 'gemini-3.1-pro-preview'])
+    expect(rows[0].ok).toBe(true)
+    expect(rows[0].detail).toContain('کار می‌کند')
+    expect(rows[1].ok).toBe(false)
+    expect(rows[1].detail).toContain('سهمیهٔ رایگان')
   })
 })

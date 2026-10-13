@@ -3,6 +3,7 @@ import { KeyRound, Save, Trash2 } from 'lucide-react'
 import { api, errorMessage } from '../api'
 import type { AppContext } from '../types'
 import { InfoBanner, Spinner } from './ui'
+import { DEFAULT_DIRECT_MODEL, FREE_MODELS, FREE_TIER_NOTICE } from '../visionDirect'
 
 interface RuntimeConfiguration {
   provider: string
@@ -21,7 +22,7 @@ export default function GeminiConfiguration({
   allowed: boolean
 }) {
   const key = useRef<HTMLInputElement>(null)
-  const [model, setModel] = useState('gemini-3.1-pro-preview')
+  const [model, setModel] = useState(DEFAULT_DIRECT_MODEL)
   const [enabled, setEnabled] = useState(false),
     [approved, setApproved] = useState(false)
   const [status, setStatus] = useState<RuntimeConfiguration | null>(null)
@@ -35,7 +36,7 @@ export default function GeminiConfiguration({
       .then((s) => {
         if (active) {
           setStatus(s)
-          setModel(s.model || 'gemini-3.1-pro-preview')
+          setModel(s.model || DEFAULT_DIRECT_MODEL)
           setEnabled(s.requests_enabled)
         }
       })
@@ -129,6 +130,10 @@ export default function GeminiConfiguration({
           فراخوانی: {status.requests_enabled ? 'روشن؛ اتصال باید آزمایش شود' : 'خاموش'}
         </p>
       )}
+      <p className="section-description">
+        پیش‌فرض رایگان: <span dir="ltr">{DEFAULT_DIRECT_MODEL}</span> —{' '}
+        <span dir="ltr">{FREE_MODELS.map((m) => m.id).join(' · ')}</span>. {FREE_TIER_NOTICE}
+      </p>
       <form
         autoComplete="off"
         onSubmit={(e) => {
@@ -144,12 +149,18 @@ export default function GeminiConfiguration({
                 value={model}
                 maxLength={100}
                 dir="ltr"
+                list="server-free-models"
                 onChange={(e) => {
                   setModel(e.target.value)
                   setApproved(false)
                 }}
                 required
               />
+              <datalist id="server-free-models">
+                {[...new Set(FREE_MODELS.map((m) => m.id))].map((m) => (
+                  <option key={m} value={m} />
+                ))}
+              </datalist>
             </label>
             <label>
               کلید جایگزین — محرمانه

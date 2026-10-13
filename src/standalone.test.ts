@@ -449,6 +449,49 @@ describe('device-direct analysis with the owner key (offline edition)', () => {
     expect(cleared.data.provider).toBe('local-storage')
     expect(cleared.image_url).toBe(pixels)
   })
+  it('lists the key models and probes the free candidates through the local API', async () => {
+    await localApi('/local/vision', {
+      method: 'PUT',
+      body: JSON.stringify({ model: 'gemini-2.5-flash', key }),
+    })
+    setFetchImplementation((async (url: string) => {
+      if (url.includes('/models?'))
+        return new Response(
+          JSON.stringify({
+            models: [
+              { name: 'models/gemini-2.5-flash', supportedGenerationMethods: ['generateContent'] },
+              {
+                name: 'models/gemini-3.1-pro-preview',
+                supportedGenerationMethods: ['generateContent'],
+              },
+            ],
+          }),
+          { status: 200 }
+        )
+      if (url.includes('gemini-3.1-pro-preview'))
+        return new Response(
+          JSON.stringify({ error: { message: 'generate_content_free_tier_requests, limit: 0' } }),
+          { status: 429 }
+        )
+      return new Response(
+        JSON.stringify({
+          candidates: [{ finishReason: 'STOP', content: { parts: [{ text: '{"ok":true}' }] } }],
+        }),
+        { status: 200 }
+      )
+    }) as unknown as typeof fetch)
+    const listed = await localApi<{ id: string }[]>('/local/vision/models')
+    expect(listed.map((m) => m.id)).toContain('gemini-2.5-flash')
+    const probed = await localApi<{
+      results: { model: string; ok: boolean; detail: string }[]
+      notice: string
+    }>('/local/vision/probe', post({ models: ['gemini-2.5-flash', 'gemini-3.1-pro-preview'] }))
+    expect(probed.results[0].ok).toBe(true)
+    expect(probed.results[1].ok).toBe(false)
+    expect(probed.results[1].detail).toContain('سهمیهٔ رایگان')
+    expect(probed.notice).toContain('بهبود محصولات گوگل')
+    await expect(localApi('/local/vision/probe', post({ models: [] }))).resolves.toBeTruthy()
+  })
 })
 
 describe('owner card and manual receipt ledger in the offline panel', () => {
