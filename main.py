@@ -1,6 +1,3 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
-from groq import Groq
 import base64
 import json
 import os
@@ -25,55 +22,41 @@ app.add_middleware(
 _groq_key = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=_groq_key) if _groq_key else None
 
-_reports: dict[str, dict] = {}
+_reports = {}
 
-# اتصال به هوش مصنوعی با استفاده از کلیدی که بعداً در Render ست می‌کنیم
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 class ChatRequest(BaseModel):
     message: str
 
 
-def _now() -> str:
+def _now():
     return datetime.now(timezone.utc).isoformat()
 
 
-def _scientific_disclaimer() -> str:
+def _scientific_disclaimer():
     return (
         "در این بررسی از جدیدترین اطلاعات علمی حوزه گیاه‌پزشکی و باغ پسته استفاده شده است. "
         "نتیجه احتمالی است و جایگزین تشخیص کارشناس محلی نیست."
     )
 
 
-async def _vision_analyze(image_bytes: bytes, category: str, season: str) -> dict:
+async def _vision_analyze(image_bytes, category, season):
     key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
     if not key:
         raise HTTPException(
             status_code=503,
-            detail={
-                "error": {
-                    "code": "NETWORK",
-                    "message": "تحلیل تصویر روی سرور تنظیم نشده است.",
-                }
-            },
+            detail={"error": {"code": "NETWORK", "message": "تحلیل تصویر روی سرور تنظیم نشده است."}},
         )
 
     b64 = base64.b64encode(image_bytes).decode("ascii")
     prompt = (
         "تو متخصص گیاه‌پزشکی باغ پسته هستی. عکس را بررسی کن. "
-        f"دسته تصویر: {category}. فصل: {season}. "
-        "فقط JSON معتبر برگردان با کلیدهای: "
-        "diagnosis (رشته فارسی), confidence (عدد 0 تا 100), "
-        "symptoms (لیست رشته), alternatives (لیست از {name, likelihood}), "
-        "actions (لیست رشته), needMore (لیست رشته), "
-        "references (لیست از {title, source}). "
-        "در متن به نام مدل یا شرکت اشاره نکن. "
-        "بنویس که از اطلاعات علمی به‌روز استفاده شده است."
+        "دسته تصویر: " + category + ". فصل: " + season + ". "
+        "فقط JSON معتبر برگردان با کلیدهای diagnosis, confidence, symptoms, "
+        "alternatives, actions, needMore, references. "
+        "در متن به نام مدل یا شرکت اشاره نکن."
     )
-    url = (
-        "https://generativelanguage.googleapis.com/v1beta/models/"
-        "gemini-2.0-flash:generateContent"
-    )
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
     payload = {
         "contents": [
             {
@@ -89,12 +72,7 @@ async def _vision_analyze(image_bytes: bytes, category: str, season: str) -> dic
     if r.status_code >= 400:
         raise HTTPException(
             status_code=502,
-            detail={
-                "error": {
-                    "code": "UNKNOWN",
-                    "message": "تحلیل تصویر الان انجام نشد. بعداً دوباره تلاش کنید.",
-                }
-            },
+            detail={"error": {"code": "UNKNOWN", "message": "تحلیل تصویر الان انجام نشد."}},
         )
     body = r.json()
     try:
@@ -111,12 +89,12 @@ async def _vision_analyze(image_bytes: bytes, category: str, season: str) -> dic
         data = json.loads(text)
     except json.JSONDecodeError:
         data = {
-            "diagnosis": "نتیجه قطعی از روی این تصویر به‌دست نیامد",
+            "diagnosis": "نتیجه قطعی از روی این تصویر به دست نیامد",
             "confidence": 40,
             "symptoms": [],
             "alternatives": [],
-            "actions": ["عکس واضح‌تر از برگ و میوه در نور طبیعی بگیرید"],
-            "needMore": ["نتیجه آزمایش برگ یا خاک در صورت امکان"],
+            "actions": ["عکس واضح تر در نور طبیعی بگیرید"],
+            "needMore": [],
             "references": [],
         }
     return data
@@ -135,15 +113,9 @@ async def chat_with_pishai(request: ChatRequest):
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
-                {"role": "system", "content": "تو 'ذهن‌یار' (pishai) هستی. یک متخصص منطق و استدلال. وظیفه تو تحلیل مغالطه‌ها و آموزش درست حرف زدن به زبان فارسی است."},
-                {"role": "user", "content": request.message}
-            ]
                 {
                     "role": "system",
-                    "content": (
-                        "تو 'ذهن‌یار' (pishai) هستی. یک متخصص منطق و استدلال. "
-                        "وظیفه تو تحلیل مغالطه‌ها و آموزش درست حرف زدن به زبان فارسی است."
-                    ),
+                    "content": "تو ذهن‌یار هستی. متخصص منطق و استدلال به زبان فارسی.",
                 },
                 {"role": "user", "content": request.message},
             ],
@@ -151,7 +123,6 @@ async def chat_with_pishai(request: ChatRequest):
         return {"response": completion.choices[0].message.content}
     except Exception as e:
         return {"error": str(e)}
-      
 
 
 @app.post("/analyses")
@@ -165,12 +136,7 @@ async def create_analysis(
     if not raw:
         raise HTTPException(
             status_code=400,
-            detail={
-                "error": {
-                    "code": "IMAGE_UNSUITABLE",
-                    "message": "تصویر خالی است.",
-                }
-            },
+            detail={"error": {"code": "IMAGE_UNSUITABLE", "message": "تصویر خالی است."}},
         )
     parsed = await _vision_analyze(raw, category, season)
     report_id = str(uuid.uuid4())
@@ -218,25 +184,3 @@ async def get_analysis(report_id: str):
     if not r:
         raise HTTPException(status_code=404, detail="گزارش پیدا نشد")
     return r
-
-
-@app.get("/analyses/{report_id}/image")
-async def get_analysis_image(report_id: str):
-    if report_id not in _reports:
-        raise HTTPException(status_code=404, detail="گزارش پیدا نشد")
-    raise HTTPException(status_code=404, detail="تصویر ذخیره نشده است")
-
-
-@app.get("/api/v1/analyses")
-async def list_analyses_v1(farmId: Optional[str] = None):
-    return await list_analyses(farmId)
-
-
-@app.post("/api/v1/analyses")
-async def create_analysis_v1(
-    farmId: str = Form(...),
-    category: str = Form("leaf"),
-    season: str = Form(""),
-    image: UploadFile = File(...),
-):
-    return await create_analysis(farmId, category, season, image)
