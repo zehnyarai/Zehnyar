@@ -98,6 +98,7 @@ describe('capability board tells the truth about this build', () => {
     expect(off.filter((c) => c.state === 'setup').map((c) => c.key)).toEqual([
       'vision-photo',
       'vision-lab',
+      'sales',
       'ledger',
     ])
     const on = capabilities({
@@ -113,6 +114,18 @@ describe('capability board tells the truth about this build', () => {
     for (const key of ['gateway', 'sync', 'weather', 'ios'])
       expect(rows.find((c) => c.key === key)?.state).toBe('offline-blocked')
     expect(rows.find((c) => c.key === 'ledger')?.state).toBe('active')
+    // The paid-package row only turns active once the owner actually set a price.
+    expect(rows.find((c) => c.key === 'sales')?.state).toBe('setup')
+    const priced = capabilities({
+      ...base,
+      keyPresent: true,
+      keyVerified: true,
+      cardSaved: true,
+      packagePriced: true,
+      freeLeft: 1,
+    })
+    expect(priced.find((c) => c.key === 'sales')?.state).toBe('active')
+    expect(priced.find((c) => c.key === 'sales')?.detail).toContain('تومانی')
     expect(rows.every((c) => c.detail.length > 0)).toBe(true)
   })
 })
