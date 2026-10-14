@@ -449,6 +449,113 @@ describe('device-direct analysis with the owner key (offline edition)', () => {
     expect(cleared.data.provider).toBe('local-storage')
     expect(cleared.image_url).toBe(pixels)
   })
+  it('enforces the free-two rule on the device API and unlocks after a paid code', async () => {
+    const { createActivationCode } = await import('./quota')
+    await localApi('/local/vision', {
+      method: 'PUT',
+      body: JSON.stringify({ model: 'gemini-2.5-flash', key }),
+    })
+    // A saved report is injected through a backup: the node test environment has no canvas
+    // image pipeline, which the photo upload path needs.
+    await restoreBackup(
+      JSON.stringify({
+        app: 'pestino',
+        version: 1,
+        orchards: [],
+        tasks: [],
+        reports: [
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            orchard_id: null,
+            tree_part: 'برگ',
+            notes: 'لکه روشن',
+            image_url: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA==',
+            context: { ...EMPTY_CONTEXT, symptoms: [] },
+            created_at: '2026-10-01T10:00:00.000Z',
+          },
+        ],
+        fields: { labs: [], experiences: [], prices: [], climate: [] },
+      })
+    )
+    const run = () =>
+      localApi(
+        '/local/analyses',
+        post({ report_id: '22222222-2222-4222-8222-222222222222', consent: true })
+      )
+    await run()
+    await run()
+    let blocked: { code?: string; message: string } | null = null
+    try {
+      await run()
+    } catch (error) {
+      blocked = error as { code?: string; message: string }
+    }
+    expect(blocked?.code).toBe('QUOTA_REQUIRED')
+    expect(blocked?.message).toContain('تحلیل رایگان')
+    expect((await localApi<{ blocked: boolean }>('/local/quota')).blocked).toBe(true)
+
+    // The owner prices the package from the dollar day rate, then issues a code after payment.
+    const priced = await localApi<{ price_toman: number; needs_price: boolean }>('/local/quota', {
+      method: 'PUT',
+      body: JSON.stringify({
+        free_limit: 2,
+        package: { analyses: 20, usd_price: 2, usd_rate: 92_000, rate_date: '2026-10-14' },
+      }),
+    })
+    expect(priced.price_toman).toBe(190_000)
+    expect(priced.needs_price).toBe(false)
+    const issued = await localApi<{ code: string }>('/local/quota/code', {
+      method: 'POST',
+      body: JSON.stringify({ analyses: 20, days: null }),
+    })
+    expect(issued.code.startsWith('PST-')).toBe(true)
+    await expect(
+      localApi('/local/quota/redeem', post({ code: 'PST-K-0-1111-AAAAAA' }))
+    ).rejects.toThrow()
+    const redeemed = await localApi<{ added: number }>(
+      '/local/quota/redeem',
+      post({ code: issued.code })
+    )
+    expect(redeemed.added).toBe(20)
+    await expect(localApi('/local/quota/redeem', post({ code: issued.code }))).rejects.toThrow(
+      /قبلاً/
+    )
+    expect((await localApi<{ blocked: boolean }>('/local/quota')).blocked).toBe(false)
+    await run()
+    expect((await localApi<{ credits: number }>('/local/quota')).credits).toBe(19)
+    // A code that was not signed by this app never grants anything.
+    const another = createActivationCode({ analyses: 1, today: '2026-10-14', serial: 5555 })
+    await expect(
+      localApi('/local/quota/redeem', post({ code: another.code.replace('PST-', 'PST2-') }))
+    ).rejects.toThrow()
+  })
+  it('confirms a recorded transfer and adds the package to this device', async () => {
+    await localApi('/local/quota', {
+      method: 'PUT',
+      body: JSON.stringify({ free_limit: 2, package: { analyses: 10, price_toman: 900_000 } }),
+    })
+    const receipt = await localApi<{ id: string; confirmed_at: string | null }>(
+      '/local/billing/receipts',
+      post({
+        payer: 'باغدار تست',
+        amount_toman: 900_000,
+        paid_at: '2026-10-14',
+        reference: '778899',
+        note: '',
+      })
+    )
+    expect(receipt.confirmed_at).toBeNull()
+    expect((await localApi<{ pending_receipts: number }>('/local/quota')).pending_receipts).toBe(1)
+    const after = await localApi<{ credits: number; receipt: { granted_analyses: number } }>(
+      `/local/billing/receipts/${receipt.id}/confirm`,
+      { method: 'POST' }
+    )
+    expect(after.receipt.granted_analyses).toBe(10)
+    expect(after.credits).toBe(10)
+    await expect(
+      localApi(`/local/billing/receipts/${receipt.id}/confirm`, { method: 'POST' })
+    ).rejects.toThrow(/قبلاً/)
+  })
   it('lists the key models and probes the free candidates through the local API', async () => {
     await localApi('/local/vision', {
       method: 'PUT',

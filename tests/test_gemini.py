@@ -207,11 +207,14 @@ def test_lab_does_not_accept_a_forged_numeric_dose_confidence_or_calculation(cli
 
 def test_photo_and_laboratory_share_atomic_free_quota(client,monkeypatch):
     register(client);enable(monkeypatch);calls=provider_mock(monkeypatch,lab_result())
-    for _ in range(3):
+    # Two free analyses, shared between photos and laboratory reports (owner rule 2026-10-13).
+    for _ in range(2):
         assert client.post('/api/lab-analyses',json={'sample':lab_input(),'consent':True}).status_code==201
-    assert client.post('/api/lab-analyses',json={'sample':lab_input(),'consent':True}).status_code==402
+    blocked=client.post('/api/lab-analyses',json={'sample':lab_input(),'consent':True})
+    assert blocked.status_code==402
+    assert 'بستهٔ تومانی' in blocked.json()['detail']
     assert photo_request(client).status_code==402
-    assert len(calls)==3
+    assert len(calls)==2
 
 
 def test_interrupted_lab_reservation_is_refunded_on_restart(client, monkeypatch):

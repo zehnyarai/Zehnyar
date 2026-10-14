@@ -138,7 +138,8 @@ def premium(user):
 def usage(db, user):
     since = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
     used = db.execute("SELECT COUNT(*) FROM reports WHERE user_id=? AND is_sample=0 AND status IN ('complete','processing','deleted') AND created_at>?", (user["id"], since)).fetchone()[0]
-    return {"used": used, "limit": 60 if premium(user) else 3, "premium": premium(user), "period_days": 30}
+    # Owner decision 2026-10-13: two free analyses, after that a paid Toman package.
+    return {"used": used, "limit": 60 if premium(user) else FREE_ANALYSES, "premium": premium(user), "period_days": 30}
 
 
 def own_orchard(db, user_id, orchard_id):
@@ -231,7 +232,9 @@ class RequestSizeLimit:
         await self.app(scope, limited_receive, send)
 
 
-app = FastAPI(title="Pestino API", version="0.6.2", lifespan=lifespan, docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None)
+# Free analyses per 30-day period, matching the offline edition (see src/quota.ts).
+FREE_ANALYSES = 2
+app = FastAPI(title="Pestino API", version="0.7.0", lifespan=lifespan, docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None)
 app.add_middleware(RequestSizeLimit)
 
 
@@ -278,7 +281,7 @@ def bootstrap(request: Request, response: Response):
         user = session_user(request, db)
         if not user:
             if not demo_enabled():
-                return {"user": None, "orchards": [], "reports": [], "tasks": [], "usage": {"used": 0, "limit": 3, "premium": False}, "services": service_status(), "plans": PLANS}
+                return {"user": None, "orchards": [], "reports": [], "tasks": [], "usage": {"used": 0, "limit": FREE_ANALYSES, "premium": False}, "services": service_status(), "plans": PLANS}
             rate_limit(f"guest:{request.client.host}", 30, 3600)
             user_id = uid()
             db.execute("INSERT INTO users (id,name,role,is_demo,created_at) VALUES (?,?,?,?,?)", (user_id, "باغدار عزیز", "user", 1, now_iso()))
@@ -764,7 +767,10 @@ async def create_analysis(request: Request, image: UploadFile = File(...), addit
         allowance = usage(db, fresh_user)
         use_purchased_credit = ledger_balance(db, user_id) > 0
         if not use_purchased_credit and allowance['used'] >= allowance['limit']:
-            raise HTTPException(402, 'اعتبار بررسی تصویر در این بازه تمام شده است.')
+            raise HTTPException(
+                402,
+                f'تحلیل‌های رایگان این دوره ({FREE_ANALYSES} تحلیل) تمام شده است؛ برای ادامه یک بستهٔ تومانی تهیه کنید.',
+            )
         db.execute('INSERT INTO reports (id,user_id,orchard_id,tree_part,notes,data,image_path,status,created_at) VALUES (?,?,?,?,?,?,?,?,?)', (report_id, user_id, orchard_id or None, tree_part, notes, '{}', str(paths[0].resolve()), 'processing', now_iso()))
         save_extra_photos(db, report_id, paths)
         if use_purchased_credit:

@@ -210,10 +210,14 @@ def test_server_enforced_credits_survive_report_deletion(client, monkeypatch):
     register(client)
     enable_vision(monkeypatch)
     monkeypatch.setattr(service, "analyze_with_provider", mock_vision)
-    ids = [send_image(client).json()["id"] for _ in range(3)]
-    assert send_image(client).status_code == 402
+    # Owner rule: two free analyses, then a paid Toman package.
+    ids = [send_image(client).json()["id"] for _ in range(2)]
+    blocked = send_image(client)
+    assert blocked.status_code == 402
+    assert "بستهٔ تومانی" in blocked.json()["detail"]
+    assert guest(client)["usage"]["limit"] == 2
     assert client.delete(f"/api/reports/{ids[0]}").status_code == 200
-    assert guest(client)["usage"]["used"] == 3
+    assert guest(client)["usage"]["used"] == 2
     assert send_image(client).status_code == 402
     assert client.get(f"/api/reports/{ids[0]}/image").status_code == 404
 
@@ -430,7 +434,7 @@ def test_render_public_url_fallback_and_override(client, monkeypatch):
 def test_health_identifies_pestino_without_leaking_secrets(client):
     result = client.get("/api/health").json()
     assert result["app"] == "pestino"
-    assert result["version"] == "0.6.2"
+    assert result["version"] == "0.7.0"
     assert "GROQ_API_KEY" not in str(result)
 
 

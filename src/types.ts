@@ -109,7 +109,17 @@ export interface Bootstrap {
   orchards: Orchard[]
   reports: Report[]
   tasks: Task[]
-  usage: { used: number; limit: number; premium: boolean }
+  usage: {
+    used: number
+    limit: number
+    premium: boolean
+    /** Offline edition: how many free analyses are left and how many were bought. */
+    free_limit?: number
+    free_left?: number
+    credits?: number
+    total_left?: number
+    blocked?: boolean
+  }
   credit_balance?: number
   services: Services
   plans: Plan[]

@@ -123,7 +123,7 @@ def register_laboratory_routes(app, require_user, own_orchard, services, setting
             allowance = usage(db, user)
             purchased = ledger_balance(db, user_id) > 0
             if not purchased and allowance["used"] >= allowance["limit"]:
-                raise HTTPException(402, "سهمیه مشترک تحلیل عکس و آزمایش در این بازه تمام شده است.")
+                raise HTTPException(402, "سهمیه مشترک تحلیل عکس و آزمایش در این بازه تمام شده است؛ برای ادامه یک بستهٔ تومانی تهیه کنید.")
             db.execute("INSERT INTO reports (id,user_id,orchard_id,tree_part,notes,data,status,created_at,report_kind) VALUES (?,?,?,?,?,?,?,?,?)", (record_id, user_id, data.sample.orchard_id, "آزمایش خاک" if data.sample.kind == "soil" else "آزمایش آب", "", "{}", "processing", now_iso(), "lab"))
             if purchased:
                 db.execute("INSERT INTO credit_ledger VALUES (?,?,?,?,?,?)", (f"analysis-{record_id}", user_id, -1, "analysis", "تفسیر آزمایش آب یا خاک", now_iso()))

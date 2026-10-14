@@ -184,6 +184,72 @@ describe('offline photo analysis (the owner’s exact flow)', () => {
     expect(saved[0].data.provider).toBe('gemini-direct-byo-key')
   })
 
+  it('gives two free analyses, then asks for a Toman package and unlocks with a code', async () => {
+    const user = userEvent.setup()
+    render(<Analysis ctx={ctx} initialFile={image} />)
+    // Consent stays on for the session, so this only ticks it when it is still off.
+    const tick = async () => {
+      const box = (await screen.findByRole('checkbox', {
+        name: /اجازه می‌دهم/,
+      })) as HTMLInputElement
+      if (!box.checked) await user.click(box)
+      return box
+    }
+    await tick()
+    // Analysis 1 of 2 (free)
+    await user.click(screen.getByRole('button', { name: /تحلیل تصویر و بررسی احتمال آفت/ }))
+    await waitFor(() => expect(visionCalls).toBe(1))
+    await waitFor(() => expect(text()).toContain('تحلیل رایگان باقی‌مانده: ۱ از ۲'))
+    // Analysis 2 of 2 (free)
+    await tick()
+    await user.click(screen.getByRole('button', { name: /تحلیل تصویر و بررسی احتمال آفت/ }))
+    await waitFor(() => expect(visionCalls).toBe(2))
+    // The third one is refused: no model call, and the payment screen appears instead.
+    await tick()
+    await user.click(screen.getByRole('button', { name: /تحلیل تصویر و بررسی احتمال آفت/ }))
+    await waitFor(() => expect(text()).toContain('دو تحلیل رایگان تمام شد'))
+    expect(visionCalls).toBe(2)
+    expect(text()).toContain('برای ادامه، یک بستهٔ تحلیل تهیه کنید')
+    expect(
+      (screen.getByRole('button', { name: /تحلیل تصویر و بررسی احتمال آفت/ }) as HTMLButtonElement)
+        .disabled
+    ).toBe(true)
+
+    // The owner's activation code (generated on the owner's own device) unlocks 20 analyses.
+    const { createActivationCode } = await import('../quota')
+    const generated = createActivationCode({
+      analyses: 20,
+      today: new Date().toISOString().slice(0, 10),
+      serial: 4242,
+    })
+    const codeInput = screen.getByLabelText(/کد فعال‌سازی/) as HTMLInputElement
+    await user.type(codeInput, generated.code)
+    expect(codeInput.value).toBe(generated.code)
+    await user.click(screen.getByRole('button', { name: /فعال‌سازی تحلیل/ }))
+    await waitFor(() =>
+      expect(ctx.notify).toHaveBeenCalledWith(
+        expect.stringContaining('۲۰ تحلیل به دستگاه شما اضافه شد'),
+        'success'
+      )
+    )
+    await waitFor(() =>
+      expect(
+        (
+          screen.getByRole('button', {
+            name: /تحلیل تصویر و بررسی احتمال آفت/,
+          }) as HTMLButtonElement
+        ).disabled
+      ).toBe(false)
+    )
+    // And the paid analysis now really runs and spends a package credit, not a free one.
+    await tick()
+    await user.click(screen.getByRole('button', { name: /تحلیل تصویر و بررسی احتمال آفت/ }))
+    await waitFor(() => expect(visionCalls).toBe(3))
+    const quota = await localApi<{ credits: number; free_left: number }>('/local/quota')
+    expect(quota.free_left).toBe(0)
+    expect(quota.credits).toBe(19)
+  })
+
   it('still saves the file without analysis when the owner only wants a record', async () => {
     const user = userEvent.setup()
     render(<Analysis ctx={ctx} initialFile={image} />)

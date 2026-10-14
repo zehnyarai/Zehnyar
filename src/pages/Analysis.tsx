@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ArrowLeft,
   Bug,
@@ -9,11 +9,14 @@ import {
   ShieldCheck,
   Trash2,
   Upload,
+  Wallet,
 } from 'lucide-react'
 import type { AppContext, Report } from '../types'
 import { IS_STANDALONE } from '../config'
 import { api, checkImage, errorMessage, fa, takePhoto, persianDate } from '../api'
 import { Badge, InfoBanner, Spinner } from '../components/ui'
+import Paywall, { isQuotaError } from '../components/Paywall'
+import type { QuotaPayload } from '../quota'
 import { ScientificPlan } from '../components/scientific'
 import { KeyRound } from 'lucide-react'
 import { EMPTY_CONTEXT, SYMPTOMS, validateContext } from '../scientific'
@@ -47,6 +50,7 @@ export default function Analysis({
   const [plan, setPlan] = useState<DiagnosticContext | null>(null)
   const [consent, setConsent] = useState(false)
   const [needConsent, setNeedConsent] = useState(false)
+  const [quota, setQuota] = useState<QuotaPayload | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [drag, setDrag] = useState(false)
@@ -56,6 +60,19 @@ export default function Analysis({
   // In the offline edition this reflects the owner's own on-device key.
   const configured = ctx.data.services.vision_configured
   const verified = configured && !!ctx.data.services.vision_verified
+  // Two free analyses, then the paid package; the counter lives on this device.
+  const loadQuota = useCallback(async () => {
+    if (!IS_STANDALONE) return
+    try {
+      setQuota(await api<QuotaPayload>('/local/quota'))
+    } catch {
+      /* keep the last known view; the analysis call itself enforces the quota */
+    }
+  }, [])
+  useEffect(() => {
+    void loadQuota()
+  }, [loadQuota])
+  const blocked = IS_STANDALONE && quota?.blocked === true
   useEffect(() => {
     const urls = files.map((file) => URL.createObjectURL(file))
     setPreviews(urls)
@@ -167,9 +184,16 @@ export default function Analysis({
         'success'
       )
     } catch (e) {
-      setError(errorMessage(e))
+      if (isQuotaError(e)) {
+        await loadQuota()
+        setError('')
+        ctx.notify('تحلیل‌های رایگان این دستگاه تمام شده؛ برای ادامه یک بسته تهیه کنید.', 'info')
+      } else {
+        setError(errorMessage(e))
+      }
     } finally {
       setBusy(false)
+      if (mode === 'analyze') void loadQuota()
     }
   }
   return (
@@ -322,10 +346,10 @@ export default function Analysis({
       </section>
       <section className="reference-card diagnostic-form">
         <h2>
-          <LeafIcon /> اطلاعات لازم برای بررسی علمی
+          <LeafIcon /> چند نکتهٔ کوتاه
         </h2>
         <p className="section-description">
-          زمینهٔ باغ، خطای بررسی را کمتر می‌کند؛ جای آزمایش و بازدید حضوری نیست.
+          باغ و بخش درخت را انتخاب کنید، نشانه‌ها را تیک بزنید و بقیه را در بخش اختیاری بگذارید.
         </p>
         <div className="reference-form-grid">
           <label>
@@ -346,100 +370,6 @@ export default function Analysis({
                 <option key={p}>{p}</option>
               ))}
             </select>
-          </label>
-          <label>
-            استان / منطقه
-            <input
-              value={context.province}
-              maxLength={160}
-              onChange={(e) => update('province', e.target.value)}
-              placeholder="مثلاً کرمان، رفسنجان"
-              disabled={busy}
-            />
-          </label>
-          <label>
-            رقم و پایه (اگر می‌دانید)
-            <input
-              value={context.cultivar}
-              maxLength={160}
-              onChange={(e) => update('cultivar', e.target.value)}
-              placeholder="مثلاً احمدآقایی؛ پایه نامشخص"
-              disabled={busy}
-            />
-          </label>
-          <label>
-            سن درخت (سال)
-            <input
-              type="number"
-              min="0"
-              max="150"
-              value={context.age}
-              onChange={(e) => update('age', e.target.value)}
-              placeholder="نامشخص"
-              disabled={busy}
-            />
-          </label>
-          <label>
-            مرحله رشد
-            <select
-              value={context.stage}
-              onChange={(e) => update('stage', e.target.value)}
-              disabled={busy}
-            >
-              <option value="">نامشخص</option>
-              {STAGES.map((s) => (
-                <option key={s}>{s}</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            مدت شروع علائم (روز)
-            <input
-              type="number"
-              min="0"
-              max="3650"
-              value={context.duration}
-              onChange={(e) => update('duration', e.target.value)}
-              placeholder="نامشخص"
-              disabled={busy}
-            />
-          </label>
-          <label>
-            درگیری تقریبی باغ (%)
-            <input
-              type="number"
-              min="0"
-              max="100"
-              value={context.affected_percent}
-              onChange={(e) => update('affected_percent', e.target.value)}
-              placeholder="مشاهده شما، نه محاسبه تصویر"
-              disabled={busy}
-            />
-          </label>
-          <label>
-            پراکندگی علائم
-            <select
-              value={context.distribution}
-              onChange={(e) => update('distribution', e.target.value)}
-              disabled={busy}
-            >
-              <option value="">نامشخص</option>
-              {['یک شاخه', 'یک درخت', 'چند درخت پراکنده', 'یک ردیف یا لکه باغ', 'بخش عمده باغ'].map(
-                (s) => (
-                  <option key={s}>{s}</option>
-                )
-              )}
-            </select>
-          </label>
-          <label>
-            روش / آخرین آبیاری
-            <input
-              value={context.irrigation}
-              maxLength={160}
-              onChange={(e) => update('irrigation', e.target.value)}
-              placeholder="روش، تاریخ و مشکل احتمالی"
-              disabled={busy}
-            />
           </label>
         </div>
         <fieldset className="symptoms-fieldset" disabled={busy}>
@@ -464,29 +394,135 @@ export default function Analysis({
             ))}
           </div>
         </fieldset>
-        <label className="full-label">
-          سابقه کود، سم، تنش هوا یا آزمایش اخیر
-          <textarea
-            value={context.recent_inputs}
-            maxLength={1000}
-            rows={3}
-            onChange={(e) => update('recent_inputs', e.target.value)}
-            placeholder="نام و تاریخ مصرف، تنش اخیر و نتیجه آزمایش در صورت وجود؛ بدون اطلاعات شخصی"
-            disabled={busy}
-          />
-        </label>
-        <label className="full-label">
-          توضیحات اختیاری
-          <textarea
-            value={notes}
-            maxLength={1000}
-            rows={3}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="روند علائم، هدف شما و اطلاعاتی که در عکس معلوم نیست…"
-            disabled={busy}
-          />
-          <span className="character-count">{fa(notes.length)} / ۱٬۰۰۰</span>
-        </label>
+        <details className="advanced-fields">
+          <summary>زمینهٔ باغ و جزئیات بیشتر (اختیاری) — دقت بررسی را بالا می‌برد</summary>
+          <p className="muted">
+            خالی گذاشتن اشکالی ندارد؛ نتیجه فقط کلی‌تر می‌شود. هیچ فیلدی اجباری نیست.
+          </p>
+          <div className="reference-form-grid">
+            <label>
+              استان / منطقه
+              <input
+                value={context.province}
+                maxLength={160}
+                onChange={(e) => update('province', e.target.value)}
+                placeholder="مثلاً کرمان، رفسنجان"
+                disabled={busy}
+              />
+            </label>
+            <label>
+              رقم و پایه (اگر می‌دانید)
+              <input
+                value={context.cultivar}
+                maxLength={160}
+                onChange={(e) => update('cultivar', e.target.value)}
+                placeholder="مثلاً احمدآقایی؛ پایه نامشخص"
+                disabled={busy}
+              />
+            </label>
+            <label>
+              سن درخت (سال)
+              <input
+                type="number"
+                min="0"
+                max="150"
+                value={context.age}
+                onChange={(e) => update('age', e.target.value)}
+                placeholder="نامشخص"
+                disabled={busy}
+              />
+            </label>
+            <label>
+              مرحله رشد
+              <select
+                value={context.stage}
+                onChange={(e) => update('stage', e.target.value)}
+                disabled={busy}
+              >
+                <option value="">نامشخص</option>
+                {STAGES.map((s) => (
+                  <option key={s}>{s}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              مدت شروع علائم (روز)
+              <input
+                type="number"
+                min="0"
+                max="3650"
+                value={context.duration}
+                onChange={(e) => update('duration', e.target.value)}
+                placeholder="نامشخص"
+                disabled={busy}
+              />
+            </label>
+            <label>
+              درگیری تقریبی باغ (%)
+              <input
+                type="number"
+                min="0"
+                max="100"
+                value={context.affected_percent}
+                onChange={(e) => update('affected_percent', e.target.value)}
+                placeholder="مشاهده شما، نه محاسبه تصویر"
+                disabled={busy}
+              />
+            </label>
+            <label>
+              پراکندگی علائم
+              <select
+                value={context.distribution}
+                onChange={(e) => update('distribution', e.target.value)}
+                disabled={busy}
+              >
+                <option value="">نامشخص</option>
+                {[
+                  'یک شاخه',
+                  'یک درخت',
+                  'چند درخت پراکنده',
+                  'یک ردیف یا لکه باغ',
+                  'بخش عمده باغ',
+                ].map((s) => (
+                  <option key={s}>{s}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              روش / آخرین آبیاری
+              <input
+                value={context.irrigation}
+                maxLength={160}
+                onChange={(e) => update('irrigation', e.target.value)}
+                placeholder="روش، تاریخ و مشکل احتمالی"
+                disabled={busy}
+              />
+            </label>
+          </div>
+          <label className="full-label">
+            سابقه کود، سم، تنش هوا یا آزمایش اخیر
+            <textarea
+              value={context.recent_inputs}
+              maxLength={1000}
+              rows={3}
+              onChange={(e) => update('recent_inputs', e.target.value)}
+              placeholder="نام و تاریخ مصرف، تنش اخیر و نتیجه آزمایش در صورت وجود؛ بدون اطلاعات شخصی"
+              disabled={busy}
+            />
+          </label>
+          <label className="full-label">
+            توضیحات اختیاری
+            <textarea
+              value={notes}
+              maxLength={1000}
+              rows={3}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="روند علائم، هدف شما و اطلاعاتی که در عکس معلوم نیست…"
+              disabled={busy}
+            />
+            <span className="character-count">{fa(notes.length)} / ۱٬۰۰۰</span>
+          </label>
+        </details>
         <label className={needConsent && !consent ? 'consent-check attention' : 'consent-check'}>
           <input
             ref={consentBox}
@@ -567,10 +603,20 @@ export default function Analysis({
             )}
           </div>
         )}
+        {IS_STANDALONE && quota && (
+          <p className={blocked ? 'quota-chip blocked' : 'quota-chip'}>
+            <Wallet size={15} />
+            {blocked
+              ? 'تحلیل‌های رایگان تمام شده؛ پرونده‌ها و عکس‌ها بدون محدودیت کار می‌کنند.'
+              : `تحلیل رایگان باقی‌مانده: ${fa(quota.free_left)} از ${fa(quota.free_limit)}`}
+            {quota.credits > 0 && ` · بستهٔ خریداری‌شده: ${fa(quota.credits)}`}
+          </p>
+        )}
+        {blocked && quota && <Paywall ctx={ctx} quota={quota} onUnlocked={loadQuota} />}
         <div className="analysis-main-actions">
           <button
             className="button primary"
-            disabled={busy || !files.length}
+            disabled={busy || !files.length || blocked}
             onClick={() => void submit('analyze')}
           >
             {busy ? (

@@ -2573,3 +2573,377 @@ body {
   color: #b3432f;
   font-weight: 600;
 }
+
+/* ==========================================================================
+   هویت بصری پستینو ۰.۷ — سبز نیلگون (پیستهای) + نیلی و آبی آسمانی
+   Only colours, radii and spacing change here; no layout or feature is removed.
+   ========================================================================== */
+:root {
+  --nilgoon: #0f6b4f; /* deep pistachio green */
+  --nilgoon-dark: #0a5340;
+  --nilgoon-light: #e8f5ef;
+  --nili: #26418c; /* indigo (نیلی) for headings and depth */
+  --nili-light: #e9edfb;
+  --asemani: #2b9fd8; /* sky blue */
+  --asemani-light: #e6f5fd;
+  --brand-gradient: linear-gradient(120deg, #0f6b4f 0%, #157a7c 45%, #2b9fd8 100%);
+  --brand-gradient-soft: linear-gradient(140deg, #effaf4 0%, #ecf5fd 60%, #eef1fd 100%);
+  --green: var(--nilgoon);
+  --green-dark: var(--nilgoon-dark);
+  --green-light: var(--nilgoon-light);
+  --border: #dfeae6;
+  --muted: #6d8378;
+}
+body {
+  background:
+    radial-gradient(circle at 12% 0%, #e9f7f1 0%, transparent 45%),
+    radial-gradient(circle at 88% 4%, #e7f2fd 0%, transparent 42%), #f6faf9;
+}
+.reference-header {
+  background: #fbfdfdcc;
+  border-bottom: none;
+  box-shadow: 0 1px 0 #dfeae6;
+}
+.reference-header::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: -3px;
+  height: 3px;
+  background: var(--brand-gradient);
+  opacity: 0.85;
+}
+.reference-brand-mark,
+.feature-icon.green {
+  background: var(--brand-gradient);
+  color: #fff;
+}
+.reference-navigation a.is-active,
+.reference-tools button.active,
+.admin-view-tabs button.active,
+.auth-tabs button.active {
+  background: var(--nilgoon-light);
+  color: var(--nilgoon-dark);
+  box-shadow: inset 0 -2px 0 var(--nilgoon);
+}
+.reference-toolsbar {
+  background: linear-gradient(180deg, #f9fdfc, #f4faf9);
+  border-bottom: 1px solid #e4efec;
+}
+.button.primary {
+  background: var(--brand-gradient);
+  box-shadow: 0 6px 14px #0f6b4f1f;
+}
+.button.primary:hover:not(:disabled) {
+  background: linear-gradient(120deg, #0a5340 0%, #10646a 45%, #1f8ec4 100%);
+}
+.button.secondary {
+  border-color: #d6e6e1;
+  color: #1d5f4c;
+  background: #fff;
+}
+.button.secondary:hover:not(:disabled) {
+  background: #f1f9f6;
+  border-color: #b9dbd0;
+}
+.text-button {
+  color: var(--nili);
+}
+.reference-card {
+  border-radius: 18px;
+  border-color: #e2edea;
+  box-shadow: 0 8px 20px #0f6b4f0a;
+}
+.reference-card h2 svg {
+  color: var(--nilgoon);
+}
+.reference-hero {
+  min-height: 360px;
+  padding: 68px 18px 58px;
+  background: var(--brand-gradient-soft);
+  border-radius: 0 0 30px 30px;
+}
+.reference-hero h1 {
+  background: linear-gradient(120deg, #0b5443 10%, #26418c 70%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin: 18px 0 12px;
+}
+.reference-hero > p {
+  color: #5d7a70;
+  font-size: 19px;
+}
+.reference-hero > strong {
+  color: var(--nili);
+  font-size: 18px;
+}
+.hero-label {
+  background: #fff;
+  color: var(--nilgoon-dark);
+  box-shadow: 0 4px 12px #0f6b4f14;
+}
+.reference-feature {
+  border-radius: 18px;
+  border-color: #e4eeec;
+}
+.reference-feature:hover {
+  border-color: #bfe0d6;
+  transform: translateY(-2px);
+}
+.reference-feature h2 {
+  color: #123f33;
+}
+.feature-icon.blue {
+  background: var(--nili-light);
+  color: var(--nili);
+}
+.feature-icon.mint,
+.feature-icon.amber,
+.feature-icon.red {
+  background: var(--nilgoon-light);
+  color: var(--nilgoon);
+}
+.badge-green {
+  background: var(--nilgoon-light);
+  color: var(--nilgoon-dark);
+}
+.badge-blue {
+  background: var(--asemani-light);
+  color: #17638a;
+}
+.trust-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 26px;
+  justify-content: center;
+  padding: 16px 20px;
+  margin: 0 auto 26px;
+  max-width: 1000px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #e2edea;
+  color: #40655a;
+  font-size: 13px;
+}
+.trust-strip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.trust-strip svg {
+  color: var(--asemani);
+}
+.quota-chip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  margin: 18px 0 0;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  background: var(--asemani-light);
+  color: #13567c;
+  border: 1px solid #cbe8f8;
+}
+.quota-chip.blocked {
+  background: #fff2e8;
+  color: #9a4a12;
+  border-color: #f7dcc6;
+}
+.reference-page .quota-chip {
+  margin: 20px 0 0;
+}
+.advanced-fields {
+  margin: 22px 0 6px;
+  border: 1px dashed #cfe4dd;
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: #fbfdfd;
+}
+.advanced-fields > summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--nilgoon-dark);
+  font-size: 14px;
+}
+.advanced-fields[open] > summary {
+  margin-bottom: 8px;
+}
+/* ---------------------------------------------------- خرید و پرداخت تومانی */
+.paywall {
+  margin: 22px 0 0;
+  padding: 22px 22px 18px;
+  border-radius: 18px;
+  border: 1px solid #cfe4f5;
+  background: linear-gradient(150deg, #f4fbff, #f2fbf6);
+}
+.paywall-head h2 {
+  font-size: 20px;
+  margin: 12px 0 8px;
+}
+.paywall-head p {
+  color: #4d6a63;
+  line-height: 1.9;
+}
+.paywall-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  background: #fff2e8;
+  color: #9a4a12;
+  font-size: 13px;
+}
+.paywall-price {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 16px 0;
+  padding: 15px 18px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #dceef7;
+}
+.paywall-price strong {
+  font-size: 17px;
+  color: #17475c;
+}
+.paywall-price small {
+  display: block;
+  color: #6d8378;
+  margin-top: 4px;
+  line-height: 1.8;
+}
+.paywall-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+.paywall-card,
+.paywall-code {
+  background: #fff;
+  border: 1px solid #e2ede9;
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+.paywall-card h3,
+.paywall-code h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--nilgoon-dark);
+  margin-bottom: 10px;
+}
+.paywall-card-number {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--nili);
+  direction: ltr;
+}
+.paywall-code input {
+  width: 100%;
+}
+.paywall-code .button {
+  margin-top: 12px;
+  width: 100%;
+}
+.paywall-manual {
+  margin-top: 16px;
+  border: 1px dashed #d5e6ef;
+  border-radius: 14px;
+  padding: 12px 16px;
+  background: #fbfdff;
+}
+.paywall-manual > summary {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #46616e;
+}
+.paywall-done {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 11px 15px;
+  border-radius: 12px;
+  background: var(--nilgoon-light);
+  color: var(--nilgoon-dark);
+}
+/* ------------------------------------------- فروش در پنل مدیر و کد فعال‌سازی */
+.sales-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+  margin-top: 22px;
+}
+.sales-block {
+  border: 1px solid #e2ede9;
+  border-radius: 16px;
+  padding: 16px 18px;
+  background: #fbfdfd;
+}
+.sales-block h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--nilgoon-dark);
+  margin-bottom: 12px;
+}
+.sales-block .button {
+  margin-top: 10px;
+}
+.activation-code {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--nili-light);
+  border: 1px solid #d3dbf6;
+}
+.activation-code input {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-align: center;
+  color: var(--nili);
+}
+.receipt-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--nilgoon-dark);
+  font-size: 12px;
+  margin-inline-end: 8px;
+}
+@media (max-width: 700px) {
+  .reference-hero {
+    min-height: auto;
+    padding: 42px 14px 36px;
+    border-radius: 0 0 22px 22px;
+  }
+  .reference-card {
+    padding: 20px 18px;
+  }
+  .trust-strip {
+    font-size: 12px;
+    gap: 8px 16px;
+  }
+  .paywall,
+  .reference-page .consent-check {
+    margin-top: 18px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reference-feature:hover {
+    transform: none;
+  }
+}

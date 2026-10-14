@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react'
-import { Brain, Download, History, Trash2 } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { Brain, Download, History, Trash2, Wallet } from 'lucide-react'
 import { api, downloadText, errorMessage, fa, persianDate } from '../api'
 import { IS_STANDALONE } from '../config'
+import Paywall, { isQuotaError } from './Paywall'
+import type { QuotaPayload } from '../quota'
 import { validateField } from '../fieldwork'
 import type { LabInput } from '../fieldwork'
 import type { AppContext } from '../types'
@@ -60,6 +62,19 @@ export default function LabAI({
     [error, setError] = useState('')
   const [result, setResult] = useState<LabAssessment | null>(null)
   const [history, setHistory] = useState<LabAssessment[]>([])
+  const [quota, setQuota] = useState<QuotaPayload | null>(null)
+  const loadQuota = useCallback(async () => {
+    if (!IS_STANDALONE) return
+    try {
+      setQuota(await api<QuotaPayload>('/local/quota'))
+    } catch {
+      /* the interpretation call enforces the quota even if this read fails */
+    }
+  }, [])
+  useEffect(() => {
+    void loadQuota()
+  }, [loadQuota])
+  const blocked = IS_STANDALONE && quota?.blocked === true
   useEffect(() => {
     setResult(null)
     setError('')
@@ -119,9 +134,16 @@ export default function LabAI({
         ctx.notify('گزارش دریافت شد؛ خواندن دوباره موجودی حساب ممکن نشد.', 'error')
       }
     } catch (e) {
-      setError(errorMessage(e))
+      if (isQuotaError(e)) {
+        await loadQuota()
+        setError('')
+        ctx.notify('تحلیل‌های رایگان این دستگاه تمام شده؛ برای ادامه یک بسته تهیه کنید.', 'info')
+      } else {
+        setError(errorMessage(e))
+      }
     } finally {
       setBusy(false)
+      void loadQuota()
     }
   }
   async function remove(row: LabAssessment) {
@@ -160,10 +182,20 @@ export default function LabAI({
           مدل تنظیم‌شده: <strong dir="ltr">{ctx.data.services.vision_model || 'Gemini'}</strong>؛
           تنظیم مدل به‌معنی اثبات اتصال یا اعتبار علمی آن نیست.{' '}
           {IS_STANDALONE
-            ? 'سهمیهٔ حساب شخصی شما مصرف می‌شود و این برنامه هیچ سهمیه‌ای نمی‌فروشد.'
+            ? 'سهمیهٔ رایگان Google از حساب شخصی خودتان مصرف می‌شود؛ پستینو فقط شمارش تحلیل‌های خودش را نگه می‌دارد و سهمیهٔ گوگل را نمی‌فروشد.'
             : 'هر تفسیر موفق یک نوبت از سهمیه مشترک عکس و آزمایش مصرف می‌کند.'}
         </InfoBanner>
       )}
+      {IS_STANDALONE && quota && (
+        <p className={blocked ? 'quota-chip blocked' : 'quota-chip'}>
+          <Wallet size={15} />
+          {blocked
+            ? 'تحلیل‌های رایگان تمام شده؛ محاسبات و راهنماها بدون محدودیت کار می‌کنند.'
+            : `تحلیل رایگان باقی‌مانده: ${fa(quota.free_left)} از ${fa(quota.free_limit)}`}
+          {quota.credits > 0 && ` · بستهٔ خریداری‌شده: ${fa(quota.credits)}`}
+        </p>
+      )}
+      {blocked && quota && <Paywall ctx={ctx} quota={quota} onUnlocked={loadQuota} />}
       <label className="consent-check">
         <input
           type="checkbox"
@@ -177,7 +209,11 @@ export default function LabAI({
           تضمین نمی‌شود.
         </span>
       </label>
-      <button className="button primary" disabled={busy || !enabled} onClick={() => void analyze()}>
+      <button
+        className="button primary"
+        disabled={busy || !enabled || blocked}
+        onClick={() => void analyze()}
+      >
         {busy ? (
           <Spinner />
         ) : (

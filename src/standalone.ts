@@ -14,6 +14,22 @@ import type { FieldKind, FieldRecord, LabInput } from './fieldwork'
 import { emptyBilling, receiptsTotal, validateCard, validateReceipt } from './localAdmin'
 import type { LocalBilling, LocalReceipt } from './localAdmin'
 import {
+  QuotaRequired,
+  consumeQuota,
+  createActivationCode,
+  defaultPackage,
+  defaultQuota,
+  quotaDecision,
+  quotaView,
+  readQuotaMirror,
+  reconcileQuota,
+  refundQuota,
+  validatePackage,
+  verifyActivationCode,
+  writeQuotaMirror,
+} from './quota'
+import type { AnalysisPackage, QuotaSettings } from './quota'
+import {
   FREE_TIER_NOTICE,
   analyzePhotosDirect,
   clearDirectSettings,
@@ -44,6 +60,8 @@ export interface LabAssessment {
 }
 interface State {
   version: 1
+  quota: QuotaSettings
+  package: AnalysisPackage
   orchards: Orchard[]
   tasks: Task[]
   reports: Report[]
@@ -56,6 +74,8 @@ export class LocalError extends Error {
 }
 const emptyState = (): State => ({
   version: 1,
+  quota: defaultQuota(),
+  package: defaultPackage(),
   orchards: [],
   tasks: [],
   reports: [],
@@ -113,12 +133,34 @@ async function load(): Promise<State> {
             ? (req.result.billing.receipts as LocalReceipt[])
             : [],
         },
+        quota: reconcileQuota({ ...defaultQuota(), ...req.result?.quota }, quotaMirror()),
+        package: { ...defaultPackage(), ...req.result?.package },
       })
     req.onerror = () =>
       reject(new LocalError('خواندن داده‌های دستگاه ممکن نشد. داده‌ها را پاک نکنید.'))
   })
 }
+function quotaMirror() {
+  try {
+    return typeof localStorage === 'undefined' ? null : readQuotaMirror(localStorage)
+  } catch {
+    return null
+  }
+}
+function mirrorQuota(quota: QuotaSettings) {
+  try {
+    if (typeof localStorage !== 'undefined')
+      writeQuotaMirror(localStorage, {
+        used: quota.used,
+        credits: quota.credits,
+        codes: quota.codes,
+      })
+  } catch {
+    /* storage unavailable: the IndexedDB copy stays authoritative */
+  }
+}
 async function save(state: State) {
+  mirrorQuota(state.quota)
   if (
     new TextEncoder().encode(JSON.stringify({ app: 'pestino', ...state }, null, 2)).byteLength >
     MAX_BACKUP_BYTES - 4096
@@ -325,6 +367,18 @@ function billingConfig(state: State): BillingConfig {
       : EMPTY_BILLING.notice,
   }
 }
+function quotaPayload(state: State) {
+  const view = quotaView(state.quota, state.package)
+  return {
+    ...view,
+    package: state.package,
+    card: state.billing.card,
+    pending_receipts: state.billing.receipts.filter((r) => !r.confirmed_at).length,
+    codes_used: state.quota.codes.length,
+    notice:
+      'شمارش تحلیل‌ها روی همین دستگاه است. عدد و اعتبار با یک اثر انگشت ساده نگه‌داری می‌شود تا ویرایش دستی ساده نتواند تحلیل رایگان بسازد؛ با این حال پاک‌کردن کامل داده‌های برنامه این شمارش را صفر می‌کند و این محدودیت قراردادی/اخلاقی است، نه محافظت فنی.',
+  }
+}
 function billingView(state: State) {
   return {
     mode: 'manual' as const,
@@ -354,7 +408,19 @@ function bootstrap(state: State): Bootstrap {
       ...t,
       orchard_name: state.orchards.find((o) => o.id === t.orchard_id)?.name ?? null,
     })),
-    usage: { used: 0, limit: 0, premium: false },
+    usage: (() => {
+      const view = quotaView(state.quota, state.package)
+      return {
+        used: view.used,
+        limit: view.free_limit,
+        free_limit: view.free_limit,
+        free_left: view.free_left,
+        credits: view.credits,
+        total_left: view.total_left,
+        blocked: view.blocked,
+        premium: view.credits > 0,
+      }
+    })(),
     services: serviceStatus(),
     plans: [],
   }
@@ -478,10 +544,23 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
         throw new LocalError('برای ارسال تصویر به Google، رضایت آگاهانه لازم است.')
       const report = state.reports.find((r) => r.id === String(body.report_id ?? ''))
       if (!report) throw new LocalError('پرونده عکس پیدا نشد.')
-      const analysis = await analyzePhotosDirect(
-        report.image_urls?.length ? report.image_urls : [report.image_url ?? ''],
-        report.context ?? { ...EMPTY_CONTEXT }
-      )
+      const decision = quotaDecision(state.quota)
+      if (!decision.allowed) throw new QuotaRequired(decision.reason)
+      state.quota = consumeQuota(state.quota)
+      mirrorQuota(state.quota)
+      modified = true
+      let analysis
+      try {
+        analysis = await analyzePhotosDirect(
+          report.image_urls?.length ? report.image_urls : [report.image_url ?? ''],
+          report.context ?? { ...EMPTY_CONTEXT }
+        )
+      } catch (error) {
+        // A failed or refused call never costs the farmer an analysis.
+        state.quota = refundQuota(state.quota, decision.free)
+        mirrorQuota(state.quota)
+        throw error
+      }
       report.data = analysis
       result = report
       modified = true
@@ -510,7 +589,20 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
         age: linked ? String(linked.age) : '',
         irrigation: linked?.irrigation ?? '',
       }
-      const { result: assessment, units, calculations } = await interpretLabDirect(sample, context)
+      const decision = quotaDecision(state.quota)
+      if (!decision.allowed) throw new QuotaRequired(decision.reason)
+      state.quota = consumeQuota(state.quota)
+      mirrorQuota(state.quota)
+      modified = true
+      let direct
+      try {
+        direct = await interpretLabDirect(sample, context)
+      } catch (error) {
+        state.quota = refundQuota(state.quota, decision.free)
+        mirrorQuota(state.quota)
+        throw error
+      }
+      const { result: assessment, units, calculations } = direct
       if (state.assessments.length >= 200) state.assessments.length = 199
       const record: LabAssessment = {
         id: uid(),
@@ -546,7 +638,78 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
         receipts: [],
         history: [],
       }
-    else if (path === '/local/billing' && method === 'GET') result = billingView(state)
+    else if (path === '/local/quota' && method === 'GET') result = quotaPayload(state)
+    else if (path === '/local/quota' && method === 'PUT') {
+      // Owner only: how many analyses are free, and what a paid package costs.
+      const freeLimit = Number(body.free_limit)
+      if (!Number.isInteger(freeLimit) || freeLimit < 0 || freeLimit > 50)
+        throw new LocalError('تعداد تحلیل رایگان باید عددی بین ۰ و ۵۰ باشد.')
+      const pack = validatePackage(body.package)
+      state.quota = { ...state.quota, free_limit: freeLimit }
+      state.package = pack
+      mirrorQuota(state.quota)
+      result = quotaPayload(state)
+      modified = true
+    } else if (path === '/local/quota/grant' && method === 'POST') {
+      const count = Number(body.analyses)
+      if (!Number.isInteger(count) || count < 1 || count > 500)
+        throw new LocalError('تعداد تحلیل اهدایی باید عددی بین ۱ و ۵۰۰ باشد.')
+      state.quota = { ...state.quota, credits: state.quota.credits + count }
+      mirrorQuota(state.quota)
+      result = quotaPayload(state)
+      modified = true
+    } else if (path === '/local/quota/code' && method === 'POST') {
+      const generated = createActivationCode({
+        analyses: Number(body.analyses ?? state.package.analyses),
+        days: body.days ? Number(body.days) : null,
+        today: new Date().toISOString().slice(0, 10),
+      })
+      result = {
+        ...generated,
+        package_analyses: state.package.analyses,
+        price_toman: state.package.price_toman,
+      }
+    } else if (path === '/local/quota/redeem' && method === 'POST') {
+      const verification = verifyActivationCode(String(body.code ?? ''), {
+        today: new Date().toISOString().slice(0, 10),
+        used: state.quota.codes,
+      })
+      if (!verification.ok) throw new LocalError(verification.reason)
+      const compact = String(body.code ?? '')
+        .toUpperCase()
+        .replace(/[\s,_ـ]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
+      state.quota = {
+        ...state.quota,
+        credits: state.quota.credits + verification.analyses,
+        codes: [...state.quota.codes, compact],
+      }
+      mirrorQuota(state.quota)
+      result = {
+        ...quotaPayload(state),
+        added: verification.analyses,
+        expires_on: verification.expires_on,
+      }
+      modified = true
+    } else if (
+      path.startsWith('/local/billing/receipts/') &&
+      path.endsWith('/confirm') &&
+      method === 'POST'
+    ) {
+      // Owner confirms a real transfer; only then do paid analyses unlock on this device.
+      const id = path.slice('/local/billing/receipts/'.length, -'/confirm'.length)
+      const row = state.billing.receipts.find((r) => r.id === id)
+      if (!row) throw new LocalError('دریافت ثبت‌شده پیدا نشد.')
+      if (row.confirmed_at) throw new LocalError('این دریافت قبلاً تأیید شده است.')
+      const granted = state.package.analyses
+      row.confirmed_at = new Date().toISOString()
+      row.granted_analyses = granted
+      state.quota = { ...state.quota, credits: state.quota.credits + granted }
+      mirrorQuota(state.quota)
+      result = { receipt: row, ...quotaPayload(state) }
+      modified = true
+    } else if (path === '/local/billing' && method === 'GET') result = billingView(state)
     else if (path === '/local/billing' && method === 'PUT') {
       // The owner's own destination card. Arithmetic cannot tell 6063…9401 from
       // 9401…6063, so an explicit confirmation of the typed digits is required.
@@ -571,6 +734,7 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
         ...checked,
         id: uid(),
         created_at: new Date().toISOString(),
+        confirmed_at: null,
       }
       state.billing.receipts.unshift(record)
       result = record

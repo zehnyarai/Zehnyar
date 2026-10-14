@@ -22,6 +22,9 @@ export interface LocalReceipt {
   reference: string
   note: string
   created_at: string
+  /** Owner confirmation is what unlocks paid analyses; there is no automatic verification. */
+  confirmed_at?: string | null
+  granted_analyses?: number
 }
 export interface LocalBilling {
   card: LocalCard | null
@@ -133,6 +136,9 @@ export function capabilities(input: {
   reports: number
   analyzed: number
   labs: number
+  /** Owner rule of 2026-10-13: two free analyses, then a paid Toman package. */
+  packagePriced?: boolean
+  freeLeft?: number
 }): Capability[] {
   const model = input.model || 'تنظیم نشده'
   const vision = (key: string, title: string): Capability => ({
@@ -180,6 +186,16 @@ export function capabilities(input: {
       group: 'داده و محتوا',
       state: 'active',
       detail: `${input.orchards} باغ · ${input.reports} پرونده عکس (${input.analyzed} تحلیل‌شده) · ${input.labs} آزمایش ثبت‌شده روی همین دستگاه.`,
+    },
+    {
+      key: 'sales',
+      title: 'فروش تحلیل: دو تحلیل رایگان، بعد بستهٔ تومانی',
+      group: 'سرویس‌های سروری',
+      state: input.packagePriced ? 'active' : 'setup',
+      detail: input.packagePriced
+        ? `هر دستگاه دو تحلیل رایگان دارد و بعد از آن بستهٔ تومانی لازم است؛ تحلیل رایگان باقی‌مانده روی این دستگاه: ${input.freeLeft ?? 0}. پرداخت کارت‌به‌کارت با کد فعال‌سازی است، نه درگاه بانکی.`
+        : 'قیمت بستهٔ تحلیل هنوز تعیین نشده؛ تا آن زمان خریدار نمی‌داند چقدر بپردازد. در بخش «تحلیل رایگان، بستهٔ تومانی و کد فعال‌سازی» قیمت را وارد کنید.',
+      how: 'قیمت تومانی را خودتان یا از دلار × نرخ روز تعیین کنید؛ کد فعال‌سازی را فقط پس از واریز واقعی بسازید.',
     },
     {
       key: 'ledger',

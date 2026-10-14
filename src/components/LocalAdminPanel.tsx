@@ -16,10 +16,12 @@ import {
 import { api, errorMessage, fa, persianDate, today } from '../api'
 import type { AppContext } from '../types'
 import { capabilities } from '../localAdmin'
+import type { QuotaPayload } from '../quota'
 import type { Capability, LocalCard, LocalReceipt } from '../localAdmin'
 import { grouped } from '../localAdmin'
 import { Badge, CheckList, InfoBanner, Spinner } from '../components/ui'
 import DirectVision from './DirectVision'
+import SalesPanel from './SalesPanel'
 
 interface BillingView {
   mode: 'manual'
@@ -58,6 +60,7 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
     reference: '',
     note: '',
   })
+  const [quota, setQuota] = useState<QuotaPayload | null>(null)
   const [busy, setBusy] = useState(false),
     [error, setError] = useState('')
   async function load() {
@@ -102,6 +105,15 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
   const [labCount, setLabCount] = useState(0)
   useEffect(() => {
     let active = true
+    void api<QuotaPayload>('/local/quota')
+      .then((payload) => active && setQuota(payload))
+      .catch(() => active && setQuota(null))
+    return () => {
+      active = false
+    }
+  }, [view])
+  useEffect(() => {
+    let active = true
     void api<unknown[]>('/field-records/labs')
       .then((rows) => active && setLabCount(rows.length))
       .catch(() => active && setLabCount(0))
@@ -122,6 +134,8 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
         analyzed: ctx.data.reports.filter((r) => r.data.provider === 'gemini-direct-byo-key')
           .length,
         labs: labCount,
+        packagePriced: !!quota && quota.price_toman > 0,
+        freeLeft: quota?.free_left ?? 0,
       }),
     [state, view, ctx.data]
   )
@@ -392,6 +406,28 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
                     <td dir="ltr">{row.paid_at.slice(0, 10)}</td>
                     <td dir="ltr">{row.reference || '—'}</td>
                     <td>
+                      {row.confirmed_at ? (
+                        <span className="receipt-ok">
+                          <BadgeCheck size={15} /> تأییدشده
+                          {row.granted_analyses ? ` · ${fa(row.granted_analyses)} تحلیل` : ''}
+                        </span>
+                      ) : (
+                        <button
+                          className="text-button"
+                          disabled={busy}
+                          onClick={() =>
+                            void run(
+                              () =>
+                                api(`/local/billing/receipts/${row.id}/confirm`, {
+                                  method: 'POST',
+                                }),
+                              'واریز تأیید شد و تحلیل‌های بسته به همین دستگاه اضافه شد.'
+                            )
+                          }
+                        >
+                          <BadgeCheck size={16} /> تأیید واریز و افزودن تحلیل
+                        </button>
+                      )}
                       <button
                         className="icon-button"
                         aria-label={`حذف دریافت ${row.payer}`}
@@ -417,6 +453,8 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
           </div>
         )}
       </section>
+
+      <SalesPanel ctx={ctx} />
 
       <section className="reference-card" aria-label="داده دستگاه و پشتیبان">
         <h2>
