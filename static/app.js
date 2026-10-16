@@ -6,6 +6,7 @@ const TOPIC_CATALOG_URL = "static/topic-catalog.json";
 const TAFSIR_SOURCES_URL = "static/tafsir-sources.json";
 const TAFSIR_CATALOG_URL = "static/tafsir-catalog.json";
 const NOTEBOOK_KEY = "zehnyar-verse-notebook-v2";
+const VERSE_PROPOSALS_KEY = "quran-pazhuheh-verse-proposals-v1";
 const PAGE_SIZE = 12;
 
 const $ = (selector) => document.querySelector(selector);
@@ -41,6 +42,7 @@ const state = {
   detailTab: "notes",
   searchTranslations: false,
   notebook: loadNotebook(),
+  verseProposals: loadVerseProposals(),
 };
 
 function escapeHTML(value = "") {
@@ -84,6 +86,19 @@ function loadNotebook() {
 
 function persistNotebook() {
   localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(state.notebook));
+}
+
+function loadVerseProposals() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(VERSE_PROPOSALS_KEY) || "[]");
+    return Array.isArray(saved) ? saved.filter((item) => item && item.verseId && item.kind && item.claim && item.witness) : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistVerseProposals() {
+  localStorage.setItem(VERSE_PROPOSALS_KEY, JSON.stringify(state.verseProposals));
 }
 
 function isSaved(verse) {
@@ -429,57 +444,6 @@ function renderResults() {
   renderVerseList();
 }
 
-const VERSE_FOUNDATION_AXES = [
-  {
-    id: "tawhid",
-    title: "توحید و ربوبیت",
-    terms: ["الله", "خدا", "رب", "اله", "پروردگار", "معبود", "عبادت", "رحمن", "رحیم"],
-    message: "نسبتِ انسان با خدا و یکتاییِ سرچشمهٔ هدایت را به کانون خوانش می‌آورد.",
-    principle: "جهتِ تصمیم و اتکا را با نسبتِ بندگی و مسئولیت در برابر خداوند بسنجید، نه با استقلال‌انگاریِ انسان یا مخلوق.",
-    foundation: "خداشناسیِ توحیدی؛ خداوند در متن، منشأِ ربوبیت، پرستش، رحمت یا داوری معرفی می‌شود.",
-  },
-  {
-    id: "revelation",
-    title: "وحی، رسالت و هدایت",
-    terms: ["قران", "قرآن", "کتاب", "وحي", "وحی", "رسول", "نبي", "نبی", "پیامبر", "آیه", "ايه", "هدی", "هدایت", "ذکر"],
-    message: "راه‌یابیِ انسان را به رساندن پیام، کتاب و هدایت الهی پیوند می‌دهد.",
-    principle: "در داوری و انتخاب، متنِ هدایت و پیامِ روشن را معیارِ سنجش قرار دهید و مخاطب و مرجعِ سخن را گم نکنید.",
-    foundation: "مبنای وحی و نبوت؛ قرآن هدایت را فقط محصولِ سلیقه یا تجربهٔ فردی معرفی نمی‌کند.",
-  },
-  {
-    id: "accountability",
-    title: "معاد، جزا و پاسخ‌گویی",
-    terms: ["قیامت", "آخرت", "حساب", "جزاء", "جزا", "بهشت", "جهنم", "عذاب", "پاداش", "بازگشت", "لقاء", "لقا"],
-    message: "پیامدِ عمل و افقِ پاسخ‌گویی را وارد نگاه انسان به انتخاب‌هایش می‌کند.",
-    principle: "کوتاه‌مدت‌نگری را کنار بگذارید و آثارِ عمل و مسئولیتِ پاسخ‌گویی را در تصمیم‌گیری محاسبه کنید.",
-    foundation: "مبنای معاد و مسئولیت؛ عمل انسان بیرون از افقِ حساب و داوریِ الهی خوانده نمی‌شود.",
-  },
-  {
-    id: "moral-agency",
-    title: "ایمان و مسئولیت اخلاقی",
-    terms: ["ایمان", "ايمان", "تقوا", "صبر", "توبه", "ظلم", "ستم", "گناه", "عمل", "صدق", "راست", "نیکی", "بدی", "خیر", "شر", "مغفرت", "بخشش"],
-    message: "ایمان و رفتارِ آگاهانه را در پیوند با رشد یا آسیبِ انسان نشان می‌دهد.",
-    principle: "کنشِ خود را مسئولانه، با پرهیز از آسیب و با امکانِ بازگشت و اصلاح بسنجید؛ کاربرد دقیق به سیاق آیه وابسته است.",
-    foundation: "مبنای اختیار و مسئولیت اخلاقی؛ انسان در متن، مخاطبِ ایمان، عمل، پرهیز یا بازگشت است.",
-  },
-  {
-    id: "justice-community",
-    title: "کرامت، عدالت و زندگی جمعی",
-    terms: ["مردم", "ناس", "قوم", "امت", "قبیله", "خانواده", "عدل", "عدالت", "حق", "میزان", "زن", "مرد", "والد"],
-    message: "رابطهٔ انسان‌ها را با معیارهایی فراتر از منفعت و برتری‌جوییِ فردی مطرح می‌کند.",
-    principle: "کرامت، حق و عدالت را در رابطه با دیگران معیار قرار دهید؛ مرز و مصداقِ هر حکم را از همان سیاق پی بگیرید.",
-    foundation: "مبنای کرامت و عدالت اجتماعی؛ هدایت قرآنی نسبتِ فرد با جامعه و حقوق دیگران را جدی می‌گیرد.",
-  },
-  {
-    id: "creation-signs",
-    title: "آفرینش، نعمت و سنّت‌های الهی",
-    terms: ["خلق", "آفرین", "آسمان", "زمین", "رزق", "روزی", "شب", "روز", "خورشید", "ماه", "دریا", "باران", "مرگ", "زندگی", "نشانه"],
-    message: "جهان و رخدادهای آن را زمینه‌ای برای شناخت، سپاس یا توجه به تدبیر الهی قرار می‌دهد.",
-    principle: "واقعیت‌های زندگی و نعمت‌ها را بی‌معنا یا صرفاً مصرفی نبینید؛ در نسبت با مسئولیت و سپاس به آن‌ها نگاه کنید.",
-    foundation: "مبنای آفرینشِ هدفمند و سنّت الهی؛ جهان در گفتمان قرآن صرفاً پس‌زمینهٔ بی‌معنا نیست.",
-  },
-];
-
 function compactSourceText(text = "", maximum = 460) {
   const clean = String(text).replace(/\s+/g, " ").trim();
   if (clean.length <= maximum) return clean;
@@ -499,62 +463,270 @@ function inlineTafsirEvidence(verse, maximum = 460) {
   return `<aside class="inline-tafsir-evidence"><b>شاهد تفسیریِ آیه — نقلِ بدون بازنویسی</b><p>«${escapeHTML(compactSourceText(entry.text, maximum))}»</p><small>${escapeHTML(citation)} · <a href="${escapeHTML(entry.source.sourceUrl)}" target="_blank" rel="noreferrer">منبع ↗</a></small></aside>`;
 }
 
-function foundationAxesForVerse(verse) {
-  const searchable = normalize(`${verse.arabic} ${verse.persian}`);
-  return VERSE_FOUNDATION_AXES.map((axis) => {
-    const hits = axis.terms.filter((term) => searchable.includes(normalize(term)));
-    return { ...axis, hits: [...new Set(hits)] };
-  }).filter((axis) => axis.hits.length).slice(0, 3);
+const ARABIC_STOPWORDS = new Set([
+  "و", "ف", "ثم", "او", "ام", "بل", "لكن", "لا", "ما", "لم", "لن", "ان", "اذا", "اذ", "من", "الى", "عن", "على", "في", "ب", "ل", "ك", "هو", "هی", "هم", "هن", "انت", "انتم", "انا", "نحن", "هذا", "هذه", "ذلك", "تلك", "الذي", "التي", "الذين", "اللاتي", "كل", "قد", "كان", "كانت", "يكون", "يكونون", "ليس", "الا", "بسم"
+]);
+const PERSIAN_STOPWORDS = new Set([
+  "و", "یا", "از", "به", "در", "با", "بر", "که", "را", "این", "آن", "برای", "تا", "اگر", "اما", "نیز", "هم", "است", "بود", "شد", "می", "شود", "شده", "خود", "همه", "هر", "یک", "ای", "اینان", "آنان", "او", "آنها", "ما", "شما", "من"
+]);
+const COMMAND_FORMS = new Set([
+  "قل", "اعبدوا", "اتقوا", "انفقوا", "اقيموا", "اقیموا", "اتوا", "آتوا", "اذكروا", "اتبعوا", "استغفروا", "توبوا", "اصبروا", "اصبر", "اوفوا", "قولوا", "خذوا", "كلوا", "اشربوا", "انظروا", "اعلموا", "اعملوا", "ادعوا", "اسجدوا", "اركعوا", "احسنوا", "اعدلوا", "كونوا", "کونوا", "امنوا", "آمنوا"
+]);
+const COGNITIVE_SCHEMAS = [
+  { title: "مسیر و حرکت", terms: ["صراط", "سبيل", "سبیل", "طريق", "طریق", "هدى", "هدی", "اهتدى", "اهتدی", "ضل", "رجع", "سار"] },
+  { title: "نور و تاریکی", terms: ["نور", "ظلمات", "ظلمة", "نار"] },
+  { title: "درون و ظرف", terms: ["في", "فیه", "صدور", "قلب", "قلوب", "بطن"] },
+  { title: "تراز و سنجش", terms: ["ميزان", "میزان", "وزن", "قسط", "عدل"] },
+  { title: "بالا و پایین", terms: ["فوق", "تحت", "رفع", "نزل", "سماء", "ارض"] },
+  { title: "دادوستد و سود/زیان", terms: ["اشترى", "اشتری", "باع", "تجارة", "تجاره", "ربح", "خسر"] },
+];
+
+function verseArabicTokens(verse) {
+  const rawTokens = String(verse.arabic || "").match(/[\u0621-\u063a\u0641-\u064a\u0671\u067e\u0686\u06a9\u06af\u06cc]+/g) || [];
+  const seen = new Set();
+  return rawTokens.map((raw) => ({ raw, key: normalize(raw) })).filter(({ key }) => {
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
-function rhetoricalSignals(verse) {
-  const arabic = normalize(verse.arabic);
-  const signals = [];
-  if (arabic.includes("يا ايها")) signals.push({ title: "خطابِ مستقیم", text: "آیه با ندا، مخاطبِ سخن را آشکار می‌کند؛ دامنهٔ پیام را نخست از همین مخاطب و قیدهای خطاب بخوانید." });
-  if (/(^|\s)قل(\s|$)/.test(arabic)) signals.push({ title: "ابلاغِ گفتار", text: "صورت «بگو» انتقالِ پیام را برجسته می‌کند؛ گوینده، مخاطب و جملهٔ پس از آن را از هم جدا نگه دارید." });
-  if (/(^|\s)لا(\s|$)/.test(arabic)) signals.push({ title: "مرزبندیِ نفی یا نهی", text: "وجود «لا» نشان می‌دهد باید تفاوتِ نفیِ خبر و نهیِ عملی را با سیاق و تفسیر کنترل کرد." });
-  if (/[؟?]/.test(verse.arabic)) signals.push({ title: "پرسشِ هدایتی", text: "پرسش در آیه می‌تواند برای آگاه‌سازی، سرزنش یا دعوت به تأمل باشد؛ پاسخ را از متن و شرحِ منبع‌دار دنبال کنید." });
-  if (/^(وال|توال|بال)/.test(arabic)) signals.push({ title: "تأکیدِ سوگند", text: "آیه با ساختِ سوگند، توجه مخاطب را به اهمیتِ گزاره یا افقِ پس از آن جلب می‌کند." });
-  return signals.length ? signals.slice(0, 2) : [{ title: "بیان یا گزارش", text: "این آیه را ابتدا در سطحِ گزارش، گفتار یا توصیفِ خودِ متن بخوانید و پیامِ هدایتی را به کمکِ سیاق و تفسیرِ آیه صورت‌بندی کنید." }];
+function translationClauses(verse) {
+  const clauses = String(verse.persian || "").replace(/[\[\]]/g, "").split(/[؛.!؟،]/).map((item) => item.trim()).filter((item) => item.length >= 8);
+  return [...new Set(clauses)].slice(0, 9);
 }
 
-function studyItems(verse, kind) {
-  const axes = foundationAxesForVerse(verse);
-  if (kind === "messages") {
-    const signalItems = rhetoricalSignals(verse);
-    const axisItems = axes.map((axis) => ({ title: `محور «${axis.title}»`, text: axis.message, evidence: `واژه‌های صریحِ متن: ${axis.hits.join("، ")}` }));
-    return [...signalItems, ...axisItems].slice(0, 4);
-  }
-  if (kind === "principles") {
-    const fromAxes = axes.map((axis) => ({ title: `اصلِ قابل بررسی در «${axis.title}»`, text: axis.principle, evidence: `نشانهٔ لفظی: ${axis.hits.join("، ")}` }));
-    return fromAxes.length ? fromAxes : [{ title: "مرزِ استنباطِ زندگی", text: "این آیه لزوماً دستورِ رفتاریِ مستقل ندارد؛ اصلِ زندگی را تنها پس از دیدنِ مخاطب، قید و سیاقِ آیه و شرحِ معتبر استخراج کنید.", evidence: "در متنِ آیه، کلیدِ صریحِ یکی از محورهای ثبت‌شده پیدا نشد." }];
-  }
-  if (kind === "foundations") {
-    const fromAxes = axes.map((axis) => ({ title: axis.title, text: axis.foundation, evidence: `کلیدهای صریحِ متن: ${axis.hits.join("، ")}` }));
-    return fromAxes.length ? fromAxes : [{ title: "مبنای خوانشِ آیه", text: "پیش از نسبت‌دادنِ یک مبنای کلان به آیه، موضوع، مخاطب، فعل‌ها و سیاقِ آن را در متن و تفسیرِ منبع‌دار بررسی کنید.", evidence: "طبقه‌بندیِ خودکارِ مبنایی برای این آیه ادعا نمی‌شود." }];
-  }
-  return [];
+function substantiveArabicTerms(verse, maximum = 6) {
+  return verseArabicTokens(verse).filter(({ key }) => key.length >= 3 && !ARABIC_STOPWORDS.has(key)).slice(0, maximum);
 }
 
-function inlineStudyItems(items) {
-  return `<ul class="inline-study-list">${items.map((item) => `<li><b>${escapeHTML(item.title)}</b><span>${escapeHTML(item.text)}</span>${item.evidence ? `<small>${escapeHTML(item.evidence)}</small>` : ""}</li>`).join("")}</ul>`;
+function studyCapacity(verse, base = 10, extended = 14) {
+  return verseArabicTokens(verse).length > 32 || String(verse.persian || "").length > 230 ? extended : base;
+}
+
+function sourceExcerptForVerse(verse, maximum = 620) {
+  const entry = primaryTafsirEntry(verse);
+  if (!entry) return null;
+  return {
+    text: compactSourceText(entry.text, maximum),
+    source: `${entry.source.title}، نسخهٔ ${entry.source.version}`,
+  };
+}
+
+function structuralMarkers(verse) {
+  const words = verseArabicTokens(verse);
+  const keys = words.map((item) => item.key);
+  const originalFor = (key) => words.find((item) => item.key === key || item.key.endsWith(key))?.raw || key;
+  const markers = [];
+  const callIndex = keys.findIndex((key) => key === "یا" || key.startsWith("یاایها"));
+  if (callIndex >= 0) {
+    const addressee = words.slice(callIndex, callIndex + 3).map((item) => item.raw).join(" ");
+    markers.push({
+      kind: "address",
+      text: `صورتِ خطابِ «${addressee}» در متن دیده می‌شود؛ مخاطب را باید از همین عبارت و سیاقِ سوره بازشناخت.`,
+      evidence: `شاهد عربی: ${addressee}`,
+    });
+  }
+  const speech = keys.find((key) => ["قل", "قال", "قالوا", "قالت"].includes(key));
+  if (speech) markers.push({
+    kind: "speech",
+    text: `صورتِ گفتار/ابلاغِ «${originalFor(speech)}» در آیه وجود دارد؛ متنِ پس از آن را باید بخشی از گفتار یا ابلاغ دانست، نه افزودهٔ پژوهشگر.`,
+    evidence: `شاهد عربی: ${originalFor(speech)}`,
+  });
+  const commands = words.filter(({ key }) => [...COMMAND_FORMS].some((form) => key === form || (key.length > form.length + 1 && key.endsWith(form)))).slice(0, 3);
+  if (commands.length) markers.push({
+    kind: "command",
+    words: commands.map((item) => item.raw),
+    text: `در سطحِ صورتِ زبانی، واژهٔ «${commands.map((item) => item.raw).join("، ")}» با الگوی فعلِ امرِ شناخته‌شده تطبیق دارد؛ مخاطب و دامنهٔ آن باید با ترجمه و سیاق کنترل شود.`,
+    evidence: `شاهد عربی: ${commands.map((item) => item.raw).join("، ")}`,
+  });
+  const negative = words.find(({ key }) => key === "لا" || key === "لم" || key === "لن" || key === "ما");
+  if (negative) markers.push({
+    kind: "negative",
+    text: `صورتِ «${negative.raw}» در آیه، نفی یا مرزبندی را وارد جمله می‌کند؛ اینکه نهیِ عملی است یا نفیِ خبری، باید از ساختمان جمله و تفسیر سنجیده شود.`,
+    evidence: `شاهد عربی: ${negative.raw}`,
+  });
+  const condition = words.find(({ key }) => ["ان", "اذا", "من", "لو", "لولا"].includes(key));
+  if (condition) markers.push({
+    kind: "condition",
+    text: `نشانگرِ «${condition.raw}» امکانِ رابطهٔ شرط/زمینه و نتیجه را در آیه مطرح می‌کند؛ دو سوی رابطه باید در همین آیه یا سیاق نزدیک خوانده شوند.`,
+    evidence: `شاهد عربی: ${condition.raw}`,
+  });
+  const contrast = words.find(({ key }) => ["الا", "بل", "لكن", "لکن"].includes(key));
+  if (contrast) markers.push({
+    kind: "contrast",
+    text: `واژهٔ «${contrast.raw}» در متن، استثنا یا تقابل را برجسته می‌کند؛ بخشِ پیش و پس از آن را نباید از هم جدا خواند.`,
+    evidence: `شاهد عربی: ${contrast.raw}`,
+  });
+  return markers;
+}
+
+function nearbyContextItem(verse) {
+  const context = getContext(verse);
+  const currentIndex = context.findIndex((item) => item.id === verse.id);
+  const before = context[currentIndex - 1];
+  const after = context[currentIndex + 1];
+  if (!before && !after) return null;
+  const pieces = [];
+  if (before) pieces.push(`پیش از آیه: ${before.reference} — «${compactSourceText(before.persian, 150)}»`);
+  if (after) pieces.push(`پس از آیه: ${after.reference} — «${compactSourceText(after.persian, 150)}»`);
+  return { text: pieces.join("؛ "), evidence: "شاهد: پنجرهٔ پیش/خود/پسِ همین سوره" };
+}
+
+function numberedNoteItems(verse) {
+  const clauses = translationClauses(verse);
+  const terms = substantiveArabicTerms(verse);
+  const markers = structuralMarkers(verse);
+  const items = clauses.map((clause) => ({
+    text: `در ترجمهٔ فارسیِ آیه، این گزاره آمده است: «${clause}».`,
+    evidence: `شاهد: ترجمهٔ فارسیِ ${verse.reference}`,
+  }));
+  if (terms.length) items.push({
+    text: `واژه‌های قابل مشاهده در متن عربی: «${terms.map((item) => item.raw).join("»، «")}». این‌ها نقطهٔ شروعِ بررسیِ واژگانی‌اند، نه فهرستِ معنای نهایی.`,
+    evidence: `شاهد عربی: ${terms.map((item) => item.raw).join("، ")}`,
+  });
+  markers.forEach((marker) => items.push({ text: marker.text, evidence: marker.evidence }));
+  const context = nearbyContextItem(verse);
+  if (context) items.push(context);
+  const source = sourceExcerptForVerse(verse);
+  if (source) items.push({
+    text: `نقلِ تفسیریِ بدون بازنویسی: «${source.text}»`,
+    evidence: `منبع: ${source.source}`,
+  });
+  return items.slice(0, studyCapacity(verse));
+}
+
+function numberedMessageItems(verse) {
+  const clauses = translationClauses(verse);
+  const markers = structuralMarkers(verse);
+  const items = clauses.map((clause) => ({
+    text: `گزارهٔ صریحِ آیه برای خوانش پیام: «${clause}».`,
+    evidence: `شاهد: ترجمهٔ فارسیِ ${verse.reference}`,
+  }));
+  markers.filter((marker) => ["address", "speech", "command", "negative", "condition", "contrast"].includes(marker.kind)).forEach((marker) => {
+    items.push({ text: `جهتِ پیام در سطحِ ساختار متن: ${marker.text}`, evidence: marker.evidence });
+  });
+  const context = nearbyContextItem(verse);
+  if (context) items.push({ text: `برای محدودکردنِ پیام به سیاق نزدیک: ${context.text}`, evidence: context.evidence });
+  const source = sourceExcerptForVerse(verse, 460);
+  if (source) items.push({ text: `شرحِ منبع‌دارِ مرتبط با خوانش پیام: «${source.text}»`, evidence: `منبع: ${source.source}` });
+  return items.slice(0, studyCapacity(verse));
+}
+
+function numberedPrincipleItems(verse) {
+  const markers = structuralMarkers(verse);
+  const clauses = translationClauses(verse);
+  const items = [];
+  markers.filter((marker) => marker.kind === "command").forEach((marker) => {
+    items.push({
+      text: `این اصل فقط در حدّ صورتِ آیه ثبت می‌شود: ${marker.text} ترجمهٔ آیه را کنار این صورت بخوانید: «${clauses[0] || verse.persian}».`,
+      evidence: `${marker.evidence} · شاهد ترجمه: ${verse.reference}`,
+    });
+  });
+  markers.filter((marker) => marker.kind === "negative").forEach((marker) => {
+    items.push({
+      text: `اصلِ احتیاط در خوانش: ${marker.text} تا نوعِ «لا/لم/لن/ما» روشن نشده، آن را بی‌دلیل به یک قاعدهٔ رفتاریِ عام تبدیل نکنید.`,
+      evidence: marker.evidence,
+    });
+  });
+  markers.filter((marker) => marker.kind === "condition").forEach((marker) => {
+    items.push({
+      text: `اصلِ توجه به شرط و نتیجه: ${marker.text} در کاربرد زندگی، تنها همان رابطهٔ تصریح‌شده را ثبت کنید و قیدهای آن را حذف نکنید.`,
+      evidence: marker.evidence,
+    });
+  });
+  if (!items.length) items.push({
+    text: "فیلتر متن‌پایهٔ برنامه در این تک‌آیه صورتِ روشنِ امر، نفی/نهی یا شرطِ قابل تبدیل به «اصل زندگی» نیافت؛ برای پرهیز از ساختنِ اصلِ بی‌شاهد، جایگاه‌های باقی‌مانده خالی می‌مانند.",
+    evidence: `شاهد بررسی‌شده: متن عربی و ترجمهٔ ${verse.reference}`,
+  });
+  const source = sourceExcerptForVerse(verse, 420);
+  if (source) items.push({
+    text: `برای آزمونِ هر اصل، این نقلِ منبع‌دار را نیز بخوانید: «${source.text}»`,
+    evidence: `منبع: ${source.source}`,
+  });
+  return items.slice(0, 20);
+}
+
+function numberedStudyList(items, label, capacity, className = "") {
+  return `<div class="numbered-study-list ${className}" aria-label="${escapeHTML(label)}">${items.map((item, index) => `<article><h4>${escapeHTML(label)} ${faNumber(index + 1)}</h4><p>${escapeHTML(item.text)}</p>${item.evidence ? `<small>${escapeHTML(item.evidence)}</small>` : ""}</article>`).join("")}</div><p class="study-capacity">${faNumber(items.length)} موردِ متن‌پایه از ظرفیتِ ${faNumber(capacity)} ${escapeHTML(label)} نمایش داده شد. خانه‌های باقی‌مانده فقط با شاهدِ دقیقِ آیه یا منبع تکمیل می‌شوند.</p>`;
 }
 
 function inlineStudyBody(verse, tab) {
-  const distributions = evidenceDistribution(verse);
-  const witness = verse.evidence.map((item) => `${item.label} (${item.source})`).join("، ");
-  const axes = foundationAxesForVerse(verse);
-  const panels = {
-    notes: `<p class="inline-study-intro">این نکته‌ها از خودِ متن، مسیرِ بازیابی و نقلِ منبع‌دارِ همین آیه آغاز می‌شوند؛ آن‌ها را با پیام یا حکمِ نهایی یکی نگیرید.</p>${inlineStudyItems([
-      { title: "کانونِ مطالعه", text: verse.persian, evidence: `متن قرآن: ${verse.reference}` },
-      { title: "مسیرِ ورود", text: witness || "این آیه از پروندهٔ مستقل وارد شده است.", evidence: distributions.map((item) => item.count ? `${item.label}: ${faNumber(item.count)} آیه` : item.label).join("؛ ") },
-      { title: "محورهای قابل پیگیری", text: axes.length ? axes.map((axis) => axis.title).join("، ") : "برای این آیه، محورِ کلانِ خودکار تعیین نشده است؛ خوانش را از شرح منبع‌دار آغاز کنید.", evidence: axes.length ? axes.map((axis) => axis.hits.join("، ")).join("؛ ") : "" },
-    ])}${inlineTafsirEvidence(verse, 520)}`,
-    messages: `<p class="inline-study-intro">پیام‌ها «صورت‌بندیِ آموزشیِ قابل بررسی»اند: کلیدهای لفظیِ آیه را نشان می‌دهند و با نقلِ تفسیر آزموده می‌شوند، نه اینکه به جای تفسیرِ منبع‌دار بنشینند.</p>${inlineStudyItems(studyItems(verse, "messages"))}${inlineTafsirEvidence(verse, 440)}`,
-    principles: `<p class="inline-study-intro">اصل‌های زندگی فقط در حدّی عرضه می‌شوند که واژه‌های صریحِ متن برای آن‌ها شاهد دارند. آیهٔ خبری یا روایی را نباید بی‌دلیل به دستورِ عملی تبدیل کرد.</p>${inlineStudyItems(studyItems(verse, "principles"))}${inlineTafsirEvidence(verse, 440)}`,
-    foundations: `<p class="inline-study-intro">مبانیِ زیر برچسبِ مفهومیِ متن‌محورند، نه طبقه‌بندیِ تفسیریِ قطعی. کلید لفظیِ هر برچسب کنار آن آمده است تا پژوهشگر آن را بازبینی کند.</p>${inlineStudyItems(studyItems(verse, "foundations"))}${inlineTafsirEvidence(verse, 440)}`,
-  };
-  return panels[tab] || panels.notes;
+  const source = inlineTafsirEvidence(verse, 420);
+  if (tab === "notes") return `<p class="inline-study-intro">هر نکته به ترجمه، ساختِ لفظی، سیاق نزدیک یا نقلِ دقیقِ یک منبع تکیه دارد؛ مواردی که شاهد ندارند عمداً تولید نمی‌شوند.</p>${numberedStudyList(numberedNoteItems(verse).slice(0, 5), "نکته", studyCapacity(verse), "compact")}${source}`;
+  if (tab === "messages") return `<p class="inline-study-intro">پیام‌ها فقط گزاره‌ها و جهت‌های قابل مشاهدهٔ همین آیه‌اند؛ آن‌ها فتوا یا جانشینِ تفسیر نیستند.</p>${numberedStudyList(numberedMessageItems(verse).slice(0, 5), "پیام", studyCapacity(verse), "compact")}${source}`;
+  return `<p class="inline-study-intro">اصل‌ها تنها از صورتِ صریحِ امر، نفی/نهی یا شرط ساخته می‌شوند. برای جلوگیری از تعمیمِ بی‌شاهد، ظرفیتِ خالی به‌صورت خودکار پُر نمی‌شود.</p>${numberedStudyList(numberedPrincipleItems(verse).slice(0, 5), "اصل", 20, "compact")}${source}`;
+}
+function meaningfulTokens(value = "") {
+  return [...new Set(normalize(value).split(" ").filter((token) => token.length >= 3 && !ARABIC_STOPWORDS.has(token) && !PERSIAN_STOPWORDS.has(token)))];
+}
+
+function proposalEvidenceText(verse) {
+  return `${verse.arabic} ${verse.persian} ${tafsirEntries(verse).map((entry) => entry.text).join(" ")}`;
+}
+
+function validateVerseProposal(verse, claim, witness) {
+  const cleanClaim = String(claim || "").trim();
+  const cleanWitness = String(witness || "").trim();
+  if (cleanClaim.length < 18) return { accepted: false, reason: "متنِ پیشنهاد باید دست‌کم ۱۸ نویسه داشته باشد تا قابل ارزیابی باشد." };
+  if (cleanWitness.length < 3) return { accepted: false, reason: "برای بررسی، یک عبارتِ دقیق از آیه، ترجمه یا تفسیرِ فعال وارد کنید." };
+  const evidence = normalize(proposalEvidenceText(verse));
+  const normalizedWitness = normalize(cleanWitness);
+  if (!normalizedWitness || !evidence.includes(normalizedWitness)) {
+    return { accepted: false, reason: "رد شد: عبارتِ شاهد، به‌صورت دقیق در متن آیه، ترجمه یا تفاسیرِ بارگیری‌شدهٔ همین آیه یافت نشد." };
+  }
+  const evidenceTerms = new Set(meaningfulTokens(proposalEvidenceText(verse)));
+  const overlap = meaningfulTokens(cleanClaim).filter((token) => evidenceTerms.has(token));
+  if (!overlap.length) {
+    return { accepted: false, reason: "رد شد: متنِ پیشنهاد هیچ واژهٔ محتواییِ مشترک با شاهدهای همین آیه ندارد. یک واژهٔ آیه/ترجمه را در توضیح بیاورید." };
+  }
+  return { accepted: true, overlap };
+}
+
+function verseProposalsFor(verse, kind) {
+  return state.verseProposals.filter((item) => item.verseId === verse.id && item.kind === kind);
+}
+
+function proposalKindLabel(kind) {
+  return { notes: "نکته", principles: "اصل", messages: "پیام" }[kind] || "پیشنهاد";
+}
+
+function proposalContributionForm(verse, kind) {
+  const label = proposalKindLabel(kind);
+  const accepted = verseProposalsFor(verse, kind);
+  const saved = accepted.length ? `<div class="user-proposal-list">${accepted.map((item, index) => `<article><h4>${escapeHTML(label)} کاربر ${faNumber(index + 1)}</h4><p>${escapeHTML(item.claim)}</p><small>شاهدِ پذیرفته‌شده: «${escapeHTML(item.witness)}» · فقط روی همین دستگاه ذخیره شده است.</small><button type="button" data-delete-proposal="${escapeHTML(item.id)}">حذف</button></article>`).join("")}</div>` : "";
+  return `<section class="proposal-workspace"><p class="eyebrow">پیشنهادِ پژوهشگر</p><h4>${escapeHTML(label)} متن‌پایهٔ خود را اضافه کنید</h4><p>فیلتر محلی فقط وقتی پیشنهاد را می‌پذیرد که «شاهدِ دقیق» در متن عربی، ترجمه یا تفسیرِ همین آیه یافت شود و توضیح شما دست‌کم یک واژهٔ محتواییِ مشترک داشته باشد. این پذیرش، داوری تفسیری یا تأیید علمی نیست.</p>${saved}<form data-proposal-form data-proposal-kind="${escapeHTML(kind)}" data-proposal-verse-id="${escapeHTML(verse.id)}"><label>متن ${escapeHTML(label)}<textarea name="claim" maxlength="1600" required placeholder="صورت‌بندیِ پیشنهادیِ خود را بنویسید؛ یک واژهٔ آیه یا ترجمه را نیز در متن بیاورید."></textarea></label><label>شاهدِ دقیق از آیه، ترجمه یا تفسیر فعال<input name="witness" maxlength="600" required placeholder="برای نمونه، یک عبارتِ کوتاه را عیناً وارد کنید" /></label><button type="submit">بررسی و ثبتِ محلی</button><output class="proposal-status" aria-live="polite"></output></form></section>`;
+}
+
+function submitVerseProposal(form) {
+  const verse = state.selected;
+  const status = form.querySelector(".proposal-status");
+  if (!verse || form.dataset.proposalVerseId !== verse.id) return;
+  const claim = form.querySelector("[name=claim]")?.value || "";
+  const witness = form.querySelector("[name=witness]")?.value || "";
+  const validation = validateVerseProposal(verse, claim, witness);
+  if (!validation.accepted) {
+    status.textContent = validation.reason;
+    status.dataset.status = "rejected";
+    return;
+  }
+  state.verseProposals.unshift({
+    id: `${verse.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    verseId: verse.id,
+    kind: form.dataset.proposalKind,
+    claim: claim.trim().slice(0, 1600),
+    witness: witness.trim().slice(0, 600),
+    sharedTerms: validation.overlap,
+    savedAt: new Date().toISOString(),
+  });
+  persistVerseProposals();
+  renderDetailPanel();
+}
+
+function deleteVerseProposal(id) {
+  state.verseProposals = state.verseProposals.filter((item) => item.id !== id);
+  persistVerseProposals();
+  renderDetailPanel();
 }
 
 function inlineStudyContent(verse, tab) {
@@ -687,55 +859,63 @@ function detailPanelTafsir(verse) {
 }
 
 function detailPanelNotes(verse) {
-  const distributions = evidenceDistribution(verse);
-  const sourceEntries = tafsirEntries(verse);
-  const lexicalRange = distributions.map((item) => item.count ? `${item.label}: ${faNumber(item.count)} آیه / ${faNumber(item.surahs)} سوره` : `${item.label}: مسیر غیرواژگانی`).join("؛ ");
-  return `<section class="detail-panel"><p class="eyebrow">نکات آیه ـ دادهٔ قابل بازبینی</p><h3>متن، نکته‌های قابل پیگیری و شاهدِ منبع‌دار</h3>
-    <p class="reading-notice">«صورتِ بازیابی» با «معنای نهایی» یکی نیست. نخست نکته‌های متن‌محور و نقلِ آیه را ببینید؛ سپس دادهٔ دقیقِ بازیابی و مرزِ استنتاج را کنترل کنید.</p>
-    ${inlineStudyBody(verse, "notes")}
-    <ul class="study-list">
-      <li><b>شناسهٔ متن</b>${escapeHTML(verse.reference)} · ${escapeHTML(verse.revelation)} · آیهٔ ${faNumber(verse.ayah)} از سورهٔ ${faNumber(verse.surah)}.</li>
-      <li><b>واژه/مسیر شاهد</b>${escapeHTML(verse.evidence.map((item) => `${item.label} (${item.source})`).join("، "))}</li>
-      <li><b>دامنهٔ مشاهده‌پذیر</b>${escapeHTML(lexicalRange || "برای این مسیر، آمار واژگانیِ مستقلی ثبت نشده است.")}</li>
-      <li><b>شرحِ منبع‌دار</b>${sourceEntries.length ? `${faNumber(sourceEntries.length)} متن تفسیریِ قابل استناد برای همین آیه آماده است؛ در تب «تفاسیر منبع‌دار» متنِ کامل، نسخه و پیوند را ببینید.` : "متن تفسیری در این نشست بارگیری نشده است."}</li>
-      <li><b>سطح ارتباط</b>${escapeHTML(typeLabel(verse.type))}. ${verse.type === "related" ? "این پیوند برای مقایسه است و هم‌معنایی قطعی یا مقصد سوره را ثابت نمی‌کند." : "تطابق در متن عربی یا عبارت انتخاب‌شده ثبت شده است."}</li>
-      <li><b>کنترل خوانش</b>فاعل/مفعول یا مخاطب، نفی و اثبات، قیدها و نسبتِ جمله با پیش و پس را از خودِ متن جداگانه ثبت کنید.</li>
-    </ul></section>`;
+  const items = numberedNoteItems(verse);
+  return `<section class="detail-panel numbered-panel"><p class="eyebrow">نکات مهم آیه</p><h3>نکته‌های شماره‌دار با شاهدِ آیه</h3><p class="reading-notice">هر نکته یا به عبارتِ ترجمه، واژه/ساختِ قابل مشاهدهٔ عربی، سیاق نزدیک یا نقلِ دقیقِ منبع تکیه دارد. برنامه برای پُر کردنِ تعداد، نکتهٔ بی‌شاهد نمی‌سازد.</p>${numberedStudyList(items, "نکته", studyCapacity(verse))}${proposalContributionForm(verse, "notes")}</section>`;
 }
 
 function detailPanelFoundations(verse) {
-  const evidenceKinds = [...new Set(verse.evidence.map((item) => typeLabel(item.type)))].join("، ");
-  const hasArabicWitness = verse.evidence.some((item) => item.scope !== "persian" && item.value);
-  const contextSize = getContext(verse).length;
-  return `<section class="detail-panel"><p class="eyebrow">اصول و مبانیِ خواندن آیه</p><h3>اصلِ زندگی و مبنای اندیشه را با شاهد بخوانید.</h3>
-    ${sourceEvidenceNotice(verse)}
-    ${inlineStudyBody(verse, "principles")}
-    ${inlineStudyBody(verse, "foundations")}
-    <ul class="study-list"><li><b>پایهٔ متن</b>${hasArabicWitness ? "صورتِ عربیِ شاهد در پیکره دیده شده است؛ ترجمه فقط برای خوانش فارسیِ همراه آن است." : "این مسیر از ترجمه یا پروندهٔ روایی آمده است؛ برای تحلیل واژه، متن عربی را جداگانه بررسی کنید."}</li><li><b>پایهٔ بازیابی</b>این آیه با سطحِ «${escapeHTML(evidenceKinds)}» وارد مسیر شده است. سطحِ بازیابی، ادعای معنای نهاییِ آیه نیست.</li><li><b>پایهٔ سیاق نزدیک</b>${faNumber(contextSize)} آیه در پنجرهٔ پیش/خود/پسِ همین سوره در دسترس است. پیوستگی جمله‌ها را پیش از تعمیم بررسی کنید.</li><li><b>پایهٔ زبان</b>ریشه، صورت صرفی، نقش نحوی و مرجع ضمیر باید با منبع زبان‌شناختیِ معتبر کنترل شوند؛ پیکرهٔ فعلی تحلیل صرفیِ ادعایی تولید نمی‌کند.</li><li><b>پایهٔ اختلاف دیدگاه</b>هر داوری تفسیری به منبع، مؤلف، جلد و صفحه نیاز دارد؛ آن را در یادداشت پژوهش ثبت کنید.</li></ul></section>`;
+  const items = numberedPrincipleItems(verse);
+  return `<section class="detail-panel numbered-panel"><p class="eyebrow">اصول زندگی و مبانی</p><h3>اصل‌های شماره‌دارِ متن‌پایه</h3><p class="reading-notice">ظرف این بخش تا ۲۰ اصل است؛ فقط جایی که صورتِ امر، نفی/نهی یا شرط در خود آیه دیده می‌شود، اصل نوشته می‌شود. گزارش‌های روایی و خبری به‌زور به دستورِ زندگی تبدیل نمی‌شوند.</p>${numberedStudyList(items, "اصل", 20)}${proposalContributionForm(verse, "principles")}</section>`;
+}
+
+function quranWordOccurrence(word) {
+  if (!word?.key) return 0;
+  return state.corpus.filter((record) => record.arabicNormalized.split(" ").includes(word.key)).length;
+}
+
+function frameAddressee(verse) {
+  const words = verseArabicTokens(verse);
+  const at = words.findIndex((word) => word.key === "یا" || word.key.startsWith("یاایها"));
+  return at >= 0 ? words.slice(at, at + 3).map((word) => word.raw).join(" ") : "در همین تک‌آیه با نشانگرِ خطابِ صریح مشخص نشده است";
+}
+
+function schemaMatches(verse) {
+  const words = verseArabicTokens(verse);
+  return COGNITIVE_SCHEMAS.map((schema) => ({
+    ...schema,
+    hits: words.filter((word) => schema.terms.some((term) => word.key === normalize(term) || word.key.includes(normalize(term)))).map((word) => word.raw),
+  })).filter((schema) => schema.hits.length);
+}
+
+function semanticModelCards(verse) {
+  const terms = substantiveArabicTerms(verse, 7);
+  const primary = terms[0];
+  const markers = structuralMarkers(verse);
+  const frameType = markers.some((marker) => marker.kind === "command") ? "دعوت/دستور در سطح صورتِ زبانی"
+    : markers.some((marker) => marker.kind === "speech") ? "گفتار یا ابلاغ"
+      : markers.some((marker) => marker.kind === "condition") ? "رابطهٔ شرط و زمینه"
+        : "گزارش یا توصیف؛ تشخیصِ تفسیریِ ژانر در اینجا ادعا نمی‌شود";
+  const schemas = schemaMatches(verse);
+  const source = sourceExcerptForVerse(verse, 360);
+  const izutsu = primary
+    ? `<ul><li><b>واژهٔ بررسی:</b> «${escapeHTML(primary.raw)}»؛ این برچسب «کانون قطعی» نیست، بلکه نقطهٔ شروعِ تحلیل است.</li><li><b>هم‌نشین‌های درون‌آیه:</b> ${escapeHTML(terms.slice(1).map((item) => `«${item.raw}»`).join("، ") || "واژهٔ محتواییِ دیگری با فیلتر سطحی جدا نشد.")}</li><li><b>توزیع قابل شمارش:</b> صورتِ نرمال‌شدهٔ این واژه در ${faNumber(quranWordOccurrence(primary))} آیه از پیکرهٔ محلی دیده می‌شود؛ کاربردهای آن باید جداگانه مقایسه شوند.</li><li><b>تقابل/مرزبندی در خود آیه:</b> ${escapeHTML(markers.filter((item) => ["negative", "contrast"].includes(item.kind)).map((item) => item.evidence).join("؛ ") || "تقابلِ صریحی با فیلتر سطحی ثبت نشد.")}</li></ul>`
+    : `<p>برای مدل ایزوتسو، واژهٔ محتواییِ قابل اتکایی با فیلتر سطحی جدا نشد؛ از نسبت‌دادنِ میدان معناییِ آماده به این آیه خودداری می‌شود.</p>`;
+  const fillmore = `<ul><li><b>نوعِ صحنهٔ زبانی:</b> ${escapeHTML(frameType)}</li><li><b>مخاطبِ صریح:</b> ${escapeHTML(frameAddressee(verse))}</li><li><b>کنش/رابطهٔ قابل مشاهده:</b> ${escapeHTML(markers.map((item) => item.evidence).join("؛ ") || "در این لایه فقط متن و ترجمه ثبت شده‌اند؛ نقش‌های پنهان استنباط نمی‌شوند.")}</li><li><b>موضوعِ گفتار:</b> ${escapeHTML(translationClauses(verse)[0] || verse.persian)}</li></ul>`;
+  const cognitive = schemas.length
+    ? `<ul>${schemas.map((schema) => `<li><b>${escapeHTML(schema.title)}:</b> واژه‌های ورودیِ مدل در آیه: ${escapeHTML(schema.hits.map((word) => `«${word}»`).join("، "))}. این فقط فعال‌شدنِ طرحواره بر پایهٔ واژه است؛ استعاره یا نتیجهٔ اعتقادیِ نهایی نیست.</li>`).join("")}</ul>`
+    : `<p>در واژه‌های این آیه، یکی از طرحواره‌های از پیش تعریف‌شدهٔ مسیر، نور/تاریکی، ظرف، تراز، بالا/پایین یا دادوستد به‌صورت لفظی نیامد؛ مدل شناختی در این مرحله خالی می‌ماند تا تصویرسازیِ بدون شاهد تولید نشود.</p>`;
+  const sourceFootnote = source ? `<p class="semantic-source"><b>نقلِ کنترل:</b> «${escapeHTML(source.text)}»<small>${escapeHTML(source.source)}</small></p>` : "";
+  return `<div class="semantic-model-grid"><section class="semantic-model-card"><p class="eyebrow">مدل ایزوتسو</p><h4>واژهٔ بررسی، هم‌نشینی و توزیع</h4>${izutsu}</section><section class="semantic-model-card"><p class="eyebrow">مدل فیلمور</p><h4>قابِ رویداد و نقش‌های آشکار</h4>${fillmore}</section><section class="semantic-model-card"><p class="eyebrow">معناشناسی شناختی</p><h4>طرحواره‌های تصویریِ لفظاً فعال</h4>${cognitive}</section></div>${sourceFootnote}`;
 }
 
 function detailPanelFramework(verse) {
-  const direct = verse.evidence.filter((item) => item.type !== "related");
-  const equivalents = state.terms.filter((item) => item.type === "equivalent");
-  const related = state.terms.filter((item) => item.type === "related");
-  const directLabel = direct.map((item) => item.label).join("، ") || "شاهدِ مستقیمِ واژگانی در این کارت ثبت نشده است";
-  return `<section class="detail-panel"><p class="eyebrow">چارچوب معنایی ـ لایه‌های جدا</p><h3>ظرفیت معنایی را با لایه‌هایش بخوانید، نه با یک برچسب.</h3>
-    ${sourceEvidenceNotice(verse)}
-    <p>پرسشِ پایه: <b>${escapeHTML(state.concept?.title || state.query)}</b>. در این آیه، نقطهٔ شروعِ قابل مشاهده <b>${escapeHTML(directLabel)}</b> است.</p>
-    ${inlineStudyBody(verse, "foundations")}
-    <div class="semantic-columns"><div class="semantic-box"><h4>لایهٔ متن و معادل‌ها</h4>${equivalents.map((item) => `<span>${escapeHTML(item.label)}</span>`).join("") || `<span>${escapeHTML(directLabel)}</span>`}</div><div class="semantic-box related"><h4>لایهٔ پیوندهای نیازمند آزمون</h4>${related.map((item) => `<span>${escapeHTML(item.label)}</span>`).join("") || "<span>در این جست‌وجو پیوند مرتبطی فعال نشده است.</span>"}</div></div>
-    <ul class="study-list"><li><b>لایهٔ اول: دلالت در جمله</b>واژه در این جمله به چه چیز، کنش یا نسبتی اشاره می‌کند؟ پاسخ باید با ساختار خودِ آیه سنجیده شود.</li><li><b>لایهٔ دوم: توزیع قرآنی</b>مواضع دیگرِ همان صورت را مقایسه کنید؛ اشتراکِ صورت به‌تنهایی اشتراکِ کارکرد را ثابت نمی‌کند.</li><li><b>لایهٔ سوم: پیوند مفهومی</b>هر پیوند مرتبط فقط یک فرضیهٔ پژوهش است تا با سیاق و منبع تفسیری آزموده شود.</li></ul></section>`;
+  return `<section class="detail-panel semantic-framework-panel"><p class="eyebrow">چارچوب معنایی</p><h3>سه مدلِ معناشناختی با دادهٔ همین آیه</h3><p class="reading-notice">این بخش نتیجهٔ تفسیریِ قطعی نیست. هر مدل فقط داده‌های قابل مشاهدهٔ آیه را در قالبِ خودش سازمان می‌دهد: واژه و هم‌نشینی در ایزوتسو، صحنه و نقش در فیلمور، و طرحوارهٔ لفظاً فعال در معناشناسی شناختی.</p>${semanticModelCards(verse)}</section>`;
 }
 
 function detailPanelMessages(verse) {
-  const prompts = [...promptsForVerse(), ...closeReadingPrompts(verse)].filter((item, index, items) => items.indexOf(item) === index);
-  return `<section class="detail-panel"><p class="eyebrow">پیام‌های آیه</p><h3>پیامِ متن‌محور را با سیاق و منبع بسنجید.</h3>
-    ${sourceEvidenceNotice(verse)}
-    ${inlineStudyBody(verse, "messages")}
-    <p class="reading-notice">پرسش‌های زیر برای تکمیلِ خوانش‌اند، نه جایگزینِ پیام‌های مستندِ بالا. هر پاسخ تفسیری باید به متن، سیاق و منبعِ دقیق تکیه کند.</p>
-    <ul class="study-list">${prompts.map((prompt, index) => `<li><b>پرسش ${faNumber(index + 1)}</b>${escapeHTML(prompt)}</li>`).join("")}<li><b>ثبت نتیجهٔ موقت</b>اگر پاسخی یافتید، دلیلِ لفظی، آیه‌های مقایسه‌ای و مأخذ تفسیری را در «یادداشت من» همراه با جلد و صفحه ثبت کنید.</li></ul></section>`;
+  const items = numberedMessageItems(verse);
+  return `<section class="detail-panel numbered-panel"><p class="eyebrow">پیام‌های آیه</p><h3>پیام‌های شماره‌دار، مقید به نص و سیاق</h3><p class="reading-notice">پیام‌ها از گزاره‌های صریحِ ترجمه، جهتِ گفتارِ عربی، سیاق نزدیک و نقلِ منبع استخراج می‌شوند. نتیجه‌ای که در این شواهد نیست، به آیه افزوده نمی‌شود.</p>${numberedStudyList(items, "پیام", studyCapacity(verse))}${proposalContributionForm(verse, "messages")}</section>`;
 }
-
 function detailPanelContext(verse) {
   const context = getContext(verse);
   return `<section class="detail-panel"><p class="eyebrow">آیه در سیاق سوره</p><h3>پیش و پسِ آیه را کنار هم بخوانید.</h3>${sourceEvidenceNotice(verse)}<p>پنجرهٔ خطیِ زیر جای مطالعهٔ کامل سوره را نمی‌گیرد، اما دادهٔ لازم برای پرهیز از بریده‌خوانی را نشان می‌دهد. برای جزئیاتِ توزیع و پرسش‌ها، «فهم آیه در سیاق» در صفحهٔ پیشین را باز کنید.</p>
@@ -1130,7 +1310,16 @@ $("#detail-panels").addEventListener("click", (event) => {
   if (contextButton) return openVerse(contextButton.dataset.contextId);
   const relatedButton = event.target.closest("[data-related-id]");
   if (relatedButton) return openVerse(relatedButton.dataset.relatedId);
+  const deleteProposal = event.target.closest("[data-delete-proposal]");
+  if (deleteProposal) return deleteVerseProposal(deleteProposal.dataset.deleteProposal);
   if (event.target.closest("#save-note")) saveNote();
+});
+
+$("#detail-panels").addEventListener("submit", (event) => {
+  const form = event.target.closest("[data-proposal-form]");
+  if (!form) return;
+  event.preventDefault();
+  submitVerseProposal(form);
 });
 
 $$("[data-go]").forEach((button) => button.addEventListener("click", () => navigate(button.dataset.go)));

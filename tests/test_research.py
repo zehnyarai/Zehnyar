@@ -97,8 +97,9 @@ class QuranResearchTests(unittest.TestCase):
             self.assertIn(f'id="{field_id}"', html)
         for label in ("نکات مهم آیه", "پیام‌های آیه", "اصول و قواعد زندگی", "مبانی اندیشهٔ قرآنی"):
             self.assertIn(label, script)
+        for required_design in ("نکته‌های شماره‌دار با شاهدِ آیه", "اصل‌های شماره‌دارِ متن‌پایه", "پیام‌های شماره‌دار، مقید به نص و سیاق", "مدل ایزوتسو", "مدل فیلمور", "معناشناسی شناختی", "ظرف این بخش تا ۲۰ اصل", "فیلتر محلی فقط وقتی پیشنهاد را می‌پذیرد", "validateVerseProposal"):
+            self.assertIn(required_design, script)
         self.assertIn("inlineTafsirEvidence", script)
-        self.assertIn("VERSE_FOUNDATION_AXES", script)
         self.assertIn("نقلِ بدون بازنویسی", script)
         self.assertIn("تأمل در داستان‌های قرآنی", html)
 
