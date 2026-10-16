@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "notice": "فهرستِ آثار با متنِ تفسیری فرق دارد. فقط اثری که برای آن فایلِ آیه‌به‌آیه، نسخه، انتساب و مجوز/شرایط استفادهٔ قابل بررسی ثبت شده باشد، متنش در برنامه نمایش داده می‌شود.",
+  "collections": [
+    {
+      "id": "current-cited",
+      "title": "متن‌های تفسیریِ فعالِ آیه‌به‌آیه",
+      "status": "available",
+      "items": [
+        {
+          "id": "fa_qe_persian_mokhtasar",
+          "title": "ترجمهٔ فارسی المختصر فی تفسیر القرآن الکریم",
+          "author": "Persian Translation of Al-Mukhtasar in Interpreting the Noble Quran",
+          "language": "fa",
+          "status": "available",
+          "basis": "QuranEnc، نسخهٔ 1.0.0؛ متن کامل آیه‌به‌آیه در برنامه موجود است."
+        },
+        {
+          "id": "ar_qe_arabic_moyassar",
+          "title": "التفسير الميسر",
+          "author": "Arabic Language - At-Tafsir Al-Muyassar",
+          "language": "ar",
+          "status": "available",
+          "basis": "QuranEnc، نسخهٔ 1.0.0؛ متن کامل آیه‌به‌آیه در برنامه موجود است."
+        }
+      ]
+    },
+    {
+      "id": "requested-comparative",
+      "title": "تفاسیر درخواستی برای مطالعهٔ مقایسه‌ای",
+      "status": "catalogued-not-imported",
+      "items": [
+        {
+          "id": "tabari",
+          "title": "جامع البيان عن تأويل آي القرآن (تفسیر طبری)",
+          "author": "محمد بن جریر طبری",
+          "language": "ar",
+          "era": "کلاسیک",
+          "status": "needs-reviewed-edition",
+          "basis": "اصل اثر کلاسیک است؛ برای نمایش دیجیتال باید نسخهٔ محقق، انتساب، پیوند و مجوزِ همان نسخه ثبت شود."
+        },
+        {
+          "id": "zamakhshari",
+          "title": "الكشاف عن حقائق غوامض التنزيل (تفسیر زمخشری)",
+          "author": "جارالله محمود زمخشری",
+          "language": "ar",
+          "era": "کلاسیک",
+          "status": "needs-reviewed-edition",
+          "basis": "اصل اثر کلاسیک است؛ دیجیتالی‌بودنِ یک نسخه به‌تنهایی مجوز بازنشر و انتسابِ دقیق آن نسخه نیست."
+        },
+        {
+          "id": "qurtubi",
+          "title": "الجامع لأحكام القرآن (تفسیر قرطبی)",
+          "author": "محمد بن احمد قرطبی",
+          "language": "ar",
+          "era": "کلاسیک",
+          "status": "needs-reviewed-edition",
+          "basis": "اصل اثر کلاسیک است؛ برای متن آیه‌به‌آیه، نسخهٔ محقق و شرایط استفادهٔ دادهٔ دیجیتال باید تأیید شود."
+        },
+        {
+          "id": "mizan",
+          "title": "الميزان في تفسير القرآن",
+          "author": "علامه سید محمدحسین طباطبایی",
+          "language": "ar/fa",
+          "era": "معاصر",
+          "status": "needs-permission",
+          "basis": "برای ورود متن یا ترجمهٔ دیجیتال، اجازهٔ صریحِ دارندهٔ حقوق و مشخصاتِ نسخه لازم است."
+        },
+        {
+          "id": "min-huda",
+          "title": "من هدى القرآن",
+          "author": "سید محمدتقی مدرسی",
+          "language": "ar",
+          "era": "معاصر",
+          "status": "needs-permission",
+          "basis": "برای ورود متن دیجیتال، اجازهٔ صریحِ دارندهٔ حقوق و مشخصاتِ نسخه لازم است."
+        },
+        {
+          "id": "min-wahy",
+          "title": "من وحي القرآن",
+          "author": "سید محمدحسین فضل‌الله",
+          "language": "ar",
+          "era": "معاصر",
+          "status": "needs-permission",
+          "basis": "برای ورود متن دیجیتال، اجازهٔ صریحِ دارندهٔ حقوق و مشخصاتِ نسخه لازم است."
+        },
+        {
+          "id": "al-kashif",
+          "title": "التفسير الكاشف",
+          "author": "محمدجواد مغنیه",
+          "language": "ar",
+          "era": "معاصر",
+          "status": "needs-permission",
+          "basis": "برای ورود متن دیجیتال، اجازهٔ صریحِ دارندهٔ حقوق و مشخصاتِ نسخه لازم است."
+        },
+        {
+          "id": "razi",
+          "title": "مفاتيح الغيب / التفسير الكبير",
+          "author": "فخرالدین رازی",
+          "language": "ar",
+          "era": "کلاسیک",
+          "status": "needs-reviewed-edition",
+          "basis": "اصل اثر کلاسیک است؛ برای نمایش دیجیتال باید نسخهٔ محقق، انتساب و شرایط استفادهٔ همان نسخه ثبت شود."
+        },
+        {
+          "id": "nemouneh",
+          "title": "تفسیر نمونه",
+          "author": "ناصر مکارم شیرازی و همکاران",
+          "language": "fa",
+          "era": "معاصر",
+          "status": "needs-permission",
+          "basis": "برای ورود متن یا ترجمهٔ دیجیتال، اجازهٔ صریحِ دارندهٔ حقوق و مشخصاتِ نسخه لازم است."
+        },
+        {
+          "id": "tasnim",
+          "title": "تفسیر تسنیم",
+          "author": "عبدالله جوادی آملی",
+          "language": "fa",
+          "era": "معاصر",
+          "status": "needs-permission",
+          "basis": "برای ورود متن یا ترجمهٔ دیجیتال، اجازهٔ صریحِ دارندهٔ حقوق و مشخصاتِ نسخه لازم است."
+        }
+      ]
+    }
+  ]
+}

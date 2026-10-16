@@ -129,6 +129,17 @@ class QuranResearchTests(unittest.TestCase):
             self.assertEqual(payload["edition"]["version"], source["version"])
             self.assertTrue(source["sourceUrl"].startswith("https://quranenc.com/"))
 
+    def test_requested_tafsir_catalog_is_explicit_without_claiming_unloaded_texts(self):
+        static_dir = Path(main.STATIC_DIR)
+        catalog = json.loads((static_dir / "tafsir-catalog.json").read_text(encoding="utf-8"))
+        requested = next(group for group in catalog["collections"] if group["id"] == "requested-comparative")
+        self.assertEqual(len(requested["items"]), 10)
+        titles = " ".join(item["title"] for item in requested["items"])
+        for title in ("طبری", "زمخشری", "قرطبی", "الميزان", "من هدى", "من وحي", "الكاشف", "مفاتيح الغيب", "نمونه", "تسنیم"):
+            self.assertIn(title, titles)
+        self.assertTrue(all(item["status"] != "available" for item in requested["items"]))
+        self.assertTrue(all(item["basis"] for item in requested["items"]))
+
     def test_all_initial_story_dossiers_have_anchored_material(self):
         static_dir = Path(main.STATIC_DIR)
         story_index = json.loads((static_dir / "story-index.json").read_text(encoding="utf-8"))

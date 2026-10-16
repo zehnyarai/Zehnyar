@@ -4,6 +4,7 @@ const STORY_INDEX_URL = "static/story-index.json";
 const STORY_DOSSIERS_URL = "static/story-dossiers.json";
 const TOPIC_CATALOG_URL = "static/topic-catalog.json";
 const TAFSIR_SOURCES_URL = "static/tafsir-sources.json";
+const TAFSIR_CATALOG_URL = "static/tafsir-catalog.json";
 const NOTEBOOK_KEY = "zehnyar-verse-notebook-v2";
 const PAGE_SIZE = 12;
 
@@ -17,6 +18,7 @@ const state = {
   concepts: [],
   topicCategories: [],
   tafsirSources: [],
+  tafsirCatalog: [],
   stories: [],
   storyDossiers: {},
   selectedStory: null,
@@ -130,16 +132,18 @@ function recordFromTuple(tuple) {
 }
 
 async function loadData() {
-  const [corpusResponse, lexiconResponse, storyResponse, storyDossiersResponse, catalogResponse, tafsirRegistryResponse] = await Promise.all([
-    fetch(CORPUS_URL), fetch(LEXICON_URL), fetch(STORY_INDEX_URL), fetch(STORY_DOSSIERS_URL), fetch(TOPIC_CATALOG_URL), fetch(TAFSIR_SOURCES_URL),
+  const [corpusResponse, lexiconResponse, storyResponse, storyDossiersResponse, catalogResponse, tafsirRegistryResponse, tafsirCatalogResponse] = await Promise.all([
+    fetch(CORPUS_URL), fetch(LEXICON_URL), fetch(STORY_INDEX_URL), fetch(STORY_DOSSIERS_URL), fetch(TOPIC_CATALOG_URL), fetch(TAFSIR_SOURCES_URL), fetch(TAFSIR_CATALOG_URL),
   ]);
-  if (!corpusResponse.ok || !lexiconResponse.ok || !storyResponse.ok || !storyDossiersResponse.ok || !catalogResponse.ok || !tafsirRegistryResponse.ok) {
+  if (!corpusResponse.ok || !lexiconResponse.ok || !storyResponse.ok || !storyDossiersResponse.ok || !catalogResponse.ok || !tafsirRegistryResponse.ok || !tafsirCatalogResponse.ok) {
     throw new Error("پیکرهٔ محلی یا فهرست پژوهش در دسترس نیست.");
   }
   const corpus = await corpusResponse.json();
   state.lexicon = await lexiconResponse.json();
   const catalog = await catalogResponse.json();
   const tafsirRegistry = await tafsirRegistryResponse.json();
+  const tafsirCatalog = await tafsirCatalogResponse.json();
+  state.tafsirCatalog = tafsirCatalog.collections || [];
   state.concepts = [...(state.lexicon.concepts || []), ...(catalog.concepts || [])];
   state.topicCategories = catalog.categories || [];
   state.stories = (await storyResponse.json()).stories || [];
@@ -634,10 +638,17 @@ function sourceEvidenceNotice(verse) {
   return entries.length ? `<p class="source-availability">برای این آیه ${faNumber(entries.length)} متن تفسیریِ منبع‌دار موجود است؛ هنگام نتیجه‌گیری، آن‌ها را در تب «تفاسیر منبع‌دار» با انتساب کامل مقایسه کنید.</p>` : "";
 }
 
+function tafsirCatalogCards() {
+  const requested = state.tafsirCatalog.find((collection) => collection.id === "requested-comparative");
+  if (!requested?.items?.length) return "";
+  return `<section class="tafsir-catalog"><p class="eyebrow">فهرستِ مقایسه‌ایِ درخواستی</p><h3>${escapeHTML(requested.title)}</h3><p class="reading-notice">متنِ دیجیتالِ یک اثر فقط وقتی ذیل آیه نشان داده می‌شود که نسخهٔ دقیق، انتساب و مجوز یا شرایط بازنشرِ آن ثبت شده باشد. «موجود بودن در اینترنت» به‌تنهایی مجوز کپی یا انتسابِ متن نیست.</p><div class="tafsir-catalog-grid">${requested.items.map((item) => `<article class="tafsir-catalog-card"><h4>${escapeHTML(item.title)}</h4><p>${escapeHTML(item.author)}</p><small>${escapeHTML(item.language)} · ${escapeHTML(item.era)}</small><b>${item.status === "needs-permission" ? "نیازمند اجازهٔ بازنشر" : "نیازمند نسخهٔ محقق و بازبینی‌شده"}</b><span>برای این آیه هنوز متنِ مجاز و نسخه‌دارِ این اثر وارد نشده است.</span><em>${escapeHTML(item.basis)}</em></article>`).join("")}</div></section>`;
+}
+
 function detailPanelTafsir(verse) {
   const entries = tafsirEntries(verse);
-  if (!entries.length) return `<section class="detail-panel"><p class="eyebrow">منابع تفسیری</p><h3>متن منبع‌دار موقتاً بارگیری نشد.</h3><p>هستهٔ جست‌وجو همچنان محلی است؛ با اتصال بعدی، متنِ بدون‌ویرایشِ منابع دوباره بارگیری می‌شود.</p></section>`;
-  return `<section class="detail-panel tafsir-panel"><p class="eyebrow">تفاسیرِ منبع‌دارِ آیه</p><h3>دو متن کامل با انتساب، نسخه و پیوند دقیق</h3><p class="reading-notice">متن‌های زیر بدون خلاصه‌سازی یا بازنویسیِ ذهن‌یار نمایش داده می‌شوند. اختلاف زبان و اثر به‌معنای همسان‌بودنِ تفسیرها نیست؛ برای پژوهش، هر دو را جداگانه بخوانید.</p>${entries.map(({ source, text, footnotes }) => `<article class="source-card" lang="${escapeHTML(source.language)}" dir="${source.language === "ar" ? "rtl" : "rtl"}"><div class="source-card-head"><div><h4>${escapeHTML(source.title)}</h4><p>${escapeHTML(source.author)}</p></div><a href="${escapeHTML(source.sourceUrl)}" target="_blank" rel="noreferrer">منبع ↗</a></div><p class="source-citation">${escapeHTML(tafsirCitation(source))}</p><div class="source-text">${escapeHTML(text)}</div>${footnotes ? `<div class="source-footnotes"><b>پانویسِ منبع</b>${escapeHTML(footnotes)}</div>` : ""}</article>`).join("")}</section>`;
+  const catalogue = tafsirCatalogCards();
+  if (!entries.length) return `<section class="detail-panel tafsir-panel"><p class="eyebrow">منابع تفسیری</p><h3>متن منبع‌دارِ فعال موقتاً بارگیری نشد.</h3><p>هستهٔ جست‌وجو همچنان محلی است؛ با اتصال بعدی، متنِ بدون‌ویرایشِ منابع دوباره بارگیری می‌شود.</p>${catalogue}</section>`;
+  return `<section class="detail-panel tafsir-panel"><p class="eyebrow">تفاسیرِ منبع‌دارِ آیه</p><h3>متنِ کامل، انتساب، نسخه و پیوندِ دقیق</h3><p class="reading-notice">متن‌های فعال زیر بدون خلاصه‌سازی یا بازنویسیِ ذهن‌یار نمایش داده می‌شوند. اختلاف زبان و اثر به‌معنای همسان‌بودنِ تفسیرها نیست؛ برای پژوهش، هر دو را جداگانه بخوانید.</p>${entries.map(({ source, text, footnotes }) => `<article class="source-card" lang="${escapeHTML(source.language)}" dir="rtl"><div class="source-card-head"><div><h4>${escapeHTML(source.title)}</h4><p>${escapeHTML(source.author)}</p></div><a href="${escapeHTML(source.sourceUrl)}" target="_blank" rel="noreferrer">منبع ↗</a></div><p class="source-citation">${escapeHTML(tafsirCitation(source))}</p><div class="source-text">${escapeHTML(text)}</div>${footnotes ? `<div class="source-footnotes"><b>پانویسِ منبع</b>${escapeHTML(footnotes)}</div>` : ""}</article>`).join("")}${catalogue}</section>`;
 }
 
 function detailPanelNotes(verse) {
@@ -676,6 +687,7 @@ function detailPanelFramework(verse) {
   return `<section class="detail-panel"><p class="eyebrow">چارچوب معنایی ـ لایه‌های جدا</p><h3>ظرفیت معنایی را با لایه‌هایش بخوانید، نه با یک برچسب.</h3>
     ${sourceEvidenceNotice(verse)}
     <p>پرسشِ پایه: <b>${escapeHTML(state.concept?.title || state.query)}</b>. در این آیه، نقطهٔ شروعِ قابل مشاهده <b>${escapeHTML(directLabel)}</b> است.</p>
+    ${inlineStudyBody(verse, "foundations")}
     <div class="semantic-columns"><div class="semantic-box"><h4>لایهٔ متن و معادل‌ها</h4>${equivalents.map((item) => `<span>${escapeHTML(item.label)}</span>`).join("") || `<span>${escapeHTML(directLabel)}</span>`}</div><div class="semantic-box related"><h4>لایهٔ پیوندهای نیازمند آزمون</h4>${related.map((item) => `<span>${escapeHTML(item.label)}</span>`).join("") || "<span>در این جست‌وجو پیوند مرتبطی فعال نشده است.</span>"}</div></div>
     <ul class="study-list"><li><b>لایهٔ اول: دلالت در جمله</b>واژه در این جمله به چه چیز، کنش یا نسبتی اشاره می‌کند؟ پاسخ باید با ساختار خودِ آیه سنجیده شود.</li><li><b>لایهٔ دوم: توزیع قرآنی</b>مواضع دیگرِ همان صورت را مقایسه کنید؛ اشتراکِ صورت به‌تنهایی اشتراکِ کارکرد را ثابت نمی‌کند.</li><li><b>لایهٔ سوم: پیوند مفهومی</b>هر پیوند مرتبط فقط یک فرضیهٔ پژوهش است تا با سیاق و منبع تفسیری آزموده شود.</li></ul></section>`;
 }
