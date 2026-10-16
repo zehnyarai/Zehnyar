@@ -4,7 +4,7 @@
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_zehnyar"
-        android:label="ذهن‌یار"
+        android:label="قرآن‌پژوهه"
         android:roundIcon="@drawable/ic_zehnyar"
         android:supportsRtl="true"
         android:theme="@style/Theme.Zehnyar"

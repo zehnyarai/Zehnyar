@@ -201,7 +201,7 @@ class QuranResearchTests(unittest.TestCase):
 
     def test_markdown_registry_exports_all_lexical_evidence(self):
         registry = main.research_markdown("عدالت", "topic")
-        self.assertIn("# دفتر کامل شواهد ذهن‌یار", registry)
+        self.assertIn("# دفتر کامل شواهد قرآن‌پژوهه", registry)
         self.assertIn("## شواهد واژگانی", registry)
         self.assertIn("## مسیرهای رواییِ پیشنهادی", registry)
         self.assertIn("ص 38:21", registry)
