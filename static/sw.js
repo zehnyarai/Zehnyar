@@ -1,4 +1,4 @@
-const CACHE_NAME = "zehnyar-shell-v14";
+const CACHE_NAME = "zehnyar-shell-v16";
 // The PWA is served at /, while the Android wrapper serves the same files at
 // /assets/. Deriving paths from the registration scope keeps one worker valid
 // in both hosts.
@@ -18,6 +18,9 @@ const CORE_ASSETS = [
   appPath("/static/tafsir-catalog.json"),
   appPath("/static/tafsir/persian-mokhtasar-quranenc-1.0.0.json"),
   appPath("/static/tafsir/arabic-moyassar-quranenc-1.0.0.json"),
+  appPath("/static/tafsir/persian-mizan-furqan-2026.json"),
+  appPath("/static/tafsir/arabic-tabari-quran-com-api-1.1.json"),
+  appPath("/static/tafsir/arabic-qurtubi-quran-com-api-1.1.json"),
   appPath("/static/story-index.json"),
   appPath("/static/story-dossiers.json"),
   appPath("/static/icons/zehnyar-192.png"),

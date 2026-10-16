@@ -29,6 +29,51 @@
       "upstreamCompressedSha256": "3d110990721d30c07276c0e89494dcaece7828a16ee7d27a12caa67eb5e2a4b4",
       "upstreamPackage": "https://github.com/m-alhamry/Quran-text-assets/tree/main/data/arabic_moyassar",
       "attribution": "QuranEnc.com; https://quranenc.com/en/browse/arabic_moyassar; version 1.0.0"
+    },
+    {
+      "id": "fa_mizan_furqan",
+      "title": "تفسیر المیزان (ترجمهٔ فارسی)",
+      "author": "علامه سید محمدحسین طباطبایی؛ ترجمهٔ فارسیِ موجود در بستهٔ Furqan Apps",
+      "language": "fa",
+      "loadPriority": "on-demand",
+      "file": "static/tafsir/persian-mizan-furqan-2026.json",
+      "version": "2026.0",
+      "source": "app-furqan/quran-app-data, Furqan Apps",
+      "sourceUrl": "https://github.com/app-furqan/quran-app-data/blob/496a689fa8b5c0e082352022d0ad206e0c2801a9/data/tafsir_almizan_fa.db.tar.xz",
+      "permissionUrl": "https://github.com/app-furqan/quran-app-data/blob/496a689fa8b5c0e082352022d0ad206e0c2801a9/LICENSE",
+      "upstreamCompressedSha256": "3f9176cc6c6ed3a9f474cfb625b496052c199898dfc7d54906ebc73f7a07daec",
+      "upstreamPackage": "https://github.com/app-furqan/quran-app-data/tree/496a689fa8b5c0e082352022d0ad206e0c2801a9/data",
+      "attribution": "app-furqan/quran-app-data, CC BY-ND 4.0; Tafsir al-Mizan Persian database."
+    },
+    {
+      "id": "ar_tabari_qurancom",
+      "title": "جامع البيان عن تأويل آي القرآن (تفسیر طبری)",
+      "author": "محمد بن جریر الطبری",
+      "language": "ar",
+      "loadPriority": "on-demand",
+      "file": "static/tafsir/arabic-tabari-quran-com-api-1.1.json",
+      "version": "1.1",
+      "source": "Quran.com API v4 through zeeyado/quran-ebook",
+      "sourceUrl": "https://github.com/zeeyado/quran-ebook/blob/c9550fdd58b0feec36300dcc42cbb3d5a4ccafc5/release/quran_tafsir_tabari_v1.1.zip",
+      "permissionUrl": "https://github.com/zeeyado/quran-ebook/blob/c9550fdd58b0feec36300dcc42cbb3d5a4ccafc5/LICENSE",
+      "upstreamCompressedSha256": "17f07782a9a3c64a7c6d9af98125d87d4148f6f9f7dbd7c1e792d8e5b34f1dbb",
+      "upstreamPackage": "https://github.com/zeeyado/quran-ebook/tree/c9550fdd58b0feec36300dcc42cbb3d5a4ccafc5/release",
+      "attribution": "zeeyado/quran-ebook, GPL-3.0; Quran.com API v4 Tafsir dataset; StarDict package version 1.1."
+    },
+    {
+      "id": "ar_qurtubi_qurancom",
+      "title": "الجامع لأحكام القرآن (تفسیر قرطبی)",
+      "author": "محمد بن احمد القرطبی",
+      "language": "ar",
+      "loadPriority": "on-demand",
+      "file": "static/tafsir/arabic-qurtubi-quran-com-api-1.1.json",
+      "version": "1.1",
+      "source": "Quran.com API v4 through zeeyado/quran-ebook",
+      "sourceUrl": "https://github.com/zeeyado/quran-ebook/blob/c9550fdd58b0feec36300dcc42cbb3d5a4ccafc5/release/quran_tafsir_qurtubi_v1.1.zip",
+      "permissionUrl": "https://github.com/zeeyado/quran-ebook/blob/c9550fdd58b0feec36300dcc42cbb3d5a4ccafc5/LICENSE",
+      "upstreamCompressedSha256": "13cffe800233fc50a0874ba1a03966aa7816ccbf0cfe67067f43b1ffa049a8e7",
+      "upstreamPackage": "https://github.com/zeeyado/quran-ebook/tree/c9550fdd58b0feec36300dcc42cbb3d5a4ccafc5/release",
+      "attribution": "zeeyado/quran-ebook, GPL-3.0; Quran.com API v4 Tafsir dataset; StarDict package version 1.1."
     }
   ]
 }

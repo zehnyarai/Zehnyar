@@ -18,7 +18,10 @@ const state = {
   concepts: [],
   topicCategories: [],
   tafsirSources: [],
+  tafsirRegistry: [],
   tafsirCatalog: [],
+  tafsirLoadPromise: null,
+  tafsirUnavailableSourceIds: new Set(),
   stories: [],
   storyDossiers: {},
   selectedStory: null,
@@ -148,17 +151,43 @@ async function loadData() {
   state.topicCategories = catalog.categories || [];
   state.stories = (await storyResponse.json()).stories || [];
   state.storyDossiers = (await storyDossiersResponse.json()).dossiers || {};
-  const tafsirResults = await Promise.allSettled((tafsirRegistry.sources || []).map(async (source) => {
-    const response = await fetch(source.file);
-    if (!response.ok) throw new Error(`بارگیری ${source.title} ناموفق بود.`);
-    const payload = await response.json();
-    return { ...source, verses: payload.verses || {}, edition: payload.edition || {} };
-  }));
-  state.tafsirSources = tafsirResults.filter((result) => result.status === "fulfilled").map((result) => result.value);
+  state.tafsirRegistry = tafsirRegistry.sources || [];
+  state.tafsirSources = await loadTafsirSources(state.tafsirRegistry.filter((source) => source.loadPriority !== "on-demand"));
   state.corpus = corpus.verses.map(recordFromTuple);
   state.recordById = new Map(state.corpus.map((record) => [record.id, record]));
   $("#result-corpus").textContent = `${faNumber(state.corpus.length)} آیه`;
   renderStarters();
+}
+
+async function loadTafsirSources(sources) {
+  const results = await Promise.allSettled(sources.map(async (source) => {
+    const response = await fetch(source.file);
+    if (!response.ok) throw new Error(`بارگیری ${source.title} ناموفق بود.`);
+    const payload = await response.json();
+    return { ...source, verses: payload.verses || {}, contents: payload.contents || {}, ayahMapping: payload.ayahMapping || {}, edition: payload.edition || {} };
+  }));
+  results.forEach((result, index) => {
+    if (result.status === "rejected" && sources[index]) state.tafsirUnavailableSourceIds.add(sources[index].id);
+  });
+  return results.filter((result) => result.status === "fulfilled").map((result) => result.value);
+}
+
+function pendingTafsirSources() {
+  const loaded = new Set(state.tafsirSources.map((source) => source.id));
+  return state.tafsirRegistry.filter((source) => source.loadPriority === "on-demand" && !loaded.has(source.id) && !state.tafsirUnavailableSourceIds.has(source.id));
+}
+
+function ensureExtendedTafsirSources() {
+  const pending = pendingTafsirSources();
+  if (!pending.length) return Promise.resolve();
+  if (!state.tafsirLoadPromise) {
+    state.tafsirLoadPromise = loadTafsirSources(pending).then((sources) => {
+      state.tafsirSources.push(...sources);
+    }).finally(() => {
+      state.tafsirLoadPromise = null;
+    });
+  }
+  return state.tafsirLoadPromise;
 }
 
 function renderStarters() {
@@ -624,8 +653,12 @@ function promptsForVerse() {
 
 function tafsirEntries(verse) {
   return state.tafsirSources.map((source) => {
-    const entry = source.verses?.[String(verse.surah)]?.[String(verse.ayah)];
-    return entry?.text ? { source, text: entry.text, footnotes: entry.footnotes || "" } : null;
+    const surah = String(verse.surah);
+    const ayah = String(verse.ayah);
+    const directEntry = source.verses?.[surah]?.[ayah];
+    const contentId = source.ayahMapping?.[surah]?.[ayah];
+    const entry = directEntry || source.contents?.[String(contentId)];
+    return entry?.text ? { source, text: entry.text, footnotes: entry.footnotes || "", referenceRange: entry.referenceRange || "" } : null;
   }).filter(Boolean);
 }
 
@@ -641,14 +674,16 @@ function sourceEvidenceNotice(verse) {
 function tafsirCatalogCards() {
   const requested = state.tafsirCatalog.find((collection) => collection.id === "requested-comparative");
   if (!requested?.items?.length) return "";
-  return `<section class="tafsir-catalog"><p class="eyebrow">فهرستِ مقایسه‌ایِ درخواستی</p><h3>${escapeHTML(requested.title)}</h3><p class="reading-notice">متنِ دیجیتالِ یک اثر فقط وقتی ذیل آیه نشان داده می‌شود که نسخهٔ دقیق، انتساب و مجوز یا شرایط بازنشرِ آن ثبت شده باشد. «موجود بودن در اینترنت» به‌تنهایی مجوز کپی یا انتسابِ متن نیست.</p><div class="tafsir-catalog-grid">${requested.items.map((item) => `<article class="tafsir-catalog-card"><h4>${escapeHTML(item.title)}</h4><p>${escapeHTML(item.author)}</p><small>${escapeHTML(item.language)} · ${escapeHTML(item.era)}</small><b>${item.status === "needs-permission" ? "نیازمند اجازهٔ بازنشر" : "نیازمند نسخهٔ محقق و بازبینی‌شده"}</b><span>برای این آیه هنوز متنِ مجاز و نسخه‌دارِ این اثر وارد نشده است.</span><em>${escapeHTML(item.basis)}</em></article>`).join("")}</div></section>`;
+  return `<section class="tafsir-catalog"><p class="eyebrow">فهرستِ مقایسه‌ایِ درخواستی</p><h3>${escapeHTML(requested.title)}</h3><p class="reading-notice">متنِ دیجیتالِ یک اثر فقط وقتی ذیل آیه نشان داده می‌شود که نسخهٔ دقیق، انتساب و مجوز یا شرایط بازنشرِ آن ثبت شده باشد. «موجود بودن در اینترنت» به‌تنهایی مجوز کپی یا انتسابِ متن نیست.</p><div class="tafsir-catalog-grid">${requested.items.map((item) => { const active = item.status === "available"; return `<article class="tafsir-catalog-card ${active ? "available" : ""}"><h4>${escapeHTML(item.title)}</h4><p>${escapeHTML(item.author)}</p><small>${escapeHTML(item.language)} · ${escapeHTML(item.era)}</small><b>${active ? "متن آیه‌به‌آیه فعال" : item.status === "needs-permission" ? "نیازمند اجازهٔ بازنشر" : "نیازمند نسخهٔ محقق و بازبینی‌شده"}</b><span>${active ? "متن کاملِ این اثر در کارت‌های تفسیریِ بالای همین بخش قابل خواندن است." : "برای این آیه هنوز متنِ مجاز و نسخه‌دارِ این اثر وارد نشده است."}</span><em>${escapeHTML(item.basis)}</em></article>`; }).join("")}</div></section>`;
 }
 
 function detailPanelTafsir(verse) {
   const entries = tafsirEntries(verse);
   const catalogue = tafsirCatalogCards();
-  if (!entries.length) return `<section class="detail-panel tafsir-panel"><p class="eyebrow">منابع تفسیری</p><h3>متن منبع‌دارِ فعال موقتاً بارگیری نشد.</h3><p>هستهٔ جست‌وجو همچنان محلی است؛ با اتصال بعدی، متنِ بدون‌ویرایشِ منابع دوباره بارگیری می‌شود.</p>${catalogue}</section>`;
-  return `<section class="detail-panel tafsir-panel"><p class="eyebrow">تفاسیرِ منبع‌دارِ آیه</p><h3>متنِ کامل، انتساب، نسخه و پیوندِ دقیق</h3><p class="reading-notice">متن‌های فعال زیر بدون خلاصه‌سازی یا بازنویسیِ ذهن‌یار نمایش داده می‌شوند. اختلاف زبان و اثر به‌معنای همسان‌بودنِ تفسیرها نیست؛ برای پژوهش، هر دو را جداگانه بخوانید.</p>${entries.map(({ source, text, footnotes }) => `<article class="source-card" lang="${escapeHTML(source.language)}" dir="rtl"><div class="source-card-head"><div><h4>${escapeHTML(source.title)}</h4><p>${escapeHTML(source.author)}</p></div><a href="${escapeHTML(source.sourceUrl)}" target="_blank" rel="noreferrer">منبع ↗</a></div><p class="source-citation">${escapeHTML(tafsirCitation(source))}</p><div class="source-text">${escapeHTML(text)}</div>${footnotes ? `<div class="source-footnotes"><b>پانویسِ منبع</b>${escapeHTML(footnotes)}</div>` : ""}</article>`).join("")}${catalogue}</section>`;
+  const pending = pendingTafsirSources();
+  const loading = pending.length ? `<p class="source-availability">در حال آماده‌کردنِ ${faNumber(pending.length)} تفسیرِ کاملِ تکمیلی برای این آیه هستیم؛ متن‌های سبک‌تر هم‌اکنون در دسترس‌اند.</p>` : "";
+  if (!entries.length) return `<section class="detail-panel tafsir-panel"><p class="eyebrow">منابع تفسیری</p><h3>متن منبع‌دارِ فعال موقتاً بارگیری نشد.</h3><p>هستهٔ جست‌وجو همچنان محلی است؛ با اتصال بعدی، متنِ بدون‌ویرایشِ منابع دوباره بارگیری می‌شود.</p>${loading}${catalogue}</section>`;
+  return `<section class="detail-panel tafsir-panel"><p class="eyebrow">تفاسیرِ منبع‌دارِ آیه</p><h3>متنِ کامل، انتساب، نسخه و پیوندِ دقیق</h3><p class="reading-notice">متن‌های فعال زیر بدون خلاصه‌سازی یا بازنویسیِ ذهن‌یار نمایش داده می‌شوند. اختلاف زبان و اثر به‌معنای همسان‌بودنِ تفسیرها نیست؛ برای پژوهش، هر اثر را جداگانه بخوانید.</p>${loading}${entries.map(({ source, text, footnotes, referenceRange }) => `<details class="source-card" ${source.id === "fa_qe_persian_mokhtasar" ? "open" : ""}><summary class="source-card-head"><div><h4>${escapeHTML(source.title)}</h4><p>${escapeHTML(source.author)}</p></div><a href="${escapeHTML(source.sourceUrl)}" target="_blank" rel="noreferrer">منبع ↗</a></summary><p class="source-citation">${escapeHTML(tafsirCitation(source))}${referenceRange ? ` · توضیحِ منبع برای بازهٔ ${escapeHTML(referenceRange)}` : ""}</p><div class="source-text" lang="${escapeHTML(source.language)}" dir="rtl">${escapeHTML(text)}</div>${footnotes ? `<div class="source-footnotes"><b>پانویسِ منبع</b>${escapeHTML(footnotes)}</div>` : ""}</details>`).join("")}${catalogue}</section>`;
 }
 
 function detailPanelNotes(verse) {
@@ -727,6 +762,11 @@ function detailPanelNotebook(verse) {
 function renderDetailPanel() {
   const verse = state.selected;
   if (!verse) return;
+  if (state.detailTab === "tafsir" && pendingTafsirSources().length) {
+    ensureExtendedTafsirSources().then(() => {
+      if (state.detailTab === "tafsir" && state.selected?.id === verse.id) renderDetailPanel();
+    });
+  }
   const panels = {
     notes: detailPanelNotes,
     foundations: detailPanelFoundations,

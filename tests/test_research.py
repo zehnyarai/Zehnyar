@@ -121,13 +121,23 @@ class QuranResearchTests(unittest.TestCase):
     def test_full_cited_tafsir_sources_cover_the_complete_corpus(self):
         static_dir = Path(main.STATIC_DIR)
         registry = json.loads((static_dir / "tafsir-sources.json").read_text(encoding="utf-8"))
-        self.assertEqual(len(registry["sources"]), 2)
+        self.assertEqual(len(registry["sources"]), 5)
+        expected_ids = {"fa_qe_persian_mokhtasar", "ar_qe_arabic_moyassar", "fa_mizan_furqan", "ar_tabari_qurancom", "ar_qurtubi_qurancom"}
+        self.assertEqual({source["id"] for source in registry["sources"]}, expected_ids)
         for source in registry["sources"]:
             payload = json.loads((static_dir / source["file"].removeprefix("static/")).read_text(encoding="utf-8"))
-            verse_total = sum(len(ayahs) for ayahs in payload["verses"].values())
+            verse_total = sum(len(ayahs) for ayahs in (payload.get("verses") or payload.get("ayahMapping")).values())
             self.assertEqual(verse_total, 6236)
             self.assertEqual(payload["edition"]["version"], source["version"])
-            self.assertTrue(source["sourceUrl"].startswith("https://quranenc.com/"))
+            if source["id"].startswith("ar_") and source["id"].endswith("_qurancom"):
+                self.assertTrue(source["sourceUrl"].startswith("https://github.com/zeeyado/quran-ebook/"))
+                self.assertIn("upstreamZipSha256", payload["edition"])
+            elif source["id"] == "fa_mizan_furqan":
+                self.assertTrue(source["sourceUrl"].startswith("https://github.com/app-furqan/quran-app-data/"))
+                self.assertTrue(payload["contents"])
+                self.assertIn("upstreamDbSha256", payload["edition"])
+            else:
+                self.assertTrue(source["sourceUrl"].startswith("https://quranenc.com/"))
 
     def test_requested_tafsir_catalog_is_explicit_without_claiming_unloaded_texts(self):
         static_dir = Path(main.STATIC_DIR)
@@ -137,7 +147,8 @@ class QuranResearchTests(unittest.TestCase):
         titles = " ".join(item["title"] for item in requested["items"])
         for title in ("طبری", "زمخشری", "قرطبی", "الميزان", "من هدى", "من وحي", "الكاشف", "مفاتيح الغيب", "نمونه", "تسنیم"):
             self.assertIn(title, titles)
-        self.assertTrue(all(item["status"] != "available" for item in requested["items"]))
+        active_ids = {item["id"] for item in requested["items"] if item["status"] == "available"}
+        self.assertEqual(active_ids, {"tabari", "qurtubi", "mizan"})
         self.assertTrue(all(item["basis"] for item in requested["items"]))
 
     def test_all_initial_story_dossiers_have_anchored_material(self):
