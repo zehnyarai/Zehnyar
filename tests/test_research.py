@@ -97,7 +97,16 @@ class QuranResearchTests(unittest.TestCase):
             self.assertIn(f'id="{field_id}"', html)
         for label in ("نکات مهم آیه", "پیام‌های آیه", "اصول و قواعد زندگی", "مبانی اندیشهٔ قرآنی"):
             self.assertIn(label, script)
+        self.assertIn("inlineTafsirEvidence", script)
+        self.assertIn("VERSE_FOUNDATION_AXES", script)
+        self.assertIn("نقلِ بدون بازنویسی", script)
         self.assertIn("تأمل در داستان‌های قرآنی", html)
+
+    def test_sources_dialog_separates_the_requested_research_source_fields(self):
+        html = (Path(main.STATIC_DIR) / "index.html").read_text(encoding="utf-8")
+        for label in ("متن قرآن", "تفاسیر جامع", "کتب علوم قرآنی", "مقالات قرآنی", "مقالات تفسیری"):
+            self.assertIn(label, html)
+        self.assertIn("در تحلیلِ آیه به‌کار می‌رود", html)
 
     def test_broad_topic_catalog_is_grouped_and_lexically_traceable(self):
         catalog = json.loads((Path(main.STATIC_DIR) / "topic-catalog.json").read_text(encoding="utf-8"))
