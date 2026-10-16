@@ -27,37 +27,34 @@
 
     <main>
       <section id="search-screen" class="screen search-screen" aria-labelledby="search-title">
-        <div class="search-hero">
-          <p class="eyebrow">پژوهشِ مفهوم‌محور در متن قرآن</p>
-          <h1 id="search-title">هر مفهوم را از <em>واژه‌های قرآنی</em> آغاز کنید.</h1>
-          <p class="lede">موضوع را به فارسی یا عربی بنویسید. ذهن‌یار ابتدا معادل‌های عربیِ بازبینی‌شده را جست‌وجو می‌کند، سپس پیوندهای هم‌خانواده را جدا نشان می‌دهد.</p>
+        <div class="research-home-layout">
+          <div class="search-workbench">
+            <p class="eyebrow">جست‌وجو در متن قرآن</p>
+            <h1 id="search-title">از واژه تا <em>آیهٔ قرآن</em></h1>
+            <p class="lede">هر فیلد یک مسیر مستقلِ جست‌وجو دارد. یک یا چند فیلد را پر کنید تا آیاتِ متن و آیاتِ موضوعیِ مرتبط، با دلیلِ ورودشان، فهرست شوند.</p>
 
-          <form id="concept-form" class="research-form" novalidate>
-            <div class="search-field root-field"><label for="root-query"><b>ریشه و صورت عربی</b><small>مثل: ح ب ب، ع د ل</small></label><input id="root-query" maxlength="80" autocomplete="off" placeholder="ریشه یا واژهٔ عربی" /></div>
-            <div class="search-field usage-field"><label for="usage-query"><b>کاربرد قرآنی</b><small>مثل: عدالت، رحمت، خانواده</small></label><input id="usage-query" maxlength="120" autocomplete="off" placeholder="موضوع یا کاربرد" /></div>
-            <div class="search-field keyword-field"><label for="keyword-query"><b>کلیدواژه‌های دقیق</b><small>با ویرگول جدا کنید</small></label><input id="keyword-query" maxlength="160" autocomplete="off" placeholder="مثل: قسط، میزان" /></div>
-            <div class="search-field synonym-field"><label for="synonym-query"><b>مترادف و هم‌خانواده</b><small>مثل: عشق، محبت، مودّت</small></label><input id="synonym-query" maxlength="120" autocomplete="off" placeholder="مفهوم فارسی یا عربی" /></div>
-            <div class="form-actions"><label class="translation-option"><input id="translation-option" type="checkbox" /><span>تطابق دقیق در ترجمهٔ فارسیِ فعلی</span></label><button type="submit">جست‌وجوی پژوهشی <span aria-hidden="true">←</span></button></div>
-          </form>
-          <p id="search-status" class="search-status" role="status" aria-live="polite"></p>
+            <form id="concept-form" class="research-form" novalidate>
+              <div class="search-field"><label for="keyword-query"><b>کلیدواژه</b><small>جست‌وجوی دقیق در متن</small></label><input id="keyword-query" maxlength="120" autocomplete="off" placeholder="مثل: حق، میزان" /></div>
+              <div class="search-field"><label for="concept-query"><b>مفهوم</b><small>مثل: عدالت، رحمت</small></label><input id="concept-query" maxlength="120" autocomplete="off" placeholder="مفهومِ پژوهش" /></div>
+              <div class="search-field"><label for="topic-query"><b>موضوع</b><small>از نقشهٔ موضوعات</small></label><input id="topic-query" maxlength="120" autocomplete="off" placeholder="مثل: تجارت، هجرت" /></div>
+              <div class="search-field"><label for="quranic-equivalent-query"><b>معادل قرآنی</b><small>واژهٔ عربی</small></label><input id="quranic-equivalent-query" maxlength="120" autocomplete="off" placeholder="مثل: قسط، رحمة" /></div>
+              <div class="search-field"><label for="translation-equivalent-query"><b>معادل ترجمه</b><small>جست‌وجوی دقیق فارسی</small></label><input id="translation-equivalent-query" maxlength="120" autocomplete="off" placeholder="مثل: دادگری" /></div>
+              <div class="search-field"><label for="semantic-query"><b>هم‌معنا</b><small>خانوادهٔ معنایی</small></label><input id="semantic-query" maxlength="120" autocomplete="off" placeholder="مثل: بخشش، آمرزش" /></div>
+              <div class="search-field"><label for="synonym-query"><b>مترادف</b><small>مسیر واژگانی نزدیک</small></label><input id="synonym-query" maxlength="120" autocomplete="off" placeholder="مثل: عشق، محبت" /></div>
+              <div class="search-field"><label for="root-query"><b>هم‌ریشه</b><small>ریشه یا صورت عربی</small></label><input id="root-query" maxlength="80" autocomplete="off" placeholder="مثل: دمغ، ح ب ب" /></div>
+              <div class="form-actions"><span>نتیجه بر پایهٔ فیلدهای پُر‌شده ساخته می‌شود.</span><button type="submit">جست‌وجو در قرآن <span aria-hidden="true">←</span></button></div>
+            </form>
+            <p id="search-status" class="search-status" role="status" aria-live="polite"></p>
+            <div class="simple-library-links"><button id="open-topic-library" type="button">نقشهٔ موضوعات قرآن</button><button id="open-surah-library" type="button">پژوهش سوره‌ها</button></div>
+          </div>
+
+          <aside class="story-reflection" aria-labelledby="story-reflection-title">
+            <p class="eyebrow">مسیر مستقل پژوهش</p>
+            <h2 id="story-reflection-title">تأمل در داستان‌های قرآنی</h2>
+            <p>فهرست روایت‌ها، بازهٔ آیات و پروندهٔ اولیهٔ هر داستان را ببینید. جزئیات حرفه‌ای این بخش در مرحله‌های بعد توسعه می‌یابد.</p>
+            <button id="open-story-library" type="button">ورود به داستان‌های قرآن <span aria-hidden="true">←</span></button>
+          </aside>
         </div>
-
-        <section class="path-intro" aria-label="لایه‌های جست‌وجو">
-          <article><span>۱</span><div><b>معادل‌های قرآنی</b><p>واژه‌ها و ریشه‌های عربیِ آشکارشده برای مفهوم.</p></div></article>
-          <article><span>۲</span><div><b>مفاهیم مرتبط</b><p>پیوندهای هم‌خانواده، با برچسب جدا و بدون ادعای هم‌معنایی قطعی.</p></div></article>
-          <article><span>۳</span><div><b>خواندنِ آیه</b><p>هر آیه یک پروندهٔ مستقل برای سیاق، چارچوب و یادداشت پژوهشی دارد.</p></div></article>
-        </section>
-
-        <section class="concept-starters" aria-labelledby="starters-title">
-          <div class="section-intro"><p class="eyebrow">برای شروع</p><h2 id="starters-title">یک مسیر مفهومی انتخاب کنید</h2></div>
-          <div id="starter-list" class="starter-list" aria-live="polite"></div>
-        </section>
-
-        <section class="research-gateways" aria-label="کتابخانه‌های پژوهش">
-          <button id="open-topic-library" class="gateway-card gateway-card-featured" type="button"><span class="gateway-icon">۱۱۵</span><span><b>نقشهٔ گستردهٔ موضوعات</b><small>بیش از ۱۱۵ مسیر واژگانیِ شفاف، در پنج حوزهٔ پژوهش</small></span><i aria-hidden="true">←</i></button>
-          <button id="open-surah-library" class="gateway-card" type="button"><span class="gateway-icon">۱۱۴</span><span><b>پژوهش سوره‌ها</b><small>فهرست ۱۱۴ سوره، موضوعات صریح و پیوندهای پژوهشی</small></span><i aria-hidden="true">←</i></button>
-          <button id="open-story-library" class="gateway-card" type="button"><span class="gateway-icon">۞</span><span><b>داستان‌های قرآن</b><small>مسیرهای روایی، قطعه‌آیات و پروندهٔ خوانش داستان</small></span><i aria-hidden="true">←</i></button>
-        </section>
       </section>
 
       <section id="library-screen" class="screen library-screen" hidden aria-labelledby="library-title">
@@ -96,16 +93,10 @@
           <div id="active-terms" class="term-groups" aria-label="واژه‌های فعال در جست‌وجو"></div>
         </div>
 
-        <div class="results-toolbar">
+        <div class="results-toolbar simple-results-toolbar">
           <p id="result-progress" aria-live="polite"></p>
-          <div class="result-filters" role="tablist" aria-label="فیلتر سطح ارتباط">
-            <button class="active" data-filter="all" type="button" role="tab" aria-selected="true">همه</button>
-            <button data-filter="equivalent" type="button" role="tab" aria-selected="false">معادل قرآنی</button>
-            <button data-filter="related" type="button" role="tab" aria-selected="false">مرتبط</button>
-            <button data-filter="context" type="button" role="tab" aria-selected="false">فهم آیه در سیاق</button>
-          </div>
+          <span>روی یکی از چهار عنوانِ بالای هر آیه بزنید تا مطالعهٔ سریع همان آیه باز شود.</span>
         </div>
-        <div id="context-study" aria-live="polite" hidden></div>
         <div id="verse-list" class="verse-list" aria-live="polite"></div>
         <button id="load-more" class="load-more" type="button" hidden>نمایش آیه‌های بعدی</button>
       </section>

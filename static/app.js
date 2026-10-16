@@ -31,6 +31,7 @@ const state = {
   shown: PAGE_SIZE,
   filter: "all",
   contextVerseId: null,
+  inlineStudy: { verseId: null, tab: "notes" },
   selected: null,
   detailTab: "notes",
   searchTranslations: false,
@@ -157,14 +158,10 @@ async function loadData() {
 }
 
 function renderStarters() {
-  const priority = ["محبت و عشق", "عدالت", "رحمت", "خانواده", "علم و اندیشه", "آزادی و اختیار", "دعا و عبادت", "توبه"];
-  const concepts = [...state.concepts].sort((a, b) => {
-    const aIndex = priority.indexOf(a.title);
-    const bIndex = priority.indexOf(b.title);
-    return (aIndex < 0 ? 99 : aIndex) - (bIndex < 0 ? 99 : bIndex);
-  });
-  const featured = concepts.slice(0, 12);
-  $("#starter-list").innerHTML = `${featured.map((concept) => `<button class="starter" type="button" data-concept="${escapeHTML(concept.aliases[0])}">${escapeHTML(concept.title)}</button>`).join("")}<button class="starter starter-catalog" type="button" data-open-topic-library="true">همهٔ ${faNumber(concepts.length)} مسیر موضوعی ←</button>`;
+  // صفحهٔ نخست عمداً ساده است؛ نقشهٔ کامل موضوعات از دکمهٔ جداگانه باز می‌شود.
+  const list = $("#starter-list");
+  if (!list) return;
+  list.innerHTML = "";
 }
 
 function resolveConcept(query) {
@@ -218,7 +215,7 @@ function buildTerms(query, concept, includeTranslation, manualArabic = "") {
 }
 
 function typeLabel(type) {
-  return { equivalent: "معادل قرآنی", related: "مفهوم مرتبط", exact: "عبارت دقیق" }[type] || "شاهد";
+  return { equivalent: "معادل", related: "موضوع/هم‌معنا", exact: "کلیدواژه یا هم‌ریشه" }[type] || "شاهد";
 }
 
 function evaluateRecord(record, terms) {
@@ -240,54 +237,70 @@ function evaluateRecord(record, terms) {
 }
 
 function searchResearchFields() {
-  const root = $("#root-query").value.trim();
-  const usage = $("#usage-query").value.trim();
-  const keywords = $("#keyword-query").value.trim();
-  const synonyms = $("#synonym-query").value.trim();
+  const values = {
+    keyword: $("#keyword-query").value.trim(),
+    concept: $("#concept-query").value.trim(),
+    topic: $("#topic-query").value.trim(),
+    quranicEquivalent: $("#quranic-equivalent-query").value.trim(),
+    translationEquivalent: $("#translation-equivalent-query").value.trim(),
+    semantic: $("#semantic-query").value.trim(),
+    synonym: $("#synonym-query").value.trim(),
+    root: $("#root-query").value.trim(),
+  };
   const status = $("#search-status");
-  const primary = usage || synonyms || keywords || root;
+  const primary = values.keyword || values.concept || values.topic || values.quranicEquivalent || values.translationEquivalent || values.semantic || values.synonym || values.root;
   if (!primary) {
-    status.textContent = "حداقل یکی از چهار مسیر جست‌وجو را وارد کنید.";
-    $("#usage-query").focus();
+    status.textContent = "دست‌کم یکی از مسیرهای جست‌وجو را وارد کنید.";
+    $("#keyword-query").focus();
     return;
   }
 
-  const usageConcept = resolveConcept(usage);
-  const synonymConcept = resolveConcept(synonyms);
-  const concept = usageConcept || synonymConcept || resolveConcept(primary);
-  const splitArabic = (value, label, type, origin, compact = false) => value.split(/[،,]/).map((item) => item.trim()).filter(Boolean).map((item) => ({
-    value: compact ? normalize(item).replaceAll(" ", "") : normalize(item), label: `${label}: ${item}`, type, scope: "arabic", origin,
-  }));
-  const terms = [
-    // ریشه‌ها گاهی با فاصله وارد می‌شوند («ح ب ب»). پیکره فاصلهٔ میان حروف ریشه ندارد.
-    ...splitArabic(root, "ریشه / صورت", "exact", "ریشه یا صورتِ واردشده", true),
-    ...splitArabic(keywords, "کلیدواژه", "exact", "کلیدواژهٔ واردشده"),
-  ];
-  if (usageConcept) {
-    (usageConcept.equivalents || []).forEach(([term, label]) => terms.push({ value: normalize(term), label, type: "equivalent", scope: "arabic", origin: "کاربرد قرآنیِ واژه‌نامه" }));
-  }
-  if (synonymConcept) {
-    (synonymConcept.related || []).forEach(([term, label]) => terms.push({ value: normalize(term), label, type: "related", scope: "arabic", origin: "پیوند مترادف/هم‌خانوادهٔ واژه‌نامه" }));
-    if (!usageConcept) (synonymConcept.equivalents || []).forEach(([term, label]) => terms.push({ value: normalize(term), label, type: "equivalent", scope: "arabic", origin: "معادل قرآنیِ واژه‌نامه" }));
-  }
-  if (!terms.length && probablyArabic(primary)) {
-    terms.push({ value: normalize(primary), label: "عبارت عربیِ کاربر", type: "exact", scope: "arabic", origin: "عبارتِ کاربر" });
-  }
-  if ($("#translation-option").checked) {
-    terms.push({ value: normalize(primary), label: "عبارت فارسیِ کاربر", type: "exact", scope: "persian", origin: "جست‌وجوی دقیق در ترجمه" });
-  }
+  const conceptMatch = resolveConcept(values.concept);
+  const topicMatch = resolveConcept(values.topic);
+  const semanticMatch = resolveConcept(values.semantic);
+  const synonymMatch = resolveConcept(values.synonym);
+  const activeConcept = conceptMatch || topicMatch || semanticMatch || synonymMatch || resolveConcept(primary);
+  const terms = [];
+  const splitTerms = (value, label, type, origin, scope = "arabic", compact = false) => value.split(/[،,]/).map((item) => item.trim()).filter(Boolean).forEach((item) => {
+    const itemScope = scope === "auto" ? (probablyArabic(item) ? "arabic" : "persian") : scope;
+    terms.push({ value: compact ? normalize(item).replaceAll(" ", "") : normalize(item), label: `${label}: ${item}`, type, scope: itemScope, origin });
+  });
+  const addConcept = (concept, origin, modes = ["equivalents", "related"]) => {
+    if (!concept) return;
+    if (modes.includes("equivalents")) (concept.equivalents || []).forEach(([term, label]) => terms.push({
+      value: normalize(term), label, type: "equivalent", scope: "arabic", origin,
+    }));
+    if (modes.includes("related")) (concept.related || []).forEach(([term, label]) => terms.push({
+      value: normalize(term), label, type: "related", scope: "arabic", origin,
+    }));
+  };
+
+  splitTerms(values.keyword, "کلیدواژه", "exact", "کلیدواژهٔ واردشده", "auto");
+  splitTerms(values.root, "هم‌ریشه / صورت", "exact", "ریشه یا صورتِ عربیِ واردشده", "arabic", true);
+  splitTerms(values.quranicEquivalent, "معادل قرآنی", "equivalent", "معادل قرآنیِ واردشده", "arabic");
+  splitTerms(values.translationEquivalent, "معادل ترجمه", "equivalent", "معادلِ واردشده در ترجمهٔ فارسی", "persian");
+  addConcept(conceptMatch, "مفهومِ واژه‌نامه");
+  addConcept(topicMatch, "موضوعِ نقشهٔ قرآن");
+  addConcept(semanticMatch, "هم‌معنای واژه‌نامه", ["related"]);
+  addConcept(synonymMatch, "مترادفِ واژه‌نامه", ["equivalents", "related"]);
+  if (values.semantic && !semanticMatch) splitTerms(values.semantic, "هم‌معنای واردشده", "related", "هم‌معنای بدون نگاشت واژه‌نامه", "auto");
+  if (values.synonym && !synonymMatch) splitTerms(values.synonym, "مترادفِ واردشده", "related", "مترادف بدون نگاشت واژه‌نامه", "auto");
+  if (values.topic && !topicMatch) splitTerms(values.topic, "موضوعِ واردشده", "related", "موضوع بدون نگاشت واژه‌نامه", "auto");
+  if (values.concept && !conceptMatch) splitTerms(values.concept, "مفهومِ واردشده", "related", "مفهوم بدون نگاشت واژه‌نامه", "auto");
+
   state.terms = uniqueTerms(terms);
   if (!state.terms.length) {
-    status.textContent = "برای این مفهوم هنوز مسیر عربیِ بازبینی‌شده‌ای نیست. یک ریشه، کلیدواژه یا مترادف عربی وارد کنید.";
+    status.textContent = "برای این ورودی هنوز مسیر قابل جست‌وجویی ساخته نشد؛ یک کلیدواژه، معادل یا صورت عربی وارد کنید.";
     return;
   }
   state.query = primary;
-  state.concept = concept;
+  state.concept = activeConcept;
   state.matches = state.corpus.map((record) => evaluateRecord(record, state.terms)).filter(Boolean)
     .sort((a, b) => b.score - a.score || a.surah - b.surah || a.ayah - b.ayah);
   state.shown = PAGE_SIZE;
   state.filter = "all";
   state.contextVerseId = state.matches[0]?.id || null;
+  state.inlineStudy = { verseId: null, tab: "notes" };
   state.selected = null;
   status.textContent = "";
   renderResults();
@@ -295,10 +308,8 @@ function searchResearchFields() {
 }
 
 function runStarter(query) {
-  $("#usage-query").value = query;
-  $("#synonym-query").value = "";
-  $("#root-query").value = "";
-  $("#keyword-query").value = "";
+  $("#concept-query").value = query;
+  ["#keyword-query", "#topic-query", "#quranic-equivalent-query", "#translation-equivalent-query", "#semantic-query", "#synonym-query", "#root-query"].forEach((selector) => { $(selector).value = ""; });
   searchResearchFields();
 }
 
@@ -382,23 +393,37 @@ function renderResults() {
       ? `برای «${title}»، ${faNumber(equivalentCount)} شاهدِ واژگانیِ عربی و ${faNumber(relatedCount)} پیوندِ مرتبط پیدا شد. هر پیوند مرتبط از معادل قرآنی جدا نگه داشته شده است.`
       : `نتایجِ عبارت «${state.query}» فقط بر پایهٔ مسیرِ انتخاب‌شده در جست‌وجو بازیابی شده‌اند.`;
   renderTermGroups();
-  $$(".result-filters button").forEach((button) => {
-    const active = button.dataset.filter === state.filter;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-selected", String(active));
-  });
-  renderContextStudy();
   renderVerseList();
+}
+
+function inlineStudyContent(verse, tab) {
+  const distributions = evidenceDistribution(verse);
+  const witness = verse.evidence.map((item) => `${item.label} (${item.source})`).join("، ");
+  const tafsir = tafsirEntries(verse).find((entry) => entry.source.language === "fa") || tafsirEntries(verse)[0];
+  const tafsirSnippet = tafsir ? `${tafsir.text.replace(/\s+/g, " ").trim().slice(0, 300)}${tafsir.text.length > 300 ? " …" : ""}` : "شرحِ منبع‌دار در این نشست بارگیری نشده است.";
+  const panels = {
+    notes: `<p><b>شاهدِ ورود آیه:</b> ${escapeHTML(witness)}</p><p><b>دامنهٔ واژگانی:</b> ${escapeHTML(distributions.map((item) => item.count ? `${item.label}: ${faNumber(item.count)} آیه در ${faNumber(item.surahs)} سوره` : item.label).join("؛ "))}</p><p><b>نکتهٔ دقیق:</b> سطحِ بازیابی «${escapeHTML(typeLabel(verse.type))}» است؛ آن را با تفسیر نهایی یکی نگیرید.</p>`,
+    messages: `<p><b>برای بررسی پیام:</b> ${escapeHTML(closeReadingPrompts(verse)[0])}</p><p>${escapeHTML(closeReadingPrompts(verse)[1])}</p><p class="inline-source"><b>آغازِ شرح منبع‌دار:</b> ${escapeHTML(tafsirSnippet)}</p>`,
+    principles: `<p><b>اصل اول:</b> فاعل، مخاطب، نفی/اثبات و قیدهای همین آیه پیش از تعمیم ثبت می‌شوند.</p><p><b>اصل دوم:</b> پیش و پسِ آیه و سپس مواضع دیگر واژهٔ شاهد مقایسه می‌شوند.</p><p><b>اصل سوم:</b> هر قاعدهٔ زندگی باید از متن‌محوربودن به منبع‌محوربودن ارتقا یابد؛ متن کامل دو تفسیر در پروندهٔ آیه موجود است.</p>`,
+    foundations: `<p><b>مبنای متن:</b> ${escapeHTML(verse.reference)} · ${escapeHTML(verse.revelation)}.</p><p><b>مبنای معنایی:</b> پرسش «${escapeHTML(state.concept?.title || state.query)}» با واژه‌ها و مسیرهای زیر وارد شده است: ${escapeHTML(witness)}.</p><p><b>مبنای پژوهش:</b> شباهت واژه، هم‌معنایی قطعی یا حکم کلی را ثابت نمی‌کند؛ سیاق و تفسیرِ ارجاع‌دار باید افزوده شود.</p>`,
+  };
+  return `<div class="inline-study-content">${panels[tab] || panels.notes}<button class="inline-open-detail" type="button" data-open-verse="${escapeHTML(verse.id)}">پروندهٔ کامل آیه و تفاسیر ←</button></div>`;
 }
 
 function verseCard(verse) {
   const primaryEvidence = verse.evidence.slice(0, 2).map((item) => `${item.label} · ${item.source}`).join("، ");
-  return `<button class="verse-card" type="button" data-verse-id="${escapeHTML(verse.id)}">
-    <span class="verse-head"><span class="verse-reference">${escapeHTML(verse.reference)} · ${escapeHTML(verse.revelation)}</span><span class="verse-type ${verse.type}">${typeLabel(verse.type)}</span></span>
-    <span class="verse-arabic" lang="ar" dir="rtl">${escapeHTML(verse.arabic)}</span>
-    <span class="verse-persian">${escapeHTML(verse.persian)}</span>
-    <span class="verse-match"><b>واژهٔ شاهد:</b> ${escapeHTML(primaryEvidence)} <i class="open-cue" aria-hidden="true">←</i></span>
-  </button>`;
+  const tabs = [["notes", "نکات مهم آیه"], ["messages", "پیام‌های آیه"], ["principles", "اصول و قواعد زندگی"], ["foundations", "مبانی اندیشهٔ قرآنی"]];
+  const expanded = state.inlineStudy.verseId === verse.id;
+  return `<article class="verse-card" data-verse-id="${escapeHTML(verse.id)}">
+    <div class="verse-inline-tabs" role="tablist" aria-label="مطالعهٔ سریعِ ${escapeHTML(verse.reference)}">${tabs.map(([id, label]) => `<button type="button" data-inline-tab="${id}" data-inline-verse-id="${escapeHTML(verse.id)}" class="${expanded && state.inlineStudy.tab === id ? "active" : ""}" role="tab">${label}</button>`).join("")}</div>
+    ${expanded ? inlineStudyContent(verse, state.inlineStudy.tab) : ""}
+    <button class="verse-open" type="button" data-open-verse="${escapeHTML(verse.id)}">
+      <span class="verse-head"><span class="verse-reference">${escapeHTML(verse.reference)} · ${escapeHTML(verse.revelation)}</span><span class="verse-type ${verse.type}">${typeLabel(verse.type)}</span></span>
+      <span class="verse-arabic" lang="ar" dir="rtl">${escapeHTML(verse.arabic)}</span>
+      <span class="verse-persian">${escapeHTML(verse.persian)}</span>
+      <span class="verse-match"><b>مسیر ورود:</b> ${escapeHTML(primaryEvidence)} <i class="open-cue" aria-hidden="true">←</i></span>
+    </button>
+  </article>`;
 }
 
 function emptyLayerNotice() {
@@ -429,9 +454,7 @@ function renderVerseList() {
   } else {
     list.innerHTML = visible.map(verseCard).join("");
   }
-  $("#result-progress").textContent = state.filter === "context"
-    ? `خوانش سیاق برای ${faNumber(filtered.length)} آیه در دسترس است؛ آیهٔ موردنظر را از نوار بالا انتخاب کنید.`
-    : `${faNumber(visible.length)} از ${faNumber(filtered.length)} آیه در این لایه · ${faNumber(new Set(state.matches.map((item) => item.surah)).size)} سوره در کل مسیر`;
+  $("#result-progress").textContent = `${faNumber(visible.length)} از ${faNumber(filtered.length)} آیه · ${faNumber(new Set(state.matches.map((item) => item.surah)).size)} سوره در نتایج این جست‌وجو`;
   const loadMore = $("#load-more");
   loadMore.hidden = visible.length >= filtered.length;
   if (!loadMore.hidden) loadMore.textContent = `نمایش ${faNumber(Math.min(PAGE_SIZE, filtered.length - visible.length))} آیهٔ بعدی`;
@@ -817,7 +840,7 @@ $("#concept-form").addEventListener("submit", (event) => {
   searchResearchFields();
 });
 
-$("#starter-list").addEventListener("click", (event) => {
+$("#starter-list")?.addEventListener("click", (event) => {
   const button = event.target.closest("[data-concept]");
   if (button) return runStarter(button.dataset.concept);
   if (event.target.closest("[data-open-topic-library]")) openLibrary("topics");
@@ -865,11 +888,17 @@ $("#story-panels").addEventListener("click", (event) => {
 });
 
 $("#verse-list").addEventListener("click", (event) => {
-  const card = event.target.closest("[data-verse-id]");
-  if (card) openVerse(card.dataset.verseId);
+  const inlineTab = event.target.closest("[data-inline-tab]");
+  if (inlineTab) {
+    state.inlineStudy = { verseId: inlineTab.dataset.inlineVerseId, tab: inlineTab.dataset.inlineTab };
+    renderVerseList();
+    return;
+  }
+  const openButton = event.target.closest("[data-open-verse]");
+  if (openButton) openVerse(openButton.dataset.openVerse);
 });
 
-$("#context-study").addEventListener("click", (event) => {
+$("#context-study")?.addEventListener("click", (event) => {
   const selector = event.target.closest("[data-context-study-id]");
   if (!selector) return;
   state.contextVerseId = selector.dataset.contextStudyId;

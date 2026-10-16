@@ -86,15 +86,18 @@ class QuranResearchTests(unittest.TestCase):
         self.assertGreater(len(arabic_matches), 0)
         self.assertFalse(any(main.normalize("عشق") in record["arabic_normalized"] for record in main.CORPUS))
 
-    def test_context_reading_workspace_is_present_in_the_offline_ui(self):
+    def test_simple_home_search_has_all_requested_distinct_paths(self):
         static_dir = Path(main.STATIC_DIR)
         html = (static_dir / "index.html").read_text(encoding="utf-8")
         script = (static_dir / "app.js").read_text(encoding="utf-8")
-        self.assertIn('data-filter="context"', html)
-        self.assertIn("فهم آیه در سیاق", html)
-        self.assertIn('id="context-study"', html)
-        self.assertIn("function renderContextStudy()", script)
-        self.assertIn("function evidenceDistribution(verse)", script)
+        for field_id in (
+            "keyword-query", "concept-query", "topic-query", "quranic-equivalent-query",
+            "translation-equivalent-query", "semantic-query", "synonym-query", "root-query",
+        ):
+            self.assertIn(f'id="{field_id}"', html)
+        for label in ("نکات مهم آیه", "پیام‌های آیه", "اصول و قواعد زندگی", "مبانی اندیشهٔ قرآنی"):
+            self.assertIn(label, script)
+        self.assertIn("تأمل در داستان‌های قرآنی", html)
 
     def test_broad_topic_catalog_is_grouped_and_lexically_traceable(self):
         catalog = json.loads((Path(main.STATIC_DIR) / "topic-catalog.json").read_text(encoding="utf-8"))
