@@ -20,7 +20,7 @@ const state = {
   stories: [],
   storyDossiers: {},
   selectedStory: null,
-  storyTab: "route",
+  storyTab: "verses",
   libraryMode: null,
   selectedSurah: null,
   surahTab: "notes",
@@ -723,41 +723,71 @@ function storyPassageIds(story) {
   return ids;
 }
 
+function storyPassageRecords(story) {
+  const records = [];
+  const seen = new Set();
+  story.passages.forEach((passage) => {
+    for (let ayah = passage.start; ayah <= passage.end; ayah += 1) {
+      const record = state.recordById.get(`${passage.surah}:${ayah}`);
+      if (record && !seen.has(record.id)) {
+        seen.add(record.id);
+        records.push(record);
+      }
+    }
+  });
+  return records;
+}
+
 function storyRangeLabel(story) {
   return story.passages.map((passage) => `${faNumber(passage.surah)}:${faNumber(passage.start)}–${faNumber(passage.end)}`).join(" · ");
 }
 
 function sourceVerseButton(reference, label = "مشاهدهٔ آیه") {
-  const [surah, ayah] = reference.split(":").map(Number);
-  const record = state.recordById.get(`${surah}:${ayah}`);
+  const match = String(reference || "").match(/(\d+)\s*:\s*(\d+)/);
+  if (!match) return "";
+  const record = state.recordById.get(`${Number(match[1])}:${Number(match[2])}`);
   return record ? `<button class="story-reference-button" type="button" data-story-verse-id="${escapeHTML(record.id)}">${escapeHTML(label)} · ${escapeHTML(record.reference)} ←</button>` : "";
 }
 
 function renderStory() {
   const story = state.selectedStory;
   if (!story) return;
-  const dossier = state.storyDossiers[story.id] || { basis: story.note, characters: [], stages: [], principles: [], applications: [] };
-  const passageCount = storyPassageIds(story).size;
+  const dossier = state.storyDossiers[story.id] || { basis: story.note, charactersDetailed: [], stages: [], keyConcepts: [], topics: [], subtleties: [], lifePrinciples: [], wonders: [], narratology: {}, elements: {}, semiotics: [], applications: [] };
+  const records = storyPassageRecords(story);
+  const passageCount = records.length;
+  const insights = (items, empty = "برای این بخش هنوز دادهٔ آیه‌لنگر ثبت نشده است.") => items?.length ? `<div class="story-insight-list">${items.map((item) => `<article><h4>${escapeHTML(item.title)}</h4><p>${escapeHTML(item.note)}</p>${item.reference ? sourceVerseButton(item.reference, `شاهد ${item.reference}`) : ""}</article>`).join("")}</div>` : `<p>${escapeHTML(empty)}</p>`;
   $("#story-reference").textContent = `${storyRangeLabel(story)} · ${faNumber(passageCount)} آیه`;
   $("#story-title").textContent = story.title;
-  $("#story-description").textContent = `${dossier.basis} «قاعده» و «کاربست» در این پرونده، نتیجهٔ آماده یا فتوا نیستند؛ هر مورد با آیهٔ مشخص عرضه شده تا در تب تفاسیر منبع‌دارِ آیات بررسی شود.`;
+  $("#story-description").textContent = `${dossier.basis} همهٔ مدخل‌ها با آیهٔ لنگر عرضه شده‌اند؛ برای تفسیر منبع‌دار هر آیه، پروندهٔ آیه و تب تفاسیر را باز کنید.`;
   $$("[data-story-tab]").forEach((button) => button.classList.toggle("active", button.dataset.storyTab === state.storyTab));
-  const passages = story.passages.map((passage) => `<li><b>${faNumber(passage.surah)}:${faNumber(passage.start)}–${faNumber(passage.end)}</b> ${escapeHTML(state.recordById.get(`${passage.surah}:${passage.start}`)?.surahName || "سوره")}</li>`).join("");
+  const narratologyItems = [
+    ["آغاز روایت", dossier.narratology?.opening], ["گره یا کشمکش", dossier.narratology?.tension], ["چرخش روایت", dossier.narratology?.turn], ["فرجام و افق خوانش", dossier.narratology?.closure],
+  ].filter(([, item]) => item).map(([title, item]) => ({ title: `${title}: ${item.title}`, reference: item.reference, note: item.note }));
+  const elementItems = [
+    dossier.elements?.setting ? { title: "صحنهٔ آغاز", reference: dossier.elements.setting.reference, note: dossier.elements.setting.note } : null,
+    dossier.elements?.tension ? { title: "کشمکش", reference: dossier.elements.tension.reference, note: dossier.elements.tension.note } : null,
+    dossier.elements?.resolution ? { title: "فرجام", reference: dossier.elements.resolution.reference, note: dossier.elements.resolution.note } : null,
+  ].filter(Boolean);
   const panels = {
-    route: `<section class="detail-panel"><p class="eyebrow">مرز خوانش و آیات</p><h3>روایت را در بازهٔ کاملش بخوانید.</h3><p class="reading-notice">این فهرست، مرزِ پژوهش را روشن می‌کند تا یک آیه از صحنهٔ روایی جدا نشود. با دکمهٔ بالای صفحه، همهٔ آیاتِ همین مسیر را باز کنید.</p><ul class="study-list">${passages}</ul></section>`,
-    elements: `<section class="detail-panel"><p class="eyebrow">عناصر روایت</p><h3>بازیگران و حرکتِ متن</h3><div class="story-characters">${(dossier.characters || []).map((character) => `<span>${escapeHTML(character)}</span>`).join("") || "<span>نیازمند تکمیل منابع</span>"}</div><div class="story-stage-list">${(dossier.stages || []).map(([reference, title, observation], index) => `<article><span>${faNumber(index + 1)}</span><div><h4>${escapeHTML(title)}</h4><p><b>${escapeHTML(reference)}</b> · ${escapeHTML(observation)}</p>${sourceVerseButton(reference, "بازکردن آیهٔ لنگر")}</div></article>`).join("")}</div></section>`,
-    principles: `<section class="detail-panel"><p class="eyebrow">قاعده‌های قابل بررسی</p><h3>مشاهده را از حکمِ کلی جدا نگه دارید.</h3><p class="reading-notice">هر مورد یک گزارهٔ متن‌محور با آیهٔ لنگر است؛ برای تبدیل آن به تفسیر یا قاعدهٔ عمومی، باید سیاق و منابع تفسیریِ همان آیات را مقایسه کنید.</p><div class="story-insight-list">${(dossier.principles || []).map(([title, reference, explanation]) => `<article><h4>${escapeHTML(title)}</h4><p>${escapeHTML(explanation)}</p>${sourceVerseButton(reference, `شاهد ${reference}`)}</article>`).join("")}</div></section>`,
-    applications: `<section class="detail-panel"><p class="eyebrow">کاربست در زندگی امروز</p><h3>از روایت به پرسشِ مسئولانه برسید.</h3><p class="reading-notice">این‌ها «پرسش کاربرد» هستند، نه حکم دینی، توصیهٔ درمانی یا نسخهٔ سیاسی. پاسخِ معتبر باید به آیات لنگر، شرایط امروز و منابع تخصصی تکیه کند.</p><div class="story-application-list">${(dossier.applications || []).map(([area, question]) => `<article><h4>${escapeHTML(area)}</h4><p>${escapeHTML(question)}</p></article>`).join("")}</div></section>`,
-    method: `<section class="detail-panel"><p class="eyebrow">الگوریتم پژوهش قصه</p><h3>یک روند قابل تکرار برای هر روایت</h3><ol class="story-method-list"><li><b>تعیین مرز</b>تمام بازه‌های ${escapeHTML(storyRangeLabel(story))} را پیش از برچسب‌گذاری بخوانید.</li><li><b>تفکیک عناصر</b>بازیگر، گفت‌وگو، کنش، واکنش و پیامد را با شمارهٔ آیه ثبت کنید.</li><li><b>ساخت توالی</b>صحنه‌ها را بر اساس آیات لنگرِ تب «عناصر روایت» مرتب کنید، نه بر پایهٔ حافظه یا خلاصه.</li><li><b>آزمون قاعده</b>هر گزاره را با متنِ کامل آیه، پیش/پس و دو تفسیر منبع‌دارِ همان آیه مقایسه کنید.</li><li><b>کاربست امروز</b>کاربست را به پرسشِ عملیِ محدود تبدیل کنید و آن را از «مراد قطعی قرآن» جدا برچسب بزنید.</li><li><b>ثبت اختلاف</b>اگر منابع یا خوانش‌ها متفاوت‌اند، هر دیدگاه را با نام اثر، نسخه و آیهٔ مبنا در یادداشت ثبت کنید.</li></ol></section>`,
+    verses: `<section class="detail-panel"><p class="eyebrow">همهٔ آیات داستان</p><h3>متن کاملِ بازهٔ روایی</h3><p class="reading-notice">${faNumber(passageCount)} آیهٔ این مسیر در فهرست زیر آمده است. هر آیه را لمس کنید تا پروندهٔ تفصیلی، سیاق و تفاسیر منبع‌دار آن باز شود.</p><div class="story-all-verses">${records.map((record) => `<button class="story-verse-row" type="button" data-story-verse-id="${escapeHTML(record.id)}"><b>${escapeHTML(record.reference)}</b><span lang="ar" dir="rtl">${escapeHTML(record.arabic)}</span><small>${escapeHTML(record.persian)}</small></button>`).join("")}</div></section>`,
+    concepts: `<section class="detail-panel"><p class="eyebrow">مفاهیم کلیدی داستان</p><h3>مفهوم‌ها با آیهٔ لنگر</h3><p class="reading-notice">این مفهوم‌ها از صحنه‌ها و گزاره‌های خود روایت استخراج شده‌اند؛ هم‌معناییِ قطعی یا تفسیر نهایی را ادعا نمی‌کنند.</p>${insights(dossier.keyConcepts)}</section>`,
+    characters: `<section class="detail-panel"><p class="eyebrow">شخصیت‌ها و نقش‌ها</p><h3>چه کسانی در حرکت روایت نقش دارند؟</h3><div class="story-character-grid">${(dossier.charactersDetailed || []).map((character) => `<article><h4>${escapeHTML(character.name)}</h4><p>${escapeHTML(character.role)}</p>${sourceVerseButton(character.reference, character.reference)}</article>`).join("") || "<p>شخصیت‌ها در حال تکمیل‌اند.</p>"}</div></section>`,
+    topics: `<section class="detail-panel"><p class="eyebrow">موضوعات داستان</p><h3>حوزه‌های پژوهشِ قابل پیگیری</h3>${insights(dossier.topics)}</section>`,
+    subtleties: `<section class="detail-panel"><p class="eyebrow">نکات و ظرایف داستان</p><h3>به حرکت و ترتیبِ صحنه‌ها دقت کنید.</h3>${insights(dossier.subtleties)}</section>`,
+    principles: `<section class="detail-panel"><p class="eyebrow">اصول زندگی در داستان</p><h3>قاعده‌های متن‌محور و پرسشِ کاربرد امروز</h3><p class="reading-notice">اصل‌ها آیه‌لنگر دارند؛ کاربست امروز پرسش پژوهشی است، نه نسخه یا حکمِ آماده.</p>${insights(dossier.lifePrinciples)}<div class="story-application-list"><h4>پرسش‌های کاربست امروز</h4>${(dossier.applications || []).map(([area, question]) => `<article><h4>${escapeHTML(area)}</h4><p>${escapeHTML(question)}</p></article>`).join("")}</div></section>`,
+    wonders: `<section class="detail-panel"><p class="eyebrow">شگفتی‌های داستان</p><h3>رخدادهای برجسته در متن</h3><p class="reading-notice">«شگفتی» نام‌گذاریِ یک رخداد برجستهٔ روایت است؛ شرح تفسیری و اعتقادی آن باید در منابع آیه بررسی شود.</p>${insights(dossier.wonders)}</section>`,
+    narratology: `<section class="detail-panel"><p class="eyebrow">روایت‌شناسی داستان</p><h3>آغاز، کشمکش، چرخش و فرجام</h3><p>این نقشه به خواننده کمک می‌کند ساختِ روایت را از حافظه یا خلاصه‌گویی جدا کند.</p>${insights(narratologyItems)}</section>`,
+    elements: `<section class="detail-panel"><p class="eyebrow">عناصر داستان</p><h3>صحنه، شخصیت، کشمکش و فرجام</h3>${insights(elementItems)}<div class="story-character-grid"><h4>بازیگران و کارکرد روایی</h4>${(dossier.elements?.characters || []).map((character) => `<article><h4>${escapeHTML(character.name)}</h4><p>${escapeHTML(character.role)}</p>${sourceVerseButton(character.reference, character.reference)}</article>`).join("")}</div></section>`,
+    semiotics: `<section class="detail-panel"><p class="eyebrow">نشانه‌شناسی داستان</p><h3>نشانه‌های رواییِ قابل مشاهده</h3><p class="reading-notice">این بخش، عنصرِ تکرارشونده یا برجسته در خودِ متن را نشان می‌دهد؛ معنای نهاییِ نشانه را از پیش تعیین نمی‌کند.</p>${insights(dossier.semiotics)}</section>`,
   };
-  $("#story-panels").innerHTML = panels[state.storyTab] || panels.route;
+  $("#story-panels").innerHTML = panels[state.storyTab] || panels.verses;
 }
 
 function openStory(id, shouldNavigate = true) {
   const story = state.stories.find((item) => item.id === id);
   if (!story) return;
   state.selectedStory = story;
-  state.storyTab = "route";
+  state.storyTab = "verses";
   renderStory();
   if (shouldNavigate) navigate("story", id);
   else showScreen("story", id);

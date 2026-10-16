@@ -125,10 +125,18 @@ class QuranResearchTests(unittest.TestCase):
         story_index = json.loads((static_dir / "story-index.json").read_text(encoding="utf-8"))
         dossiers = json.loads((static_dir / "story-dossiers.json").read_text(encoding="utf-8"))["dossiers"]
         self.assertEqual(set(dossiers), {story["id"] for story in story_index["stories"]})
+        required_lists = ("stages", "keyConcepts", "topics", "subtleties", "lifePrinciples", "wonders", "charactersDetailed", "semiotics")
         for dossier in dossiers.values():
-            self.assertTrue(dossier["stages"])
-            self.assertTrue(dossier["principles"])
+            for field in required_lists:
+                self.assertTrue(dossier[field], field)
             self.assertTrue(dossier["applications"])
+            self.assertEqual(set(dossier["narratology"]), {"opening", "tension", "turn", "closure"})
+            self.assertTrue(dossier["elements"]["characters"])
+
+    def test_story_screen_exposes_all_requested_research_fields(self):
+        html = (Path(main.STATIC_DIR) / "index.html").read_text(encoding="utf-8")
+        for label in ("همهٔ آیات", "مفاهیم کلیدی", "شخصیت‌ها", "موضوعات", "نکات و ظرایف", "اصول زندگی", "شگفتی‌ها", "روایت‌شناسی", "عناصر داستان", "نشانه‌شناسی"):
+            self.assertIn(label, html)
 
     def test_initial_story_library_uses_valid_quran_ranges(self):
         story_index = json.loads((Path(main.STATIC_DIR) / "story-index.json").read_text(encoding="utf-8"))
