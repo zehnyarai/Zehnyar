@@ -34,6 +34,7 @@ import {
 import type { AnalysisPackage, QuotaSettings } from './quota'
 import {
   FREE_TIER_NOTICE,
+  directFailureMessage,
   analyzePhotosDirect,
   clearDirectSettings,
   providerStatus,
@@ -575,10 +576,12 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
           report.context ?? { ...EMPTY_CONTEXT }
         )
       } catch (error) {
-        // A failed or refused call never costs the farmer an analysis.
+        // A failed or refused call never costs the farmer an analysis, and the user sees a
+        // neutral sentence rather than a provider name or model id.
         state.quota = refundQuota(state.quota, decision.free)
         mirrorQuota(state.quota)
-        throw error
+        const neutral = directFailureMessage(error)
+        throw neutral ? new LocalError(neutral) : error
       }
       report.data = analysis
       result = report
@@ -594,7 +597,7 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
     else if (path === '/local/lab-analyses' && method === 'POST') {
       if (!directSettings().key)
         throw new LocalError(
-          'تفسیر هوشمند آزمایش روی این دستگاه فعال نیست؛ کلید شخصی خود را ثبت کنید.'
+          'تفسیر هوشمند آزمایش هنوز فعال نشده است؛ مدیر آن را از «پنل مدیر» راه‌اندازی می‌کند.'
         )
       if (body.consent !== true)
         throw new LocalError('برای ارسال اعداد آزمایش به سرویس تحلیل، رضایت آگاهانه لازم است.')
@@ -619,7 +622,8 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       } catch (error) {
         state.quota = refundQuota(state.quota, decision.free)
         mirrorQuota(state.quota)
-        throw error
+        const neutral = directFailureMessage(error)
+        throw neutral ? new LocalError(neutral) : error
       }
       const { result: assessment, units, calculations } = direct
       if (state.assessments.length >= 200) state.assessments.length = 199

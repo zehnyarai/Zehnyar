@@ -23,6 +23,7 @@ import {
   testDirectConnection,
   validKey,
   validModel,
+  directFailureMessage,
 } from './visionDirect'
 import { EMPTY_CONTEXT } from './scientific'
 import type { LabInput } from './fieldwork'
@@ -340,5 +341,65 @@ describe('device-direct vision (owner key)', () => {
     expect(rows[0].detail).toContain('کار می‌کند')
     expect(rows[1].ok).toBe(false)
     expect(rows[1].detail).toContain('سهمیهٔ رایگان')
+  })
+})
+
+describe('xAI Grok provider (owner key)', () => {
+  const grokReply = (value: unknown) => ({
+    choices: [
+      { finish_reason: 'stop', message: { role: 'assistant', content: JSON.stringify(value) } },
+    ],
+  })
+  it('keeps a separate Grok key and switches the active provider without losing Gemini', () => {
+    saveDirectSettings('gemini-2.5-flash', 'AIzaSyExampleExampleExample123', 'gemini')
+    saveDirectSettings('grok-4', 'xai-ExampleExampleKey123', 'grok')
+    expect(directSettings().provider).toBe('grok')
+    expect(directSettings().key).toBe('xai-ExampleExampleKey123')
+    expect(directSettings().model).toBe('grok-4')
+    const slots = JSON.parse(store.get('pestino-direct-vision') ?? '{}').slots
+    expect(slots.gemini.key).toBe('AIzaSyExampleExampleExample123')
+    expect(slots.grok.key).toBe('xai-ExampleExampleKey123')
+  })
+  it('calls api.x.ai with a bearer key and image_url parts, never putting the key in the body', async () => {
+    saveDirectSettings('grok-4', 'xai-ExampleExampleKey123', 'grok')
+    const calls = stub(grokReply(photo))
+    const result = await analyzePhotosDirect(['data:image/jpeg;base64,AAAA'], {
+      ...EMPTY_CONTEXT,
+    })
+    expect(result.summary).toContain('لکه')
+    expect(calls).toHaveLength(1)
+    expect(calls[0].url).toBe('https://api.x.ai/v1/chat/completions')
+    expect(calls[0].url).not.toContain('xai-')
+    const headers = calls[0].init.headers as Record<string, string>
+    expect(headers['Authorization']).toBe('Bearer xai-ExampleExampleKey123')
+    const body = JSON.parse(String(calls[0].init.body)) as {
+      model: string
+      messages: { content: unknown }[]
+    }
+    expect(body.model).toBe('grok-4')
+    expect(JSON.stringify(body)).not.toContain('xai-ExampleExampleKey123')
+    expect(JSON.stringify(body)).toContain('data:image/jpeg;base64,AAAA')
+  })
+  it('rejects a model from the wrong provider instead of calling it', () => {
+    saveDirectSettings('grok-4', 'xai-ExampleExampleKey123', 'grok')
+    expect(validModel('gemini-2.5-flash', 'grok')).toBeNull()
+    expect(validModel('grok-4', 'grok')).toBe('grok-4')
+  })
+})
+
+describe('neutral failure copy for farmers', () => {
+  it('never names a provider or a model in a message shown to the user', () => {
+    const cases = [
+      new DirectError('کلید xAI پذیرفته نشد (پاسخ سرویس: invalid key)', 401),
+      new DirectError('مدل «gemini-2.5-flash» روی سهمیهٔ رایگان Google سهمیه ندارد', 429),
+      new DirectError('اتصال مستقیم از این دستگاه به xAI برقرار نشد.', 0),
+      new DirectError('سرور xAI خطا داد', 503),
+    ]
+    for (const error of cases) {
+      const text = directFailureMessage(error)
+      expect(text).not.toMatch(/xAI|Google|Gemini|grok|مدل|کلید|API|api\./i)
+      expect(text.length).toBeGreaterThan(20)
+    }
+    expect(directFailureMessage(new Error('anything else'))).toBe('')
   })
 })
