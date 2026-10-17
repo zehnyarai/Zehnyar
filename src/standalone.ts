@@ -350,7 +350,15 @@ function photoData(part: string, notes: string): AnalysisData {
 async function normalizedPhoto(file: File): Promise<string> {
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 8 * 1024 * 1024)
     throw new LocalError('تصویر JPG، PNG یا WebP کمتر از ۸ مگابایت انتخاب کنید.')
-  const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer())
+  let bytes: Uint8Array
+  try {
+    bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer())
+  } catch {
+    // A stale picker handle, translated instead of leaking the browser's English error.
+    throw new LocalError(
+      'عکس انتخاب‌شده در دسترس برنامه نیست؛ آن را دوباره انتخاب کنید. پرونده‌های شما دست‌نخورده‌اند.'
+    )
+  }
   const valid =
     (bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) ||
     (bytes[0] === 137 && bytes[1] === 80 && bytes[2] === 78 && bytes[3] === 71) ||

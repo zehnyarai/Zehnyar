@@ -3191,3 +3191,12 @@ body {
   height: 18px;
   accent-color: var(--green);
 }
+
+/* The moment a photo is copied into memory; short and quiet. */
+.reading-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 0;
+  font-size: 13px;
+}

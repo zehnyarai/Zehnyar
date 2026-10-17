@@ -119,5 +119,17 @@ export async function downloadText(
   const { saveTextFile } = await import('./files')
   return saveTextFile(name, content, type)
 }
-export const errorMessage = (err: unknown) =>
-  err instanceof Error ? err.message : 'خطایی رخ داد. دوباره تلاش کنید.'
+export const errorMessage = (err: unknown) => {
+  // The picker on Android can revoke a photo handle after a while; the browser's own
+  // English wording is unhelpful in an orchard, so it is always translated.
+  if (
+    err instanceof Error &&
+    (/could not be read/i.test(err.message) ||
+      /permission problems/i.test(err.message) ||
+      err.name === 'NotReadableError' ||
+      err.name === 'NotFoundError')
+  )
+    return 'عکس انتخاب‌شده دیگر در دسترس برنامه نیست (اندروید دسترسی فایل را بست). عکس را دوباره انتخاب کنید؛ پرونده‌ها و یادداشت‌های شما دست‌نخورده می‌مانند.'
+  if (err instanceof Error) return err.message
+  return 'خطایی رخ داد. دوباره تلاش کنید.'
+}

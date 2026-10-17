@@ -156,6 +156,36 @@ afterEach(async () => {
 })
 
 describe('offline photo analysis (the owner’s exact flow)', () => {
+  it('copies the picked photo at once and explains a stale Android handle in Persian', async () => {
+    // The exact failure of 2026-10-17: the picker's handle died after selection, and the
+    // screen showed the browser's English "could not be read … permission problems".
+    const stale = new File([new Uint8Array([255, 216, 255, 224, 0, 16])], 'leaf.jpg', {
+      type: 'image/jpeg',
+    })
+    Object.defineProperty(stale, 'arrayBuffer', {
+      value: () => Promise.reject(new DOMException('stale handle', 'NotReadableError')),
+    })
+    const realReader = globalThis.FileReader
+    class FailingReader {
+      onload: (() => void) | null = null
+      onerror: (() => void) | null = null
+      error = new DOMException('could not read', 'NotReadableError')
+      result: string | null = null
+      readAsDataURL() {
+        setTimeout(() => this.onerror?.(), 0)
+      }
+    }
+    // @ts-expect-error deliberately failing reader for this environment
+    globalThis.FileReader = FailingReader
+    try {
+      render(<Analysis ctx={ctx} initialFile={stale} />)
+      await waitFor(() => expect(text()).toContain('عکس انتخاب‌شده دیگر در دسترس برنامه نیست'))
+      expect(text()).toContain('دوباره')
+      expect(text()).not.toMatch(/could not be read|permission problems/i)
+    } finally {
+      globalThis.FileReader = realReader
+    }
+  })
   it('shows the consent box in the APK and screens the photo once it is ticked', async () => {
     const user = userEvent.setup()
     render(<Analysis ctx={ctx} initialFile={image} />)

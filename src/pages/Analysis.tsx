@@ -19,6 +19,14 @@ import type { QuotaPayload } from '../quota'
 import { ScientificPlan } from '../components/scientific'
 import { EMPTY_CONTEXT, SYMPTOMS, validateContext } from '../scientific'
 import type { DiagnosticContext } from '../scientific'
+import {
+  capturePhoto,
+  fileFromCaptured,
+  isUnreadableFile,
+  PhotoReadError,
+  previewUrl,
+} from '../photoCapture'
+import type { CapturedPhoto } from '../photoCapture'
 
 const PARTS = ['برگ', 'میوه', 'شاخه و تنه', 'کل درخت', 'ریشه و طوقه', 'گل و جوانه']
 const STAGES = [
@@ -39,8 +47,11 @@ export default function Analysis({
   initialFile?: File
   initialOrchard?: string
 }) {
-  const [files, setFiles] = useState<File[]>(initialFile ? [initialFile] : [])
-  const [previews, setPreviews] = useState<string[]>([])
+  // Photos are copied into memory at pick time (see photoCapture.ts): keeping only the
+  // File object meant Android had already revoked the picker handle by the time the
+  // farmer tapped «تحلیل تصویر», and the screen failed with a raw English read error.
+  const [photos, setPhotos] = useState<CapturedPhoto[]>([])
+  const [reading, setReading] = useState(false)
   const [orchard, setOrchard] = useState(initialOrchard ?? '')
   const [part, setPart] = useState('برگ')
   const [notes, setNotes] = useState('')
@@ -70,23 +81,54 @@ export default function Analysis({
     void loadQuota()
   }, [loadQuota])
   const blocked = IS_STANDALONE && quota?.blocked === true
+  // Previews come from the in-memory copy, so a revoked picker handle cannot blank them.
+  const [previews, setPreviews] = useState<string[]>([])
   useEffect(() => {
-    const urls = files.map((file) => URL.createObjectURL(file))
+    const urls = photos.map(previewUrl)
     setPreviews(urls)
     return () => urls.forEach((url) => URL.revokeObjectURL(url))
-  }, [files])
+  }, [photos])
+  const files = photos
+  const capture = useCallback(
+    async (incoming: File[]) => {
+      if (!incoming.length) return
+      const invalid = incoming.map(checkImage).find(Boolean)
+      if (invalid) {
+        setError(invalid)
+        return
+      }
+      if (photos.length + incoming.length > 4) {
+        setError('حداکثر چهار تصویر: علامت نزدیک، پشت برگ، نمای تاج و بخش مرتبط.')
+        return
+      }
+      setReading(true)
+      setError('')
+      try {
+        const captured: CapturedPhoto[] = []
+        for (const file of incoming) captured.push(await capturePhoto(file))
+        setPhotos((old) => [...old, ...captured].slice(0, 4))
+      } catch (e) {
+        setError(
+          e instanceof PhotoReadError || isUnreadableFile(e)
+            ? e instanceof Error
+              ? e.message
+              : 'عکس خوانده نشد؛ دوباره انتخاب کنید.'
+            : errorMessage(e)
+        )
+      } finally {
+        setReading(false)
+      }
+    },
+    [photos.length]
+  )
+  // A photo passed in from another screen is copied right away as well.
+  useEffect(() => {
+    if (initialFile) void capture([initialFile])
+    // The first render only; later picks go through the inputs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   function select(incoming: File[]) {
-    const invalid = incoming.map(checkImage).find(Boolean)
-    if (invalid) {
-      setError(invalid)
-      return
-    }
-    if (files.length + incoming.length > 4) {
-      setError('حداکثر چهار تصویر: علامت نزدیک، پشت برگ، نمای تاج و بخش مرتبط.')
-      return
-    }
-    setFiles((old) => [...old, ...incoming])
-    setError('')
+    void capture(incoming)
   }
   function update<K extends keyof DiagnosticContext>(key: K, value: DiagnosticContext[K]) {
     setContext((old) => ({ ...old, [key]: value }))
@@ -106,7 +148,7 @@ export default function Analysis({
     setPlan(null)
   }
   async function submit(mode: 'analyze' | 'save') {
-    if (busy || !files.length) return
+    if (busy || reading || !photos.length) return
     setError('')
     if (mode === 'analyze' && !configured) {
       setError(
@@ -143,9 +185,11 @@ export default function Analysis({
       return
     }
     setBusy(true)
+    // Fresh in-memory Files: identical bytes, but no dependency on the picker's handle.
+    const uploads = photos.map(fileFromCaptured)
     const body = new FormData()
-    body.append('image', files[0])
-    files.slice(1).forEach((file) => body.append('additional_images', file))
+    body.append('image', uploads[0])
+    uploads.slice(1).forEach((file) => body.append('additional_images', file))
     body.append('orchard_id', orchard)
     body.append('tree_part', part)
     body.append('notes', notes)
@@ -238,8 +282,8 @@ export default function Analysis({
                       type="button"
                       className="icon-button"
                       aria-label={`حذف تصویر ${i + 1}`}
-                      disabled={busy}
-                      onClick={() => setFiles((old) => old.filter((_, j) => j !== i))}
+                      disabled={busy || reading}
+                      onClick={() => setPhotos((old) => old.filter((_, j) => j !== i))}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -257,10 +301,15 @@ export default function Analysis({
               <p className="muted">تا ۴ زاویه از یک مسئله؛ نمای نزدیک، پشت برگ و نمای کامل درخت</p>
             </>
           )}
+          {reading && (
+            <p className="muted reading-line">
+              <Spinner /> خواندن عکس روی همین دستگاه…
+            </p>
+          )}
           <div className="upload-actions">
             <button
               className="button secondary"
-              disabled={busy || files.length >= 4}
+              disabled={busy || reading || files.length >= 4}
               onClick={() => upload.current?.click()}
             >
               <Upload size={18} />
@@ -268,7 +317,7 @@ export default function Analysis({
             </button>
             <button
               className="button secondary"
-              disabled={busy || files.length >= 4}
+              disabled={busy || reading || files.length >= 4}
               onClick={() =>
                 void takePhoto(
                   () => camera.current?.click(),
@@ -535,7 +584,7 @@ export default function Analysis({
         <div className="analysis-main-actions">
           <button
             className="button primary"
-            disabled={busy || !files.length || blocked}
+            disabled={busy || reading || !files.length || blocked}
             onClick={() => void submit('analyze')}
           >
             {busy ? (
@@ -549,7 +598,7 @@ export default function Analysis({
           </button>
           <button
             className="button secondary"
-            disabled={busy || !files.length}
+            disabled={busy || reading || !files.length}
             onClick={() => void submit('save')}
           >
             <Upload size={18} />
