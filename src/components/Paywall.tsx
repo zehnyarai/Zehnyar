@@ -39,7 +39,6 @@ export default function Paywall({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState('')
-  const [receipt, setReceipt] = useState({ payer: '', reference: '', amount_toman: '' })
   const card = quota.card
   const price = quota.price_toman
   const needsPrice = quota.needs_price
@@ -65,33 +64,6 @@ export default function Paywall({
       setDone(message)
       ctx.notify(message, 'success')
       setCode('')
-      await ctx.refresh()
-      await onUnlocked()
-    } catch (e) {
-      setError(errorMessage(e))
-    } finally {
-      setBusy(false)
-    }
-  }
-  async function submitReceipt() {
-    if (busy) return
-    setBusy(true)
-    setError('')
-    try {
-      await api('/local/billing/receipts', {
-        method: 'POST',
-        body: JSON.stringify({
-          payer: receipt.payer,
-          amount_toman: Number(digits(receipt.amount_toman)),
-          paid_at: new Date().toISOString().slice(0, 10),
-          reference: receipt.reference,
-          note: 'ثبت از صفحه خرید تحلیل',
-        }),
-      })
-      const message = 'رسید شما ثبت شد؛ پس از تأیید واریز توسط مالک، تحلیل‌ها آزاد می‌شود.'
-      setDone(message)
-      ctx.notify(message, 'success')
-      setReceipt({ payer: '', reference: '', amount_toman: '' })
       await ctx.refresh()
       await onUnlocked()
     } catch (e) {
@@ -198,52 +170,9 @@ export default function Paywall({
         </div>
       </div>
 
-      <details className="paywall-manual">
-        <summary>
-          <Send size={16} /> پرداخت کردم ولی کد نگرفته‌ام (ثبت رسید روی همین دستگاه)
-        </summary>
-        <p className="muted">
-          این فرم برای وقتی است که خودِ مالک همین دستگاه را تحویل می‌گیرد؛ رسید ثبت می‌شود و پس از
-          تأیید واریز در پنل مدیر، تحلیل‌ها آزاد می‌شود. تأیید خودکار بانکی وجود ندارد.
-        </p>
-        <div className="reference-form-grid">
-          <label>
-            نام پرداخت‌کننده
-            <input
-              value={receipt.payer}
-              onChange={(e) => setReceipt({ ...receipt, payer: e.target.value })}
-              maxLength={80}
-              disabled={busy}
-            />
-          </label>
-          <label>
-            مبلغ (تومان)
-            <input
-              dir="ltr"
-              value={receipt.amount_toman}
-              onChange={(e) => setReceipt({ ...receipt, amount_toman: e.target.value })}
-              disabled={busy}
-            />
-          </label>
-          <label>
-            کد پیگیری
-            <input
-              dir="ltr"
-              value={receipt.reference}
-              onChange={(e) => setReceipt({ ...receipt, reference: e.target.value })}
-              maxLength={60}
-              disabled={busy}
-            />
-          </label>
-        </div>
-        <button
-          className="button secondary"
-          disabled={busy || !receipt.payer.trim() || digits(receipt.amount_toman).length < 4}
-          onClick={() => void submitReceipt()}
-        >
-          <Send size={16} /> ثبت رسید برای تأیید مالک
-        </button>
-      </details>
+      <button className="button primary" onClick={() => ctx.navigate('subscription')}>
+        <Send size={17} /> انتخاب بسته و ارسال عکس فیش
+      </button>
 
       {done && (
         <p className="paywall-done" role="status">

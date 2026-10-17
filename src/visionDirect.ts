@@ -31,12 +31,12 @@ export const GROK_MODELS: FreeModel[] = [
   {
     id: 'grok-4.7',
     label: 'Grok 4.7 (پیشنهاد)',
-    note: 'تازه‌ترین مدل xAI و چندرسانه‌ای؛ برای تحلیل عکس مناسب است.',
+    note: 'شناسهٔ پیشنهادی؛ وجود و دسترسی آن فقط با فهرست حساب و آزمون مشخص می‌شود.',
   },
   {
     id: 'grok-4.6',
     label: 'Grok 4.6',
-    note: 'نسل قبل با همان کیفیت عکس؛ اگر روی حساب شما باز است.',
+    note: 'فقط اگر در فهرست حساب شما موجود باشد؛ کیفیت عکس در باغ‌های ایران اعتبارسنجی نشده است.',
   },
   {
     id: 'grok-4.3',
@@ -98,7 +98,7 @@ export function preferGrokModel(ids: string[]): string | null {
     .sort((a, b) => Number(b.replace('grok-', '')) - Number(a.replace('grok-', '')))
   if (numbered.length) return numbered[0]
   const chat = usable.find((id) => !/(image|imagine|voice|video|build)/i.test(id))
-  return chat ?? usable[0] ?? null
+  return chat ?? null
 }
 
 /**
@@ -745,15 +745,62 @@ export function setFetchImplementation(impl: FetchLike | null) {
   fetchImpl = impl ?? realFetch
 }
 
-/** Google's message with any key-like token stripped, so it is safe to show the owner. */
+/** Read both API error dialects; never expose a credential in the owner panel. */
 export function safeProviderMessage(body: string): string {
+  let message = ''
   try {
-    const parsed = JSON.parse(body) as { error?: { message?: string; status?: string } }
-    const message = parsed.error?.message ?? ''
-    return message.replace(/AIza[0-9A-Za-z_\-]{8,}/g, '***').slice(0, 400)
+    const parsed = JSON.parse(body) as {
+      error?: string | { message?: string; status?: string }
+      message?: string
+      code?: string
+    }
+    message =
+      typeof parsed.error === 'string'
+        ? parsed.error
+        : (parsed.error?.message ?? parsed.message ?? parsed.code ?? '')
   } catch {
-    return body.replace(/AIza[0-9A-Za-z_\-]{8,}/g, '***').slice(0, 200)
+    // Do not display an HTML proxy page, request headers, or an arbitrary native dump.
+    message = /^\s*</.test(body) ? 'پاسخ واسط شبکه به جای پاسخ سرویس دریافت شد.' : body
   }
+  message = String(message)
+  // Some valid keys do not use the usual prefixes. Strip exact saved values too.
+  const slots = readStored().slots
+  for (const key of [slots.gemini.key, slots.grok.key])
+    if (key) message = message.split(key).join('***')
+  return message
+    .replace(/(?:AIza|xai-)[0-9A-Za-z_\-]{8,}/gi, '***')
+    .replace(/Bearer\s+[^\s"',}]+/gi, 'Bearer ***')
+    .slice(0, 400)
+}
+
+/** Only classify native errors: raw errors can contain Authorization or request bodies. */
+export function connectionFailure(error: unknown, provider: DirectProvider): DirectError {
+  const raw =
+    error && typeof error === 'object' && 'message' in error
+      ? String(error.message)
+      : String(error ?? '')
+  const stage = /timeout|timed out|abort/i.test(raw)
+    ? 'مهلت پاسخ تمام شد؛ اینترنت پایدارتر را امتحان کنید.'
+    : /ssl|tls|certificate|certpath|handshake/i.test(raw)
+      ? 'ارتباط امن برقرار نشد؛ تاریخ و ساعت گوشی و مسیر شبکه را بررسی کنید. امنیت ارتباط غیرفعال نشد.'
+      : /unknownhost|resolve|dns|host not found/i.test(raw)
+        ? 'نشانی سرویس پیدا نشد؛ DNS یا دسترسی شبکه را بررسی کنید.'
+        : 'هیچ پاسخ HTTP دریافت نشد؛ دسترسی اینترنت و مسیر شبکهٔ برنامه را بررسی کنید. این خطا به معنی اشتباه بودن کلید نیست.'
+  return new DirectError(`${provider === 'grok' ? 'xAI' : 'Google'}: ${stage}`, 0)
+}
+
+/** Update one slot only. Flat writes used to silently erase the OTHER provider's key. */
+function rememberTest(settings: DirectSettings): DirectSettings {
+  const stored = readStored()
+  stored.slots[settings.provider] = {
+    model: settings.model,
+    key: settings.key,
+    checked_at: settings.checked_at,
+    ok: settings.ok,
+    note: settings.note,
+  }
+  writeStored(stored)
+  return settings
 }
 
 /**
@@ -794,7 +841,7 @@ export function providerError(
     if (status === 403) {
       if (/credit|spending|quota|billing|limit/i.test(detail))
         return new DirectError(
-          `کلید xAI درست است، اما اعتبار یا سقف هزینهٔ حساب xAI اجازهٔ این درخواست را نمی‌دهد (پاسخ سرویس: ${detail}). در کنسول xAI اعتبار حساب را بررسی کنید.`,
+          `پاسخ xAI دربارهٔ اعتبار یا سقف هزینهٔ حساب است؛ این درخواست مجاز نشد (پاسخ سرویس: ${detail}). در کنسول xAI اعتبار حساب را بررسی کنید.`,
           403
         )
       if (/model|access|permission|entitle/i.test(detail))
@@ -807,10 +854,10 @@ export function providerError(
         403
       )
     }
-    if (status === 429)
+    if (status === 429 || status === 402)
       return new DirectError(
         `سهمیه یا اعتبار حساب xAI برای این درخواست کافی نیست (پاسخ سرویس: ${detail}).`,
-        429
+        status
       )
     if (status === 404 || (status === 400 && /model/i.test(detail)))
       return new DirectError(
@@ -879,11 +926,8 @@ export async function listDirectModels(settings?: DirectSettings): Promise<FreeM
         method: 'GET',
         headers: { Authorization: `Bearer ${key}` },
       })
-    } catch {
-      throw new DirectError(
-        'برای گرفتن فهرست مدل‌های xAI اتصال برقرار نشد؛ اینترنت را بررسی کنید.',
-        0
-      )
+    } catch (error) {
+      throw connectionFailure(error, 'grok')
     }
     const body = await response.text()
     if (!response.ok) throw providerError(response.status, body, 'models.list', 'grok')
@@ -1123,11 +1167,8 @@ async function generateGrok(options: {
         ],
       }),
     })
-  } catch {
-    throw new DirectError(
-      'اتصال مستقیم از این دستگاه به سرویس xAI برقرار نشد؛ اینترنت یا فیلترشکن را بررسی کنید.',
-      0
-    )
+  } catch (error) {
+    throw connectionFailure(error, 'grok')
   }
   const body = await response.text()
   if (!response.ok) throw providerError(response.status, body, options.model, 'grok')
@@ -1141,7 +1182,22 @@ async function generateGrok(options: {
   }
   const choice = data.choices?.[0]
   if (!choice) throw new DirectError('سرویس xAI هیچ نتیجه‌ای برنگرداند؛ داده‌ای ثبت نشد.', 502)
-  const text = typeof choice.message?.content === 'string' ? choice.message.content : ''
+  const content = choice.message?.content
+  const text =
+    typeof content === 'string'
+      ? content
+      : Array.isArray(content)
+        ? content
+            .map((part: { type?: string; text?: string }) =>
+              part.type === 'text' ? (part.text ?? '') : ''
+            )
+            .join('')
+        : ''
+  if (choice.finish_reason === 'length')
+    throw new DirectError(
+      'پاسخ xAI به سقف طول رسید و کامل نشد؛ نتیجه‌ای ثبت و اعتباری کم نشد.',
+      502
+    )
   if (!text || text.length > 200000)
     throw new DirectError('پاسخ مدل خالی یا بیش از حد بلند بود؛ ثبت نشد.', 502)
   return text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '')
@@ -1251,7 +1307,9 @@ export async function diagnoseProviders(): Promise<ProviderDiagnosis[]> {
     }
     const base: DirectSettings = { provider, ...slot, fallback: stored.fallback }
     try {
-      const tested = await runConnectionTest(base)
+      const tested = await runConnectionTest(
+        provider === 'grok' ? await grokAccountModel(base) : base
+      )
       stored.slots[provider] = {
         model: tested.model,
         key: slot.key,
@@ -1421,7 +1479,8 @@ export function labCalculations(sample: LabInput) {
 
 /** Small text-only call that proves key+model+network without spending an image. */
 export async function testDirectConnection(): Promise<DirectSettings> {
-  const current = directSettings()
+  let current = directSettings()
+  if (current.provider === 'grok') current = await grokAccountModel(current)
   try {
     return await runConnectionTest(current)
   } catch (e) {
@@ -1442,10 +1501,7 @@ export async function testDirectConnection(): Promise<DirectSettings> {
     }
     // Persist the honest reason (already sanitised) so the owner can read it later.
     const note = e instanceof DirectError ? e.message : 'آزمون اتصال ناموفق بود.'
-    storage()?.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ ...current, checked_at: new Date().toISOString(), ok: false, note })
-    )
+    rememberTest({ ...current, checked_at: new Date().toISOString(), ok: false, note })
     throw e
   }
 }
@@ -1455,6 +1511,21 @@ export async function testDirectConnection(): Promise<DirectSettings> {
  * Returns null (and changes nothing) when the list has no usable chat model, so a wrong
  * key or a blocked network still produces its own precise error.
  */
+/** Discover account IDs before testing. A list failure never replaces the useful call error. */
+async function grokAccountModel(current: DirectSettings): Promise<DirectSettings> {
+  try {
+    const models = await listDirectModels(current)
+    if (
+      !/(image|imagine|voice|video|build)/i.test(current.model) &&
+      models.some((m) => m.id === current.model)
+    )
+      return current
+    const pick = preferGrokModel(models.map((m) => m.id))
+    return pick ? { ...current, model: pick } : current
+  } catch {
+    return current
+  }
+}
 async function repairGrokModel(current: DirectSettings): Promise<DirectSettings | null> {
   const models = await listDirectModels(current)
   const pick = preferGrokModel(models.map((m) => m.id))
@@ -1467,12 +1538,12 @@ async function repairGrokModel(current: DirectSettings): Promise<DirectSettings 
       `آزمون اتصال موفق شد؛ مدل «${pick}» از فهرست حساب xAI شما انتخاب و ذخیره شد ` +
       '(مدل قبلی دیگر روی حساب شما فعال نبود). این تأیید دقت تحلیل عکس نیست.',
   }
-  storage()?.setItem(STORAGE_KEY, JSON.stringify(answer))
+  rememberTest(answer)
   return answer
 }
 async function runConnectionTest(current: DirectSettings): Promise<DirectSettings> {
   const text = await generateDirect({
-    system: 'Answer only with JSON {"ok":true,"model":"<model id>"}.',
+    system: 'Answer only with JSON {"ok":true}.',
     schema: {
       type: 'object',
       additionalProperties: false,
@@ -1493,8 +1564,8 @@ async function runConnectionTest(current: DirectSettings): Promise<DirectSetting
     ...current,
     checked_at: new Date().toISOString(),
     ok: true,
-    note: 'آزمون اتصال متن ساده موفق شد؛ این تأیید دقت تحلیل عکس نیست.',
+    note: `آزمون اتصال متن ساده موفق شد؛ مدل ${current.model}. این تأیید دقت تحلیل عکس نیست.`,
   }
-  storage()?.setItem(STORAGE_KEY, JSON.stringify(next))
+  rememberTest(next)
   return next
 }

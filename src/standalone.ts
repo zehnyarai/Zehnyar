@@ -5,6 +5,7 @@
  */
 import type { AnalysisData, Bootstrap, Knowledge, Orchard, Report, Services, Task } from './types'
 import knowledgeData from './data/knowledge.json'
+import { parseReceiptPacket, receiptPacket } from './receiptTransfer'
 import { assetUrl } from './config'
 import { EMPTY_CONTEXT, validateContext } from './scientific'
 import type { DiagnosticContext } from './scientific'
@@ -15,6 +16,7 @@ import { emptyBilling, receiptsTotal, validateCard, validateReceipt } from './lo
 import type { LocalBilling, LocalCard, LocalReceipt } from './localAdmin'
 import {
   QuotaRequired,
+  analysesForPayment,
   consumeQuota,
   createActivationCode,
   MAX_PACKAGE_ANALYSES,
@@ -414,7 +416,8 @@ function quotaPayload(state: State) {
     package: state.package,
     plans: pricedPlans(state.package.base_toman),
     card: state.billing.card,
-    pending_receipts: state.billing.receipts.filter((r) => !r.confirmed_at).length,
+    pending_receipts: state.billing.receipts.filter((r) => !r.confirmed_at && !r.rejected_reason)
+      .length,
     codes_used: state.quota.codes.length,
     notice:
       'شمارش تحلیل‌ها روی همین دستگاه است. عدد و اعتبار با یک اثر انگشت ساده نگه‌داری می‌شود تا ویرایش دستی ساده نتواند تحلیل رایگان بسازد؛ با این حال پاک‌کردن کامل داده‌های برنامه این شمارش را صفر می‌کند و این محدودیت قراردادی/اخلاقی است، نه محافظت فنی.',
@@ -764,27 +767,69 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       const row = state.billing.receipts.find((r) => r.id === id)
       if (!row) throw new LocalError('دریافت ثبت‌شده پیدا نشد.')
       if (row.confirmed_at) throw new LocalError('این دریافت قبلاً تأیید شده است.')
+      if (row.rejected_reason)
+        throw new LocalError('این رسید رد شده است؛ برای پرداخت تازه رسید تازه ثبت کنید.')
       // A transfer that equals a package price grants that package; any other amount
       // buys whole analyses at the single-analysis price. Discounts are honoured, and
       // the owner never has to compute the count by hand.
-      const plans = pricedPlans(state.package.base_toman)
-      const candidates = [
-        { analyses: state.package.analyses, price_toman: state.package.price_toman },
-        ...plans,
-      ]
-      const exact = candidates.find((c) => c.price_toman === row.amount_toman)
-      const single = plans[0]
-      const granted = Math.min(
-        MAX_PACKAGE_ANALYSES,
-        exact
-          ? exact.analyses
-          : Math.max(1, Math.floor(row.amount_toman / single.per_analysis_toman))
-      )
+      const granted = analysesForPayment(row.amount_toman, state.package)
+      if (granted < 1)
+        throw new LocalError('مبلغ برای یک تحلیل کامل کافی نیست؛ فیش را تأیید نکنید.')
       row.confirmed_at = new Date().toISOString()
       row.granted_analyses = granted
-      state.quota = { ...state.quota, credits: state.quota.credits + granted }
-      mirrorQuota(state.quota)
+      if (row.imported) {
+        // The remote farmer receives the code; the manager's own balance is unchanged.
+        row.activation_code = createActivationCode({
+          analyses: granted,
+          today: new Date().toISOString().slice(0, 10),
+        }).code
+      } else {
+        state.quota = { ...state.quota, credits: state.quota.credits + granted }
+        mirrorQuota(state.quota)
+      }
       result = { receipt: row, ...quotaPayload(state) }
+      modified = true
+    } else if (path === '/local/billing/receipts/import' && method === 'POST') {
+      const row = parseReceiptPacket(String(body.content ?? ''))
+      if (state.billing.receipts.length >= 100)
+        throw new LocalError('دفتر فیش‌ها پر است؛ ابتدا پشتیبان بگیرید.')
+      if (
+        state.billing.receipts.some(
+          (r) => r.id === row.id || (row.reference && r.reference === row.reference)
+        )
+      )
+        throw new LocalError('این فیش یا کد پیگیری قبلاً ثبت شده است؛ دوباره تأیید نکنید.')
+      if (
+        state.billing.receipts.reduce((n, r) => n + (r.image_data?.length ?? 0), 0) +
+          (row.image_data?.length ?? 0) >
+        24_000_000
+      )
+        throw new LocalError('فضای فیش‌ها پر است؛ پشتیبان بگیرید و با مدیر هماهنگ کنید.')
+      state.billing.receipts.unshift(row)
+      result = row
+      modified = true
+    } else if (path === '/local/billing/receipts/mine' && method === 'GET') {
+      result = state.billing.receipts.filter((r) => !r.imported)
+    } else if (
+      path.endsWith('/export') &&
+      path.startsWith('/local/billing/receipts/') &&
+      method === 'GET'
+    ) {
+      const id = path.slice('/local/billing/receipts/'.length, -'/export'.length)
+      const row = state.billing.receipts.find((r) => r.id === id)
+      if (!row) throw new LocalError('فیش پیدا نشد.')
+      result = { content: receiptPacket(row) }
+    } else if (
+      path.endsWith('/reject') &&
+      path.startsWith('/local/billing/receipts/') &&
+      method === 'POST'
+    ) {
+      const id = path.slice('/local/billing/receipts/'.length, -'/reject'.length)
+      const row = state.billing.receipts.find((r) => r.id === id)
+      if (!row || row.confirmed_at || row.rejected_reason)
+        throw new LocalError('فیش قابل رد نیست؛ وضعیت را بررسی کنید.')
+      row.rejected_reason = text(body.reason, 'دلیل رد', 300, 3)
+      result = row
       modified = true
     } else if (path === '/local/billing' && method === 'GET') result = billingView(state)
     else if (path === '/local/billing' && method === 'PUT') {
@@ -814,6 +859,12 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
         created_at: new Date().toISOString(),
         confirmed_at: null,
       }
+      if (
+        state.billing.receipts.reduce((n, r) => n + (r.image_data?.length ?? 0), 0) +
+          (record.image_data?.length ?? 0) >
+        24_000_000
+      )
+        throw new LocalError('فضای فیش‌ها پر است؛ پشتیبان بگیرید و با مدیر هماهنگ کنید.')
       state.billing.receipts.unshift(record)
       result = record
       modified = true
@@ -821,6 +872,8 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       const id = path.slice('/local/billing/receipts/'.length)
       const i = state.billing.receipts.findIndex((r) => r.id === id)
       if (i < 0) throw new LocalError('دریافت ثبت‌شده پیدا نشد.')
+      if (state.billing.receipts[i].confirmed_at || state.billing.receipts[i].imported)
+        throw new LocalError('فیش دریافتی یا تأییدشده برای جلوگیری از تأیید تکراری حذف نمی‌شود.')
       state.billing.receipts.splice(i, 1)
       result = { ok: true }
       modified = true
@@ -983,6 +1036,24 @@ export function validateBackup(content: string): State {
           ...validateReceipt(r),
           id: id(r.id),
           created_at: text(r.created_at, 'زمان ثبت', 40, 1),
+          imported: r.imported === true,
+          confirmed_at:
+            typeof r.confirmed_at === 'string' ? text(r.confirmed_at, 'زمان تأیید', 40, 1) : null,
+          granted_analyses:
+            typeof r.granted_analyses === 'number' &&
+            Number.isInteger(r.granted_analyses) &&
+            r.granted_analyses >= 0 &&
+            r.granted_analyses <= MAX_PACKAGE_ANALYSES
+              ? r.granted_analyses
+              : undefined,
+          activation_code:
+            typeof r.activation_code === 'string'
+              ? text(r.activation_code, 'کد', 100, 1)
+              : undefined,
+          rejected_reason:
+            typeof r.rejected_reason === 'string'
+              ? text(r.rejected_reason, 'دلیل رد', 300, 0)
+              : undefined,
         }
       })
       uniqueIds(state.billing.receipts)

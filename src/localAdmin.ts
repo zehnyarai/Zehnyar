@@ -1,3 +1,5 @@
+import { normaliseDigits } from './quota'
+
 /**
  * Owner bookkeeping for the offline edition: the destination card and a manual receipt
  * ledger. There is no payment gateway here — no bank verification happens, and the app
@@ -25,6 +27,12 @@ export interface LocalReceipt {
   /** Owner confirmation is what unlocks paid analyses; there is no automatic verification. */
   confirmed_at?: string | null
   granted_analyses?: number
+  /** JPEG copied and stripped of EXIF at selection, never a temporary picker handle. */
+  image_data?: string
+  /** Imported receipts belong to a different phone: never grant the manager's balance. */
+  imported?: boolean
+  activation_code?: string
+  rejected_reason?: string
 }
 export interface LocalBilling {
   card: LocalCard | null
@@ -109,9 +117,23 @@ export function validateReceipt(raw: unknown): Omit<LocalReceipt, 'id' | 'create
     payer: text(body.payer, 'نام پرداخت‌کننده', 80, 2),
     amount_toman: amount,
     paid_at: stamp(body.paid_at, 'تاریخ واریز'),
-    reference: text(body.reference, 'کد پیگیری', 60, 0),
+    reference: normaliseDigits(text(body.reference, 'کد پیگیری', 60, 0)).replace(
+      /[\s\u200c\u200e\u200f-]/g,
+      ''
+    ),
     note: text(body.note, 'توضیح', 300, 0),
+    ...(body.image_data ? { image_data: validateReceiptImage(body.image_data) } : {}),
   }
+}
+/** Bounded, raster-only attachment. Never accept SVG/HTML or arbitrary remote URLs. */
+export function validateReceiptImage(value: unknown): string {
+  if (
+    typeof value !== 'string' ||
+    value.length > 2_100_000 ||
+    !/^data:image\/jpeg;base64,\/9j\/[A-Za-z0-9+/]+={0,2}$/.test(value)
+  )
+    throw new AdminError('عکس فیش معتبر نیست؛ یک عکس روشن و کمتر از ۸ مگابایت انتخاب کنید.')
+  return value
 }
 export function emptyBilling(): LocalBilling {
   return { card: null, receipts: [] }

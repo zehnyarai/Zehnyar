@@ -3,6 +3,9 @@ package ir.pestino.app;
 import android.app.Activity;
 import android.content.Intent;
 import androidx.activity.result.ActivityResult;
+import androidx.core.content.FileProvider;
+import android.content.ClipData;
+import android.net.Uri;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -65,6 +68,42 @@ public class PestinoFilesPlugin extends Plugin {
                 if (temporary != null) temporary.delete();
                 call.reject("آماده‌کردن فایل ممکن نشد. فضای آزاد دستگاه را بررسی کنید.");
             }
+        });
+    }
+
+    /** Explicit Android share sheet. Opening it is NOT a delivery acknowledgement. */
+    @PluginMethod
+    public void share(PluginCall call) {
+        String name = call.getString("name", "pestino-receipt.json");
+        String content = call.getString("content");
+        if (content == null || content.length() > 2200000 || name == null
+            || !name.matches("pestino-receipt-[A-Za-z0-9-]{16,64}\\.json")) {
+            call.reject("فایل فیش معتبر نیست."); return;
+        }
+        getBridge().execute(() -> {
+            try {
+                File folder = new File(getContext().getCacheDir(), "pestino-receipts");
+                if (!folder.exists() && !folder.mkdirs()) throw new java.io.IOException();
+                File[] old = folder.listFiles();
+                if (old != null) for (File f : old)
+                    if (f.lastModified() < System.currentTimeMillis() - 86400000L) f.delete();
+                File file = new File(folder, name);
+                try (OutputStream out = new FileOutputStream(file)) {
+                    out.write(content.getBytes(StandardCharsets.UTF_8));
+                }
+                Uri uri = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".fileprovider", file);
+                Intent send = new Intent(Intent.ACTION_SEND);
+                send.setType("application/json");
+                send.putExtra(Intent.EXTRA_STREAM, uri);
+                send.setClipData(ClipData.newRawUri("Pestino receipt", uri));
+                send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                getBridge().executeOnMainThread(() -> {
+                    try {
+                        getActivity().startActivity(Intent.createChooser(send, "فایل فیش را برای مدیر بفرستید"));
+                        call.resolve(new JSObject());
+                    } catch (Exception error) { call.reject("ارسال باز نشد؛ گزینهٔ ذخیرهٔ فایل را بزنید."); }
+                });
+            } catch (Exception error) { call.reject("آماده‌کردن فیش ممکن نشد؛ فضای آزاد را بررسی کنید."); }
         });
     }
 

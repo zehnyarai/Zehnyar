@@ -147,6 +147,7 @@ test('credits show the real packages and the owner panel keeps the card and ledg
   await expect(page.getByRole('heading', { name: 'ورود به پنل مدیر' })).toBeVisible()
   await page.getByLabel('رمز مدیر').fill('Pestino1404')
   await page.getByRole('button', { name: /باز کردن پنل مدیر/ }).click()
+  await page.getByRole('tab', { name: 'کارت و پشتیبان' }).click()
   await expect(page.getByLabel('شماره کارت ۱۶ رقمی')).toHaveValue('9401652473116063')
   await expect(page.locator('.receipt-ledger')).toHaveCount(0)
   await expect(page.locator('.local-admin-page')).toContainText(
@@ -306,6 +307,7 @@ test('offline admin panel connects the model and keeps the owner ledger honest',
   await page.getByRole('button', { name: /آزمون اتصال/ }).click()
   await expect(page.getByText(/آزمون اتصال موفق شد/)).toBeVisible()
   // Card + ledger: confirmation is required, then the receipt is recorded.
+  await page.getByRole('tab', { name: 'کارت و پشتیبان' }).click()
   await page.getByLabel('شماره کارت ۱۶ رقمی').fill('9401 6524 7311 6063')
   await page.getByLabel('نام صاحب کارت').fill('احمد قرائی سلطان آبادی')
   await page.getByLabel(/^نام بانک/).fill('بانک ملی ایران')

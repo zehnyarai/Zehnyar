@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-report="$(adb install --no-streaming apk-output/Pestino-0.7.8.apk 2>&1)" || {
+report="$(adb install --no-streaming apk-output/Pestino-0.7.9.apk 2>&1)" || {
   printf '::error title=Android package installation failed::%s\n' "${report//$'\n'/%0A}"
   exit 1
 }

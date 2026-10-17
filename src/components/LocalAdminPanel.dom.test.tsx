@@ -178,6 +178,7 @@ describe('offline owner panel (real DOM, real device-storage layer)', () => {
     const user = userEvent.setup()
     render(<LocalAdminPanel ctx={ctx} />)
     await waitFor(() => expect(document.querySelector('.local-admin-page')).toBeTruthy())
+    await user.click(screen.getByRole('tab', { name: 'کارت و پشتیبان' }))
     // The owner's real card ships seeded on the device.
     await waitFor(() => expect(document.body.textContent).toContain('9401 - 6524 - 7311 - 6063'))
     await user.clear(screen.getByLabelText('شماره کارت ۱۶ رقمی'))

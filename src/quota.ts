@@ -184,6 +184,19 @@ function wholeNumber(value: unknown, label: string, min: number, max: number): n
   return n
 }
 
+/** Only whole paid analyses; exact discounted package amounts retain their discount. */
+export function analysesForPayment(amount: number, pack: AnalysisPackage): number {
+  if (!Number.isFinite(amount) || amount < 0) return 0
+  const plans = pricedPlans(pack.base_toman)
+  const exact = [{ analyses: pack.analyses, price_toman: pack.price_toman }, ...plans].find(
+    (p) => p.price_toman === amount
+  )
+  return Math.min(
+    MAX_PACKAGE_ANALYSES,
+    exact ? exact.analyses : Math.floor(amount / plans[0].per_analysis_toman)
+  )
+}
+
 export function validatePackage(raw: unknown): AnalysisPackage {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw))
     throw new Error('تنظیمات بسته معتبر نیست.')

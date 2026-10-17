@@ -7,6 +7,7 @@ import {
   probeDirectModels,
   providerError,
   safeProviderMessage,
+  connectionFailure,
   DirectError,
   analyzePhotosDirect,
   clearDirectSettings,
@@ -448,9 +449,7 @@ describe('xAI model names stay current and self-heal', () => {
     expect(preferGrokModel(['grok-4.20-0309-non-reasoning', 'grok-voice-1'])).toBe(
       'grok-4.20-0309-non-reasoning'
     )
-    expect(preferGrokModel(['grok-imagine-image-quality', 'grok-voice-1'])).toBe(
-      'grok-imagine-image-quality'
-    )
+    expect(preferGrokModel(['grok-imagine-image-quality', 'grok-voice-1'])).toBeNull()
     expect(preferGrokModel([])).toBeNull()
   })
   it('moves a key that an older build saved in the wrong tab', () => {
@@ -536,9 +535,8 @@ describe('xAI model names stay current and self-heal', () => {
     expect(answer.model).toBe('grok-4.7')
     expect(answer.ok).toBe(true)
     expect(answer.note).toContain('grok-4.7')
-    // One failed call, one model list, one successful retry.
+    // Discover the account first; don't spend a failed call on an unavailable ID.
     expect(calls.map((c) => (c.url.endsWith('/v1/models') ? 'list' : 'chat'))).toEqual([
-      'chat',
       'list',
       'chat',
     ])
@@ -549,7 +547,7 @@ describe('xAI model names stay current and self-heal', () => {
     saveDirectSettings('grok-4.7', 'xai-ExampleExampleKey123', 'grok')
     const calls = stub({ choices: [{ message: { content: '{"ok":true}' } }] })
     await testDirectConnection()
-    const textBody = JSON.parse(String(calls[0].init.body)) as {
+    const textBody = JSON.parse(String(calls.find((c) => c.init.body)?.init.body)) as {
       messages: { role: string; content: unknown }[]
       response_format?: unknown
       temperature?: unknown
@@ -677,5 +675,75 @@ describe('one working provider is enough (automatic failover)', () => {
     expect(rows[0].detail).toContain('پذیرفته نشد')
     expect(rows[1]).toMatchObject({ provider: 'grok', ok: true, status: 200 })
     expect(directSettings().provider).toBe('grok')
+  })
+})
+
+describe('provider connection regressions (no real key or paid call)', () => {
+  it('understands xAI string errors as well as nested Google errors and strips both keys', () => {
+    const message = safeProviderMessage(
+      JSON.stringify({
+        code: 'SomeCode',
+        error: 'Not enough credits xai-ExampleExampleKey123 Bearer secret-token-value',
+      })
+    )
+    expect(message).toContain('Not enough credits')
+    expect(message).not.toContain('ExampleExampleKey123')
+    expect(message).not.toContain('secret-token-value')
+    expect(
+      providerError(
+        403,
+        JSON.stringify({ error: 'Your team has no credits' }),
+        'grok-account-model',
+        'grok'
+      ).message
+    ).toContain('اعتبار')
+    expect(safeProviderMessage('<html>proxy error</html>')).not.toContain('<html>')
+  })
+  it('separates TLS, DNS and timeout from bad keys without exposing native error payloads', () => {
+    for (const [raw, expected] of [
+      ['SSLHandshakeException xai-ExampleExampleKey123', 'ارتباط امن'],
+      ['UnknownHostException api.x.ai', 'نشانی'],
+      ['SocketTimeoutException', 'مهلت'],
+      ['Failed to fetch with Authorization Bearer secret', 'هیچ پاسخ HTTP'],
+    ]) {
+      const result = connectionFailure(new Error(raw), 'grok')
+      expect(result.status).toBe(0)
+      expect(result.message).toContain(expected)
+      expect(result.message).not.toMatch(/secret|ExampleExampleKey123|Authorization/)
+    }
+  })
+  it('does not erase the second provider after a successful single-provider test', async () => {
+    saveDirectSettings('grok-4.7', 'xai-ExampleExampleKey123', 'grok')
+    saveDirectSettings('gemini-2.5-flash', 'AIzaSyExampleExampleExample123', 'gemini')
+    stub(geminiReply({ ok: true }))
+    await testDirectConnection()
+    expect(providerStatus()).toMatchObject({
+      gemini: { key_present: true, ok: true },
+      grok: { key_present: true },
+    })
+    expect(fallbackEnabled()).toBe(true)
+  })
+  it('keeps both provider keys and the disabled fallback setting after a failed test', async () => {
+    saveDirectSettings('gemini-2.5-flash', 'AIzaSyExampleExampleExample123', 'gemini')
+    saveDirectSettings('grok-4.7', 'xai-ExampleExampleKey123', 'grok')
+    setFallback(false)
+    stub({ error: 'Unauthorized' }, 401)
+    await expect(testDirectConnection()).rejects.toMatchObject({ status: 401 })
+    expect(providerStatus()).toMatchObject({
+      gemini: { key_present: true },
+      grok: { key_present: true, ok: false },
+    })
+    expect(fallbackEnabled()).toBe(false)
+  })
+  it('accepts text content parts and rejects truncated output rather than storing it', async () => {
+    saveDirectSettings('grok-4.7', 'xai-ExampleExampleKey123', 'grok')
+    stub({
+      choices: [
+        { message: { content: [{ type: 'text', text: '{"ok":true}' }] }, finish_reason: 'stop' },
+      ],
+    })
+    expect((await testDirectConnection()).ok).toBe(true)
+    stub({ choices: [{ message: { content: '{"ok":true}' }, finish_reason: 'length' }] })
+    await expect(testDirectConnection()).rejects.toThrow('سقف طول')
   })
 })

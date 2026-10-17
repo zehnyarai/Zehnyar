@@ -199,7 +199,7 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
     const ok = await call('/local/vision/test', { method: 'POST' })
     ctx.notify(
       ok
-        ? 'آزمون اتصال موفق شد؛ تحلیل روی این دستگاه کار می‌کند.'
+        ? 'آزمون اتصال موفق شد؛ پاسخ متنی دریافت شد. قابلیت و کیفیت عکس با این آزمون تأیید نمی‌شود.'
         : 'آزمون اتصال انجام نشد؛ دلیل دقیق زیر دکمه‌ها نوشته شده است.',
       ok ? 'success' : 'error'
     )

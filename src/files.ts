@@ -1,5 +1,6 @@
 import { Capacitor, registerPlugin } from '@capacitor/core'
 const saver = registerPlugin<{
+  share: (options: { name: string; content: string }) => Promise<void>
   save: (options: {
     name: string
     content: string
@@ -25,4 +26,26 @@ export async function saveTextFile(
   a.remove()
   setTimeout(() => URL.revokeObjectURL(url), 10000)
   return true
+}
+
+/** Returns the action taken, never claims that a manager received a file. */
+export async function shareReceiptFile(
+  name: string,
+  content: string
+): Promise<'shared' | 'saved' | 'cancelled'> {
+  if (Capacitor.isNativePlatform()) {
+    await saver.share({ name, content })
+    return 'shared'
+  }
+  const file = new File([content], name, { type: 'application/json' })
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: 'فیش پستینو' })
+      return 'shared'
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return 'cancelled'
+      // A browser can advertise sharing but reject this file type; download instead.
+    }
+  }
+  return (await saveTextFile(name, content)) ? 'saved' : 'cancelled'
 }

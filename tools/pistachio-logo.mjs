@@ -150,7 +150,7 @@ const leafMidribs = () =>
 function mark({ size = 512, plain = false, white = false, padding = 0 } = {}) {
   const g = padding ? ` translate(${padding} ${padding}) scale(${(VIEW - padding * 2) / VIEW})` : ''
   const bg = plain
-    ? ''
+    ? '<defs><linearGradient id="leaf" x1="0" y1="1" x2=".7" y2="0"><stop offset="0" stop-color="#19834c"/><stop offset="1" stop-color="#65bc65"/></linearGradient></defs>'
     : `<defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0f6b4f"/><stop offset=".55" stop-color="#157a7c"/><stop offset="1" stop-color="#2b9fd8"/>
@@ -225,27 +225,24 @@ for (const folder of readdirSync(res).filter((f) => f.startsWith('drawable'))) {
 
 /** Draw the mark centred on the paper colour, without an image dependency. */
 function composeOnPaper(_tile, width, height) {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="#f7faf8"/><g transform="translate(${(width - Math.min(240, Math.round(Math.min(width, height) * 0.23))) / 2} ${(height - Math.min(240, Math.round(Math.min(width, height) * 0.23))) / 2})">${mark(
-    { size: 240 }
-  )
-    .replace(/^<svg[^>]*>/, '')
-    .replace(/<\/svg>$/, '')
-    .replace(/width="\d+" height="\d+"/g, '')}</g></svg>`
-  return new Resvg(svg, { fitTo: { mode: 'width', value: width } }).render().asPng()
+  const size = Math.max(60, Math.min(240, Math.round(Math.min(width, height) * 0.23)))
+  const leaf = mark().replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '')
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="${width}" height="${height}" fill="#f7faf8"/><g transform="translate(${(width - size) / 2} ${(height - size) / 2}) scale(${size / VIEW})">${leaf}</g></svg>`
+  return new Resvg(svg).render().asPng()
 }
 
 // Vector drawable for the adaptive foreground (same geometry, Android path syntax).
 const vector = `<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="${VIEW}" android:viewportHeight="${VIEW}">
-  <group android:translateX="8" android:translateY="8" android:scaleX="0.66" android:scaleY="0.66">
-${LEAFLETS.map((l) => `    <path android:pathData="${l.path}" android:fillColor="#FFFFFF" android:strokeColor="#1D6B45" android:strokeAlpha="0.35" android:strokeWidth="3"/>`).join('\n')}
-    <path android:pathData="${STEM_PATH()}" android:strokeColor="#FFFFFF" android:strokeWidth="16" android:strokeLineCap="round"/>
+  <group android:translateX="51" android:translateY="51" android:scaleX="0.8" android:scaleY="0.8">
+${LEAFLETS.map((l) => `    <path android:pathData="${l.path}" android:fillColor="#36A55B" android:strokeColor="#1D6B45" android:strokeAlpha="0.35" android:strokeWidth="3"/>`).join('\n')}
+    <path android:pathData="${STEM_PATH()}" android:strokeColor="#247B48" android:strokeWidth="16" android:strokeLineCap="round"/>
   </group>
 </vector>
 `
 write(join(res, 'drawable-v24/ic_launcher_foreground.xml'), vector)
 write(
   join(res, 'values/ic_launcher_background.xml'),
-  '<?xml version="1.0" encoding="utf-8"?><resources><color name="ic_launcher_background">#0F6B4F</color></resources>\n'
+  '<?xml version="1.0" encoding="utf-8"?><resources><color name="ic_launcher_background">#EDF7F0</color></resources>\n'
 )
 
 // One source of truth for the in-app React mark (header, footer, logo component).

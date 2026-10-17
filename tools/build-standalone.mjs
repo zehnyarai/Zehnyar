@@ -10,7 +10,7 @@ const build = spawnSync('npm', ['run', 'build'], { env, stdio: 'inherit', shell:
 if (build.status !== 0) process.exit(build.status ?? 1)
 writeFileSync('dist/manifest.webmanifest', JSON.stringify({
   id: base, name: 'پستینو | Pestino', short_name: 'پستینو', lang: 'fa', dir: 'rtl',
-  description: 'دفتر باغ، دانشنامه و عکس‌های پسته؛ مستقل و رایگان. بدون تحلیل خودکار یا پرداخت.',
+  description: 'دفتر باغ، دانشنامه و بررسی پسته؛ ذخیرهٔ آفلاین، تحلیل آنلاین و بسته‌های تومانی با تأیید دستی واریز.',
   start_url: base, scope: base, display: 'standalone',
   theme_color: '#267c4d', background_color: '#f7faf8',
   icons: [192, 512].map(size => ({ src: `icon-${size}.png`, sizes: `${size}x${size}`, type: 'image/png', purpose: 'any' })),
