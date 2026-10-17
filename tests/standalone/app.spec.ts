@@ -61,7 +61,9 @@ test('task creation and completion work locally', async ({ page }) => {
 
 test('photo is normalized and saved, with no fabricated diagnosis', async ({ page }) => {
   await page.goto('./#/analysis')
-  await expect(page.getByText('تحلیل واقعی هنوز فعال نیست.', { exact: false })).toBeVisible()
+  await expect(
+    page.getByText('تحلیل هوشمند هنوز راه‌اندازی نشده است', { exact: false })
+  ).toBeVisible()
   await page.locator('input[type=file]').first().setInputFiles('public/images/pistachio-leaves.jpg')
   await page.getByLabel('توضیحات اختیاری').fill('فقط یادداشت من، نه تشخیص')
   await page.getByRole('button', { name: 'ذخیره پرونده بدون تحلیل', exact: true }).click()
