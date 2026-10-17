@@ -24,6 +24,10 @@ import {
   validKey,
   validModel,
   directFailureMessage,
+  preferGrokModel,
+  providerKeyHint,
+  DEFAULT_GROK_MODEL,
+  GROK_MODELS,
 } from './visionDirect'
 import { EMPTY_CONTEXT } from './scientific'
 import type { LabInput } from './fieldwork'
@@ -355,7 +359,7 @@ describe('xAI Grok provider (owner key)', () => {
     saveDirectSettings('grok-4', 'xai-ExampleExampleKey123', 'grok')
     expect(directSettings().provider).toBe('grok')
     expect(directSettings().key).toBe('xai-ExampleExampleKey123')
-    expect(directSettings().model).toBe('grok-4')
+    expect(directSettings().model).toBe(DEFAULT_GROK_MODEL)
     const slots = JSON.parse(store.get('pestino-direct-vision') ?? '{}').slots
     expect(slots.gemini.key).toBe('AIzaSyExampleExampleExample123')
     expect(slots.grok.key).toBe('xai-ExampleExampleKey123')
@@ -376,7 +380,7 @@ describe('xAI Grok provider (owner key)', () => {
       model: string
       messages: { content: unknown }[]
     }
-    expect(body.model).toBe('grok-4')
+    expect(body.model).toBe('grok-4.7')
     expect(JSON.stringify(body)).not.toContain('xai-ExampleExampleKey123')
     expect(JSON.stringify(body)).toContain('data:image/jpeg;base64,AAAA')
   })
@@ -401,5 +405,108 @@ describe('neutral failure copy for farmers', () => {
       expect(text.length).toBeGreaterThan(20)
     }
     expect(directFailureMessage(new Error('anything else'))).toBe('')
+  })
+})
+
+describe('xAI model names stay current and self-heal', () => {
+  it('never ships a retired Grok model as the default or a suggestion', () => {
+    // xAI retired grok-4 / grok-4-fast / grok-3 on 2026-05-15; a stale name looked
+    // exactly like a broken key, so the default must be a model that still answers.
+    expect(DEFAULT_GROK_MODEL).toBe('grok-4.7')
+    expect(['grok-4', 'grok-4-fast', 'grok-3']).not.toContain(DEFAULT_GROK_MODEL)
+    expect(GROK_MODELS.map((m) => m.id)).toContain(DEFAULT_GROK_MODEL)
+    expect(GROK_MODELS.every((m) => !['grok-4', 'grok-4-fast', 'grok-3'].includes(m.id))).toBe(true)
+  })
+  it('moves a retired id saved by an older build onto the current default', () => {
+    saveDirectSettings('grok-4', 'xai-ExampleExampleKey123', 'grok')
+    expect(directSettings().model).toBe(DEFAULT_GROK_MODEL)
+    saveDirectSettings('grok-4.6', 'xai-ExampleExampleKey123', 'grok')
+    expect(directSettings().model).toBe('grok-4.6')
+  })
+  it('picks the newest usable chat model from the account list, not an image model', () => {
+    const ids = [
+      'grok-imagine-image-quality',
+      'grok-4.3',
+      'grok-4.6',
+      'grok-4.7',
+      'grok-4.20-0309-non-reasoning',
+      'grok-voice-1',
+    ]
+    expect(preferGrokModel(ids)).toBe('grok-4.7')
+    expect(preferGrokModel(['grok-4.3', 'grok-4.5'])).toBe('grok-4.5')
+    // 4.3 shipped after 4.20, so it wins even though the number looks smaller.
+    expect(preferGrokModel(['grok-4.20-0309-non-reasoning', 'grok-4.3'])).toBe('grok-4.3')
+    expect(preferGrokModel(['grok-4.20-0309-non-reasoning', 'grok-voice-1'])).toBe(
+      'grok-4.20-0309-non-reasoning'
+    )
+    expect(preferGrokModel(['grok-imagine-image-quality', 'grok-voice-1'])).toBe(
+      'grok-imagine-image-quality'
+    )
+    expect(preferGrokModel([])).toBeNull()
+  })
+  it('names the right tab when the wrong provider key is pasted', () => {
+    expect(providerKeyHint('grok', 'AIzaSyExampleExample')).toContain('Gemini')
+    expect(providerKeyHint('gemini', 'xai-ExampleExampleKey123')).toContain('Grok')
+    expect(providerKeyHint('grok', 'xai-ExampleExampleKey123')).toBe('')
+    expect(providerKeyHint('gemini', 'AIzaSyExampleExample')).toBe('')
+    expect(providerKeyHint('grok', '')).toBe('')
+  })
+  it('re-tests with a working model before reporting a stale-name failure', async () => {
+    saveDirectSettings('grok-4.6', 'xai-ExampleExampleKey123', 'grok')
+    const calls: { url: string; init: RequestInit }[] = []
+    setFetchImplementation((async (url: string, init: RequestInit) => {
+      calls.push({ url, init })
+      if (url.endsWith('/v1/models'))
+        return new Response(JSON.stringify({ data: [{ id: 'grok-4.3' }, { id: 'grok-4.7' }] }), {
+          status: 200,
+        })
+      const body = JSON.parse(String(init.body)) as { model: string }
+      if (body.model === 'grok-4.6')
+        return new Response(JSON.stringify({ error: { message: 'Model not found: grok-4.6' } }), {
+          status: 404,
+        })
+      return new Response(JSON.stringify({ choices: [{ message: { content: '{"ok":true}' } }] }), {
+        status: 200,
+      })
+    }) as unknown as typeof fetch)
+
+    const answer = await testDirectConnection()
+    expect(answer.provider).toBe('grok')
+    expect(answer.model).toBe('grok-4.7')
+    expect(answer.ok).toBe(true)
+    expect(answer.note).toContain('grok-4.7')
+    // One failed call, one model list, one successful retry.
+    expect(calls.map((c) => (c.url.endsWith('/v1/models') ? 'list' : 'chat'))).toEqual([
+      'chat',
+      'list',
+      'chat',
+    ])
+    expect(directSettings().model).toBe('grok-4.7')
+    expect(directSettings().ok).toBe(true)
+  })
+  it('sends a plain string for text-only Grok calls and typed parts only for photos', async () => {
+    saveDirectSettings('grok-4.7', 'xai-ExampleExampleKey123', 'grok')
+    const calls = stub({ choices: [{ message: { content: '{"ok":true}' } }] })
+    await testDirectConnection()
+    const textBody = JSON.parse(String(calls[0].init.body)) as {
+      messages: { role: string; content: unknown }[]
+      response_format?: unknown
+      temperature?: unknown
+    }
+    expect(typeof textBody.messages[1].content).toBe('string')
+    // Parameters some reasoning models reject are simply not sent.
+    expect(textBody.response_format).toBeUndefined()
+    expect(textBody.temperature).toBeUndefined()
+
+    const image = 'data:image/jpeg;base64,AAAA'
+    calls.length = 0
+    await analyzePhotosDirect([image], { ...EMPTY_CONTEXT })
+    const photoBody = JSON.parse(String(calls[0].init.body)) as {
+      messages: { role: string; content: { type: string }[] }[]
+    }
+    const parts = photoBody.messages[1].content
+    expect(Array.isArray(parts)).toBe(true)
+    expect(parts[0].type).toBe('text')
+    expect(parts[1].type).toBe('image_url')
   })
 })

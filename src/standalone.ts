@@ -42,6 +42,7 @@ import {
   interpretLabDirect,
   listDirectModels,
   probeDirectModels,
+  providerKeyHint,
   saveDirectSettings,
   testDirectConnection,
 } from './visionDirect'
@@ -534,11 +535,15 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       modified = true
     } else if (path === '/local/vision' && method === 'GET') result = visionStatus()
     else if (path === '/local/vision' && method === 'PUT') {
-      saveDirectSettings(
-        String(body.model ?? ''),
-        body.key === undefined ? undefined : String(body.key),
-        body.provider === 'grok' ? 'grok' : 'gemini'
-      )
+      const provider = body.provider === 'grok' ? 'grok' : 'gemini'
+      const typed = body.key === undefined ? undefined : String(body.key)
+      // A key pasted into the wrong tab fails later with a confusing provider error, so
+      // reject the two unmistakable mixes here and name the correct tab.
+      if (typed && typed.trim()) {
+        const hint = providerKeyHint(provider, typed)
+        if (hint.includes('تعلق دارد')) throw new LocalError(hint)
+      }
+      saveDirectSettings(String(body.model ?? ''), typed, provider)
       result = visionStatus()
     } else if (path === '/local/vision' && method === 'DELETE') {
       clearDirectSettings()

@@ -5,6 +5,7 @@ import type { AppContext } from '../types'
 import {
   DEFAULT_GROK_MODEL,
   freeModelsFor,
+  providerKeyHint,
   type DirectProvider,
   type ProbeResult,
 } from '../visionDirect'
@@ -28,9 +29,20 @@ interface DirectStatus {
   providers?: Record<DirectProvider, ProviderState>
 }
 
-const PROVIDERS: { id: DirectProvider; name: string; hint: string }[] = [
-  { id: 'gemini', name: 'Gemini (Google)', hint: 'کلید رایگان از Google AI Studio' },
-  { id: 'grok', name: 'Grok (xAI)', hint: 'کلید از کنسول xAI' },
+const PROVIDERS: { id: DirectProvider; name: string; hint: string; key_help: string }[] = [
+  {
+    id: 'gemini',
+    name: 'Gemini (Google)',
+    hint: 'کلید رایگان از Google AI Studio',
+    key_help: 'کلید Google با AIza شروع می‌شود. کلید را کامل و بدون فاصله بچسبانید.',
+  },
+  {
+    id: 'grok',
+    name: 'Grok (xAI)',
+    hint: 'کلید از کنسول xAI',
+    key_help:
+      'کلید xAI با xai- شروع می‌شود. اگر آزمون شکست خورد، «فهرست مدل‌های مجاز» را بزنید؛ xAI مدل‌ها را بازنشسته می‌کند.',
+  },
 ]
 
 /** Suggestions shown under the model field, per provider. */
@@ -52,6 +64,7 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
   const [listed, setListed] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [keyNote, setKeyNote] = useState('')
 
   useEffect(() => {
     let active = true
@@ -76,6 +89,7 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
     setError('')
     const saved = status?.providers?.[next]
     setModel(saved?.model || (next === 'grok' ? DEFAULT_GROK_MODEL : 'gemini-2.5-flash'))
+    setKeyNote('')
     if (key.current) key.current.value = ''
   }
 
@@ -94,6 +108,7 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
       return false
     } finally {
       if (key.current) key.current.value = ''
+      setKeyNote('')
       setBusy(false)
     }
   }
@@ -110,7 +125,9 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
   async function test() {
     const ok = await call('/local/vision/test', { method: 'POST' })
     ctx.notify(
-      ok ? 'آزمون اتصال موفق شد؛ تحلیل روی این دستگاه کار می‌کند.' : 'آزمون اتصال انجام نشد.',
+      ok
+        ? 'آزمون اتصال موفق شد؛ تحلیل روی این دستگاه کار می‌کند.'
+        : 'آزمون اتصال انجام نشد؛ دلیل دقیق زیر دکمه‌ها نوشته شده است.',
       ok ? 'success' : 'error'
     )
   }
@@ -227,12 +244,18 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
             dir="ltr"
             autoComplete="off"
             spellCheck={false}
+            onChange={(e) => setKeyNote(providerKeyHint(provider, e.target.value))}
             placeholder={
               saved?.key_present
                 ? 'ذخیره شده؛ برای تغییر مقدار تازه بگذارید'
-                : 'کلید را اینجا بچسبانید'
+                : provider === 'grok'
+                  ? 'xai-…'
+                  : 'AIza…'
             }
           />
+          <small className="muted">
+            {keyNote || PROVIDERS.find((p) => p.id === provider)?.key_help}
+          </small>
         </label>
         <div className="local-settings-actions">
           <button className="button primary" disabled={busy} onClick={() => void save()}>
@@ -271,7 +294,7 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
       </fieldset>
       {error && (
         <div className="form-error" role="alert">
-          {error}
+          <strong>دلیل:</strong> {error}
         </div>
       )}
       {probe && (

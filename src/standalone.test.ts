@@ -379,6 +379,42 @@ describe('device-direct analysis with the owner key (offline edition)', () => {
     expect(boot.services.vision_verified).toBe(false)
     expect(calls).toHaveLength(0)
   })
+  it('refuses a key pasted into the wrong provider tab and names the right tab', async () => {
+    await expect(
+      localApi('/local/vision', {
+        method: 'PUT',
+        body: JSON.stringify({ model: 'gemini-2.5-flash', key: 'xai-ExampleExampleKey123' }),
+      })
+    ).rejects.toThrow(/Grok/)
+    await expect(
+      localApi('/local/vision', {
+        method: 'PUT',
+        body: JSON.stringify({
+          provider: 'grok',
+          model: 'grok-4.7',
+          key: 'AIzaSyExampleExampleExample123',
+        }),
+      })
+    ).rejects.toThrow(/Gemini/)
+    // Nothing was stored by the two refused saves.
+    const status = await localApi<{ key_present: boolean }>('/local/vision')
+    expect(status.key_present).toBe(false)
+    // The right tab accepts the same xAI key.
+    const saved = await localApi<{ key_present: boolean; provider: string; model: string }>(
+      '/local/vision',
+      {
+        method: 'PUT',
+        body: JSON.stringify({
+          provider: 'grok',
+          model: 'grok-4.7',
+          key: 'xai-ExampleExampleKey123',
+        }),
+      }
+    )
+    expect(saved.provider).toBe('grok')
+    expect(saved.model).toBe('grok-4.7')
+    expect(saved.key_present).toBe(true)
+  })
   it('proves the connection with a text call, then interprets a laboratory sample', async () => {
     await localApi('/local/vision', {
       method: 'PUT',
