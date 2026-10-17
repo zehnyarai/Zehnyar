@@ -630,15 +630,19 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       result = { ok: true }
       modified = true
     } else if (path === '/billing/config' && method === 'GET') result = billingConfig(state)
-    else if (path === '/billing/my' && method === 'GET')
+    else if (path === '/billing/my' && method === 'GET') {
+      // The credits page must show the same numbers the analysis guard enforces.
+      const view = quotaView(state.quota, state.package)
       result = {
-        balance: 0,
-        purchased: receiptsTotal(state.billing.receipts),
-        used: 0,
+        balance: view.total_left,
+        purchased: view.credits,
+        used: view.used,
+        free_left: view.free_left,
+        free_limit: view.free_limit,
         receipts: [],
         history: [],
       }
-    else if (path === '/local/quota' && method === 'GET') result = quotaPayload(state)
+    } else if (path === '/local/quota' && method === 'GET') result = quotaPayload(state)
     else if (path === '/local/quota' && method === 'PUT') {
       // Owner only: how many analyses are free, and what a paid package costs.
       const freeLimit = Number(body.free_limit)

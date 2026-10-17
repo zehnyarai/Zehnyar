@@ -230,6 +230,9 @@ export interface CreditAccount {
   balance: number
   purchased: number
   used: number
+  /** Offline edition only: the free analyses that are still available. */
+  free_left?: number
+  free_limit?: number
   receipts: CreditReceipt[]
   history: { id: string; reason: string; delta: number; created_at: string }[]
 }

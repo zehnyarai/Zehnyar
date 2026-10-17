@@ -238,7 +238,9 @@ describe('new reference-layout data remains local and backed up', () => {
     const validated = validateBackup(JSON.stringify(backup))
     expect(validated.fields.experiences[0].visibility).toBe('private')
     await restoreBackup(JSON.stringify(backup))
-    expect((await localApi<{ balance: number }>('/billing/my')).balance).toBe(0)
+    // A forged "balance" in the backup is still ignored: the only balance is the real quota,
+    // which is two free analyses on a fresh device — never a million credits.
+    expect((await localApi<{ balance: number }>('/billing/my')).balance).toBe(2)
     expect(
       (await localApi<{ enabled: boolean; card_number: string }>('/billing/config')).card_number
     ).toBe('')
@@ -529,6 +531,20 @@ describe('device-direct analysis with the owner key (offline edition)', () => {
       localApi('/local/quota/redeem', post({ code: another.code.replace('PST-', 'PST2-') }))
     ).rejects.toThrow()
   })
+  it('shows the same quota numbers on the credits page as the analysis guard enforces', async () => {
+    const fresh = await localApi<{
+      balance: number
+      purchased: number
+      used: number
+      free_left: number
+    }>('/billing/my')
+    expect(fresh).toMatchObject({ balance: 2, purchased: 0, used: 0, free_left: 2 })
+    await localApi('/local/quota/grant', { method: 'POST', body: JSON.stringify({ analyses: 5 }) })
+    const granted = await localApi<{ balance: number; purchased: number; free_left: number }>(
+      '/billing/my'
+    )
+    expect(granted).toMatchObject({ balance: 7, purchased: 5, free_left: 2 })
+  })
   it('confirms a recorded transfer and adds the package to this device', async () => {
     await localApi('/local/quota', {
       method: 'PUT',
@@ -680,8 +696,10 @@ describe('owner card and manual receipt ledger in the offline panel', () => {
     expect(view.receipts).toHaveLength(1)
     expect(view.total_toman).toBe(990_000)
     expect(view.notice).toContain('درگاه بانکی')
-    const mine = await localApi<{ purchased: number }>('/billing/my')
-    expect(mine.purchased).toBe(990_000)
+    const mine = await localApi<{ purchased: number; balance: number }>('/billing/my')
+    // Merely recording a receipt never grants analyses; the owner confirms the transfer first.
+    expect(mine.purchased).toBe(0)
+    expect(mine.balance).toBe(2)
     await localApi(`/local/billing/receipts/${row.id}`, { method: 'DELETE' })
     expect((await empty()).receipts).toHaveLength(0)
   })

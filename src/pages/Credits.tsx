@@ -7,6 +7,8 @@ import { api, checkImage, errorMessage, fa, persianDate } from '../api'
 import { Badge, InfoBanner, Spinner } from '../components/ui'
 import { IS_STANDALONE } from '../config'
 import { hasAdminLock, isUnlocked } from '../localAccess'
+import Paywall from '../components/Paywall'
+import type { QuotaPayload } from '../quota'
 
 export const receiptLabels = { pending: 'در انتظار تأیید', approved: 'تأییدشده', rejected: 'ردشده' }
 export default function Credits({ ctx }: { ctx: AppContext }) {
@@ -31,6 +33,16 @@ export default function Credits({ ctx }: { ctx: AppContext }) {
     [busy, setBusy] = useState(false),
     [loading, setLoading] = useState(true)
   const input = useRef<HTMLInputElement>(null)
+  // Offline edition: the same counter the analysis guard uses, shown here too.
+  const [quota, setQuota] = useState<QuotaPayload | null>(null)
+  const loadQuota = async () => {
+    if (!IS_STANDALONE) return
+    try {
+      setQuota(await api<QuotaPayload>('/local/quota'))
+    } catch {
+      /* the analysis page enforces the quota even if this read fails */
+    }
+  }
   async function reload() {
     const [c, a] = await Promise.all([
       api<BillingConfig>('/billing/config'),
@@ -41,6 +53,7 @@ export default function Credits({ ctx }: { ctx: AppContext }) {
   }
   useEffect(() => {
     let active = true
+    void loadQuota()
     void Promise.all([api<BillingConfig>('/billing/config'), api<CreditAccount>('/billing/my')])
       .then(([c, a]) => {
         if (active) {
@@ -153,6 +166,20 @@ export default function Credits({ ctx }: { ctx: AppContext }) {
           پنل مدیر
         </button>
       </section>
+      {IS_STANDALONE && quota && (
+        <div className={quota.blocked ? 'quota-chip blocked' : 'quota-chip'}>
+          <Wallet size={15} />
+          {quota.blocked
+            ? 'تحلیل‌های رایگان تمام شده؛ باغ و پرونده‌ها بدون محدودیت کار می‌کنند.'
+            : `تحلیل رایگان باقی‌مانده: ${fa(quota.free_left)} از ${fa(quota.free_limit)}`}
+          {quota.credits > 0 && ` · بستهٔ خریداری‌شده: ${fa(quota.credits)}`}
+          {!quota.needs_price &&
+            ` · هر بستهٔ ${fa(quota.analyses_per_package)} تحلیلی: ${fa(quota.price_toman)} تومان`}
+        </div>
+      )}
+      {IS_STANDALONE && quota?.blocked && (
+        <Paywall ctx={ctx} quota={quota} onUnlocked={loadQuota} />
+      )}
       {!config.enabled && (
         <InfoBanner tone="warning">
           <strong>دریافت وجه غیرفعال است.</strong> {config.notice} ثبت باغ، آزمایش، تجربه و راهنماها
