@@ -234,7 +234,7 @@ class RequestSizeLimit:
 
 # Free analyses per 30-day period, matching the offline edition (see src/quota.ts).
 FREE_ANALYSES = 2
-app = FastAPI(title="Pestino API", version="0.7.3", lifespan=lifespan, docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None)
+app = FastAPI(title="Pestino API", version="0.7.4", lifespan=lifespan, docs_url="/api/docs", openapi_url="/api/openapi.json", redoc_url=None)
 app.add_middleware(RequestSizeLimit)
 
 
