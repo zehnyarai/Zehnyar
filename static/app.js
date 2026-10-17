@@ -878,14 +878,14 @@ function curatedStudyBadge(annotation) {
 
 function detailPanelNotes(verse) {
   const curated = curatedStudy(verse);
-  if (curated) return `<section class="detail-panel numbered-panel">${curatedStudyBadge(curated)}<p class="eyebrow">نکات مهم آیه</p><h3>نکته‌های ویژهٔ همین آیه</h3>${curatedStudyItems(curated.notes, "نکته")}</section>`;
+  if (curated) return `<section class="detail-panel numbered-panel">${curatedStudyBadge(curated)}<p class="eyebrow">نکات مهم آیه</p><h3>نکته‌های ویژهٔ همین آیه</h3>${curatedStudyItems(curated.notes, "نکته")}${proposalContributionForm(verse, "notes")}</section>`;
   const items = numberedNoteItems(verse);
   return `<section class="detail-panel numbered-panel"><p class="eyebrow">نکات مهم آیه</p><h3>نکته‌های شماره‌دار با شاهدِ آیه</h3><p class="reading-notice">هر نکته یا به عبارتِ ترجمه، واژه/ساختِ قابل مشاهدهٔ عربی، سیاق نزدیک یا نقلِ دقیقِ منبع تکیه دارد. برنامه برای پُر کردنِ تعداد، نکتهٔ بی‌شاهد نمی‌سازد.</p>${numberedStudyList(items, "نکته", studyCapacity(verse))}${proposalContributionForm(verse, "notes")}</section>`;
 }
 
 function detailPanelFoundations(verse) {
   const curated = curatedStudy(verse);
-  if (curated) return `<section class="detail-panel numbered-panel">${curatedStudyBadge(curated)}<p class="eyebrow">اصول زندگی</p><h3>استنباطِ محدود به متن و سیاق</h3>${curatedStudyItems(curated.principles, "اصل")}</section>`;
+  if (curated) return `<section class="detail-panel numbered-panel">${curatedStudyBadge(curated)}<p class="eyebrow">اصول زندگی</p><h3>استنباطِ محدود به متن و سیاق</h3>${curatedStudyItems(curated.principles, "اصل")}${proposalContributionForm(verse, "principles")}</section>`;
   const items = numberedPrincipleItems(verse);
   return `<section class="detail-panel numbered-panel"><p class="eyebrow">اصول زندگی و مبانی</p><h3>اصل‌های شماره‌دارِ متن‌پایه</h3><p class="reading-notice">ظرف این بخش تا ۲۰ اصل است؛ فقط جایی که صورتِ امر، نفی/نهی یا شرط در خود آیه دیده می‌شود، اصل نوشته می‌شود. گزارش‌های روایی و خبری به‌زور به دستورِ زندگی تبدیل نمی‌شوند.</p>${numberedStudyList(items, "اصل", 20)}${proposalContributionForm(verse, "principles")}</section>`;
 }
@@ -941,7 +941,7 @@ function detailPanelFramework(verse) {
 
 function detailPanelMessages(verse) {
   const curated = curatedStudy(verse);
-  if (curated) return `<section class="detail-panel numbered-panel">${curatedStudyBadge(curated)}<p class="eyebrow">پیام‌های آیه</p>${curatedStudyItems(curated.messages, "پیام")}</section>`;
+  if (curated) return `<section class="detail-panel numbered-panel">${curatedStudyBadge(curated)}<p class="eyebrow">پیام‌های آیه</p>${curatedStudyItems(curated.messages, "پیام")}${proposalContributionForm(verse, "messages")}</section>`;
   const items = numberedMessageItems(verse);
   return `<section class="detail-panel numbered-panel"><p class="eyebrow">پیام‌های آیه</p><h3>پیام‌های شماره‌دار، مقید به نص و سیاق</h3><p class="reading-notice">پیام‌ها از گزاره‌های صریحِ ترجمه، جهتِ گفتارِ عربی، سیاق نزدیک و نقلِ منبع استخراج می‌شوند. نتیجه‌ای که در این شواهد نیست، به آیه افزوده نمی‌شود.</p>${numberedStudyList(items, "پیام", studyCapacity(verse))}${proposalContributionForm(verse, "messages")}</section>`;
 }

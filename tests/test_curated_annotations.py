@@ -26,6 +26,8 @@ class CuratedAnnotationTests(unittest.TestCase):
         worker = (ROOT / "static/sw.js").read_text(encoding="utf-8")
         for part in ("VERSE_STUDIES_URL", "curatedStudyItems", "curatedStudyBadge", "curated.framework", "curated.thematic", "curated.context", "curated.network"):
             self.assertIn(part, app)
+        for kind in ("notes", "principles", "messages"):
+            self.assertIn(f'proposalContributionForm(verse, "{kind}")', app)
         self.assertIn("/static/verse-study-annotations.json", worker)
 
 
