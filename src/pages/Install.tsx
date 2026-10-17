@@ -19,7 +19,7 @@ export default function Install({ ctx }: { ctx: AppContext }) {
           <Smartphone size={34} />
           <h2>اندروید</h2>
           <p>
-            نسخه ۰.۷.۸ برای اندروید ۷ به بالا: تحلیل عکس و تفسیر آزمایش، دو تحلیل رایگان و سپس بستهٔ
+            نسخه ۰.۷.۹ برای اندروید ۷ به بالا: تحلیل عکس و تفسیر آزمایش، دو تحلیل رایگان و سپس بستهٔ
             تومانی، و همهٔ دفتر باغ به‌صورت آفلاین. راه‌اندازی تحلیل فقط از «پنل مدیر» انجام می‌شود.
           </p>
           <a
@@ -29,7 +29,7 @@ export default function Install({ ctx }: { ctx: AppContext }) {
             rel="noreferrer"
           >
             <Download size={18} />
-            دانلود APK پستینو ۰.۷.۸
+            دانلود APK پستینو ۰.۷.۹
           </a>
           <p className="section-description">
             اندازه و SHA-256 هر نسخه در پوشهٔ نصب (`installers/`) و در `installers/BUILD.txt` است.
