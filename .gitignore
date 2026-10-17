@@ -1,4 +1,5 @@
 .venv/
+annotation-workbench/
 __pycache__/
 *.py[cod]
 .env

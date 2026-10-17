@@ -5,6 +5,7 @@ const STORY_DOSSIERS_URL = "static/story-dossiers.json";
 const TOPIC_CATALOG_URL = "static/topic-catalog.json";
 const TAFSIR_SOURCES_URL = "static/tafsir-sources.json";
 const TAFSIR_CATALOG_URL = "static/tafsir-catalog.json";
+const VERSE_STUDIES_URL = "static/verse-study-annotations.json";
 const NOTEBOOK_KEY = "zehnyar-verse-notebook-v2";
 const VERSE_PROPOSALS_KEY = "quran-pazhuheh-verse-proposals-v1";
 const PAGE_SIZE = 12;
@@ -21,6 +22,7 @@ const state = {
   tafsirSources: [],
   tafsirRegistry: [],
   tafsirCatalog: [],
+  verseStudies: {},
   tafsirLoadPromise: null,
   tafsirUnavailableSourceIds: new Set(),
   stories: [],
@@ -150,10 +152,10 @@ function recordFromTuple(tuple) {
 }
 
 async function loadData() {
-  const [corpusResponse, lexiconResponse, storyResponse, storyDossiersResponse, catalogResponse, tafsirRegistryResponse, tafsirCatalogResponse] = await Promise.all([
-    fetch(CORPUS_URL), fetch(LEXICON_URL), fetch(STORY_INDEX_URL), fetch(STORY_DOSSIERS_URL), fetch(TOPIC_CATALOG_URL), fetch(TAFSIR_SOURCES_URL), fetch(TAFSIR_CATALOG_URL),
+  const [corpusResponse, lexiconResponse, storyResponse, storyDossiersResponse, catalogResponse, tafsirRegistryResponse, tafsirCatalogResponse, verseStudiesResponse] = await Promise.all([
+    fetch(CORPUS_URL), fetch(LEXICON_URL), fetch(STORY_INDEX_URL), fetch(STORY_DOSSIERS_URL), fetch(TOPIC_CATALOG_URL), fetch(TAFSIR_SOURCES_URL), fetch(TAFSIR_CATALOG_URL), fetch(VERSE_STUDIES_URL),
   ]);
-  if (!corpusResponse.ok || !lexiconResponse.ok || !storyResponse.ok || !storyDossiersResponse.ok || !catalogResponse.ok || !tafsirRegistryResponse.ok || !tafsirCatalogResponse.ok) {
+  if (!corpusResponse.ok || !lexiconResponse.ok || !storyResponse.ok || !storyDossiersResponse.ok || !catalogResponse.ok || !tafsirRegistryResponse.ok || !tafsirCatalogResponse.ok || !verseStudiesResponse.ok) {
     throw new Error("پیکرهٔ محلی یا فهرست پژوهش در دسترس نیست.");
   }
   const corpus = await corpusResponse.json();
@@ -161,6 +163,8 @@ async function loadData() {
   const catalog = await catalogResponse.json();
   const tafsirRegistry = await tafsirRegistryResponse.json();
   const tafsirCatalog = await tafsirCatalogResponse.json();
+  const verseStudies = await verseStudiesResponse.json();
+  state.verseStudies = verseStudies.verses || {};
   state.tafsirCatalog = tafsirCatalog.collections || [];
   state.concepts = [...(state.lexicon.concepts || []), ...(catalog.concepts || [])];
   state.topicCategories = catalog.categories || [];
@@ -858,12 +862,30 @@ function detailPanelTafsir(verse) {
   return `<section class="detail-panel tafsir-panel"><p class="eyebrow">تفاسیرِ منبع‌دارِ آیه</p><h3>متنِ کامل، انتساب، نسخه و پیوندِ دقیق</h3><p class="reading-notice">متن‌های فعال زیر بدون خلاصه‌سازی یا بازنویسیِ قرآن‌پژوهه نمایش داده می‌شوند. اختلاف زبان و اثر به‌معنای همسان‌بودنِ تفسیرها نیست؛ برای پژوهش، هر اثر را جداگانه بخوانید.</p>${loading}${entries.map(({ source, text, footnotes, referenceRange }) => `<details class="source-card" ${source.id === "fa_qe_persian_mokhtasar" ? "open" : ""}><summary class="source-card-head"><div><h4>${escapeHTML(source.title)}</h4><p>${escapeHTML(source.author)}</p></div><a href="${escapeHTML(source.sourceUrl)}" target="_blank" rel="noreferrer">منبع ↗</a></summary><p class="source-citation">${escapeHTML(tafsirCitation(source))}${referenceRange ? ` · توضیحِ منبع برای بازهٔ ${escapeHTML(referenceRange)}` : ""}</p><div class="source-text" lang="${escapeHTML(source.language)}" dir="rtl">${escapeHTML(text)}</div>${footnotes ? `<div class="source-footnotes"><b>پانویسِ منبع</b>${escapeHTML(footnotes)}</div>` : ""}</details>`).join("")}${catalogue}</section>`;
 }
 
+function curatedStudy(verse) {
+  return state.verseStudies?.[verse.id] || null;
+}
+
+function curatedStudyItems(items, label) {
+  if (!Array.isArray(items) || !items.length) return `<p class="reading-notice">برای این بخش هنوز یادداشتِ تحریری ثبت نشده است.</p>`;
+  return `<ol class="study-list curated-study-list">${items.map((item) => `<li><b>${escapeHTML(label)}</b><span>${escapeHTML(item.text || "")}</span>${item.evidence ? `<small class="study-evidence">شاهد/ارجاع: ${escapeHTML(item.evidence)}</small>` : ""}</li>`).join("")}</ol>`;
+}
+
+function curatedStudyBadge(annotation) {
+  const names = (annotation.sources || []).map((id) => state.tafsirRegistry.find((source) => source.id === id)?.title || id);
+  return `<p class="reviewed-badge">${escapeHTML(annotation.status || "پیش‌نویس تحریری")}${names.length ? ` · منابع: ${escapeHTML(names.join("، "))}` : ""}</p>`;
+}
+
 function detailPanelNotes(verse) {
+  const curated = curatedStudy(verse);
+  if (curated) return `<section class="detail-panel numbered-panel">${curatedStudyBadge(curated)}<p class="eyebrow">نکات مهم آیه</p><h3>نکته‌های ویژهٔ همین آیه</h3>${curatedStudyItems(curated.notes, "نکته")}</section>`;
   const items = numberedNoteItems(verse);
   return `<section class="detail-panel numbered-panel"><p class="eyebrow">نکات مهم آیه</p><h3>نکته‌های شماره‌دار با شاهدِ آیه</h3><p class="reading-notice">هر نکته یا به عبارتِ ترجمه، واژه/ساختِ قابل مشاهدهٔ عربی، سیاق نزدیک یا نقلِ دقیقِ منبع تکیه دارد. برنامه برای پُر کردنِ تعداد، نکتهٔ بی‌شاهد نمی‌سازد.</p>${numberedStudyList(items, "نکته", studyCapacity(verse))}${proposalContributionForm(verse, "notes")}</section>`;
 }
 
 function detailPanelFoundations(verse) {
+  const curated = curatedStudy(verse);
+  if (curated) return `<section class="detail-panel numbered-panel">${curatedStudyBadge(curated)}<p class="eyebrow">اصول زندگی</p><h3>استنباطِ محدود به متن و سیاق</h3>${curatedStudyItems(curated.principles, "اصل")}</section>`;
   const items = numberedPrincipleItems(verse);
   return `<section class="detail-panel numbered-panel"><p class="eyebrow">اصول زندگی و مبانی</p><h3>اصل‌های شماره‌دارِ متن‌پایه</h3><p class="reading-notice">ظرف این بخش تا ۲۰ اصل است؛ فقط جایی که صورتِ امر، نفی/نهی یا شرط در خود آیه دیده می‌شود، اصل نوشته می‌شود. گزارش‌های روایی و خبری به‌زور به دستورِ زندگی تبدیل نمی‌شوند.</p>${numberedStudyList(items, "اصل", 20)}${proposalContributionForm(verse, "principles")}</section>`;
 }
@@ -909,20 +931,31 @@ function semanticModelCards(verse) {
 }
 
 function detailPanelFramework(verse) {
+  const curated = curatedStudy(verse);
+  if (curated) {
+    const models = [["izutsu", "ایزوتسو: شبکهٔ واژگان"], ["fillmore", "فیلمور: قاب و نقش‌ها"], ["cognitive", "معناشناسی شناختی"]];
+    return `<section class="detail-panel semantic-framework-panel">${curatedStudyBadge(curated)}<p class="eyebrow">چارچوب معناییِ همین آیه</p><div class="semantic-model-grid">${models.map(([key, title]) => { const model = curated.framework?.[key]; return model ? `<article class="semantic-model-card"><h4>${escapeHTML(title)}</h4><p><b>ورودی:</b> ${escapeHTML(model.input)}</p><p><b>عملیات:</b> ${escapeHTML(model.operation)}</p><p><b>معنا:</b> ${escapeHTML(model.meaning)}</p><p><b>حدّ استنباط:</b> ${escapeHTML(model.limit)}</p></article>` : ""; }).join("")}</div></section>`;
+  }
   return `<section class="detail-panel semantic-framework-panel"><p class="eyebrow">چارچوب معنایی</p><h3>سه مدلِ معناشناختی با دادهٔ همین آیه</h3><p class="reading-notice">این بخش نتیجهٔ تفسیریِ قطعی نیست. هر مدل فقط داده‌های قابل مشاهدهٔ آیه را در قالبِ خودش سازمان می‌دهد: واژه و هم‌نشینی در ایزوتسو، صحنه و نقش در فیلمور، و طرحوارهٔ لفظاً فعال در معناشناسی شناختی.</p>${semanticModelCards(verse)}</section>`;
 }
 
 function detailPanelMessages(verse) {
+  const curated = curatedStudy(verse);
+  if (curated) return `<section class="detail-panel numbered-panel">${curatedStudyBadge(curated)}<p class="eyebrow">پیام‌های آیه</p>${curatedStudyItems(curated.messages, "پیام")}</section>`;
   const items = numberedMessageItems(verse);
   return `<section class="detail-panel numbered-panel"><p class="eyebrow">پیام‌های آیه</p><h3>پیام‌های شماره‌دار، مقید به نص و سیاق</h3><p class="reading-notice">پیام‌ها از گزاره‌های صریحِ ترجمه، جهتِ گفتارِ عربی، سیاق نزدیک و نقلِ منبع استخراج می‌شوند. نتیجه‌ای که در این شواهد نیست، به آیه افزوده نمی‌شود.</p>${numberedStudyList(items, "پیام", studyCapacity(verse))}${proposalContributionForm(verse, "messages")}</section>`;
 }
 function detailPanelContext(verse) {
+  const curated = curatedStudy(verse);
+  if (curated) return `<section class="detail-panel">${curatedStudyBadge(curated)}<p class="eyebrow">سیاق آیات</p>${curatedStudyItems(curated.context, "سیاق")}</section>`;
   const context = getContext(verse);
   return `<section class="detail-panel"><p class="eyebrow">آیه در سیاق سوره</p><h3>پیش و پسِ آیه را کنار هم بخوانید.</h3>${sourceEvidenceNotice(verse)}<p>پنجرهٔ خطیِ زیر جای مطالعهٔ کامل سوره را نمی‌گیرد، اما دادهٔ لازم برای پرهیز از بریده‌خوانی را نشان می‌دهد. برای جزئیاتِ توزیع و پرسش‌ها، «فهم آیه در سیاق» در صفحهٔ پیشین را باز کنید.</p>
     <div class="context-grid">${context.map((item) => `<button class="context-verse ${item.id === verse.id ? "current" : ""}" data-context-id="${escapeHTML(item.id)}" type="button"><b>${escapeHTML(item.reference)}${item.id === verse.id ? " · آیهٔ پژوهش" : ""}</b><p class="context-arabic" lang="ar" dir="rtl">${escapeHTML(item.arabic)}</p><p>${escapeHTML(item.persian)}</p></button>`).join("")}</div></section>`;
 }
 
 function detailPanelQuran(verse) {
+  const curated = curatedStudy(verse);
+  if (curated) return `<section class="detail-panel">${curatedStudyBadge(curated)}<p class="eyebrow">تفسیر موضوعی و نظم شبکه‌ای</p><h3>پیوندهای قرآنیِ پیشنهادی برای مطالعه</h3><h4>تفسیر موضوعی</h4>${curatedStudyItems(curated.thematic, "موضوع") }<h4>نظم شبکه‌ای</h4>${curatedStudyItems(curated.network, "پیوند")}</section>`;
   const sameSurah = state.matches.filter((item) => item.surah === verse.surah && item.id !== verse.id).slice(0, 5);
   const surahs = new Set(state.matches.map((item) => item.surah)).size;
   const distributions = evidenceDistribution(verse).filter((item) => item.count);
