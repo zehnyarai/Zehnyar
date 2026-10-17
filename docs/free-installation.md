@@ -135,10 +135,10 @@ workflow `pestino-standalone.yml` فقط شاخه این جلسه `arena/e819b60
 
 [دانلود مستقیم APK نسخه ۰.۷.۰](https://raw.githubusercontent.com/zehnyarai/Zehnyar/arena/e819b607-zehnyar/installers/Pestino-0.7.0.apk)
 
-## نسخه ۰.۷.۱ — دیدن و خرید تحلیل از صفحهٔ «اعتبار من»
+## نسخه ۰.۷.۲ — لوگوی برگ پسته و فعال‌شدن همهٔ بخش‌ها
 
 - «اعتبار من» همان اعداد واقعی را نشان می‌دهد: تحلیل رایگان باقی‌مانده، بستهٔ خریداری‌شده و مصرف‌شده (قبلاً صفر ثابت بود).
 - وقتی دو تحلیل رایگان تمام شود، صفحهٔ خرید و کد فعال‌سازی همان‌جا هم باز می‌شود.
 - ثبت رسید به‌تنهایی تحلیلی اضافه نمی‌کند؛ فقط تأیید واریز در پنل مدیر بسته را آزاد می‌کند.
 
-[دانلود مستقیم APK نسخه ۰.۷.۱](https://raw.githubusercontent.com/zehnyarai/Zehnyar/arena/e819b607-zehnyar/installers/Pestino-0.7.1.apk)
+[دانلود مستقیم APK نسخه ۰.۷.۲](https://raw.githubusercontent.com/zehnyarai/Zehnyar/arena/e819b607-zehnyar/installers/Pestino-0.7.2.apk)

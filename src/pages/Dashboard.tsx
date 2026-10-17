@@ -15,6 +15,7 @@ import {
 import type { AppContext, Page } from '../types'
 import { fa } from '../api'
 import { IS_STANDALONE } from '../config'
+import PistachioMark from '../components/PistachioMark'
 
 const FEATURES = [
   {
@@ -78,7 +79,7 @@ export default function Dashboard({ ctx }: { ctx: AppContext }) {
     <div className="reference-home">
       <section className="reference-hero">
         <div className="hero-label">
-          <Leaf size={19} />
+          <PistachioMark size={19} />
           پلتفرم هوشمند باغداری پسته
         </div>
         <h1>دستیار هوشمند باغداران پسته</h1>

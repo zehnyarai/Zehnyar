@@ -22,6 +22,7 @@ import {
   X,
 } from 'lucide-react'
 import { IS_STANDALONE } from './config'
+import PistachioMark from './components/PistachioMark'
 import { api, errorMessage, fa } from './api'
 import type { AppContext, Article, Bootstrap, Knowledge, Orchard, Page, Report } from './types'
 import { Logo, Spinner } from './components/ui'
@@ -237,7 +238,7 @@ export default function App() {
             aria-label="صفحه اصلی پستینو"
           >
             <span className="reference-brand-mark">
-              <Leaf size={28} />
+              <PistachioMark size={30} tile />
             </span>
             <span>
               <strong>دستیار هوشمند باغداران پسته</strong>
@@ -428,7 +429,7 @@ export default function App() {
       <footer className="reference-footer" inert={!!modal}>
         <div>
           <span>
-            <Leaf size={19} />
+            <PistachioMark size={20} />
             <strong>پستینو</strong> · با آگاهی، برای باغی ماندگار
           </span>
           <p>

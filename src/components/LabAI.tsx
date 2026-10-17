@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Brain, Download, History, Trash2, Wallet } from 'lucide-react'
+import { Brain, Download, History, KeyRound, Trash2, Wallet } from 'lucide-react'
 import { api, downloadText, errorMessage, fa, persianDate } from '../api'
 import { IS_STANDALONE } from '../config'
 import Paywall, { isQuotaError } from './Paywall'
@@ -82,7 +82,7 @@ export default function LabAI({
   }, [revision])
   useEffect(() => {
     let active = true
-    if (!ctx.data.user) return
+    if (!ctx.data.user && !IS_STANDALONE) return
     void api<LabAssessment[]>(IS_STANDALONE ? '/local/lab-analyses' : '/lab-analyses')
       .then((rows) => {
         if (active) setHistory(rows)
@@ -104,7 +104,8 @@ export default function LabAI({
       )
       return
     }
-    if (!ctx.data.user || ctx.data.user.is_demo) {
+    // Same as the photo scan: offline there is no account to sign in to.
+    if (!IS_STANDALONE && (!ctx.data.user || ctx.data.user.is_demo)) {
       ctx.openAuth()
       return
     }
@@ -211,11 +212,23 @@ export default function LabAI({
       </label>
       <button
         className="button primary"
-        disabled={busy || !enabled || blocked}
-        onClick={() => void analyze()}
+        disabled={busy || blocked}
+        onClick={() => {
+          // A disabled button was the whole reason this card looked dead. Without a key the
+          // button now stays alive and leads straight to the one-place setup.
+          if (!enabled) {
+            ctx.navigate('settings')
+            return
+          }
+          void analyze()
+        }}
       >
         {busy ? (
           <Spinner />
+        ) : !enabled ? (
+          <>
+            <KeyRound size={18} /> ثبت کلید رایگان برای تفسیر
+          </>
         ) : (
           <>
             <Brain size={18} /> دریافت تفسیر Gemini

@@ -1,12 +1,13 @@
 import { useEffect, useId, useRef } from 'react'
 import type { ReactNode } from 'react'
-import { ArrowLeft, Check, CircleAlert, Leaf, LoaderCircle, X } from 'lucide-react'
+import { ArrowLeft, Check, CircleAlert, LoaderCircle, X } from 'lucide-react'
+import PistachioMark from './PistachioMark'
 
 export function Logo({ compact = false }: { compact?: boolean }) {
   return (
     <div className="brand">
       <div className="brand-mark">
-        <Leaf size={29} strokeWidth={1.7} />
+        <PistachioMark size={30} tile />
       </div>
       {!compact && (
         <div>

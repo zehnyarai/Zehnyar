@@ -134,7 +134,9 @@ export default function Analysis({
       consentBox.current?.focus()
       return
     }
-    if (mode === 'analyze' && (!ctx.data.user || ctx.data.user.is_demo)) {
+    // The offline edition has no server account: the photos stay on this phone, so a
+    // login prompt here used to swallow the tap and make «تحلیل عکس» look dead.
+    if (mode === 'analyze' && !IS_STANDALONE && (!ctx.data.user || ctx.data.user.is_demo)) {
       ctx.openAuth()
       return
     }
@@ -212,25 +214,32 @@ export default function Analysis({
               ? 'کلید شما آزموده شده است'
               : 'مدل پاسخ تصویری داده است'
             : configured
-              ? 'تنظیم شده؛ نیازمند آزمون اتصال'
+              ? 'تنظیم شده؛ آزمون اتصال را بزنید'
               : IS_STANDALONE
-                ? 'کلید شخصی ثبت نشده'
+                ? 'آمادهٔ راه‌اندازی با کلید رایگان'
                 : 'مدل واقعی متصل نیست'}
         </Badge>
       </div>
       {IS_STANDALONE && !configured && (
-        <div className="reference-alert">
+        <div className="reference-alert activation-alert">
           <Info size={18} />
-          <p>
-            برای فعال‌کردن تحلیل عکس، کلید شخصی Google خود را در بخش «داده‌ها و پشتیبان» این برنامه
-            ثبت کنید؛ سرور و هزینه‌ای لازم نیست.
-          </p>
+          <div>
+            <strong>این بخش کار می‌کند؛ فقط کلید رایگان Google را یک بار ثبت کنید.</strong>
+            <ol className="activation-steps">
+              <li>در «داده‌ها و پشتیبان» یک کلید رایگان از Google AI Studio بسازید.</li>
+              <li>کلید را همان‌جا وارد کنید و «آزمون اتصال» را بزنید.</li>
+              <li>به همین صفحه برگردید؛ عکس بگیرید و تحلیل را شروع کنید.</li>
+            </ol>
+            <small>
+              بدون کلید هم می‌توانید عکس‌ها را ذخیره کنید و «برنامه بررسی و مراقبت» را بگیرید.
+            </small>
+          </div>
           <button
-            className="button secondary small"
+            className="button primary small"
             onClick={() => ctx.navigate('settings')}
             type="button"
           >
-            <KeyRound size={16} /> ثبت کلید شخصی
+            <KeyRound size={16} /> ثبت کلید رایگان
           </button>
         </div>
       )}

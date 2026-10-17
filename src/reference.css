@@ -574,6 +574,33 @@ body {
 .reference-alert svg {
   color: var(--green);
 }
+.activation-alert {
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.activation-alert > div {
+  flex: 1 1 320px;
+}
+.activation-alert strong {
+  color: #1d5f43;
+  display: block;
+  margin-bottom: 4px;
+}
+.activation-steps {
+  margin: 2px 18px 6px 0;
+  padding: 0;
+  color: #5d7a68;
+}
+.activation-steps li {
+  margin: 2px 0;
+}
+.activation-alert small {
+  color: #7c9182;
+}
+.activation-alert > .button {
+  margin-right: auto;
+  white-space: nowrap;
+}
 .reference-page .button {
   font-size: 14px;
   min-height: 44px;
