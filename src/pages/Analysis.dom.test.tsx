@@ -225,19 +225,34 @@ describe('offline photo analysis (the owner’s exact flow)', () => {
       if (!box.checked) await user.click(box)
       return box
     }
+    // The photo is copied asynchronously now, and the button carries a spinner while a
+    // request is in flight; wait for the real, enabled button before every tap.
+    const analyze = async () => {
+      const button = (await screen.findByRole('button', {
+        name: /تحلیل تصویر و بررسی احتمال آفت/,
+      })) as HTMLButtonElement
+      await waitFor(() => expect(button.disabled).toBe(false))
+      await user.click(button)
+    }
     await tick()
     // Analysis 1 of 2 (free)
-    await user.click(screen.getByRole('button', { name: /تحلیل تصویر و بررسی احتمال آفت/ }))
+    await analyze()
     await waitFor(() => expect(visionCalls).toBe(1))
     await waitFor(() => expect(text()).toContain('تحلیل رایگان باقی‌مانده: ۱ از ۲'))
     // Analysis 2 of 2 (free)
     await tick()
-    await user.click(screen.getByRole('button', { name: /تحلیل تصویر و بررسی احتمال آفت/ }))
+    await analyze()
     await waitFor(() => expect(visionCalls).toBe(2))
-    // The third one is refused: no model call, and the payment screen appears instead.
-    await tick()
-    await user.click(screen.getByRole('button', { name: /تحلیل تصویر و بررسی احتمال آفت/ }))
+    // The third one is refused: the button turns off, no model call is made, and the
+    // payment screen appears from the same quota refresh.
     await waitFor(() => expect(text()).toContain('دو تحلیل رایگان تمام شد'))
+    await waitFor(() => {
+      const button = screen.queryByRole('button', {
+        name: /تحلیل تصویر و بررسی احتمال آفت/,
+      }) as HTMLButtonElement | null
+      // While the second request finishes the label is a spinner; once settled it is off.
+      expect(button?.disabled ?? true).toBe(true)
+    })
     expect(visionCalls).toBe(2)
     expect(text()).toContain('برای ادامه، یک بستهٔ تحلیل تهیه کنید')
     // The paywall sells the owner's real ladder: 350,000 for one, cheaper per analysis in bulk.
