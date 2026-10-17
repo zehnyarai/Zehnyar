@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
+  BASE_ANALYSIS_TOMAN,
   DEFAULT_FREE_ANALYSES,
+  SUPPORT_PLANS,
+  normalizePackage,
+  planPrice,
+  pricedPlans,
   consumeQuota,
   createActivationCode,
   defaultPackage,
@@ -10,7 +15,6 @@ import {
   readQuotaMirror,
   reconcileQuota,
   refundQuota,
-  suggestedToman,
   validatePackage,
   verifyActivationCode,
   writeQuotaMirror,
@@ -53,24 +57,60 @@ describe('free analyses, then a Toman package', () => {
     const free = consumeQuota({ ...defaultQuota(), used: 1 })
     expect(refundQuota(free, true).used).toBe(1)
   })
-  it('prices the package from the dollar day rate and refuses a cheaper Toman price', () => {
-    expect(suggestedToman(2, 92_000)).toBe(190_000) // 184,000 rounded up to 10,000
-    const pack = validatePackage({
-      analyses: 20,
-      usd_price: 2,
-      usd_rate: 92_000,
-      rate_date: '2026-10-14',
-      price_toman: 250_000,
-    })
-    expect(pack.price_toman).toBe(250_000)
+  it("builds every package on the owner's 350,000 Toman single-analysis price", () => {
+    expect(BASE_ANALYSIS_TOMAN).toBe(350_000)
+    const ladder = pricedPlans()
+    expect(ladder.map((p) => [p.analyses, p.price_toman])).toEqual([
+      [1, 350_000],
+      [5, 1_575_000],
+      [10, 2_800_000],
+      [20, 4_900_000],
+    ])
+    // Each step is cheaper per analysis than the one before, and never above the base.
+    const per = ladder.map((p) => p.per_analysis_toman)
+    expect(per).toEqual([350_000, 315_000, 280_000, 245_000])
+    expect(per.every((v, i) => v <= BASE_ANALYSIS_TOMAN && (i === 0 || v < per[i - 1]))).toBe(true)
+    expect(ladder.map((p) => p.discount_percent)).toEqual([0, 10, 20, 30])
+    // A changed base moves the whole ladder, not just one row.
+    const cheaper = pricedPlans(200_000)
+    expect(cheaper[0].price_toman).toBe(200_000)
+    expect(cheaper[3].price_toman).toBe(2_800_000)
+    expect(planPrice(SUPPORT_PLANS[1], 200_000)).toBe(900_000)
+  })
+  it('validates the package price from the same base and refuses an overcharge', () => {
+    const pack = validatePackage({ analyses: 20, base_toman: 350_000 })
+    expect(pack).toEqual({ analyses: 20, price_toman: 4_900_000, base_toman: 350_000 })
+    // The owner may round a package down further, but never above 20 × the base.
+    expect(
+      validatePackage({ analyses: 20, base_toman: 350_000, price_toman: 4_500_000 }).price_toman
+    ).toBe(4_500_000)
     expect(() =>
-      validatePackage({ analyses: 20, usd_price: 2, usd_rate: 92_000, price_toman: 100_000 })
-    ).toThrow(/کمتر/)
-    expect(() => validatePackage({ analyses: 0, price_toman: 100_000 })).toThrow()
-    // No dollar input: the owner's own Toman price is accepted as-is.
-    expect(validatePackage({ analyses: 5, price_toman: 500_000 }).price_toman).toBe(500_000)
+      validatePackage({ analyses: 20, base_toman: 350_000, price_toman: 7_500_000 })
+    ).toThrow(/بیشتر|بسته/)
+    expect(() =>
+      validatePackage({ analyses: 20, base_toman: 350_000, price_toman: 200_000 })
+    ).toThrow()
+    expect(() => validatePackage({ analyses: 0, base_toman: 350_000 })).toThrow()
+    expect(() => validatePackage({ analyses: 5 })).toThrow(/قیمت هر تحلیل/)
     // Persian digits typed on a phone keyboard must work.
-    expect(validatePackage({ analyses: '۱۰', price_toman: '۱۲۰۰۰۰' }).analyses).toBe(10)
+    expect(validatePackage({ analyses: '۱۰', base_toman: '۳۵۰۰۰۰' }).price_toman).toBe(2_800_000)
+  })
+  it('replaces a package saved by the old dollar-based build instead of showing a stale price', () => {
+    const migrated = normalizePackage({
+      analyses: 20,
+      price_toman: 9_900_000,
+      usd_price: 36,
+      usd_rate: 275_000,
+      rate_date: '2026-10-17',
+    })
+    expect(migrated).toEqual(defaultPackage())
+    expect(migrated.price_toman).toBe(4_900_000)
+    expect(normalizePackage({ analyses: 5, base_toman: 350_000 })).toEqual({
+      analyses: 5,
+      price_toman: 1_575_000,
+      base_toman: 350_000,
+    })
+    expect(normalizePackage(null)).toEqual(defaultPackage())
   })
   it('signs activation codes the owner can send after a real transfer', () => {
     const generated = createActivationCode({ analyses: 20, today, serial: 4821, days: 30 })

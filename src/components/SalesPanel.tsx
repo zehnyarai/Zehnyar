@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { BadgeCheck, Gift, KeyRound, Save, ShoppingBag, Wallet } from 'lucide-react'
-import { api, errorMessage, fa, persianDate, today } from '../api'
+import { api, errorMessage, fa, persianDate } from '../api'
 import type { AppContext } from '../types'
-import { DEFAULT_USD_RATE, SUPPORT_PLANS, planPrice } from '../quota'
+import { BASE_ANALYSIS_TOMAN, SUPPORT_PLANS, planPrice } from '../quota'
 import type { QuotaPayload } from '../quota'
 import { InfoBanner, Spinner } from './ui'
 
@@ -20,14 +20,15 @@ const number = (value: string) => Number(toEnglish(digits(value) || '0'))
 
 /**
  * The owner's shop: two free analyses, then the four support packages that are all priced
- * from the same day rate ($3 per analysis before the package discount). The owner edits
- * the rate and the code generator, and the credits page follows automatically.
+ * from the same single-analysis base (owner's 2026-10-17 decision: 350,000 Toman), with
+ * 10%, 20% and 30% volume discounts. The owner edits that base price and the code
+ * generator; the credits page and the receipt check follow automatically.
  */
 export default function SalesPanel({ ctx }: { ctx: AppContext }) {
   const [quota, setQuota] = useState<QuotaPayload | null>(null)
   const [form, setForm] = useState({
     free_limit: '2',
-    rate: String(DEFAULT_USD_RATE),
+    base: String(BASE_ANALYSIS_TOMAN),
   })
   const [planId, setPlanId] = useState('five')
   const [days, setDays] = useState('')
@@ -49,7 +50,7 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
         setQuota(payload)
         setForm({
           free_limit: String(payload.free_limit),
-          rate: String(payload.usd_rate ?? DEFAULT_USD_RATE),
+          base: String(payload.base_toman || BASE_ANALYSIS_TOMAN),
         })
       })
       .catch((e) => active && setError(errorMessage(e)))
@@ -58,7 +59,7 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
     }
   }, [])
 
-  const rate = number(form.rate) || DEFAULT_USD_RATE
+  const base = number(form.base) || BASE_ANALYSIS_TOMAN
   const plan = SUPPORT_PLANS.find((p) => p.id === planId) ?? SUPPORT_PLANS[1]
   async function run(action: () => Promise<unknown>, message: string) {
     if (busy) return
@@ -69,7 +70,10 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
       await action()
       const payload = await api<QuotaPayload>('/local/quota')
       setQuota(payload)
-      setForm({ free_limit: String(payload.free_limit), rate: String(payload.usd_rate ?? rate) })
+      setForm({
+        free_limit: String(payload.free_limit),
+        base: String(payload.base_toman || base),
+      })
       await ctx.refresh()
       setNote(message)
     } catch (e) {
@@ -86,15 +90,13 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
           body: JSON.stringify({
             free_limit: number(form.free_limit),
             package: {
-              analyses: 20,
-              usd_price: 36,
-              usd_rate: rate,
-              rate_date: today(),
-              price_toman: planPrice(SUPPORT_PLANS[SUPPORT_PLANS.length - 1], rate),
+              analyses: SUPPORT_PLANS[SUPPORT_PLANS.length - 1].analyses,
+              base_toman: base,
+              price_toman: planPrice(SUPPORT_PLANS[SUPPORT_PLANS.length - 1], base),
             },
           }),
         }),
-      'نرخ دلار و تحلیل‌های رایگان ذخیره شد؛ قیمت هر چهار بسته به‌روز شد.'
+      'قیمت هر تحلیل و تحلیل‌های رایگان ذخیره شد؛ هر چهار بسته به‌روز شد.'
     )
   const makeCode = () =>
     run(async () => {
@@ -126,8 +128,8 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
         <ShoppingBag size={22} /> قیمت‌گذاری و کد فعال‌سازی
       </h2>
       <p className="section-description">
-        هر تحلیل ۳ دلار است؛ نرخ روز دلار را اینجا وارد کنید تا قیمت هر چهار بسته خودکار حساب شود.
-        کاربر فقط قیمت تومانی را می‌بیند.
+        قیمت یک تحلیل را به تومان بنویسید؛ هر چهار بسته از همان عدد با تخفیف ۱۰، ۲۰ و ۳۰ درصد حساب
+        می‌شوند. کاربر فقط قیمت تومانی را می‌بیند.
       </p>
       <form
         onSubmit={(e) => {
@@ -147,12 +149,12 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
               />
             </label>
             <label>
-              نرخ دلار امروز (تومان)
+              قیمت هر تحلیل (تومان)
               <input
                 dir="ltr"
                 inputMode="numeric"
-                value={form.rate}
-                onChange={(e) => setForm({ ...form, rate: e.target.value })}
+                value={form.base}
+                onChange={(e) => setForm({ ...form, base: e.target.value })}
               />
             </label>
           </div>
@@ -162,19 +164,19 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
                 <tr>
                   <th>بسته</th>
                   <th>تحلیل</th>
-                  <th>دلار</th>
+                  <th>تخفیف</th>
                   <th>تومان</th>
                   <th>هر تحلیل</th>
                 </tr>
               </thead>
               <tbody>
                 {SUPPORT_PLANS.map((p) => {
-                  const price = planPrice(p, rate)
+                  const price = planPrice(p, base)
                   return (
                     <tr key={p.id}>
                       <td>{p.name}</td>
                       <td>{fa(p.analyses)}</td>
-                      <td dir="ltr">{fa(p.usd, 0)}$</td>
+                      <td>{p.discount_percent ? `${fa(p.discount_percent)}٪` : '—'}</td>
                       <td dir="ltr">{fa(price)}</td>
                       <td dir="ltr">{fa(Math.round(price / p.analyses))}</td>
                     </tr>
@@ -184,7 +186,7 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
             </table>
           </div>
           <button className="button primary" type="submit">
-            <Save size={17} /> ذخیرهٔ نرخ
+            <Save size={17} /> ذخیرهٔ قیمت
           </button>
         </fieldset>
       </form>
@@ -207,7 +209,7 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
               <select value={planId} onChange={(e) => setPlanId(e.target.value)}>
                 {SUPPORT_PLANS.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name} — {fa(planPrice(p, rate))} تومان
+                    {p.name} — {fa(planPrice(p, base))} تومان
                   </option>
                 ))}
               </select>

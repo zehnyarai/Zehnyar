@@ -497,15 +497,15 @@ describe('device-direct analysis with the owner key (offline edition)', () => {
     expect(blocked?.message).toContain('تحلیل رایگان')
     expect((await localApi<{ blocked: boolean }>('/local/quota')).blocked).toBe(true)
 
-    // The owner prices the package from the dollar day rate, then issues a code after payment.
+    // The owner sets one analysis at 350,000 Toman; the 20-package follows with 30% off.
     const priced = await localApi<{ price_toman: number; needs_price: boolean }>('/local/quota', {
       method: 'PUT',
       body: JSON.stringify({
         free_limit: 2,
-        package: { analyses: 20, usd_price: 2, usd_rate: 92_000, rate_date: '2026-10-14' },
+        package: { analyses: 20, base_toman: 350_000 },
       }),
     })
-    expect(priced.price_toman).toBe(190_000)
+    expect(priced.price_toman).toBe(4_900_000)
     expect(priced.needs_price).toBe(false)
     const issued = await localApi<{ code: string }>('/local/quota/code', {
       method: 'POST',
@@ -549,13 +549,13 @@ describe('device-direct analysis with the owner key (offline edition)', () => {
   it('confirms a recorded transfer and adds the package to this device', async () => {
     await localApi('/local/quota', {
       method: 'PUT',
-      body: JSON.stringify({ free_limit: 2, package: { analyses: 10, price_toman: 900_000 } }),
+      body: JSON.stringify({ free_limit: 2, package: { analyses: 10, base_toman: 350_000 } }),
     })
     const receipt = await localApi<{ id: string; confirmed_at: string | null }>(
       '/local/billing/receipts',
       post({
         payer: 'باغدار تست',
-        amount_toman: 900_000,
+        amount_toman: 2_800_000,
         paid_at: '2026-10-14',
         reference: '778899',
         note: '',

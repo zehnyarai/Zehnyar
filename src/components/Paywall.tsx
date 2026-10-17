@@ -11,7 +11,7 @@ import {
 import { api, errorMessage, fa, persianDate } from '../api'
 import { InfoBanner, Spinner } from './ui'
 import type { AppContext } from '../types'
-import { DEFAULT_USD_RATE, QuotaRequired } from '../quota'
+import { QuotaRequired } from '../quota'
 import type { QuotaPayload } from '../quota'
 
 const digits = (value: string) => value.replace(/\D/g, '')
@@ -131,7 +131,7 @@ export default function Paywall({
             </div>
           ))}
           <p className="muted">
-            قیمت‌ها با نرخ روز دلار ({fa(quota.usd_rate ?? DEFAULT_USD_RATE)} تومان) حساب شده‌اند.
+            هر تحلیل {fa(quota.base_toman)} تومان است؛ بسته‌های بزرگ‌تر تا ۳۰٪ ارزان‌تر می‌شوند.
           </p>
         </div>
       ) : (

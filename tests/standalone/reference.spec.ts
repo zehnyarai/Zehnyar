@@ -133,9 +133,13 @@ test('credits show the real packages and the owner panel keeps the card and ledg
 }) => {
   await page.goto('./#/subscription')
   await expect(page.getByRole('heading', { name: 'اعتبار من' })).toBeVisible()
-  // Four support packages, all priced from the owner's day rate.
+  // Four support packages, all built on the owner's 350,000 Toman single-analysis price.
   await expect(page.locator('.plan-card')).toHaveCount(4)
   await expect(page.locator('.plan-card').first()).toContainText('تومان')
+  await expect(page.locator('.plan-card').first()).toContainText('۳۵۰٬۰۰۰')
+  await expect(page.locator('.plan-card').nth(1)).toContainText('۳۱۵٬۰۰۰')
+  await expect(page.locator('.plan-card').nth(3)).toContainText('۴٬۹۰۰٬۰۰۰')
+  await expect(page.locator('.local-credits')).toContainText('هر تحلیل ۳۵۰٬۰۰۰ تومان است')
   await expect(page.locator('.bank-card-display')).toContainText(/9401\s*[\s-]\s*6524/)
   await expect(page.getByRole('heading', { name: /کد فعال‌سازی دارم/ })).toBeVisible()
   // The owner panel opens only with the owner password.
@@ -313,7 +317,7 @@ test('offline admin panel connects the model and keeps the owner ledger honest',
     /9401\s*-\s*6524\s*-\s*7311\s*-\s*6063/
   )
   await page.getByLabel('نام پرداخت‌کننده').fill('باغدار نمونه')
-  await page.getByLabel('مبلغ (تومان)').fill('990000')
+  await page.getByLabel('مبلغ (تومان)').fill('4900000')
   await page.getByLabel('تاریخ واریز').fill('2026-10-12')
   await page.getByRole('button', { name: 'ثبت در دفتر دریافتی‌ها' }).click()
   await expect(page.locator('.receipt-ledger')).toContainText('باغدار نمونه')

@@ -17,10 +17,10 @@ import {
   QuotaRequired,
   consumeQuota,
   createActivationCode,
-  DEFAULT_USD_RATE,
   MAX_PACKAGE_ANALYSES,
   defaultPackage,
   defaultQuota,
+  normalizePackage,
   pricedPlans,
   quotaDecision,
   quotaView,
@@ -150,7 +150,7 @@ async function load(): Promise<State> {
             : [],
         },
         quota: reconcileQuota({ ...defaultQuota(), ...req.result?.quota }, quotaMirror()),
-        package: { ...defaultPackage(), ...req.result?.package },
+        package: normalizePackage(req.result?.package),
       })
     req.onerror = () =>
       reject(new LocalError('خواندن داده‌های دستگاه ممکن نشد. داده‌ها را پاک نکنید.'))
@@ -390,7 +390,7 @@ function quotaPayload(state: State) {
   return {
     ...view,
     package: state.package,
-    plans: pricedPlans(state.package.usd_rate ?? DEFAULT_USD_RATE),
+    plans: pricedPlans(state.package.base_toman),
     card: state.billing.card,
     pending_receipts: state.billing.receipts.filter((r) => !r.confirmed_at).length,
     codes_used: state.quota.codes.length,
@@ -732,7 +732,7 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       // A transfer that equals a package price grants that package; any other amount
       // buys whole analyses at the single-analysis price. Discounts are honoured, and
       // the owner never has to compute the count by hand.
-      const plans = pricedPlans(state.package.usd_rate ?? DEFAULT_USD_RATE)
+      const plans = pricedPlans(state.package.base_toman)
       const candidates = [
         { analyses: state.package.analyses, price_toman: state.package.price_toman },
         ...plans,

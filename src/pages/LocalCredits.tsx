@@ -158,7 +158,7 @@ export default function LocalCredits({ ctx }: { ctx: AppContext }) {
           ))}
         </div>
         <p className="muted">
-          قیمت‌ها با نرخ روز دلار ({fa(quota?.usd_rate ?? 0)} تومان) حساب شده‌اند.
+          هر تحلیل {fa(quota?.base_toman ?? 0)} تومان است؛ بسته‌های بزرگ‌تر تا ۳۰٪ ارزان‌تر می‌شوند.
         </p>
       </section>
 

@@ -9,10 +9,12 @@
 
 export const DEFAULT_FREE_ANALYSES = 2
 export const DEFAULT_PACKAGE_ANALYSES = 20
-/** Owner's decision of 2026-10-17: the day rate is fixed at 275,000 Toman per dollar. */
-export const DEFAULT_USD_RATE = 275_000
-/** And every paid analysis is priced at 3 dollars before the package discount. */
-export const DEFAULT_ANALYSIS_USD = 3
+/**
+ * Owner's decision of 2026-10-17 (second round): one analysis costs 350,000 Toman, and
+ * every larger package is calculated from that same base with a volume discount.
+ * No dollar rate is involved in the farmer's price any more.
+ */
+export const BASE_ANALYSIS_TOMAN = 350_000
 export const MAX_FREE_ANALYSES = 50
 export const MAX_PACKAGE_ANALYSES = 500
 export const QUOTA_MIRROR_KEY = 'pestino-quota'
@@ -28,24 +30,24 @@ export interface QuotaSettings {
 }
 
 export interface AnalysisPackage {
+  /** Analyses in the owner's default (largest) package, kept for the receipt fallback. */
   analyses: number
   price_toman: number
-  /** Optional USD-linked reference: base price in dollars and the dated day rate. */
-  usd_price: number | null
-  usd_rate: number | null
-  rate_date: string | null
+  /** What one single analysis costs; the whole discount ladder is built on this number. */
+  base_toman: number
 }
 
 /**
- * Support packages for the owner's shop. The ladder starts at the single-analysis
- * price ($3) and gets cheaper per analysis as the farmer buys more: 20% off for five,
- * 30% off for ten and 40% off for twenty. Prices are recalculated from the day rate,
- * so changing the rate in the panel changes every package at once.
+ * Support packages for the owner's shop. Every price is the single-analysis base
+ * multiplied by the number of analyses, minus the volume discount, rounded up to 10,000
+ * Toman (5,000 is enough for every step) so it is easy to type into a banking app. With the
+ * owner's 350,000 Toman base:
+ * one analysis 350,000; five at 10% off = 1,575,000 (315,000 each);
+ * ten at 20% off = 2,800,000 (280,000 each); twenty at 30% off = 4,900,000 (245,000 each).
  */
 export interface SupportPlan {
   id: string
   analyses: number
-  usd: number
   discount_percent: number
   name: string
   note: string
@@ -54,47 +56,44 @@ export const SUPPORT_PLANS: SupportPlan[] = [
   {
     id: 'single',
     analyses: 1,
-    usd: DEFAULT_ANALYSIS_USD,
     discount_percent: 0,
     name: 'تک‌تحلیل',
-    note: 'برای یک بررسی فوری؛ بدون تخفیف.',
+    note: 'یک بررسی فوری؛ بدون تخفیف.',
   },
   {
     id: 'five',
     analyses: 5,
-    usd: 12,
-    discount_percent: 20,
+    discount_percent: 10,
     name: 'بستهٔ ۵ تحلیلی',
-    note: '۲۰٪ ارزان‌تر از خرید تک‌تک؛ برای یک فصل سبک.',
+    note: '۱۰٪ ارزان‌تر از خرید تک‌تک؛ برای یک فصل سبک.',
   },
   {
     id: 'ten',
     analyses: 10,
-    usd: 21,
-    discount_percent: 30,
+    discount_percent: 20,
     name: 'بستهٔ ۱۰ تحلیلی',
-    note: '۳۰٪ ارزان‌تر؛ مناسب پایش ماهانهٔ باغ.',
+    note: '۲۰٪ ارزان‌تر؛ مناسب پایش ماهانهٔ باغ.',
   },
   {
     id: 'twenty',
     analyses: 20,
-    usd: 36,
-    discount_percent: 40,
+    discount_percent: 30,
     name: 'بستهٔ ۲۰ تحلیلی',
-    note: '۴۰٪ ارزان‌تر؛ کامل‌ترین بسته برای یک فصل.',
+    note: '۳۰٪ ارزان‌تر؛ کامل‌ترین بسته برای یک فصل.',
   },
 ]
-/** Rounded up to 10,000 Toman so the price is easy to type into a banking app. */
-export function planPrice(plan: SupportPlan, rate = DEFAULT_USD_RATE): number {
-  return Math.ceil((plan.usd * rate) / 10_000) * 10_000
+/** Rounded up to 5,000 Toman so every discounted step stays a whole, typeable amount. */
+export function planPrice(plan: SupportPlan, base = BASE_ANALYSIS_TOMAN): number {
+  const raw = plan.analyses * base * (1 - plan.discount_percent / 100)
+  return Math.ceil(raw / 5_000) * 5_000
 }
 export interface PricedPlan extends SupportPlan {
   price_toman: number
   per_analysis_toman: number
 }
-export function pricedPlans(rate = DEFAULT_USD_RATE): PricedPlan[] {
+export function pricedPlans(base = BASE_ANALYSIS_TOMAN): PricedPlan[] {
   return SUPPORT_PLANS.map((plan) => {
-    const price = planPrice(plan, rate)
+    const price = planPrice(plan, base)
     return {
       ...plan,
       price_toman: price,
@@ -111,11 +110,26 @@ export function defaultPackage(): AnalysisPackage {
   const tier = SUPPORT_PLANS[SUPPORT_PLANS.length - 1]
   return {
     analyses: tier.analyses,
-    price_toman: planPrice(tier, DEFAULT_USD_RATE),
-    usd_price: tier.usd,
-    usd_rate: DEFAULT_USD_RATE,
-    rate_date: '2026-10-17',
+    price_toman: planPrice(tier),
+    base_toman: BASE_ANALYSIS_TOMAN,
   }
+}
+
+/**
+ * Reads a package saved by an older build (which stored dollar fields). Anything that
+ * does not carry the new per-analysis Toman base is replaced by the current ladder, so a
+ * device upgraded from 0.7.4 never shows a stale 9,900,000-Toman price.
+ */
+export function normalizePackage(raw: unknown): AnalysisPackage {
+  const body = (raw ?? {}) as Record<string, unknown>
+  const base = Number(body.base_toman)
+  if (!Number.isInteger(base) || base < 1_000 || base > 100_000_000) return defaultPackage()
+  const analyses = Number(body.analyses)
+  const size = SUPPORT_PLANS.some((p) => p.analyses === analyses)
+    ? analyses
+    : SUPPORT_PLANS[SUPPORT_PLANS.length - 1].analyses
+  const tier = SUPPORT_PLANS.find((p) => p.analyses === size) ?? SUPPORT_PLANS[0]
+  return { analyses: size, price_toman: planPrice(tier, base), base_toman: base }
 }
 
 export function quotaView(quota: QuotaSettings, pack: AnalysisPackage) {
@@ -130,9 +144,7 @@ export function quotaView(quota: QuotaSettings, pack: AnalysisPackage) {
     blocked: freeLeft <= 0 && credits <= 0,
     analyses_per_package: pack.analyses,
     price_toman: pack.price_toman,
-    usd_price: pack.usd_price,
-    usd_rate: pack.usd_rate,
-    rate_date: pack.rate_date,
+    base_toman: pack.base_toman,
     needs_price: pack.price_toman <= 0,
   }
 }
@@ -172,43 +184,23 @@ function wholeNumber(value: unknown, label: string, min: number, max: number): n
   return n
 }
 
-/** Toman price the owner should ask for: dollars × the day rate, rounded up to 10,000. */
-export function suggestedToman(usdPrice: number | null, usdRate: number | null): number {
-  if (!usdPrice || !usdRate || usdPrice <= 0 || usdRate <= 0) return 0
-  return Math.ceil((usdPrice * usdRate) / 10_000) * 10_000
-}
-
 export function validatePackage(raw: unknown): AnalysisPackage {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw))
     throw new Error('تنظیمات بسته معتبر نیست.')
   const body = raw as Record<string, unknown>
   const analyses = wholeNumber(body.analyses, 'تعداد تحلیل هر بسته', 1, MAX_PACKAGE_ANALYSES)
-  const usd =
-    body.usd_price === null || body.usd_price === undefined || body.usd_price === ''
-      ? null
-      : Number(normaliseDigits(String(body.usd_price)).replace(/[,٬\s]/g, ''))
-  const rate =
-    body.usd_rate === null || body.usd_rate === undefined || body.usd_rate === ''
-      ? null
-      : Number(normaliseDigits(String(body.usd_rate)).replace(/[,٬\s]/g, ''))
-  if (usd !== null && (!Number.isFinite(usd) || usd <= 0 || usd > 100_000))
-    throw new Error('قیمت پایه دلاری باید عددی مثبت و کمتر از ۱۰۰٬۰۰۰ دلار باشد.')
-  if (rate !== null && (!Number.isFinite(rate) || rate <= 0 || rate > 100_000_000))
-    throw new Error('نرخ دلار روز باید عددی مثبت و کمتر از ۱۰۰ میلیون تومان باشد.')
-  const suggested = suggestedToman(usd, rate)
+  const base = wholeNumber(body.base_toman, 'قیمت هر تحلیل', 10_000, 100_000_000)
   const suppliedPrice = body.price_toman
   const given = !(suppliedPrice === undefined || suppliedPrice === null || suppliedPrice === '')
-  // No price at all is allowed while the owner is still deciding; the panel says "needs price".
+  // A package can never cost more than its analyses bought one by one, so a typo in the
+  // package price cannot overcharge a farmer.
+  const fullPrice = analyses * base
+  const tier = SUPPORT_PLANS.find((p) => p.analyses === analyses)
+  const suggested = tier ? planPrice(tier, base) : fullPrice
   const price = given
-    ? wholeNumber(suppliedPrice, 'قیمت بسته به تومان', 10_000, 5_000_000_000)
+    ? wholeNumber(suppliedPrice, 'قیمت بسته به تومان', base, fullPrice)
     : suggested
-  if (suggested && price && price < suggested)
-    throw new Error('قیمت تومانی نباید از قیمت پایه دلاری × نرخ روز کمتر باشد.')
-  const rateDate =
-    body.rate_date === null || body.rate_date === undefined ? null : String(body.rate_date)
-  if (rateDate && !/^\d{4}-\d{2}-\d{2}$/.test(rateDate))
-    throw new Error('تاریخ نرخ دلار باید به شکل ۲۰۲۶-۱۰-۱۳ باشد.')
-  return { analyses, price_toman: price, usd_price: usd, usd_rate: rate, rate_date: rateDate }
+  return { analyses, price_toman: price, base_toman: base }
 }
 
 /* ------------------------------------------------------------------ *

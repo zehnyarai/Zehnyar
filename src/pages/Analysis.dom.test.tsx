@@ -210,6 +210,11 @@ describe('offline photo analysis (the owner’s exact flow)', () => {
     await waitFor(() => expect(text()).toContain('دو تحلیل رایگان تمام شد'))
     expect(visionCalls).toBe(2)
     expect(text()).toContain('برای ادامه، یک بستهٔ تحلیل تهیه کنید')
+    // The paywall sells the owner's real ladder: 350,000 for one, cheaper per analysis in bulk.
+    expect(document.querySelectorAll('.paywall-plan')).toHaveLength(4)
+    expect(document.querySelector('.paywall-plan')?.textContent).toContain('۳۵۰٬۰۰۰')
+    expect(document.querySelectorAll('.paywall-plan')[1]?.textContent).toContain('۳۱۵٬۰۰۰')
+    expect(text()).toContain('هر تحلیل ۳۵۰٬۰۰۰ تومان است')
     expect(
       (screen.getByRole('button', { name: /تحلیل تصویر و بررسی احتمال آفت/ }) as HTMLButtonElement)
         .disabled

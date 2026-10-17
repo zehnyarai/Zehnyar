@@ -196,7 +196,7 @@ describe('offline owner panel (real DOM, real device-storage layer)', () => {
     await waitFor(() => expect(document.body.textContent).toContain('9401 - 6524 - 7311 - 6063'))
 
     await user.type(screen.getByLabelText('نام پرداخت‌کننده'), 'باغدار نمونه')
-    await user.type(screen.getByLabelText('مبلغ (تومان)'), '990000')
+    await user.type(screen.getByLabelText('مبلغ (تومان)'), '4900000')
     await user.click(screen.getByRole('button', { name: /ثبت در دفتر دریافتی‌ها/ }))
     await waitFor(() => expect(document.querySelector('.receipt-ledger')).toBeTruthy())
     const ledger = within(document.querySelector('.receipt-ledger') as HTMLElement)
