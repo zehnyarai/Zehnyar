@@ -272,11 +272,12 @@ function readStored(): StoredSettings {
           note: typeof slot.note === 'string' ? slot.note : '',
         }
       }
-      return {
+      const stored: StoredSettings = {
         version: 2,
         active: raw.active === 'grok' ? 'grok' : 'gemini',
         slots: { gemini: pick('gemini'), grok: pick('grok') },
       }
+      return moveMisplacedKey(stored)
     }
     // Old flat shape: one provider, one key.
     const provider: DirectProvider = raw.provider === 'grok' ? 'grok' : 'gemini'
@@ -293,6 +294,39 @@ function readStored(): StoredSettings {
   } catch {
     return emptyStored()
   }
+}
+/**
+ * Repairs a device where an earlier build stored an xAI key in the Gemini tab (or the
+ * other way round). The prefix is unmistakable, and the key is moved, never deleted, so
+ * the owner does not have to paste it again after updating.
+ */
+function moveMisplacedKey(stored: StoredSettings): StoredSettings {
+  const gemini = stored.slots.gemini
+  const grok = stored.slots.grok
+  if (!grok.key && /^xai-/i.test(gemini.key)) {
+    grok.key = gemini.key
+    grok.model = defaultModel('grok')
+    grok.checked_at = null
+    grok.ok = false
+    grok.note = ''
+    gemini.key = ''
+    gemini.checked_at = null
+    gemini.ok = false
+    gemini.note = ''
+    stored.active = 'grok'
+  } else if (!gemini.key && /^AIza/.test(grok.key)) {
+    gemini.key = grok.key
+    gemini.model = defaultModel('gemini')
+    gemini.checked_at = null
+    gemini.ok = false
+    gemini.note = ''
+    grok.key = ''
+    grok.checked_at = null
+    grok.ok = false
+    grok.note = ''
+    stored.active = 'gemini'
+  }
+  return stored
 }
 function writeStored(next: StoredSettings) {
   const store = storage()

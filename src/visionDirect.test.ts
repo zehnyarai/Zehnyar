@@ -26,6 +26,7 @@ import {
   directFailureMessage,
   preferGrokModel,
   providerKeyHint,
+  providerStatus,
   DEFAULT_GROK_MODEL,
   GROK_MODELS,
 } from './visionDirect'
@@ -443,6 +444,58 @@ describe('xAI model names stay current and self-heal', () => {
       'grok-imagine-image-quality'
     )
     expect(preferGrokModel([])).toBeNull()
+  })
+  it('moves a key that an older build saved in the wrong tab', () => {
+    // Someone pasted the xAI key while the Gemini tab was open; the prefix makes it obvious.
+    store.set(
+      'pestino-direct-vision',
+      JSON.stringify({
+        version: 2,
+        active: 'gemini',
+        slots: {
+          gemini: { model: 'gemini-2.5-flash', key: 'xai-ExampleExampleKey123', ok: false },
+          grok: { model: 'grok-4', key: '', ok: false },
+        },
+      })
+    )
+    expect(directSettings()).toMatchObject({
+      provider: 'grok',
+      key: 'xai-ExampleExampleKey123',
+      model: DEFAULT_GROK_MODEL,
+    })
+    expect(providerStatus().gemini.key_present).toBe(false)
+    expect(providerStatus().grok.key_present).toBe(true)
+    // The reverse mix is repaired too, and a deliberate key in both tabs is left alone.
+    store.set(
+      'pestino-direct-vision',
+      JSON.stringify({
+        version: 2,
+        active: 'grok',
+        slots: {
+          gemini: { model: 'gemini-2.5-flash', key: '', ok: false },
+          grok: { model: 'grok-4.7', key: 'AIzaSyExampleExampleExample123', ok: false },
+        },
+      })
+    )
+    expect(directSettings()).toMatchObject({
+      provider: 'gemini',
+      key: 'AIzaSyExampleExampleExample123',
+    })
+    store.set(
+      'pestino-direct-vision',
+      JSON.stringify({
+        version: 2,
+        active: 'gemini',
+        slots: {
+          gemini: { model: 'gemini-2.5-flash', key: 'AIzaSyExampleExampleExample123', ok: true },
+          grok: { model: 'grok-4.7', key: 'xai-ExampleExampleKey123', ok: true },
+        },
+      })
+    )
+    expect(providerStatus()).toMatchObject({
+      gemini: { key_present: true },
+      grok: { key_present: true },
+    })
   })
   it('names the right tab when the wrong provider key is pasted', () => {
     expect(providerKeyHint('grok', 'AIzaSyExampleExample')).toContain('Gemini')
