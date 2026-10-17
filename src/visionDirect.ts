@@ -518,7 +518,7 @@ export function sanitizePhotoResult(
     provider,
     knowledge_version: knowledgeData.version,
     disclaimer:
-      'غربالگری احتمالی هوش مصنوعی با کلید شخصی شما؛ نه تشخیص قطعی، نه دوز سم/کود و نه دقت علمی کالیبره‌شده. تصمیم نهایی با کارشناس و آزمایش است.',
+      'این پاسخ یک غربالگری احتمالی است؛ نه تشخیص قطعی، نه دوز سم/کود و نه دقت علمی کالیبره‌شده. تصمیم نهایی با کارشناس باغ پسته و آزمایش است.',
   }
   if (isPistachio !== true) {
     result.urgency = 'low'
@@ -555,7 +555,7 @@ export function sanitizeLabResult(raw: unknown, provider = 'gemini-direct-byo-ke
     model: validModel(input.model) ?? '',
     knowledge_version: knowledgeData.version,
     disclaimer:
-      'تفسیر احتمالی هوش مصنوعی از اعداد واردشده؛ نه آزمایش مستقل، نه نسخه کود/سم و نه تأیید علمی محلی.',
+      'این تفسیر احتمالی از اعداد واردشده است؛ نه آزمایش مستقل، نه نسخه کود/سم و نه تأیید علمی محلی. تصمیم نهایی با کارشناس است.',
   }
   // The measured table is shown separately, so prose must stay free of numeric concentrations.
   guardProse({ ...result, knowledge_ids: undefined }, true)

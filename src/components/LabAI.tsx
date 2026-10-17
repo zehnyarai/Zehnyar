@@ -330,9 +330,7 @@ export default function LabAI({
               <button disabled={busy} onClick={() => setResult(row)}>
                 <span>
                   <strong>{row.result.title}</strong>
-                  <small>
-                    {persianDate(row.created_at)} · {row.result.model}
-                  </small>
+                  <small>{persianDate(row.created_at)}</small>
                 </span>
               </button>
               <button
