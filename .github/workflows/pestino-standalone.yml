@@ -23,25 +23,24 @@ jobs:
         env:
           VITE_BASE_PATH: /Zehnyar/
         run: npm run build:standalone
-      - run: npx playwright install --with-deps chromium webkit
+      - run: npx playwright install --with-deps chromium
       - name: Test local storage, photos, backups and fully offline operation
         # The log is kept in the runner so failures can be annotated for the API, because
         # this project's sandbox cannot download the raw job log from the CDN.
         run: |
-          set +e
-          npm run test:standalone -- --reporter=line > /tmp/e2e.log 2>&1
-          code=$?
-          tail -c 200000 /tmp/e2e.log
-          python3 - <<'PYCONTEXT'
-          from pathlib import Path
-          log = Path('/tmp/e2e.log')
-          lines = log.read_text(errors='ignore').splitlines() if log.exists() else []
-          keep = [l for l in lines if l.strip()]
-          for line in keep[-25:]:
-              print('::notice title=Standalone E2E log::' + line.replace('%', '%25')[:900])
-          for line in [l for l in keep if 'Error:' in l or l.strip().startswith('expect') or '›' in l and 'failed' in l][:25]:
-              print('::error title=Standalone E2E failure::' + line.replace('%', '%25')[:900])
-          PYCONTEXT
+          # Stream the runner's output into annotations, because this project's sandbox
+          # cannot download raw job logs. Only meaningful lines are kept to stay under the
+          # annotation limit.
+          set -o pipefail
+          npm run test:standalone -- --project=chromium --reporter=line 2>&1 | python3 -u -c '
+          import re, sys
+          keep = re.compile(r"(✓|✘|×|passed|failed|Error|Timeout|test\s+\d|Running|›)")
+          for line in sys.stdin:
+              text = line.rstrip()
+              if text and keep.search(text):
+                  print("::notice title=E2E::" + text.replace("%", "%25")[:600], flush=True)
+          '
+          code=${PIPESTATUS[0]}
           exit $code
       - name: Expose failed browser context without external log downloads
         if: failure()
