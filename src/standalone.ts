@@ -18,6 +18,7 @@ import {
   consumeQuota,
   createActivationCode,
   DEFAULT_USD_RATE,
+  MAX_PACKAGE_ANALYSES,
   defaultPackage,
   defaultQuota,
   pricedPlans,
@@ -315,7 +316,7 @@ function photoData(part: string, notes: string): AnalysisData {
   return {
     title: `عکس ثبت‌شده ${part}`,
     summary:
-      'این پرونده فقط عکس و یادداشت شماست. هیچ مدل یا کارشناس، تصویر را تحلیل نکرده و از آن تشخیص، امتیاز اطمینان یا توصیه درمانی تولید نشده است.',
+      'این پرونده فقط عکس و یادداشت شماست. هیچ تحلیل هوشمندی انجام نشده و هیچ کارشناسی هم آن را بررسی نکرده است؛ پس هیچ تشخیص، امتیاز اطمینان یا توصیه درمانی در آن وجود ندارد.',
     quality: 'تحلیل نشده',
     is_pistachio: null,
     observations: notes ? [`یادداشت شما: ${notes}`] : ['هنوز یادداشتی ثبت نکرده‌اید.'],
@@ -724,7 +725,22 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       const row = state.billing.receipts.find((r) => r.id === id)
       if (!row) throw new LocalError('دریافت ثبت‌شده پیدا نشد.')
       if (row.confirmed_at) throw new LocalError('این دریافت قبلاً تأیید شده است.')
-      const granted = state.package.analyses
+      // A transfer that equals a package price grants that package; any other amount
+      // buys whole analyses at the single-analysis price. Discounts are honoured, and
+      // the owner never has to compute the count by hand.
+      const plans = pricedPlans(state.package.usd_rate ?? DEFAULT_USD_RATE)
+      const candidates = [
+        { analyses: state.package.analyses, price_toman: state.package.price_toman },
+        ...plans,
+      ]
+      const exact = candidates.find((c) => c.price_toman === row.amount_toman)
+      const single = plans[0]
+      const granted = Math.min(
+        MAX_PACKAGE_ANALYSES,
+        exact
+          ? exact.analyses
+          : Math.max(1, Math.floor(row.amount_toman / single.per_analysis_toman))
+      )
       row.confirmed_at = new Date().toISOString()
       row.granted_analyses = granted
       state.quota = { ...state.quota, credits: state.quota.credits + granted }

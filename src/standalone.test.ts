@@ -161,7 +161,7 @@ describe('free local-only edition', () => {
     const result = validateBackup(JSON.stringify(raw)).reports[0]
     expect(result.data.hypotheses).toEqual([])
     expect(result.data.provider).toBe('local-storage')
-    expect(result.data.summary).toContain('تحلیل نکرده')
+    expect(result.data.summary).toContain('تحلیل هوشمندی انجام نشده')
     expect(result.data.actions).not.toContain('fake dose')
   })
 })

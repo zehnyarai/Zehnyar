@@ -65,9 +65,11 @@ test('photo is normalized and saved, with no fabricated diagnosis', async ({ pag
     page.getByText('تحلیل هوشمند هنوز راه‌اندازی نشده است', { exact: false })
   ).toBeVisible()
   await page.locator('input[type=file]').first().setInputFiles('public/images/pistachio-leaves.jpg')
+  // The optional details stay collapsed to keep the orchard screen calm.
+  await page.locator('details.advanced-fields summary').click()
   await page.getByLabel('توضیحات اختیاری').fill('فقط یادداشت من، نه تشخیص')
   await page.getByRole('button', { name: 'ذخیره پرونده بدون تحلیل', exact: true }).click()
-  await expect(page.getByRole('dialog')).toContainText('هیچ مدل یا کارشناس، تصویر را تحلیل نکرده')
+  await expect(page.getByRole('dialog')).toContainText('هیچ تحلیل هوشمندی انجام نشده')
   await expect(page.locator('.hypothesis')).toHaveCount(0)
   expect(
     await page.getByRole('dialog').locator('.report-detail-image img').getAttribute('src')

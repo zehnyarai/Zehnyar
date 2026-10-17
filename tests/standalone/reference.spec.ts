@@ -124,7 +124,7 @@ test('four image views are stored, disconnected analysis never produces a diagno
   await expect(page.getByRole('alert')).toContainText('تحلیل عکس هنوز فعال نشده است')
   await expect(page.locator('.hypothesis')).toHaveCount(0)
   await page.getByRole('button', { name: 'ذخیره پرونده بدون تحلیل', exact: true }).click()
-  await expect(page.getByRole('dialog')).toContainText('هیچ مدل یا کارشناس، تصویر را تحلیل نکرده')
+  await expect(page.getByRole('dialog')).toContainText('هیچ تحلیل هوشمندی انجام نشده')
   await expect(page.locator('.report-gallery img')).toHaveCount(4)
 })
 

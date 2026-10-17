@@ -39,8 +39,8 @@ jobs:
             python3 - <<'PYDUMP'
           from pathlib import Path
           lines = [l.rstrip() for l in Path('/tmp/e2e.log').read_text(errors='ignore').splitlines() if l.strip()]
-          text = '\n'.join(lines[-90:])
-          print('::error title=E2E log tail::' + text.replace('%', '%25').replace('\r', '').replace('\n', '%0A')[:60000])
+          for line in lines[-25:]:
+              print('::error title=E2E::' + line.replace('%', '%25')[:900])
           PYDUMP
           fi
           exit $code

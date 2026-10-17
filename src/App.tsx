@@ -344,12 +344,6 @@ export default function App() {
               </button>
             ))}
           </div>
-          <span
-            className={`connection-status ${data.services.vision_configured ? 'connected' : ''}`}
-          >
-            <span />
-            {data.services.vision_configured ? 'مدل بینایی تنظیم شده' : 'تحلیل تصویر: متصل نیست'}
-          </span>
         </div>
       </div>
       <main
