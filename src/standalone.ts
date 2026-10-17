@@ -43,6 +43,11 @@ import {
   listDirectModels,
   probeDirectModels,
   providerKeyHint,
+  setFallback,
+  activateProvider,
+  anyProviderReady,
+  diagnoseProviders,
+  fallbackEnabled,
   saveDirectSettings,
   testDirectConnection,
 } from './visionDirect'
@@ -203,25 +208,32 @@ const VERIFIED_WINDOW_MS = 24 * 60 * 60 * 1000
 /** Reported from the on-device key only; an unconfigured device claims nothing. */
 export function serviceStatus(): Services {
   const settings = directSettings()
-  const ready = !!settings.key
-  const verified =
-    ready &&
-    settings.ok &&
-    !!settings.checked_at &&
-    Date.now() - Date.parse(settings.checked_at) < VERIFIED_WINDOW_MS
+  const providers = providerStatus()
+  // Either provider answering is enough: the app fails over automatically.
+  const ready = anyProviderReady()
+  const verifiedProvider = (['gemini', 'grok'] as const).find((provider) => {
+    const slot = providers[provider]
+    return (
+      slot.key_present &&
+      slot.ok &&
+      !!slot.checked_at &&
+      Date.now() - Date.parse(slot.checked_at) < VERIFIED_WINDOW_MS
+    )
+  })
+  const verified = !!verifiedProvider
   return {
     vision_configured: ready,
     vision_provider: ready ? settings.provider : 'none',
     vision_model: ready ? settings.model : '',
     vision_verified: verified,
-    vision_checked_at: verified ? settings.checked_at : null,
+    vision_checked_at: verifiedProvider ? providers[verifiedProvider].checked_at : null,
     vision_connection_state: !ready
       ? 'unconfigured'
-      : settings.checked_at
-        ? verified
-          ? 'responded'
-          : 'expired'
-        : 'untested',
+      : verified
+        ? 'responded'
+        : Object.values(providers).some((slot) => slot.checked_at)
+          ? 'expired'
+          : 'untested',
     vision_scientifically_validated: false,
     lab_ai_configured: ready,
     payment_configured: false,
@@ -244,6 +256,7 @@ function visionStatus() {
     storage: 'دستگاه شما (خارج از فایل پشتیبان)',
     free_tier_notice: FREE_TIER_NOTICE,
     providers: providerStatus(),
+    fallback: fallbackEnabled(),
   }
 }
 export function localKnowledge(): Knowledge {
@@ -559,9 +572,18 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       // A text-only call: it proves key, model and network; it does not prove image accuracy.
       await testDirectConnection()
       result = visionStatus()
+    } else if (path === '/local/vision/diagnose' && method === 'POST') {
+      // Both providers, one honest row each: the owner can see which side works and why.
+      result = { results: await diagnoseProviders(), ...visionStatus() }
+    } else if (path === '/local/vision/fallback' && method === 'PUT') {
+      setFallback(body.fallback !== false)
+      result = visionStatus()
+    } else if (path === '/local/vision/activate' && method === 'POST') {
+      activateProvider(body.provider === 'grok' ? 'grok' : 'gemini')
+      result = visionStatus()
     } else if (path === '/local/analyses' && method === 'POST') {
-      const settings = directSettings()
-      if (!settings.key)
+      // Either provider is enough: the fallback picks whichever has a key.
+      if (!anyProviderReady())
         throw new LocalError(
           'تحلیل عکس هنوز توسط مدیر فعال نشده است؛ کلید سرویس را در پنل مدیر ثبت کنید.'
         )
@@ -600,7 +622,7 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       modified = true
     } else if (path === '/local/lab-analyses' && method === 'GET') result = state.assessments
     else if (path === '/local/lab-analyses' && method === 'POST') {
-      if (!directSettings().key)
+      if (!anyProviderReady())
         throw new LocalError(
           'تفسیر هوشمند آزمایش هنوز فعال نشده است؛ مدیر آن را از «پنل مدیر» راه‌اندازی می‌کند.'
         )

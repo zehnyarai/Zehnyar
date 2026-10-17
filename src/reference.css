@@ -3173,3 +3173,21 @@ body {
     flex-basis: 100%;
   }
 }
+
+/* Owner panel: the automatic two-provider rule, stated in one line. */
+.fallback-switch {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 4px 0 14px;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #f3f8f5;
+  font-size: 13.5px;
+}
+.fallback-switch input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--green);
+}

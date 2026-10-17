@@ -13,7 +13,7 @@ import type { DiagnosticContext } from './scientific'
 import type { LabInput } from './fieldwork'
 import { SOIL_FIELDS, WATER_FIELDS } from './scientific'
 import type { LabValues } from './scientific'
-import { providerFetch } from './providerFetch'
+import { providerFetch, providerTransport } from './providerFetch'
 
 export const DIRECT_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/'
 /** Grok (xAI) speaks the OpenAI-compatible chat-completions dialect. */
@@ -197,6 +197,8 @@ export interface DirectSettings {
   checked_at: string | null
   ok: boolean
   note: string
+  /** True when a second provider may be used automatically after a failure. */
+  fallback?: boolean
 }
 export const EMPTY_DIRECT: DirectSettings = {
   provider: 'gemini',
@@ -237,6 +239,8 @@ interface StoredSettings {
   version: 2
   active: DirectProvider
   slots: Record<DirectProvider, ProviderSlot>
+  /** Use the other provider automatically when the active one fails (owner's rule). */
+  fallback: boolean
 }
 function emptySlot(provider: DirectProvider): ProviderSlot {
   return {
@@ -252,6 +256,7 @@ function emptyStored(): StoredSettings {
     version: 2,
     active: 'gemini',
     slots: { gemini: emptySlot('gemini'), grok: emptySlot('grok') },
+    fallback: true,
   }
 }
 /** Reads both providers' saved key/model; migrates the old single-provider shape. */
@@ -276,6 +281,7 @@ function readStored(): StoredSettings {
         version: 2,
         active: raw.active === 'grok' ? 'grok' : 'gemini',
         slots: { gemini: pick('gemini'), grok: pick('grok') },
+        fallback: raw.fallback !== false,
       }
       return moveMisplacedKey(stored)
     }
@@ -342,7 +348,29 @@ function writeStored(next: StoredSettings) {
 export function directSettings(): DirectSettings {
   const stored = readStored()
   const slot = stored.slots[stored.active]
-  return { provider: stored.active, ...slot }
+  return { provider: stored.active, ...slot, fallback: stored.fallback }
+}
+/** True when at least one provider has a key, whichever one is active. */
+export function anyProviderReady(): boolean {
+  const stored = readStored()
+  return !!(stored.slots.gemini.key || stored.slots.grok.key)
+}
+/** Reads (and can switch) the automatic fallback rule. */
+export function fallbackEnabled(): boolean {
+  return readStored().fallback
+}
+export function setFallback(enabled: boolean): boolean {
+  const stored = readStored()
+  stored.fallback = enabled
+  writeStored(stored)
+  return stored.fallback
+}
+/** Switches the active provider without touching either key. */
+export function activateProvider(provider: DirectProvider): DirectSettings {
+  const stored = readStored()
+  stored.active = provider
+  writeStored(stored)
+  return directSettings()
 }
 /** Presence/model of every provider slot, so the admin panel can label both keys. */
 export function providerStatus(): Record<
@@ -368,10 +396,21 @@ export function validModel(value: unknown, provider: DirectProvider = 'gemini'):
     provider === 'grok' ? /^grok-[a-zA-Z0-9._-]{1,90}$/ : /^gemini-[a-zA-Z0-9._-]{1,90}$/
   return pattern.test(name) ? name : null
 }
+/**
+ * Keys arrive from chat apps and phone keyboards with line breaks, spaces and invisible
+ * marks attached (zero-width joiners, RTL marks, non-breaking spaces). Those made a
+ * perfectly valid key look invalid, and an earlier build then silently stored nothing.
+ * Cleaning first and validating after is what turns "connection failed" into a working key.
+ */
+export function cleanKey(value: unknown): string {
+  if (typeof value !== 'string') return ''
+  return value
+    .replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2064\uFEFF\u00A0\s]/g, '')
+    .replace(/^["'`]+|["'`]+$/g, '')
+}
 export function validKey(value: unknown): string | null {
-  if (typeof value !== 'string') return null
-  const key = value.trim()
-  if (key.length < 16 || key.length > 2048 || /\s/.test(key)) return null
+  const key = cleanKey(value)
+  if (key.length < 16 || key.length > 2048) return null
   return key
 }
 /** Saves this provider's slot; an empty key field keeps the stored key. */
@@ -383,9 +422,18 @@ export function saveDirectSettings(
   const stored = readStored()
   const target: DirectProvider = provider ?? stored.active
   const current = stored.slots[target]
+  let nextKey = current.key
+  if (key !== undefined && cleanKey(key)) {
+    const cleaned = validKey(key)
+    if (!cleaned)
+      throw new DirectError(
+        'کلید معتبر نیست: باید کامل کپی شود، بدون فاصله یا شکستن خط، و دست‌کم ۱۶ نویسه باشد.'
+      )
+    nextKey = cleaned
+  }
   stored.slots[target] = {
     model: usableModel(target, model),
-    key: key === undefined ? current.key : (validKey(key) ?? ''),
+    key: nextKey,
     checked_at: null,
     ok: false,
     note: '',
@@ -796,6 +844,11 @@ export function providerError(
         : `درخواست پذیرفته نشد (پاسخ Google: ${detail}). نام مدل را بررسی کنید.`,
       400
     )
+  if (status === 401)
+    return new DirectError(
+      `کلید Google پذیرفته نشد (پاسخ سرویس: ${detail}). کلید را دوباره از aistudio.google.com/apikey کپی کنید.`,
+      401
+    )
   if (status === 403)
     return new DirectError(
       `دسترسی رد شد (پاسخ Google: ${detail}). بررسی کنید «Generative Language API» در پروژهٔ همین کلید فعال باشد و کلید محدود به سرویس دیگری نباشد.`,
@@ -1094,12 +1147,191 @@ async function generateGrok(options: {
   return text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '')
 }
 
+interface CallResult {
+  text: string
+  provider: DirectProvider
+  model: string
+}
+
+/**
+ * The owner's rule (2026-10-17): use whichever provider answers. The active provider is
+ * tried first; if it fails and the other provider has a key, that one is tried before the
+ * farmer sees an error, and the provider that worked becomes the active one. A failed
+ * attempt never counts as a consumed analysis because the caller only sees the final
+ * result or the final error.
+ */
+async function generateWithFallback(options: {
+  system: string
+  schema: unknown
+  payload: unknown
+  images?: string[]
+}): Promise<CallResult> {
+  const stored = readStored()
+  const order: DirectProvider[] = [stored.active]
+  if (stored.fallback) {
+    const other: DirectProvider = stored.active === 'gemini' ? 'grok' : 'gemini'
+    if (stored.slots[other].key) order.push(other)
+  }
+  const attempts: string[] = []
+  let firstError: DirectError | null = null
+  for (const provider of order) {
+    const slot = stored.slots[provider]
+    const settings: DirectSettings = { provider, ...slot, fallback: stored.fallback }
+    if (!settings.key) {
+      attempts.push(provider === 'gemini' ? 'کلید Gemini ثبت نشده است.' : 'کلید xAI ثبت نشده است.')
+      continue
+    }
+    try {
+      const text = await generateDirect({ ...options, settings })
+      if (provider !== stored.active) stored.active = provider
+      stored.slots[provider] = {
+        ...slot,
+        checked_at: new Date().toISOString(),
+        ok: true,
+        note: 'آخرین فراخوانی موفق بود؛ این تأیید دقت تحلیل نیست.',
+      }
+      writeStored(stored)
+      return { text, provider, model: settings.model }
+    } catch (error) {
+      const direct = error instanceof DirectError ? error : null
+      if (!direct) throw error
+      firstError = firstError ?? direct
+      attempts.push(direct.message)
+      if (provider === order[order.length - 1]) break
+    }
+  }
+  if (firstError) {
+    // Keep both reasons for the owner: "Gemini: … | xAI: …" tells them which side to fix.
+    const combined =
+      attempts.length > 1
+        ? `${attempts.join(' | ')}`
+        : firstError.status === 401 || firstError.status === 403 || firstError.status === 429
+          ? `${attempts[0] ?? firstError.message} · هیچ سرویس دیگری با کلید ثبت‌شده آماده نبود.`
+          : firstError.message
+    throw new DirectError(combined, firstError.status)
+  }
+  throw new DirectError('هیچ کلیدی برای تحلیل ثبت نشده است.', 400)
+}
+
+export interface ProviderDiagnosis {
+  provider: DirectProvider
+  key_present: boolean
+  model: string
+  ok: boolean
+  status: number | null
+  detail: string
+  transport: string
+}
+
+/**
+ * The owner's answer to "why does the test fail?": one honest row per provider, with the
+ * real HTTP status and the exact reason, plus the transport the request used. A provider
+ * that answers becomes the active one, so a working key is never left unused.
+ */
+export async function diagnoseProviders(): Promise<ProviderDiagnosis[]> {
+  const stored = readStored()
+  const transport = providerTransport()
+  const results: ProviderDiagnosis[] = []
+  for (const provider of ['gemini', 'grok'] as DirectProvider[]) {
+    const slot = stored.slots[provider]
+    if (!slot.key) {
+      results.push({
+        provider,
+        key_present: false,
+        model: slot.model,
+        ok: false,
+        status: null,
+        detail:
+          provider === 'gemini'
+            ? 'کلید Google ثبت نشده است؛ تب Gemini را پر کنید.'
+            : 'کلید xAI ثبت نشده است؛ تب Grok را پر کنید.',
+        transport,
+      })
+      continue
+    }
+    const base: DirectSettings = { provider, ...slot, fallback: stored.fallback }
+    try {
+      const tested = await runConnectionTest(base)
+      stored.slots[provider] = {
+        model: tested.model,
+        key: slot.key,
+        checked_at: tested.checked_at,
+        ok: true,
+        note: tested.note,
+      }
+      results.push({
+        provider,
+        key_present: true,
+        model: tested.model,
+        ok: true,
+        status: 200,
+        detail: `پاسخ گرفت (مدل ${tested.model}).`,
+        transport,
+      })
+    } catch (error) {
+      let repaired: DirectSettings | null = null
+      if (
+        provider === 'grok' &&
+        error instanceof DirectError &&
+        [400, 403, 404, 422].includes(error.status)
+      ) {
+        try {
+          repaired = await repairGrokModel(base)
+        } catch {
+          repaired = null
+        }
+      }
+      if (repaired) {
+        stored.slots[provider] = {
+          model: repaired.model,
+          key: slot.key,
+          checked_at: repaired.checked_at,
+          ok: true,
+          note: repaired.note,
+        }
+        results.push({
+          provider,
+          key_present: true,
+          model: repaired.model,
+          ok: true,
+          status: 200,
+          detail: `مدل قدیمی کار نمی‌کرد؛ با مدل ${repaired.model} پاسخ گرفت.`,
+          transport,
+        })
+      } else {
+        const direct = error instanceof DirectError ? error : null
+        stored.slots[provider] = {
+          ...slot,
+          checked_at: new Date().toISOString(),
+          ok: false,
+          note: direct?.message ?? 'آزمون اتصال ناموفق بود.',
+        }
+        results.push({
+          provider,
+          key_present: true,
+          model: slot.model,
+          ok: false,
+          status: direct?.status ?? null,
+          detail: direct?.message ?? 'آزمون اتصال ناموفق بود.',
+          transport,
+        })
+      }
+    }
+  }
+  // Whichever provider actually answered becomes the active one.
+  const working = results.find((r) => r.ok)
+  if (working && !results.find((r) => r.provider === stored.active)?.ok)
+    stored.active = working.provider
+  writeStored(stored)
+  return results
+}
+
 export async function analyzePhotosDirect(
   images: string[],
   context: DiagnosticContext
 ): Promise<AnalysisData> {
   const pack = packFor(context)
-  const text = await generateDirect({
+  const answer: CallResult = await generateWithFallback({
     system:
       PHOTO_SYSTEM +
       '\nEducational guides: ' +
@@ -1112,11 +1344,11 @@ export async function analyzePhotosDirect(
   })
   let parsed: unknown
   try {
-    parsed = JSON.parse(text)
+    parsed = JSON.parse(answer.text)
   } catch {
     throw new DirectError('پاسخ مدل JSON معتبر نبود؛ تحلیلی ذخیره نشد.', 502)
   }
-  return sanitizePhotoResult(parsed)
+  return sanitizePhotoResult(parsed, `${answer.provider}-direct-byo-key`)
 }
 
 const FIELD_TABLES = { soil: SOIL_FIELDS, water: WATER_FIELDS }
@@ -1139,7 +1371,7 @@ export async function interpretLabDirect(sample: LabInput, context: DiagnosticCo
     server_calculations: calculations,
     reported_by_farmer: context,
   }
-  const text = await generateDirect({
+  const answer = await generateWithFallback({
     system:
       LAB_SYSTEM +
       '\nEducational guides: ' +
@@ -1151,12 +1383,12 @@ export async function interpretLabDirect(sample: LabInput, context: DiagnosticCo
   })
   let parsed: unknown
   try {
-    parsed = JSON.parse(text)
+    parsed = JSON.parse(answer.text)
   } catch {
     throw new DirectError('پاسخ مدل JSON معتبر نبود؛ تفسیری ذخیره نشد.', 502)
   }
-  const result = sanitizeLabResult(parsed)
-  return { result: { ...result, model: directSettings().model }, units, calculations }
+  const result = sanitizeLabResult(parsed, `${answer.provider}-direct-byo-key`)
+  return { result: { ...result, model: answer.model }, units, calculations }
 }
 
 function packFor(context: unknown) {

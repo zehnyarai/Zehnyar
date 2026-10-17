@@ -17,5 +17,5 @@ unsigned=android/app/build/outputs/apk/release/app-release-unsigned.apk
   --ks "$key" --ks-key-alias pestino-test \
   --ks-pass env:PESTINO_SIGNING_PASSWORD --key-pass env:PESTINO_SIGNING_PASSWORD \
   --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true \
-  --v4-signing-enabled false --out apk-output/Pestino-0.7.6.apk apk-output/aligned.apk
+  --v4-signing-enabled false --out apk-output/Pestino-0.7.7.apk apk-output/aligned.apk
 rm apk-output/aligned.apk

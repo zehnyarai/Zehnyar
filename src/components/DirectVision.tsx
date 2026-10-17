@@ -1,11 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
-import { Gauge, KeyRound, ListChecks, PlugZap, Save, ShieldCheck, Trash2 } from 'lucide-react'
+import {
+  Activity,
+  Gauge,
+  KeyRound,
+  ListChecks,
+  PlugZap,
+  Save,
+  ShieldCheck,
+  Trash2,
+} from 'lucide-react'
 import { api, errorMessage, persianDate } from '../api'
 import type { AppContext } from '../types'
 import {
   DEFAULT_GROK_MODEL,
   freeModelsFor,
   providerKeyHint,
+  cleanKey,
   type DirectProvider,
   type ProbeResult,
 } from '../visionDirect'
@@ -27,6 +37,17 @@ interface DirectStatus {
   note: string
   storage: string
   providers?: Record<DirectProvider, ProviderState>
+  fallback?: boolean
+}
+
+interface DiagnosisRow {
+  provider: DirectProvider
+  key_present: boolean
+  model: string
+  ok: boolean
+  status: number | null
+  detail: string
+  transport: string
 }
 
 const PROVIDERS: { id: DirectProvider; name: string; hint: string; key_help: string }[] = [
@@ -65,6 +86,7 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [keyNote, setKeyNote] = useState('')
+  const [diagnosis, setDiagnosis] = useState<DiagnosisRow[] | null>(null)
 
   useEffect(() => {
     let active = true
@@ -90,6 +112,7 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
     const saved = status?.providers?.[next]
     setModel(saved?.model || (next === 'grok' ? DEFAULT_GROK_MODEL : 'gemini-2.5-flash'))
     setKeyNote('')
+    setDiagnosis(null)
     if (key.current) key.current.value = ''
   }
 
@@ -119,7 +142,57 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
       method: 'PUT',
       body: JSON.stringify({ provider, model, ...(value ? { key: value } : {}) }),
     })
-    if (ok) ctx.notify('تنظیمات روی همین دستگاه ذخیره شد. حالا «آزمون اتصال» را بزنید.', 'success')
+    if (ok)
+      ctx.notify('تنظیمات روی همین دستگاه ذخیره شد. حالا «آزمون هر دو سرویس» را بزنید.', 'success')
+  }
+
+  /**
+   * One button that tests both keys and says which one actually answered. This is the
+   * shortest path out of "the connection test failed" for the owner.
+   */
+  async function diagnose() {
+    setBusy(true)
+    setError('')
+    setDiagnosis(null)
+    try {
+      const answer = await api<DirectStatus & { results: DiagnosisRow[] }>(
+        '/local/vision/diagnose',
+        { method: 'POST' }
+      )
+      setStatus(answer)
+      setProvider(answer.provider)
+      setModel(answer.model)
+      setDiagnosis(answer.results)
+      const working = answer.results.filter((r) => r.ok)
+      await ctx.refresh()
+      ctx.notify(
+        working.length
+          ? `آزمون انجام شد؛ ${working.map((r) => (r.provider === 'grok' ? 'Grok' : 'Gemini')).join(' و ')} پاسخ داد و تحلیل روی همان انجام می‌شود.`
+          : 'هیچ‌کدام از دو سرویس پاسخ نداد؛ دلیل هر کدام در جدول پایین است.',
+        working.length ? 'success' : 'error'
+      )
+    } catch (e) {
+      setError(errorMessage(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function toggleFallback(next: boolean) {
+    setBusy(true)
+    setError('')
+    try {
+      const answer = await api<DirectStatus>('/local/vision/fallback', {
+        method: 'PUT',
+        body: JSON.stringify({ fallback: next }),
+      })
+      setStatus(answer)
+      await ctx.refresh()
+    } catch (e) {
+      setError(errorMessage(e))
+    } finally {
+      setBusy(false)
+    }
   }
 
   async function test() {
@@ -189,9 +262,22 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
         </Badge>
       </h2>
       <p>
-        کلید را فقط اینجا ثبت کنید؛ کاربران در هیچ صفحه‌ای نام سرویس یا مدل را نمی‌بینند. کلید روی
-        همین دستگاه می‌ماند و در فایل نصبی و پشتیبان قرار نمی‌گیرد.
+        هر دو کلید را می‌توانید ثبت کنید؛ تحلیل با هر سرویسی که جواب بدهد انجام می‌شود و اگر یکی قطع
+        شد، برنامه خودکار سرویس دیگر را امتحان می‌کند. کلیدها فقط روی همین دستگاه می‌مانند و کاربران
+        در هیچ صفحه‌ای نام سرویس یا مدل را نمی‌بینند.
       </p>
+      <label className="fallback-switch">
+        <input
+          type="checkbox"
+          checked={status?.fallback !== false}
+          disabled={busy}
+          onChange={(e) => void toggleFallback(e.target.checked)}
+        />
+        <span>
+          اگر سرویس فعال پاسخ نداد، خودکار سرویس دیگر امتحان شود
+          {status ? ` — الان: ${status.provider === 'grok' ? 'Grok' : 'Gemini'}` : ''}
+        </span>
+      </label>
       <div className="provider-switch" role="tablist" aria-label="سرویس تحلیل">
         {PROVIDERS.map((p) => (
           <button
@@ -244,7 +330,16 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
             dir="ltr"
             autoComplete="off"
             spellCheck={false}
-            onChange={(e) => setKeyNote(providerKeyHint(provider, e.target.value))}
+            onChange={(e) => {
+              const clean = cleanKey(e.target.value)
+              const hint = providerKeyHint(provider, clean)
+              setKeyNote(
+                !clean
+                  ? ''
+                  : hint ||
+                      `${clean.length} نویسه دریافت شد${clean.startsWith('xai-') || clean.startsWith('AIza') ? '؛ شروع کلید درست است' : '؛ شروع کلید ناشناس است'}`
+              )
+            }}
             placeholder={
               saved?.key_present
                 ? 'ذخیره شده؛ برای تغییر مقدار تازه بگذارید'
@@ -267,6 +362,9 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
             onClick={() => void test()}
           >
             <PlugZap size={17} /> آزمون اتصال
+          </button>
+          <button className="button secondary" disabled={busy} onClick={() => void diagnose()}>
+            <Activity size={17} /> آزمون هر دو سرویس
           </button>
           <button
             className="button secondary"
@@ -331,6 +429,37 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+      {diagnosis && (
+        <div className="table-scroll">
+          <table className="probe-table" aria-label="نتیجهٔ آزمون هر دو سرویس">
+            <thead>
+              <tr>
+                <th>سرویس</th>
+                <th>کلید</th>
+                <th>نتیجه</th>
+                <th>دلیل دقیق</th>
+              </tr>
+            </thead>
+            <tbody>
+              {diagnosis.map((row) => (
+                <tr key={row.provider} className={row.ok ? 'ok' : 'failed'}>
+                  <td dir="ltr">{row.provider === 'grok' ? 'Grok (xAI)' : 'Gemini (Google)'}</td>
+                  <td>{row.key_present ? 'ثبت شده' : 'ثبت نشده'}</td>
+                  <td>
+                    {row.ok ? 'کار کرد' : 'کار نکرد'}
+                    {row.status ? ` · ${row.status}` : ''}
+                  </td>
+                  <td>{row.detail}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="muted">
+            مسیر درخواست روی این دستگاه:{' '}
+            {diagnosis[0]?.transport === 'native' ? 'HTTP بومی اندروید' : 'مرورگر'}
+          </p>
         </div>
       )}
       {status && (

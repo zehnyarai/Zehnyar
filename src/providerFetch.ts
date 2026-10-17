@@ -6,6 +6,18 @@
  *  - Android's HTTP stack keeps the behaviour identical across WebView versions.
  * On the web/PWA edition the normal fetch is used, unchanged.
  */
+export type ProviderTransport = 'native' | 'web'
+
+/** Which transport the provider calls actually use; shown in the owner's diagnosis. */
+export function providerTransport(): ProviderTransport {
+  try {
+    const capacitor = (globalThis as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor
+    return capacitor?.isNativePlatform?.() ? 'native' : 'web'
+  } catch {
+    return 'web'
+  }
+}
+
 export async function providerFetch(url: string, init: RequestInit = {}): Promise<Response> {
   const { Capacitor, CapacitorHttp } = await import('@capacitor/core')
   if (!Capacitor.isNativePlatform()) return fetch(url, init)

@@ -27,6 +27,10 @@ import {
   preferGrokModel,
   providerKeyHint,
   providerStatus,
+  diagnoseProviders,
+  setFallback,
+  fallbackEnabled,
+  anyProviderReady,
   DEFAULT_GROK_MODEL,
   GROK_MODELS,
 } from './visionDirect'
@@ -83,7 +87,10 @@ describe('device-direct vision (owner key)', () => {
     expect(validModel('gemini-3.1-pro-preview; drop table')).toBeNull()
     expect(validKey('AIzaSyExampleExampleExample123')).toBe('AIzaSyExampleExampleExample123')
     expect(validKey('short')).toBeNull()
-    expect(validKey('has space inside key value')).toBeNull()
+    // Invisible marks and line breaks from a chat app are cleaned, not treated as junk.
+    expect(validKey('  xai-ExampleExampleKey123\u200f\n')).toBe('xai-ExampleExampleKey123')
+    expect(validKey('AIzaSyExampleExampleExample123\u202a')).toBe('AIzaSyExampleExampleExample123')
+    expect(validKey('xai-abc def-ExampleKey123')).toBe('xai-abcdef-ExampleKey123')
   })
   it('stores the key only on the device and never reports it back', () => {
     expect(directReady()).toBe(false)
@@ -101,6 +108,7 @@ describe('device-direct vision (owner key)', () => {
       checked_at: null,
       ok: false,
       note: '',
+      fallback: true,
     })
   })
   it('sends the key in a header only, never in the URL or body', async () => {
@@ -561,5 +569,113 @@ describe('xAI model names stay current and self-heal', () => {
     expect(Array.isArray(parts)).toBe(true)
     expect(parts[0].type).toBe('text')
     expect(parts[1].type).toBe('image_url')
+  })
+})
+
+describe('one working provider is enough (automatic failover)', () => {
+  const grokOk = () =>
+    new Response(JSON.stringify({ choices: [{ message: { content: JSON.stringify(photo) } }] }), {
+      status: 200,
+    })
+  it('saves a key that arrived with invisible characters instead of silently dropping it', () => {
+    saveDirectSettings('grok-4.7', ' \u200f xai-ExampleExampleKey123\n', 'grok')
+    expect(providerStatus().grok.key_present).toBe(true)
+    expect(directSettings().key).toBe('xai-ExampleExampleKey123')
+    // A key that is still too short is rejected with a clear reason, not stored empty.
+    expect(() => saveDirectSettings('grok-4.7', 'xai-123', 'grok')).toThrow(/کلید/)
+    expect(providerStatus().grok.key_present).toBe(true)
+  })
+  it('falls back to the second provider when the active one fails', async () => {
+    saveDirectSettings('gemini-2.5-flash', 'AIzaSyExampleExampleExample123', 'gemini')
+    saveDirectSettings('grok-4.7', 'xai-ExampleExampleKey123', 'grok')
+    // Make Gemini active again, then fail it with a quota error.
+    saveDirectSettings('gemini-2.5-flash', undefined, 'gemini')
+    const urls: string[] = []
+    setFetchImplementation((async (url: string) => {
+      urls.push(url)
+      if (url.includes('generativelanguage')) {
+        return new Response(JSON.stringify({ error: { message: 'quota exceeded' } }), {
+          status: 429,
+        })
+      }
+      return grokOk()
+    }) as unknown as typeof fetch)
+    const result = await analyzePhotosDirect(['data:image/jpeg;base64,AAAA'], {
+      ...EMPTY_CONTEXT,
+    })
+    expect(result.summary).toContain('لکه')
+    expect(result.provider).toBe('grok-direct-byo-key')
+    expect(urls[0]).toContain('generativelanguage')
+    expect(urls[1]).toBe('https://api.x.ai/v1/chat/completions')
+    // The provider that answered becomes the active one, so the next call starts there.
+    expect(directSettings().provider).toBe('grok')
+    expect(directSettings().ok).toBe(true)
+  })
+  it('does not try the other provider when the owner turns fallback off', async () => {
+    saveDirectSettings('gemini-2.5-flash', 'AIzaSyExampleExampleExample123', 'gemini')
+    saveDirectSettings('grok-4.7', 'xai-ExampleExampleKey123', 'grok')
+    saveDirectSettings('gemini-2.5-flash', undefined, 'gemini')
+    expect(fallbackEnabled()).toBe(true)
+    setFallback(false)
+    expect(fallbackEnabled()).toBe(false)
+    const urls: string[] = []
+    setFetchImplementation((async (url: string) => {
+      urls.push(url)
+      if (url.includes('generativelanguage'))
+        return new Response(JSON.stringify({ error: { message: 'quota exceeded' } }), {
+          status: 429,
+        })
+      return grokOk()
+    }) as unknown as typeof fetch)
+    await expect(
+      analyzePhotosDirect(['data:image/jpeg;base64,AAAA'], { ...EMPTY_CONTEXT })
+    ).rejects.toThrow()
+    expect(urls).toHaveLength(1)
+    expect(urls[0]).toContain('generativelanguage')
+    setFallback(true)
+  })
+  it('reports both reasons when neither provider answers', async () => {
+    saveDirectSettings('gemini-2.5-flash', 'AIzaSyExampleExampleExample123', 'gemini')
+    saveDirectSettings('grok-4.7', 'xai-ExampleExampleKey123', 'grok')
+    saveDirectSettings('gemini-2.5-flash', undefined, 'gemini')
+    setFetchImplementation((async (url: string) => {
+      if (url.includes('generativelanguage'))
+        return new Response(JSON.stringify({ error: { message: 'quota exceeded' } }), {
+          status: 429,
+        })
+      return new Response(JSON.stringify({ error: { message: 'invalid api key' } }), {
+        status: 401,
+      })
+    }) as unknown as typeof fetch)
+    await expect(
+      analyzePhotosDirect(['data:image/jpeg;base64,AAAA'], { ...EMPTY_CONTEXT })
+    ).rejects.toThrow(/Google|کلید xAI| |Gemini/s)
+  })
+  it('treats a key on either provider as configured, even if the other is active', () => {
+    expect(anyProviderReady()).toBe(false)
+    saveDirectSettings('grok-4.7', 'xai-ExampleExampleKey123', 'grok')
+    saveDirectSettings('gemini-2.5-flash', undefined, 'gemini')
+    expect(directSettings().key).toBe('')
+    expect(anyProviderReady()).toBe(true)
+  })
+  it('diagnoses both providers, keeps the failing reason and activates the one that works', async () => {
+    saveDirectSettings('gemini-2.5-flash', 'AIzaSyExampleExampleExample123', 'gemini')
+    saveDirectSettings('grok-4.7', 'xai-ExampleExampleKey123', 'grok')
+    saveDirectSettings('gemini-2.5-flash', undefined, 'gemini')
+    setFetchImplementation((async (url: string) => {
+      if (url.includes('generativelanguage'))
+        return new Response(JSON.stringify({ error: { message: 'API key expired' } }), {
+          status: 401,
+        })
+      return new Response(JSON.stringify({ choices: [{ message: { content: '{"ok":true}' } }] }), {
+        status: 200,
+      })
+    }) as unknown as typeof fetch)
+    const rows = await diagnoseProviders()
+    expect(rows).toHaveLength(2)
+    expect(rows[0]).toMatchObject({ provider: 'gemini', ok: false, status: 401 })
+    expect(rows[0].detail).toContain('پذیرفته نشد')
+    expect(rows[1]).toMatchObject({ provider: 'grok', ok: true, status: 200 })
+    expect(directSettings().provider).toBe('grok')
   })
 })

@@ -488,6 +488,61 @@ describe('device-direct analysis with the owner key (offline edition)', () => {
     expect(cleared.data.provider).toBe('local-storage')
     expect(cleared.image_url).toBe(pixels)
   })
+  it('analyzes a photo with the Grok key alone, even when Gemini is the active tab', async () => {
+    const pixels = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAA=='
+    await restoreBackup(
+      JSON.stringify({
+        app: 'pestino',
+        version: 1,
+        orchards: [],
+        tasks: [],
+        reports: [
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            orchard_id: null,
+            tree_part: 'برگ',
+            notes: 'لکه روشن',
+            image_url: pixels,
+            context: { ...EMPTY_CONTEXT, symptoms: [] },
+            created_at: '2026-10-01T10:00:00.000Z',
+          },
+        ],
+        fields: { labs: [], experiences: [], prices: [], climate: [] },
+      })
+    )
+    // Only the xAI key exists; the Gemini tab is active but empty.
+    await localApi('/local/vision', {
+      method: 'PUT',
+      body: JSON.stringify({
+        provider: 'grok',
+        model: 'grok-4.7',
+        key: 'xai-ExampleExampleKey123',
+      }),
+    })
+    await localApi('/local/vision', {
+      method: 'PUT',
+      body: JSON.stringify({ provider: 'gemini', model: 'gemini-2.5-flash' }),
+    })
+    const status = await localApi<{ key_present: boolean; provider: string }>('/local/vision')
+    expect(status.provider).toBe('gemini')
+    expect(status.key_present).toBe(false)
+    // The app still reports the service as configured, because one key is enough.
+    expect((await localApi<Bootstrap>('/bootstrap')).services.vision_configured).toBe(true)
+    setFetchImplementation(
+      (async () =>
+        new Response(
+          JSON.stringify({ choices: [{ message: { content: JSON.stringify({ ok: true }) } }] }),
+          { status: 200 }
+        )) as unknown as typeof fetch
+    )
+    const analyzed = await localApi<Report>(
+      '/local/analyses',
+      post({ report_id: '22222222-2222-4222-8222-222222222222', consent: true })
+    )
+    expect(analyzed.data.provider).toBe('grok-direct-byo-key')
+    // The working provider is remembered, so the next call starts on xAI.
+    expect((await localApi<{ provider: string }>('/local/vision')).provider).toBe('grok')
+  })
   it('enforces the free-two rule on the device API and unlocks after a paid code', async () => {
     const { createActivationCode } = await import('./quota')
     await localApi('/local/vision', {
