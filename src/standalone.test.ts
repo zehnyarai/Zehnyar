@@ -241,9 +241,10 @@ describe('new reference-layout data remains local and backed up', () => {
     // A forged "balance" in the backup is still ignored: the only balance is the real quota,
     // which is two free analyses on a fresh device — never a million credits.
     expect((await localApi<{ balance: number }>('/billing/my')).balance).toBe(2)
+    // A forged backup cannot replace the owner's own confirmed card either.
     expect(
       (await localApi<{ enabled: boolean; card_number: string }>('/billing/config')).card_number
-    ).toBe('')
+    ).toBe('9401652473116063')
   })
   it('clears a deleted orchard reference from its lab records', async () => {
     const o = await localApi<Orchard>('/orchards', post(orchard))
@@ -365,7 +366,7 @@ describe('device-direct analysis with the owner key (offline edition)', () => {
     expect((await localApi<Bootstrap>('/bootstrap')).services.vision_configured).toBe(false)
     await expect(
       localApi('/local/analyses', post({ report_id: 'x', consent: true }))
-    ).rejects.toThrow('کلید شخصی')
+    ).rejects.toThrow('توسط مدیر')
     const stored = await localApi<{ key_present: boolean; model: string }>('/local/vision', {
       method: 'PUT',
       body: JSON.stringify({ model: 'gemini-2.5-flash', key }),
@@ -631,22 +632,24 @@ describe('owner card and manual receipt ledger in the offline panel', () => {
     note: '',
   }
   const empty = async () => {
-    const view = await localApi<{ enabled: boolean; card: unknown; receipts: unknown[] }>(
-      '/local/billing'
-    )
+    const view = await localApi<{
+      enabled: boolean
+      card: { card_number: string } | null
+      receipts: unknown[]
+    }>('/local/billing')
     return view
   }
   beforeEach(async () => {
     vi.stubGlobal('localStorage', { removeItem: vi.fn() })
     await eraseLocalData()
   })
-  it('starts closed, and shows nothing to the credits page before a card exists', async () => {
+  it("ships the owner's card so the credits page is usable from the first minute", async () => {
     const view = await empty()
-    expect(view.enabled).toBe(false)
-    expect(view.card).toBeNull()
+    expect(view.enabled).toBe(true)
+    expect(view.card?.card_number).toBe('9401652473116063')
     const config = await localApi<{ enabled: boolean; card_number: string }>('/billing/config')
-    expect(config.enabled).toBe(false)
-    expect(config.card_number).toBe('')
+    expect(config.enabled).toBe(true)
+    expect(config.card_number).toBe('9401652473116063')
     const mine = await localApi<{ purchased: number }>('/billing/my')
     expect(mine.purchased).toBe(0)
   })
@@ -713,7 +716,7 @@ describe('owner card and manual receipt ledger in the offline panel', () => {
     expect(backup).toContain('9401652473116063')
     expect(backup).toContain('باغدار نمونه')
     await eraseLocalData()
-    expect((await empty()).enabled).toBe(false)
+    expect((await empty()).enabled).toBe(true)
     await restoreBackup(backup)
     const view = await localApi<{ enabled: boolean; receipts: unknown[] }>('/local/billing')
     expect(view.enabled).toBe(true)

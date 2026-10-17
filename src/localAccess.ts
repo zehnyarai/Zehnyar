@@ -181,6 +181,26 @@ export async function setAdminPassword(
   unlock()
   return lock
 }
+/**
+ * The owner asked for a password to exist from day one instead of an open panel. This
+ * seeds one default lock per device, once; the owner can change it in the panel and can
+ * always clear it with the documented recovery phrase.
+ */
+export const DEFAULT_ADMIN_PASSWORD = 'Pestino1404'
+const SEEDED = 'pestino-admin-seeded'
+export async function ensureDefaultAdminLock(): Promise<boolean> {
+  if (hasAdminLock()) return false
+  const target = store()
+  if (target?.getItem(SEEDED)) return false
+  await setAdminPassword(
+    DEFAULT_ADMIN_PASSWORD,
+    'رمز پیش‌فرض مالک؛ در پنل عوض کنید.',
+    DEFAULT_ADMIN_PASSWORD
+  )
+  target?.setItem(SEEDED, '1')
+  lockNow()
+  return true
+}
 export function removeAdminLock(): void {
   store()?.removeItem(KEY)
   clearAttempts()

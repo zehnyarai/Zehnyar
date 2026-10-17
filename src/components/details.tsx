@@ -1,5 +1,6 @@
 import { IS_STANDALONE, assetUrl } from '../config'
 import { ScientificPlan } from './scientific'
+import { EXPERT_CONSULT_NOTE } from '../scientific'
 import { useState } from 'react'
 import {
   ArrowLeft,
@@ -120,6 +121,7 @@ export function ReportDetail({
       ...d.needed_tests,
       '\nپرسش‌ها:',
       ...d.follow_up_questions,
+      `\n${EXPERT_CONSULT_NOTE}`,
       d.disclaimer,
       `نسخه دانشنامه: ${d.knowledge_version}`,
     ].join('\n')
@@ -198,8 +200,11 @@ export function ReportDetail({
               </Badge>
               {!!report.is_sample && <Badge tone="gray">نمونه نمایشی</Badge>}
             </div>
-            <h3>{record ? 'پرونده عکس و یادداشت' : 'خلاصه بررسی اولیه'}</h3>
+            <h3>{record ? 'پرونده عکس و یادداشت' : 'پاسخ علمی'}</h3>
             <p>{d.summary}</p>
+            <p className="expert-note">
+              <ShieldCheck size={16} /> {EXPERT_CONSULT_NOTE}
+            </p>
             <div className="report-quality">
               <Eye size={14} />
               کیفیت / محدودیت تصویر: {d.quality}
@@ -271,7 +276,7 @@ export function ReportDetail({
             ) : (
               <p className="muted">
                 {record
-                  ? 'این نسخه فقط تصویر را نگهداری می‌کند؛ مدل بینایی اجرا نمی‌شود.'
+                  ? 'این نسخه فقط تصویر را نگهداری می‌کند؛ تحلیل هوشمند اجرا نشده است.'
                   : 'از این تصویر نمی‌توان فرضیه تشخیصی قابل اتکا ارائه کرد.'}
               </p>
             )}
@@ -435,7 +440,7 @@ export function HelpModal({
           <h3>ارسال تصویر با رضایت شما</h3>
           <p>
             {IS_STANDALONE
-              ? 'هیچ عکس یا مشخصات باغی از این نسخه برای سرور، پرداخت یا مدل بینایی ارسال نمی‌شود. عکس ذخیره‌شده از پیکسل‌ها دوباره ساخته می‌شود و اطلاعات EXIF/GPS اصلی در آن کپی نمی‌شوند. لینک منابع خارجی، در صورت انتخاب خودتان، با اینترنت باز می‌شود.'
+              ? 'هیچ عکس یا مشخصات باغی از این نسخه برای سرور، پرداخت یا سرویس تحلیل ارسال نمی‌شود. عکس ذخیره‌شده از پیکسل‌ها دوباره ساخته می‌شود و اطلاعات EXIF/GPS اصلی در آن کپی نمی‌شوند. لینک منابع خارجی، در صورت انتخاب خودتان، با اینترنت باز می‌شود.'
               : 'پس از تأیید شما، تصاویر، اطلاعات زمینه باغ و حداکثر سه آزمایش مرتبط به سرویس بینایی تنظیم‌شده توسط مدیر ارسال می‌شوند. اطلاعات EXIF و موقعیت فایل پیش از ذخیره و ارسال حذف می‌شوند. شرایط نگهداری سرویس خارجی باید پیش از عرضه عمومی اعلام و بررسی شود.'}
           </p>
           <h3>حذف عکس و گزارش</h3>

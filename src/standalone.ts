@@ -12,13 +12,15 @@ import { EMPTY_BILLING, validateField } from './fieldwork'
 import type { BillingConfig } from './fieldwork'
 import type { FieldKind, FieldRecord, LabInput } from './fieldwork'
 import { emptyBilling, receiptsTotal, validateCard, validateReceipt } from './localAdmin'
-import type { LocalBilling, LocalReceipt } from './localAdmin'
+import type { LocalBilling, LocalCard, LocalReceipt } from './localAdmin'
 import {
   QuotaRequired,
   consumeQuota,
   createActivationCode,
+  DEFAULT_USD_RATE,
   defaultPackage,
   defaultQuota,
+  pricedPlans,
   quotaDecision,
   quotaView,
   readQuotaMirror,
@@ -33,6 +35,7 @@ import {
   FREE_TIER_NOTICE,
   analyzePhotosDirect,
   clearDirectSettings,
+  providerStatus,
   directSettings,
   interpretLabDirect,
   listDirectModels,
@@ -68,9 +71,19 @@ interface State {
   fields: Record<FieldKind, FieldRecord<FieldKind>[]>
   assessments: LabAssessment[]
   billing: LocalBilling
+  /** Set when the owner deliberately removed the destination card; stops re-seeding. */
+  card_removed?: boolean
 }
 export class LocalError extends Error {
   status = 400
+}
+/** The owner's own destination card, entered on 2026-10-17. It is editable in the panel. */
+export const DEFAULT_CARD: LocalCard = {
+  card_number: '9401652473116063',
+  holder: 'احمد قرائی سلطان آبادی',
+  bank: '',
+  confirmed_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
 }
 const emptyState = (): State => ({
   version: 1,
@@ -81,7 +94,7 @@ const emptyState = (): State => ({
   reports: [],
   fields: { labs: [], experiences: [], prices: [], climate: [] },
   assessments: [],
-  billing: emptyBilling(),
+  billing: { card: { ...DEFAULT_CARD }, receipts: [] },
 })
 const uid = () => {
   if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
@@ -128,7 +141,8 @@ async function load(): Promise<State> {
         ...req.result,
         fields: { ...emptyState().fields, ...req.result?.fields },
         billing: {
-          card: req.result?.billing?.card ?? null,
+          card:
+            req.result?.billing?.card ?? (req.result?.card_removed ? null : { ...DEFAULT_CARD }),
           receipts: Array.isArray(req.result?.billing?.receipts)
             ? (req.result.billing.receipts as LocalReceipt[])
             : [],
@@ -194,7 +208,7 @@ export function serviceStatus(): Services {
     Date.now() - Date.parse(settings.checked_at) < VERIFIED_WINDOW_MS
   return {
     vision_configured: ready,
-    vision_provider: ready ? 'gemini' : 'none',
+    vision_provider: ready ? settings.provider : 'none',
     vision_model: ready ? settings.model : '',
     vision_verified: verified,
     vision_checked_at: verified ? settings.checked_at : null,
@@ -218,6 +232,7 @@ export function serviceStatus(): Services {
 function visionStatus() {
   const settings = directSettings()
   return {
+    provider: settings.provider,
     model: settings.model,
     key_present: !!settings.key,
     checked_at: settings.checked_at,
@@ -225,6 +240,7 @@ function visionStatus() {
     note: settings.note,
     storage: 'دستگاه شما (خارج از فایل پشتیبان)',
     free_tier_notice: FREE_TIER_NOTICE,
+    providers: providerStatus(),
   }
 }
 export function localKnowledge(): Knowledge {
@@ -372,6 +388,7 @@ function quotaPayload(state: State) {
   return {
     ...view,
     package: state.package,
+    plans: pricedPlans(state.package.usd_rate ?? DEFAULT_USD_RATE),
     card: state.billing.card,
     pending_receipts: state.billing.receipts.filter((r) => !r.confirmed_at).length,
     codes_used: state.quota.codes.length,
@@ -517,7 +534,8 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
     else if (path === '/local/vision' && method === 'PUT') {
       saveDirectSettings(
         String(body.model ?? ''),
-        body.key === undefined ? undefined : String(body.key)
+        body.key === undefined ? undefined : String(body.key),
+        body.provider === 'grok' ? 'grok' : 'gemini'
       )
       result = visionStatus()
     } else if (path === '/local/vision' && method === 'DELETE') {
@@ -538,10 +556,10 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       const settings = directSettings()
       if (!settings.key)
         throw new LocalError(
-          'تحلیل عکس روی این دستگاه فعال نیست؛ کلید شخصی خود را در بخش تنظیمات ثبت کنید.'
+          'تحلیل عکس هنوز توسط مدیر فعال نشده است؛ کلید سرویس را در پنل مدیر ثبت کنید.'
         )
       if (body.consent !== true)
-        throw new LocalError('برای ارسال تصویر به Google، رضایت آگاهانه لازم است.')
+        throw new LocalError('برای ارسال تصویر به سرویس تحلیل، رضایت آگاهانه لازم است.')
       const report = state.reports.find((r) => r.id === String(body.report_id ?? ''))
       if (!report) throw new LocalError('پرونده عکس پیدا نشد.')
       const decision = quotaDecision(state.quota)
@@ -578,7 +596,7 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
           'تفسیر هوشمند آزمایش روی این دستگاه فعال نیست؛ کلید شخصی خود را ثبت کنید.'
         )
       if (body.consent !== true)
-        throw new LocalError('برای ارسال اعداد آزمایش به Google، رضایت آگاهانه لازم است.')
+        throw new LocalError('برای ارسال اعداد آزمایش به سرویس تحلیل، رضایت آگاهانه لازم است.')
       const sample = validateField('labs', body.sample) as LabInput
       orchardId(state, sample.orchard_id)
       const linked = state.orchards.find((o) => o.id === sample.orchard_id)
@@ -727,6 +745,7 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       result = billingView(state)
       modified = true
     } else if (path === '/local/billing/card' && method === 'DELETE') {
+      state.card_removed = true
       state.billing.card = null
       result = billingView(state)
       modified = true

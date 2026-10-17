@@ -20,7 +20,7 @@ import PistachioMark from '../components/PistachioMark'
 const FEATURES = [
   {
     title: 'اسکن هوشمند آفت',
-    text: 'ثبت عکس از همه بخش‌های درخت؛ بررسی شواهد، احتمال‌ها و اقدام بعدی با مدل بیناییِ متصل',
+    text: 'ثبت عکس از همه بخش‌های درخت؛ بررسی شواهد، احتمال‌ها و اقدام بعدی با پاسخ علمی',
     icon: Bug,
     color: 'red',
     page: 'analysis',

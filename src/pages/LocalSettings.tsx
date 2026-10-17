@@ -5,7 +5,6 @@ import { errorMessage, fa, today } from '../api'
 import { eraseLocalData, exportBackup, restoreBackup, validateBackup } from '../standalone'
 import { saveTextFile } from '../files'
 import { Badge, InfoBanner, PageTitle, Spinner } from '../components/ui'
-import DirectVision from '../components/DirectVision'
 
 export default function LocalSettings({ ctx }: { ctx: AppContext }) {
   const input = useRef<HTMLInputElement>(null)
@@ -34,10 +33,9 @@ export default function LocalSettings({ ctx }: { ctx: AppContext }) {
       <InfoBanner>
         <strong>ورود و ثبت‌نام لازم نیست.</strong> نه شماره همراه، نه کد پیامکی، نه ایمیل و نه رمز
         عبور؛ همین حالا می‌توانید باغ و عکس‌ها را ثبت کنید. اطلاعات فقط روی همین دستگاه می‌ماند و
-        هیچ هزینه‌ای لازم نیست. تحلیل هوشمند عکس و آزمایش اختیاری است و با کلید شخصی خودتان روی همین
-        دستگاه انجام می‌شود. رمز فقط در پنل مدیر و به‌خواست خودتان تعریف می‌شود.
+        هیچ هزینه‌ای لازم نیست. تحلیل هوشمند عکس و آزمایش اختیاری است و از «پنل مدیر» راه‌اندازی
+        می‌شود؛ کاربران نیازی به تنظیم چیزی ندارند.
       </InfoBanner>
-      <DirectVision ctx={ctx} />
       <section className="card local-settings-card">
         <h2>
           <HardDrive size={22} /> دفتر باغ شما

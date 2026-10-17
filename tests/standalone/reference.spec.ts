@@ -121,32 +121,34 @@ test('four image views are stored, disconnected analysis never produces a diagno
   await expect(page.locator('.photo-grid figure')).toHaveCount(4)
   await page.getByRole('button', { name: 'تحلیل تصویر و بررسی احتمال آفت', exact: true }).click()
   // The offline edition asks for the owner's own key instead of claiming a server model.
-  await expect(page.getByRole('alert')).toContainText('تحلیل عکس روی این دستگاه فعال نیست')
+  await expect(page.getByRole('alert')).toContainText('تحلیل عکس هنوز فعال نشده است')
   await expect(page.locator('.hypothesis')).toHaveCount(0)
   await page.getByRole('button', { name: 'ذخیره پرونده بدون تحلیل', exact: true }).click()
   await expect(page.getByRole('dialog')).toContainText('هیچ مدل یا کارشناس، تصویر را تحلیل نکرده')
   await expect(page.locator('.report-gallery img')).toHaveCount(4)
 })
 
-test('credit and admin reference fields exist but no money or dummy card is active', async ({
+test('credits show the real packages and the owner panel keeps the card and ledger honest', async ({
   page,
 }) => {
   await page.goto('./#/subscription')
-  await expect(page.getByText('دریافت وجه غیرفعال است.', { exact: true })).toBeVisible()
-  await expect(page.locator('.credit-packages label')).toHaveCount(3)
-  // The server receipt upload stays hidden in the standalone edition; manual entry lives
-  // in the owner panel instead. No gateway flow may appear to be available here.
-  await expect(
-    page.getByRole('button', { name: 'ثبت رسید و درخواست اعتبار', exact: true })
-  ).toBeHidden()
-  await expect(page.getByRole('button', { name: 'رفتن به دفتر دریافت در پنل مدیر' })).toBeVisible()
-  await expect(page.locator('.bank-card-display')).toContainText('شماره کارت تنظیم نشده')
+  await expect(page.getByRole('heading', { name: 'اعتبار من' })).toBeVisible()
+  // Four support packages, all priced from the owner's day rate.
+  await expect(page.locator('.plan-card')).toHaveCount(4)
+  await expect(page.locator('.plan-card').first()).toContainText('تومان')
+  await expect(page.locator('.bank-card-display')).toContainText(/9401\s*[\s-]\s*6524/)
+  await expect(page.getByRole('heading', { name: /کد فعال‌سازی دارم/ })).toBeVisible()
+  // The owner panel opens only with the owner password.
   await page.goto('./#/admin')
-  await expect(page.getByRole('heading', { name: 'پنل مدیر (نسخه مستقل)' })).toBeVisible()
-  await expect(page.getByLabel('شماره کارت ۱۶ رقمی')).toHaveValue('')
+  await expect(page.getByRole('heading', { name: 'ورود به پنل مدیر' })).toBeVisible()
+  await page.getByLabel('رمز مدیر').fill('Pestino1404')
+  await page.getByRole('button', { name: /باز کردن پنل مدیر/ }).click()
+  await expect(page.getByLabel('شماره کارت ۱۶ رقمی')).toHaveValue('9401652473116063')
   await expect(page.locator('.receipt-ledger')).toHaveCount(0)
-  await expect(page.locator('.local-admin-page')).toContainText('دفتر دریافت وجه (ثبت دستی)')
-  await expect(page.locator('.local-admin-page')).toContainText('نیازمند تنظیم')
+  await expect(page.locator('.local-admin-page')).toContainText(
+    'این دفتر ثبت دستی است، نه تأیید بانکی خودکار.'
+  )
+  await expect(page.locator('.local-admin-page')).toContainText('فقط مالک')
 })
 
 test('dated research library works offline and distinguishes source evidence from diagnosis', async ({
@@ -233,16 +235,17 @@ test('offline edition offers on-device key activation and refuses to fake analys
       }),
     })
   })
-  await page.goto('./#/settings')
-  await expect(
-    page.getByRole('heading', { name: /تحلیل هوشمند عکس و آزمایش با کلید شخصی شما/ })
-  ).toBeVisible()
-  await expect(page.getByText('غیرفعال', { exact: true })).toBeVisible()
-  await page.getByLabel(/^مدل/).fill('gemini-2.5-flash')
-  await page.getByLabel(/^کلید API شخصی/).fill('AIzaSyStandaloneExampleKey123')
-  await page.getByRole('button', { name: 'ذخیره روی این دستگاه' }).click()
+  // The key entry lives only in the password-protected owner panel.
+  await page.goto('./#/admin')
+  await expect(page.getByRole('heading', { name: 'ورود به پنل مدیر' })).toBeVisible()
+  await page.getByLabel('رمز مدیر').fill('Pestino1404')
+  await page.getByRole('button', { name: /باز کردن پنل مدیر/ }).click()
+  await expect(page.getByRole('heading', { name: 'کلید سرویس تحلیل' })).toBeVisible()
+  await page.getByLabel('نام مدل').fill('gemini-2.5-flash')
+  await page.getByLabel(/^کلید API Google/).fill('AIzaSyStandaloneExampleKey123')
+  await page.getByRole('button', { name: 'ذخیره', exact: true }).click()
   await expect(page.getByText('ثبت شده؛ بدون آزمون')).toBeVisible()
-  await page.getByRole('button', { name: 'آزمون اتصال' }).click()
+  await page.getByRole('button', { name: /آزمون اتصال/ }).click()
   // The stub answers the plain-text probe shape only for the connection test.
   // Wait for the visible success state before reading the recorded requests: the
   // network event can arrive a moment after the click returns.
@@ -288,42 +291,37 @@ test('offline admin panel connects the model and keeps the owner ledger honest',
     })
   })
   await page.goto('./#/admin')
-  await expect(page.getByRole('heading', { name: 'پنل مدیر (نسخه مستقل)' })).toBeVisible()
-  // Every capability is listed with its real state, including the ones that cannot work here.
-  const board = page.locator('.capability-list li')
-  await expect(board.filter({ hasText: 'تحلیل عکس برگ' })).toContainText('نیازمند تنظیم')
-  await expect(board.filter({ hasText: 'درگاه بانکی' })).toContainText('در این نسخه ممکن نیست')
-  await expect(board.filter({ hasText: 'نسخه iPhone' })).toContainText('در این نسخه ممکن نیست')
-  await expect(board.filter({ hasText: 'فایل نصبی اندروید' })).toContainText('فعال')
-  await expect(board.filter({ hasText: 'SAR' })).toContainText('فعال')
+  await expect(page.getByRole('heading', { name: 'ورود به پنل مدیر' })).toBeVisible()
+  await page.getByLabel('رمز مدیر').fill('Pestino1404')
+  await page.getByRole('button', { name: /باز کردن پنل مدیر/ }).click()
+  await expect(page.getByRole('heading', { name: 'کلید سرویس تحلیل' })).toBeVisible()
   // Connect the model from the admin panel itself.
-  await page.getByLabel(/^مدل/).fill('gemini-2.5-flash')
-  await page.getByLabel(/^کلید API شخصی/).fill('AIzaSyAdminPanelExampleKey123')
-  await page.getByRole('button', { name: 'ذخیره روی این دستگاه' }).click()
-  await page.getByRole('button', { name: 'آزمون اتصال' }).click()
+  await page.getByLabel('نام مدل').fill('gemini-2.5-flash')
+  await page.getByLabel(/^کلید API Google/).fill('AIzaSyAdminPanelExampleKey123')
+  await page.getByRole('button', { name: 'ذخیره', exact: true }).click()
+  await page.getByRole('button', { name: /آزمون اتصال/ }).click()
   await expect(page.getByText(/آزمون اتصال موفق شد/)).toBeVisible()
-  await expect(board.filter({ hasText: 'تحلیل عکس برگ' })).toContainText('فعال')
   // Card + ledger: confirmation is required, then the receipt is recorded.
   await page.getByLabel('شماره کارت ۱۶ رقمی').fill('9401 6524 7311 6063')
   await page.getByLabel('نام صاحب کارت').fill('احمد قرائی سلطان آبادی')
-  await page.getByLabel('نام بانک').fill('بانک ملی ایران')
+  await page.getByLabel(/^نام بانک/).fill('بانک ملی ایران')
   await page.getByRole('button', { name: 'ذخیره کارت مقصد' }).click()
   await expect(page.getByRole('alert')).toContainText('تطبیق')
   await page.getByRole('checkbox', { name: /تأیید می‌کنم شماره کارت/ }).check()
   await page.getByRole('button', { name: 'ذخیره کارت مقصد' }).click()
-  await expect(
-    page.locator('.local-admin-page p.muted').filter({ hasText: 'کارت ثبت‌شده' })
-  ).toContainText(/9401\s*-\s*6524\s*-\s*7311\s*-\s*6063/)
+  await expect(page.locator('.local-admin-page p.muted').filter({ hasText: '9401' })).toContainText(
+    /9401\s*-\s*6524\s*-\s*7311\s*-\s*6063/
+  )
   await page.getByLabel('نام پرداخت‌کننده').fill('باغدار نمونه')
   await page.getByLabel('مبلغ (تومان)').fill('990000')
   await page.getByLabel('تاریخ واریز').fill('2026-10-12')
   await page.getByRole('button', { name: 'ثبت در دفتر دریافتی‌ها' }).click()
   await expect(page.locator('.receipt-ledger')).toContainText('باغدار نمونه')
-  await expect(page.locator('.local-admin-page')).toContainText('ثبت دستی، نه تأیید بانکی')
+  await expect(page.locator('.local-admin-page')).toContainText(
+    'این دفتر ثبت دستی است، نه تأیید بانکی خودکار.'
+  )
   // The credits screen shows the same card with the manual wording, not a gateway flow.
   await page.goto('./#/subscription')
-  await expect(page.locator('.bank-card-display')).toContainText(
-    /9401\s*-\s*6524\s*-\s*7311\s*-\s*6063/
-  )
-  await expect(page.locator('.info-banner').filter({ hasText: 'حالت دریافت دستی' })).toBeVisible()
+  await expect(page.locator('.bank-card-display')).toContainText(/9401\s*[\s-]\s*6524/)
+  await expect(page.locator('.local-credits')).toContainText('این برنامه درگاه بانکی')
 })

@@ -34,6 +34,7 @@ import Laboratory from './pages/Laboratory'
 import Community from './pages/Community'
 import Market from './pages/Market'
 import Credits from './pages/Credits'
+import LocalCredits from './pages/LocalCredits'
 import CreditAdmin from './pages/CreditAdmin'
 import Install from './pages/Install'
 import Orchards from './pages/Orchards'
@@ -288,7 +289,9 @@ export default function App() {
               aria-label="اعتبار من"
             >
               <Wallet size={17} />
-              {IS_STANDALONE ? 'رایگان' : fa(data.credit_balance ?? 0)}
+              {IS_STANDALONE
+                ? `${fa(data.usage.total_left ?? data.usage.free_left ?? 0)} تحلیل`
+                : fa(data.credit_balance ?? 0)}
             </button>
             <button
               className="icon-button account-button"
@@ -375,28 +378,30 @@ export default function App() {
         {page === 'laboratory' && <Laboratory ctx={ctx} />}
         {page === 'community' && <Community ctx={ctx} />}
         {page === 'market' && <Market ctx={ctx} />}
-        {page === 'subscription' && <Credits ctx={ctx} />}
-        {page === 'admin' && (
-          <>
-            <div className="admin-view-tabs">
-              <button
-                className={adminTab === 'receipts' ? 'active' : ''}
-                onClick={() => setAdminTab('receipts')}
-              >
-                رسیدها و اعتبار
-              </button>
-              {!IS_STANDALONE && (
+        {page === 'subscription' &&
+          (IS_STANDALONE ? <LocalCredits ctx={ctx} /> : <Credits ctx={ctx} />)}
+        {page === 'admin' &&
+          (IS_STANDALONE ? (
+            <CreditAdmin ctx={ctx} />
+          ) : (
+            <>
+              <div className="admin-view-tabs">
+                <button
+                  className={adminTab === 'receipts' ? 'active' : ''}
+                  onClick={() => setAdminTab('receipts')}
+                >
+                  رسیدها و اعتبار
+                </button>
                 <button
                   className={adminTab === 'services' ? 'active' : ''}
                   onClick={() => setAdminTab('services')}
                 >
                   سرویس‌ها و درگاه
                 </button>
-              )}
-            </div>
-            {adminTab === 'receipts' ? <CreditAdmin ctx={ctx} /> : <Admin ctx={ctx} />}
-          </>
-        )}
+              </div>
+              {adminTab === 'receipts' ? <CreditAdmin ctx={ctx} /> : <Admin ctx={ctx} />}
+            </>
+          ))}
         {page === 'orchards' && <Orchards ctx={ctx} />}
         {page === 'reports' && <Reports ctx={ctx} />}
         {page === 'calendar' && <CalendarPage ctx={ctx} />}

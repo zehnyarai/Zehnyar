@@ -92,7 +92,10 @@ export function validateCard(raw: unknown): Omit<LocalCard, 'confirmed_at' | 'up
   return {
     card_number,
     holder: text(body.holder, 'نام صاحب کارت', 100, 3),
-    bank: text(body.bank, 'نام بانک', 80, 2),
+    bank:
+      body.bank === undefined || body.bank === null || String(body.bank).trim() === ''
+        ? ''
+        : text(body.bank, 'نام بانک', 80, 2),
   }
 }
 export function validateReceipt(raw: unknown): Omit<LocalReceipt, 'id' | 'created_at'> {

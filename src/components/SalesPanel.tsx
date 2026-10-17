@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { BadgeCheck, Gift, KeyRound, RefreshCw, Save, ShoppingBag, Wallet } from 'lucide-react'
+import { BadgeCheck, Gift, KeyRound, Save, ShoppingBag, Wallet } from 'lucide-react'
 import { api, errorMessage, fa, persianDate, today } from '../api'
 import type { AppContext } from '../types'
-import { suggestedToman } from '../quota'
+import { DEFAULT_USD_RATE, SUPPORT_PLANS, planPrice } from '../quota'
 import type { QuotaPayload } from '../quota'
 import { InfoBanner, Spinner } from './ui'
 
@@ -19,19 +19,17 @@ const toEnglish = (value: string) =>
 const number = (value: string) => Number(toEnglish(digits(value) || '0'))
 
 /**
- * The owner's side of the rule "two free analyses, then a Toman package": set the limits and
- * the price, generate an activation code after a real transfer, and unlock this device.
+ * The owner's shop: two free analyses, then the four support packages that are all priced
+ * from the same day rate ($3 per analysis before the package discount). The owner edits
+ * the rate and the code generator, and the credits page follows automatically.
  */
 export default function SalesPanel({ ctx }: { ctx: AppContext }) {
   const [quota, setQuota] = useState<QuotaPayload | null>(null)
   const [form, setForm] = useState({
     free_limit: '2',
-    analyses: '20',
-    usd_price: '',
-    usd_rate: '',
-    rate_date: today(),
-    price_toman: '',
+    rate: String(DEFAULT_USD_RATE),
   })
+  const [planId, setPlanId] = useState('five')
   const [days, setDays] = useState('')
   const [code, setCode] = useState<{
     code: string
@@ -43,47 +41,25 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
   const [error, setError] = useState('')
   const [note, setNote] = useState('')
 
-  const suggested = suggestedToman(
-    form.usd_price ? number(form.usd_price) : null,
-    form.usd_rate ? number(form.usd_rate) : null
-  )
-  async function load() {
-    try {
-      const payload = await api<QuotaPayload>('/local/quota')
-      setQuota(payload)
-      setForm({
-        free_limit: String(payload.free_limit),
-        analyses: String(payload.analyses_per_package),
-        usd_price: payload.usd_price ? String(payload.usd_price) : '',
-        usd_rate: payload.usd_rate ? String(payload.usd_rate) : '',
-        rate_date: payload.rate_date ?? today(),
-        price_toman: payload.price_toman ? String(payload.price_toman) : '',
-      })
-    } catch (e) {
-      setError(errorMessage(e))
-    }
-  }
   useEffect(() => {
     let active = true
     void api<QuotaPayload>('/local/quota')
       .then((payload) => {
         if (!active) return
         setQuota(payload)
-        setForm((old) => ({
-          ...old,
+        setForm({
           free_limit: String(payload.free_limit),
-          analyses: String(payload.analyses_per_package),
-          usd_price: payload.usd_price ? String(payload.usd_price) : '',
-          usd_rate: payload.usd_rate ? String(payload.usd_rate) : '',
-          rate_date: payload.rate_date ?? old.rate_date,
-          price_toman: payload.price_toman ? String(payload.price_toman) : '',
-        }))
+          rate: String(payload.usd_rate ?? DEFAULT_USD_RATE),
+        })
       })
       .catch((e) => active && setError(errorMessage(e)))
     return () => {
       active = false
     }
   }, [])
+
+  const rate = number(form.rate) || DEFAULT_USD_RATE
+  const plan = SUPPORT_PLANS.find((p) => p.id === planId) ?? SUPPORT_PLANS[1]
   async function run(action: () => Promise<unknown>, message: string) {
     if (busy) return
     setBusy(true)
@@ -91,7 +67,9 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
     setNote('')
     try {
       await action()
-      await load()
+      const payload = await api<QuotaPayload>('/local/quota')
+      setQuota(payload)
+      setForm({ free_limit: String(payload.free_limit), rate: String(payload.usd_rate ?? rate) })
       await ctx.refresh()
       setNote(message)
     } catch (e) {
@@ -108,15 +86,15 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
           body: JSON.stringify({
             free_limit: number(form.free_limit),
             package: {
-              analyses: number(form.analyses),
-              usd_price: form.usd_price ? number(form.usd_price) : null,
-              usd_rate: form.usd_rate ? number(form.usd_rate) : null,
-              rate_date: form.usd_rate ? form.rate_date : null,
-              price_toman: number(form.price_toman) || suggested,
+              analyses: 20,
+              usd_price: 36,
+              usd_rate: rate,
+              rate_date: today(),
+              price_toman: planPrice(SUPPORT_PLANS[SUPPORT_PLANS.length - 1], rate),
             },
           }),
         }),
-      'تنظیمات تحلیل رایگان و بستهٔ تومانی ذخیره شد.'
+      'نرخ دلار و تحلیل‌های رایگان ذخیره شد؛ قیمت هر چهار بسته به‌روز شد.'
     )
   const makeCode = () =>
     run(async () => {
@@ -125,13 +103,13 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
         {
           method: 'POST',
           body: JSON.stringify({
-            analyses: number(form.analyses),
+            analyses: plan.analyses,
             days: days ? number(days) : null,
           }),
         }
       )
       setCode(generated)
-    }, 'کد فعال‌سازی ساخته شد؛ آن را برای پرداخت‌کننده بفرستید.')
+    }, 'کد ساخته شد؛ آن را برای پرداخت‌کننده بفرستید.')
   const grant = () =>
     run(
       () =>
@@ -143,24 +121,14 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
     )
 
   return (
-    <section className="reference-card" aria-label="فروش تحلیل و تحلیل‌های رایگان">
+    <section className="reference-card" aria-label="فروش تحلیل">
       <h2>
-        <ShoppingBag size={22} /> تحلیل رایگان، بستهٔ تومانی و کد فعال‌سازی
+        <ShoppingBag size={22} /> قیمت‌گذاری و کد فعال‌سازی
       </h2>
-      <InfoBanner>
-        هر دستگاه {fa(quota?.free_limit ?? 2)} تحلیل رایگان دارد؛ بعد از آن برای هر تحلیل باید یک
-        بستهٔ تومانی تهیه شود. باغ، پرونده، عکس، دانشنامه و تقویم هیچ محدودیتی ندارند و آفلاین کار
-        می‌کنند. پرداخت کارت‌به‌کارت است: پس از واریز، شما کد فعال‌سازی می‌سازید و برای پرداخت‌کننده
-        می‌فرستید.
-      </InfoBanner>
-      {quota && (
-        <p className="muted">
-          وضعیت این دستگاه: <strong>{fa(quota.free_left)}</strong> تحلیل رایگان باقی‌مانده از{' '}
-          {fa(quota.free_limit)} · بستهٔ خریداری‌شده: <strong>{fa(quota.credits)}</strong> · کدهای
-          استفاده‌شده: {fa(quota.codes_used)}
-          {quota.pending_receipts ? ` · رسید در انتظار تأیید: ${fa(quota.pending_receipts)}` : ''}
-        </p>
-      )}
+      <p className="section-description">
+        هر تحلیل ۳ دلار است؛ نرخ روز دلار را اینجا وارد کنید تا قیمت هر چهار بسته خودکار حساب شود.
+        کاربر فقط قیمت تومانی را می‌بیند.
+      </p>
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -179,80 +147,70 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
               />
             </label>
             <label>
-              تعداد تحلیل هر بسته
+              نرخ دلار امروز (تومان)
               <input
                 dir="ltr"
                 inputMode="numeric"
-                value={form.analyses}
-                onChange={(e) => setForm({ ...form, analyses: e.target.value })}
-              />
-            </label>
-            <label>
-              قیمت پایهٔ بسته (دلار) — اختیاری
-              <input
-                dir="ltr"
-                inputMode="decimal"
-                value={form.usd_price}
-                onChange={(e) => setForm({ ...form, usd_price: e.target.value })}
-                placeholder="مثلاً 2"
-              />
-            </label>
-            <label>
-              نرخ دلار امروز (تومان) — اختیاری
-              <input
-                dir="ltr"
-                inputMode="numeric"
-                value={form.usd_rate}
-                onChange={(e) => setForm({ ...form, usd_rate: e.target.value })}
-                placeholder="نرخ روز را خودتان وارد کنید"
-              />
-            </label>
-            <label>
-              تاریخ نرخ
-              <input
-                dir="ltr"
-                value={form.rate_date}
-                onChange={(e) => setForm({ ...form, rate_date: e.target.value })}
-                placeholder="2026-10-13"
-              />
-            </label>
-            <label>
-              قیمت نهایی بسته (تومان)
-              <input
-                dir="ltr"
-                inputMode="numeric"
-                value={form.price_toman}
-                onChange={(e) => setForm({ ...form, price_toman: e.target.value })}
-                placeholder={suggested ? `پیشنهاد: ${fa(suggested)}` : 'بدون قیمت دلاری'}
+                value={form.rate}
+                onChange={(e) => setForm({ ...form, rate: e.target.value })}
               />
             </label>
           </div>
-          <p className="muted">
-            {suggested
-              ? `قیمت پیشنهادی از دلار و نرخ روز ساخته می‌شود: ${fa(suggested)} تومان (به بالا گرد شده). قیمت تومانی نمی‌تواند از این عدد کمتر باشد.`
-              : 'اگر قیمت دلاری و نرخ روز را وارد کنید، قیمت تومانی به‌صورت خودکار پیشنهاد می‌شود؛ در غیر این صورت فقط قیمت تومانی خودتان ثبت می‌شود.'}{' '}
-            نرخ دلار را خودتان وارد می‌کنید؛ برنامه نرخ زنده نمی‌سازد.
-          </p>
+          <div className="table-scroll">
+            <table className="plan-table">
+              <thead>
+                <tr>
+                  <th>بسته</th>
+                  <th>تحلیل</th>
+                  <th>دلار</th>
+                  <th>تومان</th>
+                  <th>هر تحلیل</th>
+                </tr>
+              </thead>
+              <tbody>
+                {SUPPORT_PLANS.map((p) => {
+                  const price = planPrice(p, rate)
+                  return (
+                    <tr key={p.id}>
+                      <td>{p.name}</td>
+                      <td>{fa(p.analyses)}</td>
+                      <td dir="ltr">{fa(p.usd, 0)}$</td>
+                      <td dir="ltr">{fa(price)}</td>
+                      <td dir="ltr">{fa(Math.round(price / p.analyses))}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
           <button className="button primary" type="submit">
-            <Save size={17} /> ذخیرهٔ تنظیمات فروش
+            <Save size={17} /> ذخیرهٔ نرخ
           </button>
         </fieldset>
       </form>
+      {quota && (
+        <p className="muted">
+          این دستگاه: {fa(quota.free_left)} تحلیل رایگان از {fa(quota.free_limit)} · بستهٔ
+          خریداری‌شده: {fa(quota.credits)}
+          {quota.pending_receipts ? ` · رسید در انتظار تأیید: ${fa(quota.pending_receipts)}` : ''}
+        </p>
+      )}
 
       <div className="sales-actions">
         <div className="sales-block">
           <h3>
-            <KeyRound size={18} /> ساخت کد فعال‌سازی پس از واریز
+            <KeyRound size={18} /> ساخت کد پس از واریز
           </h3>
           <div className="reference-form-grid">
             <label>
-              تعداد تحلیل کد
-              <input
-                dir="ltr"
-                inputMode="numeric"
-                value={form.analyses}
-                onChange={(e) => setForm({ ...form, analyses: e.target.value })}
-              />
+              بسته
+              <select value={planId} onChange={(e) => setPlanId(e.target.value)}>
+                {SUPPORT_PLANS.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} — {fa(planPrice(p, rate))} تومان
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
               اعتبار کد (روز) — اختیاری
@@ -267,7 +225,7 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
           </div>
           <button className="button secondary" disabled={busy} onClick={() => void makeCode()}>
             {busy ? <Spinner /> : <KeyRound size={17} />}
-            ساخت کد فعال‌سازی
+            ساخت کد
           </button>
           {code && (
             <div className="activation-code">
@@ -284,12 +242,8 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
         </div>
         <div className="sales-block">
           <h3>
-            <Gift size={18} /> هدیه یا تسویهٔ این دستگاه
+            <Gift size={18} /> هدیه یا تسویهٔ حضوری
           </h3>
-          <p className="muted">
-            اگر مشتری را همین‌جا تسویه کرده‌اید یا می‌خواهید هدیه بدهید، مستقیم به همین دستگاه تحلیل
-            اضافه کنید.
-          </p>
           <label>
             تعداد تحلیل
             <input
@@ -301,9 +255,6 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
           </label>
           <button className="button secondary" disabled={busy} onClick={() => void grant()}>
             <Wallet size={17} /> افزودن به این دستگاه
-          </button>
-          <button className="button ghost" disabled={busy} onClick={() => void load()}>
-            <RefreshCw size={16} /> به‌روزرسانی وضعیت
           </button>
         </div>
       </div>
@@ -317,7 +268,10 @@ export default function SalesPanel({ ctx }: { ctx: AppContext }) {
           {error}
         </div>
       )}
-      <p className="muted">{quota?.notice}</p>
+      <InfoBanner>
+        پرداخت کارت‌به‌کارت است: کاربر واریز می‌کند، شما کد می‌سازید و می‌فرستید. تأیید خودکار بانکی
+        وجود ندارد و این برنامه وجهی دریافت نمی‌کند.
+      </InfoBanner>
     </section>
   )
 }

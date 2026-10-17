@@ -19,17 +19,17 @@ export default function Install({ ctx }: { ctx: AppContext }) {
           <Smartphone size={34} />
           <h2>اندروید</h2>
           <p>
-            نسخه ۰.۷.۲ برای اندروید ۷ به بالا: تحلیل عکس و تفسیر آزمایش با کلید شخصی خودتان، دو
-            تحلیل رایگان و سپس بستهٔ تومانی، و همهٔ دفتر باغ به‌صورت آفلاین.
+            نسخه ۰.۷.۳ برای اندروید ۷ به بالا: تحلیل عکس و تفسیر آزمایش، دو تحلیل رایگان و سپس بستهٔ
+            تومانی، و همهٔ دفتر باغ به‌صورت آفلاین. راه‌اندازی تحلیل فقط از «پنل مدیر» انجام می‌شود.
           </p>
           <a
             className="button primary"
-            href="https://raw.githubusercontent.com/zehnyarai/Zehnyar/arena/e819b607-zehnyar/installers/Pestino-0.7.2.apk"
+            href="https://raw.githubusercontent.com/zehnyarai/Zehnyar/arena/e819b607-zehnyar/installers/Pestino-0.7.3.apk"
             target="_blank"
             rel="noreferrer"
           >
             <Download size={18} />
-            دانلود APK پستینو ۰.۷.۲
+            دانلود APK پستینو ۰.۷.۳
           </a>
           <p className="section-description">
             اندازه و SHA-256 هر نسخه در پوشهٔ نصب (`installers/`) و در `installers/BUILD.txt` است.

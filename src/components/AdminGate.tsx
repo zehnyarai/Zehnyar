@@ -5,6 +5,7 @@ import {
   AccessError,
   failedAttempts,
   hasAdminLock,
+  ensureDefaultAdminLock,
   isUnlocked,
   lockNow,
   lockoutSeconds,
@@ -34,9 +35,27 @@ export default function AdminGate({ ctx, children }: { ctx: AppContext; children
   const [left, setLeft] = useState(lockoutSeconds())
   const [forgot, setForgot] = useState(false),
     [phrase, setPhrase] = useState('')
-  const [showSetup, setShowSetup] = useState(!hasAdminLock())
+  const [checking, setChecking] = useState(!hasAdminLock())
+  const [showSetup, setShowSetup] = useState(false)
   const [showChange, setShowChange] = useState(false)
   const password = useRef<HTMLInputElement>(null)
+  // The owner asked for a password to exist from the first launch. Seed one once per
+  // device (and lock immediately) so the panel is never silently open.
+  useEffect(() => {
+    if (hasAdminLock()) {
+      setChecking(false)
+      return
+    }
+    let active = true
+    void ensureDefaultAdminLock().finally(() => {
+      if (!active) return
+      setLocked(hasAdminLock() && !isUnlocked())
+      setChecking(false)
+    })
+    return () => {
+      active = false
+    }
+  }, [])
   useEffect(() => {
     if (!left) return
     const timer = setInterval(() => setLeft(lockoutSeconds()), 1000)
@@ -103,6 +122,14 @@ export default function AdminGate({ ctx, children }: { ctx: AppContext; children
     setError('')
     ctx.notify('قفل پنل مدیر برداشته شد؛ داده‌ها و کارت دست‌نخورده‌اند.', 'info')
   }
+  if (checking)
+    return (
+      <div className="reference-page">
+        <div className="reference-card loading-inline">
+          <Spinner label="آماده‌سازی رمز مدیر…" />
+        </div>
+      </div>
+    )
   if (locked)
     return (
       <div className="reference-page admin-gate-page">
@@ -112,7 +139,10 @@ export default function AdminGate({ ctx, children }: { ctx: AppContext; children
           </span>
           <div>
             <h1>ورود به پنل مدیر</h1>
-            <p>این رمز را خودتان تعریف کرده‌اید؛ رمز پیش‌فرض یا رمز تحمیلی وجود ندارد.</p>
+            <p>
+              رمز مدیر روی همین دستگاه نگه داشته می‌شود. اگر رمز را عوض نکرده‌اید، رمز پیش‌فرض مالک
+              معتبر است و از «تغییر یا حذف رمز» می‌توانید عوضش کنید.
+            </p>
           </div>
           <Badge tone="amber">قفل روی این دستگاه</Badge>
         </div>
@@ -206,8 +236,8 @@ export default function AdminGate({ ctx, children }: { ctx: AppContext; children
             <KeyRound size={22} /> رمز مدیر را خودتان تعریف کنید
           </h2>
           <InfoBanner>
-            الان پنل بدون رمز باز است، پس هیچ‌کس با رمز ناشناخته بیرون نمی‌ماند. اگر می‌خواهید شماره
-            کارت، دفتر دریافتی و تنظیمات مدل از دسترس دیگران دور بماند، همین‌جا رمز تعریف کنید.
+            رمز تازه فقط روی همین دستگاه ذخیره می‌شود؛ شماره کارت، دفتر دریافتی و کلید سرویس با آن
+            از دسترس دیگران دور می‌مانند. رمز فعلی را می‌توانید همین‌جا عوض کنید.
           </InfoBanner>
           <p className="muted">{REQUIREMENT_TEXT}</p>
           <form onSubmit={saveSetup}>

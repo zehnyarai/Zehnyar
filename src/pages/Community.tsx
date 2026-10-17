@@ -81,8 +81,8 @@ export default function Community({ ctx }: { ctx: AppContext }) {
         </div>
         <p className="community-scope">
           {IS_STANDALONE
-            ? 'در نسخه مستقل، تجربه‌ها خصوصی و روی همین دستگاه‌اند؛ شبکه اجتماعی یا اشتراک‌گذاری خودکار فعال نیست.'
-            : 'تجربه‌های منتشرشده پس از بررسی مدیر و نوشته‌های خودتان؛ تجربه شخصی جای پژوهش یا نسخه کارشناس نیست.'}
+            ? 'تجربه‌ها خصوصی و روی همین دستگاه می‌مانند. تجربهٔ شخصی جای پژوهش یا نظر کارشناس را نمی‌گیرد.'
+            : 'تجربه‌های منتشرشده پس از بررسی مدیر و نوشته‌های خودتان؛ تجربهٔ شخصی جای پژوهش یا نسخه کارشناس نیست.'}
         </p>
         <div className="community-toolbar">
           <div className="category-filters">
@@ -151,9 +151,6 @@ export default function Community({ ctx }: { ctx: AppContext }) {
                     </button>
                   )}
                 </footer>
-                <small className="experience-warning">
-                  تجربه شخصی؛ شرایط باغ‌ها یکسان نیست و توصیه درمانی تأییدشده محسوب نمی‌شود.
-                </small>
               </article>
             ))}
           </div>

@@ -2,39 +2,65 @@ import { useEffect, useRef, useState } from 'react'
 import { Gauge, KeyRound, ListChecks, PlugZap, Save, ShieldCheck, Trash2 } from 'lucide-react'
 import { api, errorMessage, persianDate } from '../api'
 import type { AppContext } from '../types'
-import { DEFAULT_DIRECT_MODEL, FREE_MODELS, FREE_TIER_NOTICE } from '../visionDirect'
-import type { ProbeResult } from '../visionDirect'
-import { Badge, CheckList, InfoBanner, Spinner } from './ui'
+import {
+  DEFAULT_GROK_MODEL,
+  freeModelsFor,
+  type DirectProvider,
+  type ProbeResult,
+} from '../visionDirect'
+import { Badge, InfoBanner, Spinner } from './ui'
+
+interface ProviderState {
+  key_present: boolean
+  model: string
+  checked_at: string | null
+  ok: boolean
+}
 
 interface DirectStatus {
+  provider: DirectProvider
   model: string
   key_present: boolean
   checked_at: string | null
   connection_ok: boolean
   note: string
   storage: string
-  free_tier_notice?: string
+  providers?: Record<DirectProvider, ProviderState>
+}
+
+const PROVIDERS: { id: DirectProvider; name: string; hint: string }[] = [
+  { id: 'gemini', name: 'Gemini (Google)', hint: 'کلید رایگان از Google AI Studio' },
+  { id: 'grok', name: 'Grok (xAI)', hint: 'کلید از کنسول xAI' },
+]
+
+/** Suggestions shown under the model field, per provider. */
+function suggestions(provider: DirectProvider) {
+  return freeModelsFor(provider)
 }
 
 /**
- * On-device activation for the offline edition: the owner's own Google key lives only
- * on this phone, never in the APK, the repository or the backup file.
+ * Owner-only key panel for the offline edition. Both providers keep their own key on this
+ * device; switching provider never deletes the other key. The panel never shows a stored
+ * key again — only whether one exists.
  */
 export default function DirectVision({ ctx }: { ctx: AppContext }) {
   const key = useRef<HTMLInputElement>(null)
   const [status, setStatus] = useState<DirectStatus | null>(null)
-  const [model, setModel] = useState(DEFAULT_DIRECT_MODEL)
+  const [provider, setProvider] = useState<DirectProvider>('gemini')
+  const [model, setModel] = useState('')
   const [probe, setProbe] = useState<ProbeResult[] | null>(null)
-  const [listed, setListed] = useState<string[] | null>(null)
-  const [busy, setBusy] = useState(false),
-    [error, setError] = useState('')
+  const [listed, setListed] = useState<string[]>([])
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
   useEffect(() => {
     let active = true
     void api<DirectStatus>('/local/vision')
       .then((s) => {
         if (!active) return
         setStatus(s)
-        if (s.model) setModel(s.model)
+        setProvider(s.provider)
+        setModel(s.model)
       })
       .catch((e) => active && setError(errorMessage(e)))
     return () => {
@@ -42,13 +68,25 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
       if (key.current) key.current.value = ''
     }
   }, [])
+
+  function switchProvider(next: DirectProvider) {
+    setProvider(next)
+    setProbe(null)
+    setListed([])
+    setError('')
+    const saved = status?.providers?.[next]
+    setModel(saved?.model || (next === 'grok' ? DEFAULT_GROK_MODEL : 'gemini-2.5-flash'))
+    if (key.current) key.current.value = ''
+  }
+
   async function call(path: string, options?: RequestInit) {
     setBusy(true)
     setError('')
     try {
       const next = await api<DirectStatus>(path, options)
       setStatus(next)
-      if (next.model) setModel(next.model)
+      setProvider(next.provider)
+      setModel(next.model)
       await ctx.refresh()
       return true
     } catch (e) {
@@ -59,55 +97,51 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
       setBusy(false)
     }
   }
+
   async function save() {
     const value = key.current?.value.trim() ?? ''
     const ok = await call('/local/vision', {
       method: 'PUT',
-      // Sending an empty field keeps the key already stored on this device.
-      body: JSON.stringify(value ? { model, key: value } : { model }),
+      body: JSON.stringify({ provider, model, ...(value ? { key: value } : {}) }),
     })
-    if (ok) ctx.notify('تنظیمات روی همین دستگاه ذخیره شد. حالا آزمون اتصال بزنید.', 'success')
+    if (ok) ctx.notify('تنظیمات روی همین دستگاه ذخیره شد. حالا «آزمون اتصال» را بزنید.', 'success')
   }
+
   async function test() {
     const ok = await call('/local/vision/test', { method: 'POST' })
     ctx.notify(
-      ok
-        ? 'آزمون اتصال موفق شد؛ تحلیل عکس روی این دستگاه کار می‌کند.'
-        : 'آزمون اتصال انجام نشد؛ پیام خطا را ببینید.',
+      ok ? 'آزمون اتصال موفق شد؛ تحلیل روی این دستگاه کار می‌کند.' : 'آزمون اتصال انجام نشد.',
       ok ? 'success' : 'error'
     )
   }
+
   async function fetchModels() {
     setBusy(true)
     setError('')
     try {
-      const rows = await api<{ id: string; label: string; note: string }[]>('/local/vision/models')
+      const rows = await api<{ id: string }[]>('/local/vision/models')
       setListed(rows.map((r) => r.id))
-      ctx.notify(`${rows.length} مدل مجاز برای این کلید پیدا شد.`, 'success')
+      ctx.notify(`${rows.length} مدل برای این کلید پیدا شد.`, 'success')
     } catch (e) {
       setError(errorMessage(e))
     } finally {
       setBusy(false)
     }
   }
+
   async function probeModels() {
-    // Text-only probes: they cost a little quota but prove which models really work.
-    const candidates = FREE_MODELS.map((m) => m.id)
     setBusy(true)
     setError('')
     setProbe(null)
     try {
       const response = await api<{ results: ProbeResult[] }>('/local/vision/probe', {
         method: 'POST',
-        body: JSON.stringify({ models: candidates }),
+        body: JSON.stringify({ models: suggestions(provider).map((m) => m.id) }),
       })
       setProbe(response.results)
       const first = response.results.find((r) => r.ok)
-      if (first) setModel(first.model)
       ctx.notify(
-        first
-          ? `این مدل‌ها کار کردند؛ «${first.model}» انتخاب شد.`
-          : 'هیچ‌کدام از مدل‌های پیشنهادی پاس نشد؛ دلیل هر کدام را ببینید.',
+        first ? `این مدل پاسخ داد؛ «${first.model}» انتخاب شد.` : 'هیچ‌کدام از مدل‌ها پاسخ نداد.',
         first ? 'success' : 'error'
       )
     } catch (e) {
@@ -116,79 +150,77 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
       setBusy(false)
     }
   }
+
   async function remove() {
-    if (!confirm('کلید ذخیره‌شده روی این دستگاه پاک شود؟ تا ثبت دوباره، تحلیل غیرفعال می‌ماند.'))
-      return
+    if (!confirm(`کلید ${provider === 'grok' ? 'Grok' : 'Gemini'} از این دستگاه پاک شود؟`)) return
     const ok = await call('/local/vision', { method: 'DELETE' })
     if (ok) ctx.notify('کلید از این دستگاه پاک شد.', 'success')
   }
+
+  const saved = status?.providers?.[provider]
+  const current = provider === status?.provider ? status : undefined
   return (
-    <section className="card local-settings-card" aria-label="تحلیل هوشمند با کلید شخصی">
+    <section className="card local-settings-card" aria-label="کلید مدل تحلیل">
       <h2>
-        <KeyRound size={22} /> تحلیل هوشمند عکس و آزمایش با کلید شخصی شما
-        <Badge tone={status?.key_present ? (status.connection_ok ? 'green' : 'amber') : 'amber'}>
-          {status?.key_present
-            ? status.connection_ok
+        <KeyRound size={22} /> کلید سرویس تحلیل
+        <Badge tone={current?.key_present ? 'green' : 'amber'}>
+          {current?.key_present
+            ? current.connection_ok
               ? 'اتصال آزموده شده'
               : 'ثبت شده؛ بدون آزمون'
-            : 'غیرفعال'}
+            : 'ثبت نشده'}
         </Badge>
       </h2>
       <p>
-        در این نسخه مستقل، تحلیل عکس درخت و تفسیر آزمایش خاک/آب از خودِ همین گوشی و با کلید شخصی
-        Google انجام می‌شود. برای این کار به سرور و هزینه میزبانی نیازی نیست؛ فقط اینترنت خودِ گوشی
-        و یک کلید رایگان از Google لازم است.
+        کلید را فقط اینجا ثبت کنید؛ کاربران در هیچ صفحه‌ای نام سرویس یا مدل را نمی‌بینند. کلید روی
+        همین دستگاه می‌ماند و در فایل نصبی و پشتیبان قرار نمی‌گیرد.
       </p>
-      <CheckList
-        items={[
-          'کلید فقط در همین مرورگر/گوشی ذخیره می‌شود؛ داخل فایل نصب (APK)، مخزن کد و فایل پشتیبان قرار نمی‌گیرد.',
-          'عکسی که برای تحلیل می‌فرستید و اطلاعات باغ به Google ارسال می‌شود؛ بقیهٔ پرونده‌ها روی دستگاه می‌مانند.',
-          'سهمیه و شرایط رایگان حساب شما تابع سیاست Google است؛ این برنامه هزینه‌ای از شما نمی‌گیرد و هزینه‌ای را تضمین نمی‌کند.',
-          'کلید را در چت، شبکه اجتماعی یا عکس صفحه پخش نکنید. اگر لو رفت، در پنل Google آن را باطل کنید.',
-        ]}
-      />
-      <InfoBanner tone="warning">
-        <ShieldCheck size={18} /> نتیجهٔ مدل «غربالگری احتمالی» است، نه تشخیص قطعی و نه دوز سم/کود.
-        هیچ درصد دقت علمی برای این خروجی اندازه‌گیری نشده است. تصمیم نهایی با کارشناس و آزمایش محلی
-        است.
-      </InfoBanner>
-      <InfoBanner tone="warning">
-        <Gauge size={18} /> {status?.free_tier_notice ?? FREE_TIER_NOTICE}
-      </InfoBanner>
+      <div className="provider-switch" role="tablist" aria-label="سرویس تحلیل">
+        {PROVIDERS.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            role="tab"
+            aria-selected={provider === p.id}
+            className={provider === p.id ? 'active' : ''}
+            disabled={busy}
+            onClick={() => switchProvider(p.id)}
+          >
+            <strong>{p.name}</strong>
+            <span>{status?.providers?.[p.id]?.key_present ? 'کلید ثبت شده' : p.hint}</span>
+          </button>
+        ))}
+      </div>
       <fieldset disabled={busy}>
         <label>
-          مدل
+          نام مدل
           <input
             list="pestino-direct-models"
             dir="ltr"
             value={model}
             onChange={(e) => setModel(e.target.value)}
-            placeholder={DEFAULT_DIRECT_MODEL}
+            placeholder={provider === 'grok' ? DEFAULT_GROK_MODEL : 'gemini-2.5-flash'}
           />
         </label>
         <datalist id="pestino-direct-models">
-          {[...new Set([...FREE_MODELS.map((m) => m.id), ...(listed ?? [])])].map((m) => (
+          {[...new Set([...suggestions(provider).map((m) => m.id), ...listed])].map((m) => (
             <option key={m} value={m} />
           ))}
         </datalist>
         <ul className="free-model-notes">
-          {FREE_MODELS.slice(0, 4).map((m) => (
-            <li key={m.id}>
-              <button type="button" className="text-button" onClick={() => setModel(m.id)}>
-                <span dir="ltr">{m.id}</span>
-              </button>{' '}
-              — {m.label}: {m.note}
-            </li>
-          ))}
+          {suggestions(provider)
+            .slice(0, 3)
+            .map((m) => (
+              <li key={m.id}>
+                <button type="button" className="text-button" onClick={() => setModel(m.id)}>
+                  <span dir="ltr">{m.id}</span>
+                </button>{' '}
+                — {m.note}
+              </li>
+            ))}
         </ul>
-        <p className="muted">
-          فهرست رسمی گوگل (به‌روز ۲۰۲۶-۱۰-۱۳): روی حالت رایگان، مدل‌های Flash و Flash-Lite و Gemini
-          2.5 Pro رایگان‌اند؛ <span dir="ltr">gemini-3.1-pro-preview</span> و مدل‌های تصویری/ویدیویی
-          رایگان نیستند و روی کلید رایگان خطای سهمیه می‌دهند. نام مدل‌ها هر چند وقت عوض می‌شود؛
-          دکمه‌های زیر وضعیت واقعی کلید خودتان را مشخص می‌کنند.
-        </p>
         <label>
-          کلید API شخصی Google (فقط روی همین دستگاه)
+          کلید API {provider === 'grok' ? 'xAI' : 'Google'} (فقط روی همین دستگاه)
           <input
             ref={key}
             type="password"
@@ -196,45 +228,40 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
             autoComplete="off"
             spellCheck={false}
             placeholder={
-              status?.key_present
-                ? 'ذخیره شده است؛ برای تغییر مقدار تازه بگذارید'
-                : 'AIza… یا کلید تازه Google AI Studio'
+              saved?.key_present
+                ? 'ذخیره شده؛ برای تغییر مقدار تازه بگذارید'
+                : 'کلید را اینجا بچسبانید'
             }
           />
         </label>
-        <p className="muted">
-          کلید را از <span dir="ltr">Google AI Studio → Get API key</span> بسازید (نشانی:{' '}
-          <span dir="ltr">aistudio.google.com/apikey</span>) و همان‌جا کپی کنید. این برنامه کلید را
-          جایی جز حافظهٔ همین دستگاه نمی‌فرستد.
-        </p>
         <div className="local-settings-actions">
           <button className="button primary" disabled={busy} onClick={() => void save()}>
-            <Save size={17} /> ذخیره روی این دستگاه
+            <Save size={17} /> ذخیره
           </button>
           <button
             className="button secondary"
-            disabled={busy || !status?.key_present}
+            disabled={busy || !(current?.key_present ?? saved?.key_present)}
             onClick={() => void test()}
           >
             <PlugZap size={17} /> آزمون اتصال
           </button>
           <button
             className="button secondary"
-            disabled={busy || !status?.key_present}
+            disabled={busy || !(current?.key_present ?? saved?.key_present)}
             onClick={() => void fetchModels()}
           >
-            <ListChecks size={17} /> گرفتن فهرست مدل‌های مجاز این کلید
+            <ListChecks size={17} /> فهرست مدل‌های مجاز
           </button>
           <button
             className="button secondary"
-            disabled={busy || !status?.key_present}
+            disabled={busy || !(current?.key_present ?? saved?.key_present)}
             onClick={() => void probeModels()}
           >
-            <Gauge size={17} /> آزمون همهٔ مدل‌های رایگان پیشنهادی
+            <Gauge size={17} /> آزمون مدل‌های پیشنهادی
           </button>
           <button
             className="button danger ghost"
-            disabled={busy || !status?.key_present}
+            disabled={busy || !saved?.key_present}
             onClick={() => void remove()}
           >
             <Trash2 size={16} /> پاک‌کردن کلید
@@ -286,11 +313,16 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
       {status && (
         <p className="muted">
           وضعیت: کلید {status.key_present ? 'ثبت شده' : 'ثبت نشده'} · مدل{' '}
-          <span dir="ltr">{status.model || '—'}</span> · آزمون اتصال:{' '}
-          {status.checked_at ? `${persianDate(status.checked_at)} (${status.note})` : 'انجام نشده'}{' '}
-          · محل نگهداری: {status.storage}
+          <span dir="ltr">{status.model || '—'}</span> · آزمون:{' '}
+          {status.checked_at ? `${persianDate(status.checked_at)}` : 'انجام نشده'} · محل نگهداری:{' '}
+          {status.storage}
+          {status.note ? ` — ${status.note}` : ''}
         </p>
       )}
+      <InfoBanner tone="warning">
+        <ShieldCheck size={18} /> نتیجهٔ مدل، غربالگری احتمالی است؛ نه تشخیص قطعی و نه دوز. هیچ درصد
+        دقت اندازه‌گیری‌شده‌ای برای آن ادعا نمی‌شود.
+      </InfoBanner>
     </section>
   )
 }

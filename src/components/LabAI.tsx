@@ -7,6 +7,7 @@ import type { QuotaPayload } from '../quota'
 import { validateField } from '../fieldwork'
 import type { LabInput } from '../fieldwork'
 import type { AppContext } from '../types'
+import { EXPERT_CONSULT_NOTE } from '../scientific'
 import { Badge, CheckList, InfoBanner, Spinner } from './ui'
 
 interface LabAssessment {
@@ -55,7 +56,7 @@ export default function LabAI({
   setBusy: (busy: boolean) => void
   revision: string
 }) {
-  // Offline edition: enabled by the owner's own on-device Google key.
+  // Offline edition: the owner activates interpretation once from the admin panel.
   const enabled = !!ctx.data.services.lab_ai_configured
   const base = IS_STANDALONE ? '/local/lab-analyses' : '/lab-analyses'
   const [consent, setConsent] = useState(false),
@@ -98,9 +99,7 @@ export default function LabAI({
     setError('')
     if (!enabled) {
       setError(
-        IS_STANDALONE
-          ? 'تفسیر هوشمند آزمایش روی این دستگاه فعال نیست؛ در «داده‌ها و پشتیبان» کلید شخصی Google خود را ثبت کنید. محاسبات آموزشی بالا بدون آن هم کار می‌کنند.'
-          : 'Gemini هنوز در این نصب فعال نیست. کلید به‌صورت امن روی سرور تنظیم می‌شود، نه داخل APK یا چت.'
+        'تفسیر هوشمند آزمایش هنوز فعال نشده است؛ محاسبات آموزشی بالا بدون آن هم کار می‌کنند.'
       )
       return
     }
@@ -110,7 +109,7 @@ export default function LabAI({
       return
     }
     if (!consent) {
-      setError('برای ارسال آزمایش و زمینه باغ به Google، رضایت آگاهانه را تأیید کنید.')
+      setError('برای ارسال آزمایش و زمینه باغ، رضایت آگاهانه را تأیید کنید.')
       return
     }
     let sample: LabInput
@@ -148,7 +147,7 @@ export default function LabAI({
     }
   }
   async function remove(row: LabAssessment) {
-    if (!confirm('گزارش Gemini حذف شود؟ اعتبار تحلیل موفق بازگردانده نمی‌شود.')) return
+    if (!confirm('این تفسیر حذف شود؟ اعتبار تحلیل موفق بازگردانده نمی‌شود.')) return
     setBusy(true)
     try {
       await api(`${base}/${row.id}`, { method: 'DELETE' })
@@ -161,29 +160,24 @@ export default function LabAI({
     }
   }
   return (
-    <section className="reference-card lab-ai-card" aria-label="تفسیر آزمایش با Gemini">
+    <section className="reference-card lab-ai-card" aria-label="تفسیر هوشمند آزمایش">
       <h2>
-        <Brain size={23} /> تفسیر آزمایش با Gemini
+        <Brain size={23} /> تفسیر هوشمند آزمایش
       </h2>
       <p className="section-description">
-        این بخش جدا از محاسبات آموزشی است: نتایج واقعی واردشده، واحد، روش، تاریخ و زمینه باغ را به
-        مدل می‌فرستد. هیچ تصویری در این بخش تحلیل نمی‌شود.{' '}
-        {IS_STANDALONE &&
-          'در نسخه مستقل، این فراخوانی از خودِ همین دستگاه و با کلید شخصی شما انجام می‌شود.'}
+        این بخش جدا از محاسبات آموزشی است: نتایج واقعی واردشده، واحد، روش، تاریخ و زمینه باغ را برای
+        تفسیر می‌فرستد. هیچ تصویری در این بخش تحلیل نمی‌شود.
       </p>
       {!enabled && (
         <InfoBanner tone="warning">
-          {IS_STANDALONE
-            ? 'کلید شخصی Google روی این دستگاه ثبت نشده است. محاسبات SAR/RSC و تفسیر آموزشی بالا مستقل از مدل کار می‌کنند؛ برای تفسیر مدل، کلید را در «داده‌ها و پشتیبان» ثبت کنید.'
-            : 'اتصال Gemini هنوز فعال نیست. محاسبات SAR/RSC و تفسیر آموزشی بالا مستقل از مدل کار می‌کنند. APK مستقل کلید یا اتصال Google ندارد.'}
+          تفسیر هوشمند آزمایش هنوز از «پنل مدیر» فعال نشده است. محاسبات SAR/RSC و تفسیر آموزشی بالا
+          بدون آن هم کار می‌کنند.
         </InfoBanner>
       )}
       {enabled && (
         <InfoBanner>
-          مدل تنظیم‌شده: <strong dir="ltr">{ctx.data.services.vision_model || 'Gemini'}</strong>؛
-          تنظیم مدل به‌معنی اثبات اتصال یا اعتبار علمی آن نیست.{' '}
           {IS_STANDALONE
-            ? 'سهمیهٔ رایگان Google از حساب شخصی خودتان مصرف می‌شود؛ پستینو فقط شمارش تحلیل‌های خودش را نگه می‌دارد و سهمیهٔ گوگل را نمی‌فروشد.'
+            ? 'هر تفسیر موفق یک نوبت از اعتبار شما مصرف می‌کند.'
             : 'هر تفسیر موفق یک نوبت از سهمیه مشترک عکس و آزمایش مصرف می‌کند.'}
         </InfoBanner>
       )}
@@ -205,9 +199,8 @@ export default function LabAI({
           onChange={(e) => setConsent(e.target.checked)}
         />
         <span>
-          با ارسال مقادیر و یادداشت آزمایش و مشخصات مرتبط باغ به Google موافقم. نتیجه احتمالی و
-          تأییدنشدهٔ محلی است؛ مصرف سهمیه یا هزینه API Google تابع حساب مالک است و رایگان‌بودن آن
-          تضمین نمی‌شود.
+          با ارسال مقادیر و یادداشت آزمایش و مشخصات مرتبط باغ، بدون اطلاعات هویتی، برای تفسیر
+          موافقم. نتیجه احتمالی است و باید با کارشناس باغ پسته یا آزمایش محلی تأیید شود.
         </span>
       </label>
       <button
@@ -217,7 +210,7 @@ export default function LabAI({
           // A disabled button was the whole reason this card looked dead. Without a key the
           // button now stays alive and leads straight to the one-place setup.
           if (!enabled) {
-            ctx.navigate('settings')
+            ctx.notify('تفسیر هوشمند هنوز از «پنل مدیر» فعال نشده است.', 'info')
             return
           }
           void analyze()
@@ -227,11 +220,11 @@ export default function LabAI({
           <Spinner />
         ) : !enabled ? (
           <>
-            <KeyRound size={18} /> ثبت کلید رایگان برای تفسیر
+            <KeyRound size={18} /> تفسیر هوشمند هنوز فعال نشده است
           </>
         ) : (
           <>
-            <Brain size={18} /> دریافت تفسیر Gemini
+            <Brain size={18} /> دریافت تفسیر هوشمند
           </>
         )}
       </button>
@@ -244,11 +237,10 @@ export default function LabAI({
         <article className="lab-ai-result">
           <header>
             <h3>{result.result.title}</h3>
-            <Badge tone="amber">
-              {IS_STANDALONE ? 'کلید شخصی شما' : 'Gemini'} · تفسیر احتمالی آزمایش
-            </Badge>
+            <Badge tone="amber">تفسیر احتمالی آزمایش</Badge>
           </header>
           <p>{result.result.summary}</p>
+          <p className="expert-note">{EXPERT_CONSULT_NOTE}</p>
           <InfoBanner tone="warning">{result.result.disclaimer}</InfoBanner>
           <details>
             <summary>مقادیر اصلی این درخواست — ثبت‌شده توسط شما</summary>
@@ -284,7 +276,7 @@ export default function LabAI({
                   <span>{c.label}</span>
                   <strong>{fa(c.value, 3)}</strong>
                   <p dir="ltr">{c.formula}</p>
-                  <small>محاسبه سرور از اعداد واردشده؛ نه عدد ساخته‌شده توسط مدل</small>
+                  <small>محاسبه دقیق از اعداد واردشدهٔ خودتان</small>
                 </div>
               ))}
             </div>
@@ -317,21 +309,21 @@ export default function LabAI({
               void downloadText(
                 `pestino-gemini-lab-${result.input.sample_date}.txt`,
                 [
-                  'پستینو — تفسیر احتمالی Gemini از آزمایش',
+                  'پستینو — تفسیر احتمالی آزمایش',
                   result.result.disclaimer,
                   JSON.stringify(result, null, 2),
                 ].join('\n\n')
               ).catch((e) => ctx.notify(errorMessage(e), 'error'))
             }
           >
-            <Download size={17} /> دریافت گزارش Gemini
+            <Download size={17} /> دریافت گزارش تفسیر
           </button>
         </article>
       )}
       {!!history.length && (
         <div className="lab-ai-history">
           <h3>
-            <History size={18} /> گزارش‌های Gemini قبلی
+            <History size={18} /> تفسیرهای قبلی
           </h3>
           {history.map((row) => (
             <div className="field-record-row" key={row.id}>
@@ -345,7 +337,7 @@ export default function LabAI({
               </button>
               <button
                 className="icon-button"
-                aria-label="حذف گزارش Gemini آزمایش"
+                aria-label="حذف تفسیر آزمایش"
                 disabled={busy}
                 onClick={() => void remove(row)}
               >

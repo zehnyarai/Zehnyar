@@ -11,7 +11,7 @@ import {
 import { api, errorMessage, fa, persianDate } from '../api'
 import { InfoBanner, Spinner } from './ui'
 import type { AppContext } from '../types'
-import { QuotaRequired } from '../quota'
+import { DEFAULT_USD_RATE, QuotaRequired } from '../quota'
 import type { QuotaPayload } from '../quota'
 
 const digits = (value: string) => value.replace(/\D/g, '')
@@ -43,6 +43,7 @@ export default function Paywall({
   const card = quota.card
   const price = quota.price_toman
   const needsPrice = quota.needs_price
+  const plans = quota.plans ?? []
 
   async function redeem() {
     if (busy || !code.trim()) return
@@ -114,23 +115,37 @@ export default function Paywall({
         </p>
       </header>
 
-      <div className="paywall-price">
-        <ShoppingBag size={22} />
-        <div>
-          <strong>
-            {needsPrice
-              ? `${fa(quota.analyses_per_package)} تحلیل — قیمت را مالک در پنل تعیین می‌کند`
-              : `${fa(quota.analyses_per_package)} تحلیل — ${fa(price)} تومان`}
-          </strong>
-          {quota.usd_price && quota.usd_rate ? (
-            <small>
-              پایهٔ دلاری {fa(quota.usd_price, 2)} دلار × نرخ روز {fa(quota.usd_rate)}
-              {quota.rate_date ? ` (${persianDate(quota.rate_date)})` : ''} — قیمت تومانی از همین
-              نرخ ساخته شده است.
-            </small>
-          ) : null}
+      {plans.length > 0 ? (
+        <div className="paywall-plans" aria-label="بسته‌های تحلیل">
+          {plans.map((plan) => (
+            <div
+              key={plan.id}
+              className={plan.discount_percent ? 'paywall-plan discounted' : 'paywall-plan'}
+            >
+              {plan.discount_percent > 0 && <span>{fa(plan.discount_percent)}٪ تخفیف</span>}
+              <strong>{plan.name}</strong>
+              <b>
+                {fa(plan.price_toman)} <small>تومان</small>
+              </b>
+              <small>{fa(plan.per_analysis_toman)} تومان هر تحلیل</small>
+            </div>
+          ))}
+          <p className="muted">
+            قیمت‌ها با نرخ روز دلار ({fa(quota.usd_rate ?? DEFAULT_USD_RATE)} تومان) حساب شده‌اند.
+          </p>
         </div>
-      </div>
+      ) : (
+        <div className="paywall-price">
+          <ShoppingBag size={22} />
+          <div>
+            <strong>
+              {needsPrice
+                ? `${fa(quota.analyses_per_package)} تحلیل — قیمت را مالک در پنل تعیین می‌کند`
+                : `${fa(quota.analyses_per_package)} تحلیل — ${fa(price)} تومان`}
+            </strong>
+          </div>
+        </div>
+      )}
 
       <div className="paywall-steps">
         <div className="paywall-card">

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CloudSun, Info, Plus, Thermometer, Trash2, TrendingUp, Wind } from 'lucide-react'
+import { CloudSun, Plus, Thermometer, Trash2, TrendingUp, Wind } from 'lucide-react'
 import type { AppContext } from '../types'
 import type { FieldRecord, MarketInput } from '../fieldwork'
 import { CULTIVARS, validateField } from '../fieldwork'
@@ -134,15 +134,8 @@ export default function Market({ ctx }: { ctx: AppContext }) {
           </span>
           <div>
             <h1>بازار و اقلیم</h1>
-            <p>رصد قیمت پسته و شرایط اقلیمی منطقه باغ شما</p>
+            <p>قیمت‌ها و هوای ثبت‌شدهٔ خودتان — نه قیمت زنده یا پیش‌بینی</p>
           </div>
-        </div>
-        <div className="reference-alert">
-          <Info size={18} />
-          <p>
-            داده زنده بازار و هواشناسی متصل نیست. اطلاعات زیر مشاهدات ثبت‌شده خودتان‌اند، نه قیمت
-            قطعی خریدوفروش یا پیش‌بینی تأییدشده هوا.
-          </p>
         </div>
         <div className="reference-tabs" role="tablist" aria-label="بازار و اقلیم">
           <button
@@ -278,31 +271,34 @@ export default function Market({ ctx }: { ctx: AppContext }) {
                       </span>
                     )}
                   </div>
-                  <ul className="climate-notes">
-                    {r.data.minimum <= 0 && (
+                  <details className="climate-details">
+                    <summary>توضیح و هشدارهای این مشاهده</summary>
+                    <ul className="climate-notes">
+                      {r.data.minimum <= 0 && (
+                        <li>
+                          دمای زیر یا نزدیک نقطه انجماد ثبت شده است؛ آسیب به مرحله رشد، مدت سرما و
+                          دمای واقعی بافت وابسته است. هشدار رسمی و بازدید باغ را پیگیری کنید؛ حفاظت
+                          پرخطر یا آتش‌افروزی پیشنهاد نمی‌شود.
+                        </li>
+                      )}
+                      {r.data.maximum >= 40 && (
+                        <li>
+                          گرمای بالا ثبت شده؛ وضعیت رطوبت ریشه و یکنواختی آبیاری را بررسی کنید.
+                          آبیاری بیشتر بدون شناخت زهکشی راهکار قطعی نیست.
+                        </li>
+                      )}
+                      {r.data.humidity !== null && r.data.humidity >= 80 && (
+                        <li>
+                          رطوبت زیاد می‌تواند همراه خیس‌ماندن برگ باشد؛ پایش لکه‌ها و زمان خشک‌شدن
+                          تاج مهم است، اما این عدد وجود بیماری را ثابت نمی‌کند.
+                        </li>
+                      )}
                       <li>
-                        دمای زیر یا نزدیک نقطه انجماد ثبت شده است؛ آسیب به مرحله رشد، مدت سرما و
-                        دمای واقعی بافت وابسته است. هشدار رسمی و بازدید باغ را پیگیری کنید؛ حفاظت
-                        پرخطر یا آتش‌افروزی پیشنهاد نمی‌شود.
+                        این قواعد غربالگری آموزشی و عمومی‌اند؛ خطر واقعی باید با مرحله رشد (
+                        {r.data.stage || 'نامشخص'})، مدت رخداد و نظر کارشناس بررسی شود.
                       </li>
-                    )}
-                    {r.data.maximum >= 40 && (
-                      <li>
-                        گرمای بالا ثبت شده؛ وضعیت رطوبت ریشه و یکنواختی آبیاری را بررسی کنید. آبیاری
-                        بیشتر بدون شناخت زهکشی راهکار قطعی نیست.
-                      </li>
-                    )}
-                    {r.data.humidity !== null && r.data.humidity >= 80 && (
-                      <li>
-                        رطوبت زیاد می‌تواند همراه خیس‌ماندن برگ باشد؛ پایش لکه‌ها و زمان خشک‌شدن تاج
-                        مهم است، اما این عدد وجود بیماری را ثابت نمی‌کند.
-                      </li>
-                    )}
-                    <li>
-                      این قواعد غربالگری آموزشی و عمومی‌اند؛ خطر واقعی باید با مرحله رشد (
-                      {r.data.stage || 'نامشخص'})، مدت رخداد و نظر کارشناس بررسی شود.
-                    </li>
-                  </ul>
+                    </ul>
+                  </details>
                   <button
                     className="text-button"
                     onClick={() => {

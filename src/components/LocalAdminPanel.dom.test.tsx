@@ -98,27 +98,14 @@ afterEach(() => {
 })
 
 describe('offline owner panel (real DOM, real device-storage layer)', () => {
-  it('lists every capability with its honest state and connects the model with the owner key', async () => {
+  it('connects the analysis service with the owner key and proves it with a text call', async () => {
     const user = userEvent.setup()
     render(<LocalAdminPanel ctx={ctx} />)
-    await waitFor(() =>
-      expect(screen.getByRole('heading', { name: 'پنل مدیر (نسخه مستقل)' })).toBeTruthy()
-    )
-    const board = document.querySelectorAll('.capability-list li')
-    const text = Array.from(board).map((li) => li.textContent ?? '')
-    expect(text.some((t) => t.includes('تحلیل عکس برگ') && t.includes('نیازمند تنظیم'))).toBe(true)
-    expect(text.some((t) => t.includes('SAR') && t.includes('فعال'))).toBe(true)
-    expect(text.some((t) => t.includes('درگاه بانکی') && t.includes('در این نسخه ممکن نیست'))).toBe(
-      true
-    )
-    expect(text.some((t) => t.includes('نسخه iPhone') && t.includes('در این نسخه ممکن نیست'))).toBe(
-      true
-    )
-    expect(text.some((t) => t.includes('فایل نصبی اندروید') && t.includes('فعال'))).toBe(true)
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'پنل مدیر' })).toBeTruthy())
 
-    await user.type(screen.getByLabelText(/^مدل/), 'gemini-2.5-flash')
-    await user.type(screen.getByLabelText(/^کلید API شخصی/), 'AIzaSyDomTestExampleKey123')
-    await user.click(screen.getByRole('button', { name: /ذخیره روی این دستگاه/ }))
+    await user.type(screen.getByLabelText('نام مدل'), 'gemini-2.5-flash')
+    await user.type(screen.getByLabelText(/^کلید API Google/), 'AIzaSyDomTestExampleKey123')
+    await user.click(screen.getByRole('button', { name: 'ذخیره' }))
     await waitFor(() =>
       expect(calls.some((c) => c.url === '/local/vision' && c.method === 'PUT')).toBe(true)
     )
@@ -129,15 +116,7 @@ describe('offline owner panel (real DOM, real device-storage layer)', () => {
     await user.click(screen.getByRole('button', { name: /آزمون اتصال/ }))
     await waitFor(() => expect(calls.some((c) => c.url === '/local/vision/test')).toBe(true))
     await waitFor(() => expect(document.body.textContent).toContain('آزمون اتصال متن ساده موفق شد'))
-    await waitFor(() =>
-      expect(
-        Array.from(document.querySelectorAll('.capability-list li')).some(
-          (li) =>
-            (li.textContent ?? '').includes('تحلیل عکس برگ') &&
-            (li.textContent ?? '').includes('فعال')
-        )
-      ).toBe(true)
-    )
+    expect(document.body.textContent).not.toMatch(/اکانت|حساب گوگل|Google AI Studio/)
   })
 
   it('offers only free Gemini models and explains why a paid one fails', async () => {
@@ -168,24 +147,22 @@ describe('offline owner panel (real DOM, real device-storage layer)', () => {
       })
     })
     render(<LocalAdminPanel ctx={ctx} />)
-    await waitFor(() =>
-      expect(screen.getByRole('heading', { name: 'پنل مدیر (نسخه مستقل)' })).toBeTruthy()
-    )
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'پنل مدیر' })).toBeTruthy())
     const options = Array.from(document.querySelectorAll('#pestino-direct-models option')).map(
       (o) => o.getAttribute('value') ?? ''
     )
     expect(options).toContain('gemini-2.5-flash')
     expect(options).not.toContain('gemini-3.1-pro-preview')
-    expect(document.body.textContent).toContain('بهبود محصولات گوگل')
+    expect(document.body.textContent).toContain('کلید رایگان از Google AI Studio')
 
-    await user.type(screen.getByLabelText(/^کلید API شخصی/), 'AIzaSyDomFreeTierExample1234')
-    await user.click(screen.getByRole('button', { name: /ذخیره روی این دستگاه/ }))
+    await user.type(screen.getByLabelText(/^کلید API Google/), 'AIzaSyDomFreeTierExample1234')
+    await user.click(screen.getByRole('button', { name: 'ذخیره' }))
     await waitFor(() => expect(calls.some((c) => c.url === '/local/vision')).toBe(true))
 
-    await user.click(screen.getByRole('button', { name: /گرفتن فهرست مدل‌های مجاز این کلید/ }))
+    await user.click(screen.getByRole('button', { name: /فهرست مدل‌های مجاز/ }))
     await waitFor(() => expect(calls.some((c) => c.url === '/local/vision/models')).toBe(true))
 
-    await user.click(screen.getByRole('button', { name: /آزمون همهٔ مدل‌های رایگان پیشنهادی/ }))
+    await user.click(screen.getByRole('button', { name: /آزمون مدل‌های پیشنهادی/ }))
     await waitFor(() => expect(calls.some((c) => c.url === '/local/vision/probe')).toBe(true))
     await waitFor(() =>
       expect(document.querySelector('.probe-table tbody tr.ok')?.textContent ?? '').toContain(
@@ -197,23 +174,26 @@ describe('offline owner panel (real DOM, real device-storage layer)', () => {
     expect(rows.every((r) => (r.textContent ?? '').includes('کار کرد'))).toBe(true)
   })
 
-  it('requires visual confirmation of the card, then records and deletes a manual receipt', async () => {
+  it('keeps the owner card, records a manual receipt and deletes it', async () => {
     const user = userEvent.setup()
     render(<LocalAdminPanel ctx={ctx} />)
     await waitFor(() => expect(document.querySelector('.local-admin-page')).toBeTruthy())
+    // The owner's real card ships seeded on the device.
+    await waitFor(() => expect(document.body.textContent).toContain('9401 - 6524 - 7311 - 6063'))
+    await user.clear(screen.getByLabelText('شماره کارت ۱۶ رقمی'))
     await user.type(screen.getByLabelText('شماره کارت ۱۶ رقمی'), '9401 6524 7311 6063')
+    await user.clear(screen.getByLabelText('نام صاحب کارت'))
     await user.type(screen.getByLabelText('نام صاحب کارت'), 'احمد قرائی سلطان آبادی')
-    await user.type(screen.getByLabelText('نام بانک'), 'بانک ملی ایران')
+    await user.type(screen.getByLabelText('نام بانک (اختیاری)'), 'بانک ملی ایران')
     await user.click(screen.getByRole('button', { name: /ذخیره کارت مقصد/ }))
     await waitFor(() =>
       expect(document.querySelector('.form-error')?.textContent).toContain('تطبیق')
     )
-    expect(document.body.textContent).not.toContain('9401')
 
     await user.click(screen.getByLabelText(/تأیید می‌کنم شماره کارت/))
     await user.click(screen.getByRole('button', { name: /ذخیره کارت مقصد/ }))
-    await waitFor(() => expect(document.body.textContent).toContain('کارت ثبت‌شده'))
-    expect(document.body.textContent).toContain('9401 - 6524 - 7311 - 6063')
+    await waitFor(() => expect(document.querySelector('.form-error')).toBeNull(), { timeout: 3000 })
+    await waitFor(() => expect(document.body.textContent).toContain('9401 - 6524 - 7311 - 6063'))
 
     await user.type(screen.getByLabelText('نام پرداخت‌کننده'), 'باغدار نمونه')
     await user.type(screen.getByLabelText('مبلغ (تومان)'), '990000')
@@ -222,7 +202,7 @@ describe('offline owner panel (real DOM, real device-storage layer)', () => {
     const ledger = within(document.querySelector('.receipt-ledger') as HTMLElement)
     expect(ledger.getByText('باغدار نمونه')).toBeTruthy()
     expect(document.querySelector('.local-admin-page')?.textContent).toContain(
-      'ثبت دستی، نه تأیید بانکی'
+      'این دفتر ثبت دستی است، نه تأیید بانکی خودکار.'
     )
 
     await user.click(screen.getByRole('button', { name: /حذف دریافت باغدار نمونه/ }))
@@ -259,28 +239,15 @@ describe('offline owner panel (real DOM, real device-storage layer)', () => {
 })
 
 describe('admin gate protects the owner panel without ever locking the owner out', () => {
-  it('opens the panel by default, offers to define a password, and asks for it afterwards', async () => {
+  it('ships a default owner password, then lets the owner replace it', async () => {
     const user = userEvent.setup()
     const { default: CreditAdmin } = await import('../pages/CreditAdmin')
     render(<CreditAdmin ctx={ctx} />)
-    // No password exists yet: the panel is reachable and the lock is offered, not forced.
-    await waitFor(() => expect(document.querySelector('.local-admin-page')).toBeTruthy())
-    expect(document.body.textContent).toContain('رمز مدیر را خودتان تعریف کنید')
-    expect(document.body.textContent).toContain('قفل پنل مدیر: تعریف نشده')
-
-    await user.type(screen.getByLabelText(/^رمز مدیر \(حداقل/), 'bagh-peste-1404')
-    await user.type(screen.getByLabelText('تکرار رمز'), 'bagh-peste-1404')
-    await user.type(screen.getByLabelText(/^راهنمای رمز/), 'سال تولد باغ')
-    await user.click(screen.getByRole('button', { name: /ذخیره رمز مدیر/ }))
-    await waitFor(() => expect(document.body.textContent).toContain('قفل پنل مدیر: فعال'))
-
-    // Locking now hides the panel behind the owner's own password.
-    await user.click(screen.getByRole('button', { name: /قفل کردن الان/ }))
+    // First launch: a default password is seeded, so the panel is protected at once.
     await waitFor(() =>
       expect(screen.getByRole('heading', { name: 'ورود به پنل مدیر' })).toBeTruthy()
     )
-    expect(document.querySelector('.local-admin-page')).toBeNull()
-    expect(document.body.textContent).toContain('راهنمای خودتان: سال تولد باغ')
+    expect(document.body.textContent).toContain('رمز پیش‌فرض مالک')
 
     await user.type(screen.getByLabelText('رمز مدیر'), 'wrong-password')
     await user.click(screen.getByRole('button', { name: /باز کردن پنل مدیر/ }))
@@ -288,6 +255,27 @@ describe('admin gate protects the owner panel without ever locking the owner out
       expect(document.querySelector('.form-error')?.textContent).toContain('رمز درست نیست')
     )
     expect(document.querySelector('.local-admin-page')).toBeNull()
+
+    await user.type(screen.getByLabelText('رمز مدیر'), 'Pestino1404')
+    await user.click(screen.getByRole('button', { name: /باز کردن پنل مدیر/ }))
+    await waitFor(() => expect(document.querySelector('.local-admin-page')).toBeTruthy())
+    expect(document.body.textContent).toContain('قفل پنل مدیر: فعال')
+
+    // Replace the default with the owner's own password.
+    await user.click(screen.getByRole('button', { name: /تغییر یا حذف رمز/ }))
+    await user.type(screen.getByLabelText('رمز تازه'), 'bagh-peste-1404')
+    await user.type(screen.getByLabelText('تکرار رمز تازه'), 'bagh-peste-1404')
+    await user.clear(screen.getByLabelText(/^راهنمای رمز/))
+    await user.type(screen.getByLabelText(/^راهنمای رمز/), 'سال تولد باغ')
+    await user.click(screen.getByRole('button', { name: /جایگزینی رمز/ }))
+    await waitFor(() => expect(document.body.textContent).toContain('قفل پنل مدیر: فعال'))
+
+    await user.click(screen.getByRole('button', { name: /قفل کردن الان/ }))
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'ورود به پنل مدیر' })).toBeTruthy()
+    )
+    expect(document.querySelector('.local-admin-page')).toBeNull()
+    expect(document.body.textContent).toContain('راهنمای خودتان: سال تولد باغ')
 
     await user.type(screen.getByLabelText('رمز مدیر'), 'bagh-peste-1404')
     await user.click(screen.getByRole('button', { name: /باز کردن پنل مدیر/ }))

@@ -9,6 +9,10 @@
 
 export const DEFAULT_FREE_ANALYSES = 2
 export const DEFAULT_PACKAGE_ANALYSES = 20
+/** Owner's decision of 2026-10-17: the day rate is fixed at 275,000 Toman per dollar. */
+export const DEFAULT_USD_RATE = 275_000
+/** And every paid analysis is priced at 3 dollars before the package discount. */
+export const DEFAULT_ANALYSIS_USD = 3
 export const MAX_FREE_ANALYSES = 50
 export const MAX_PACKAGE_ANALYSES = 500
 export const QUOTA_MIRROR_KEY = 'pestino-quota'
@@ -32,17 +36,85 @@ export interface AnalysisPackage {
   rate_date: string | null
 }
 
+/**
+ * Support packages for the owner's shop. The ladder starts at the single-analysis
+ * price ($3) and gets cheaper per analysis as the farmer buys more: 20% off for five,
+ * 30% off for ten and 40% off for twenty. Prices are recalculated from the day rate,
+ * so changing the rate in the panel changes every package at once.
+ */
+export interface SupportPlan {
+  id: string
+  analyses: number
+  usd: number
+  discount_percent: number
+  name: string
+  note: string
+}
+export const SUPPORT_PLANS: SupportPlan[] = [
+  {
+    id: 'single',
+    analyses: 1,
+    usd: DEFAULT_ANALYSIS_USD,
+    discount_percent: 0,
+    name: 'تک‌تحلیل',
+    note: 'برای یک بررسی فوری؛ بدون تخفیف.',
+  },
+  {
+    id: 'five',
+    analyses: 5,
+    usd: 12,
+    discount_percent: 20,
+    name: 'بستهٔ ۵ تحلیلی',
+    note: '۲۰٪ ارزان‌تر از خرید تک‌تک؛ برای یک فصل سبک.',
+  },
+  {
+    id: 'ten',
+    analyses: 10,
+    usd: 21,
+    discount_percent: 30,
+    name: 'بستهٔ ۱۰ تحلیلی',
+    note: '۳۰٪ ارزان‌تر؛ مناسب پایش ماهانهٔ باغ.',
+  },
+  {
+    id: 'twenty',
+    analyses: 20,
+    usd: 36,
+    discount_percent: 40,
+    name: 'بستهٔ ۲۰ تحلیلی',
+    note: '۴۰٪ ارزان‌تر؛ کامل‌ترین بسته برای یک فصل.',
+  },
+]
+/** Rounded up to 10,000 Toman so the price is easy to type into a banking app. */
+export function planPrice(plan: SupportPlan, rate = DEFAULT_USD_RATE): number {
+  return Math.ceil((plan.usd * rate) / 10_000) * 10_000
+}
+export interface PricedPlan extends SupportPlan {
+  price_toman: number
+  per_analysis_toman: number
+}
+export function pricedPlans(rate = DEFAULT_USD_RATE): PricedPlan[] {
+  return SUPPORT_PLANS.map((plan) => {
+    const price = planPrice(plan, rate)
+    return {
+      ...plan,
+      price_toman: price,
+      per_analysis_toman: Math.round(price / plan.analyses),
+    }
+  })
+}
+
 export function defaultQuota(): QuotaSettings {
   return { free_limit: DEFAULT_FREE_ANALYSES, used: 0, credits: 0, codes: [] }
 }
 
 export function defaultPackage(): AnalysisPackage {
+  const tier = SUPPORT_PLANS[SUPPORT_PLANS.length - 1]
   return {
-    analyses: DEFAULT_PACKAGE_ANALYSES,
-    price_toman: 0,
-    usd_price: null,
-    usd_rate: null,
-    rate_date: null,
+    analyses: tier.analyses,
+    price_toman: planPrice(tier, DEFAULT_USD_RATE),
+    usd_price: tier.usd,
+    usd_rate: DEFAULT_USD_RATE,
+    rate_date: '2026-10-17',
   }
 }
 
@@ -69,6 +141,8 @@ export type QuotaView = ReturnType<typeof quotaView>
 /** Full payload of GET /local/quota: what the payment screen needs to be honest. */
 export interface QuotaPayload extends QuotaView {
   package: AnalysisPackage
+  /** The four support packages, priced from the owner's day rate. */
+  plans: PricedPlan[]
   card: { card_number: string; holder: string; bank: string } | null
   pending_receipts: number
   codes_used: number

@@ -1,25 +1,20 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   BadgeCheck,
-  Ban,
-  CircleCheck,
   CreditCard,
   Database,
-  ListChecks,
   RefreshCw,
   Save,
-  Settings2,
   ShieldCheck,
   Trash2,
   Wallet,
 } from 'lucide-react'
-import { api, errorMessage, fa, persianDate, today } from '../api'
+import { api, errorMessage, fa, today } from '../api'
 import type { AppContext } from '../types'
-import { capabilities } from '../localAdmin'
 import type { QuotaPayload } from '../quota'
-import type { Capability, LocalCard, LocalReceipt } from '../localAdmin'
+import type { LocalCard, LocalReceipt } from '../localAdmin'
 import { grouped } from '../localAdmin'
-import { Badge, CheckList, InfoBanner, Spinner } from '../components/ui'
+import { Badge, InfoBanner, Spinner } from './ui'
 import DirectVision from './DirectVision'
 import SalesPanel from './SalesPanel'
 
@@ -39,15 +34,10 @@ const EMPTY_VIEW: BillingView = {
   total_toman: 0,
   notice: '',
 }
-const TONE: Record<Capability['state'], { tone: 'green' | 'amber' | 'red'; label: string }> = {
-  active: { tone: 'green', label: 'فعال' },
-  setup: { tone: 'amber', label: 'نیازمند تنظیم' },
-  'offline-blocked': { tone: 'red', label: 'در این نسخه ممکن نیست' },
-}
 
 /**
- * Admin panel of the offline edition. The owner connects the Gemini model with their own
- * key, sees the real state of every capability, and keeps the manual receipt ledger.
+ * Owner panel of the offline edition. Everything a farmer must never see lives here:
+ * the two provider keys, the day rate, the activation codes and the receipt ledger.
  */
 export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
   const [view, setView] = useState<BillingView>(EMPTY_VIEW)
@@ -61,8 +51,9 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
     note: '',
   })
   const [quota, setQuota] = useState<QuotaPayload | null>(null)
-  const [busy, setBusy] = useState(false),
-    [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
   async function load() {
     setView(await api<BillingView>('/local/billing'))
   }
@@ -80,10 +71,12 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
           })
       })
       .catch((e) => active && setError(errorMessage(e)))
+    void api<QuotaPayload>('/local/quota')
+      .then((payload) => active && setQuota(payload))
+      .catch(() => active && setQuota(null))
     return () => {
       active = false
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   async function run(action: () => Promise<unknown>, message: string) {
     if (busy) return
@@ -100,118 +93,28 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
       setBusy(false)
     }
   }
-  const state = ctx.data.services
-  // Field records are read through the same local API the laboratory page uses.
-  const [labCount, setLabCount] = useState(0)
-  useEffect(() => {
-    let active = true
-    void api<QuotaPayload>('/local/quota')
-      .then((payload) => active && setQuota(payload))
-      .catch(() => active && setQuota(null))
-    return () => {
-      active = false
-    }
-  }, [view])
-  useEffect(() => {
-    let active = true
-    void api<unknown[]>('/field-records/labs')
-      .then((rows) => active && setLabCount(rows.length))
-      .catch(() => active && setLabCount(0))
-    return () => {
-      active = false
-    }
-  }, [view])
-  const rows = useMemo(
-    () =>
-      capabilities({
-        keyPresent: !!state.vision_configured,
-        keyVerified: !!state.vision_verified,
-        model: state.vision_model ?? '',
-        cardSaved: !!view.card,
-        receipts: view.receipts.length,
-        orchards: ctx.data.orchards.length,
-        reports: ctx.data.reports.length,
-        analyzed: ctx.data.reports.filter((r) => r.data.provider === 'gemini-direct-byo-key')
-          .length,
-        labs: labCount,
-        packagePriced: !!quota && quota.price_toman > 0,
-        freeLeft: quota?.free_left ?? 0,
-      }),
-    [state, view, ctx.data]
-  )
-  const groups: Capability['group'][] = ['تحلیل', 'داده و محتوا', 'سرویس‌های سروری', 'انتشار']
+
   return (
     <div className="reference-page local-admin-page">
       <div className="reference-heading">
         <span className="feature-icon green">
-          <ShieldCheck size={29} />
+          <ShieldCheck size={28} />
         </span>
         <div>
-          <h1>پنل مدیر (نسخه مستقل)</h1>
-          <p>
-            اتصال مدل Gemini با کلید شخصی شما، وضعیت واقعی همه بخش‌ها و دفتر دریافت وجه روی همین
-            دستگاه.
-          </p>
+          <h1>پنل مدیر</h1>
+          <p>کلید سرویس‌ها، قیمت‌ها و دفتر دریافت وجه — فقط برای مالک.</p>
         </div>
-        <Badge tone="amber">بدون سرور · بدون هزینه</Badge>
+        <Badge tone="green">فقط مالک</Badge>
       </div>
-      <InfoBanner>
-        این پنل روی خودِ گوشی/مرورگر شما کار می‌کند. کلید API فقط در حافظه همین دستگاه می‌ماند، داخل
-        فایل نصبی و فایل پشتیبان نیست، و همه تحلیل‌های عکس و آزمایش از همین اتصال استفاده می‌کنند.
-      </InfoBanner>
 
       <DirectVision ctx={ctx} />
 
-      <section className="reference-card" aria-label="وضعیت همه بخش‌ها">
-        <h2>
-          <ListChecks size={22} /> وضعیت کامل بخش‌های برنامه
-        </h2>
-        <p className="section-description">
-          «فعال» یعنی همین حالا روی این دستگاه کار می‌کند. «نیازمند تنظیم» یعنی با یک کار مشخص (ثبت
-          کلید یا ثبت کارت) فعال می‌شود. «در این نسخه ممکن نیست» یعنی به سرور، حساب یا امضای اپل
-          نیاز دارد و تا آن زمان هیچ نتیجه‌ای از آن ساخته نمی‌شود.
-        </p>
-        {groups.map((group) => {
-          const items = rows.filter((r) => r.group === group)
-          if (!items.length) return null
-          return (
-            <div key={group} className="capability-group">
-              <h3>{group}</h3>
-              <ul className="capability-list">
-                {items.map((item) => (
-                  <li key={item.key} className={`capability-item ${item.state}`}>
-                    <span className="capability-icon">
-                      {item.state === 'active' ? (
-                        <CircleCheck size={18} />
-                      ) : item.state === 'setup' ? (
-                        <Settings2 size={18} />
-                      ) : (
-                        <Ban size={18} />
-                      )}
-                    </span>
-                    <div>
-                      <strong>{item.title}</strong>{' '}
-                      <Badge tone={TONE[item.state].tone}>{TONE[item.state].label}</Badge>
-                      <p>{item.detail}</p>
-                      {item.how && <small>راه فعال‌سازی: {item.how}</small>}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )
-        })}
-      </section>
+      <SalesPanel ctx={ctx} />
 
       <section className="reference-card" aria-label="کارت مقصد و دفتر دریافت">
         <h2>
-          <CreditCard size={22} /> کارت مقصد واریز و دفتر دریافت
+          <CreditCard size={21} /> کارت واریز و دفتر دریافت
         </h2>
-        <InfoBanner tone="warning">
-          این نسخه درگاه بانکی ندارد. کارتی که اینجا ثبت می‌کنید فقط برای راهنمایی واریز
-          کارت‌به‌کارت و ثبت دستی دریافتی‌هاست؛ هیچ تأیید خودکاری از بانک انجام نمی‌شود. اگر
-          نمی‌خواهید شماره کارت روی این دستگاه بماند، این بخش را خالی بگذارید.
-        </InfoBanner>
         <form
           onSubmit={(e) => {
             e.preventDefault()
@@ -221,7 +124,7 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
                   method: 'PUT',
                   body: JSON.stringify({ ...card, confirmed }),
                 }),
-              'کارت مقصد ذخیره شد؛ راهنمای واریز در صفحه اعتبار نمایش داده می‌شود.'
+              'کارت ذخیره شد؛ صفحهٔ اعتبار همین شماره را نشان می‌دهد.'
             )
           }}
         >
@@ -235,7 +138,7 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
                   value={card.card_number}
                   maxLength={25}
                   onChange={(e) => setCard((old) => ({ ...old, card_number: e.target.value }))}
-                  placeholder="۱۶ رقم؛ با خط تیره یا فاصله هم می‌پذیرد"
+                  placeholder="۱۶ رقم؛ با فاصله هم می‌پذیرد"
                   required
                 />
               </label>
@@ -245,18 +148,15 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
                   value={card.holder}
                   maxLength={100}
                   onChange={(e) => setCard((old) => ({ ...old, holder: e.target.value }))}
-                  placeholder="نام مالک حساب مقصد"
                   required
                 />
               </label>
               <label>
-                نام بانک
+                نام بانک (اختیاری)
                 <input
                   value={card.bank}
                   maxLength={80}
                   onChange={(e) => setCard((old) => ({ ...old, bank: e.target.value }))}
-                  placeholder="نام بانک"
-                  required
                 />
               </label>
             </div>
@@ -266,10 +166,7 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
                 checked={confirmed}
                 onChange={(e) => setConfirmed(e.target.checked)}
               />
-              <span>
-                تأیید می‌کنم شماره کارت بالا را با کارت واقعی خودم حرف‌به‌حرف تطبیق دادم. (ترتیب
-                گروه‌های رقم‌ها را نمی‌توان با محاسبه تشخیص داد؛ فقط تطبیق چشمی معتبر است.)
-              </span>
+              <span>تأیید می‌کنم شماره کارت را با کارت واقعی خودم حرف‌به‌حرف تطبیق دادم.</span>
             </label>
             <div className="local-settings-actions">
               <button className="button primary" disabled={busy} type="submit">
@@ -281,10 +178,7 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
                   type="button"
                   disabled={busy}
                   onClick={() =>
-                    void run(
-                      () => api('/local/billing/card', { method: 'DELETE' }),
-                      'کارت مقصد حذف شد.'
-                    )
+                    void run(() => api('/local/billing/card', { method: 'DELETE' }), 'کارت حذف شد.')
                   }
                 >
                   <Trash2 size={16} /> حذف کارت
@@ -296,19 +190,15 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
         </form>
         {view.card && (
           <p className="muted">
-            <BadgeCheck size={16} /> کارت ثبت‌شده:{' '}
-            <span dir="ltr">{grouped(view.card.card_number)}</span> به نام {view.card.holder} —{' '}
-            {view.card.bank} · تأییدشده در {persianDate(view.card.confirmed_at)}
+            <BadgeCheck size={16} /> <span dir="ltr">{grouped(view.card.card_number)}</span> ·{' '}
+            {view.card.holder}
+            {view.card.bank ? ` — ${view.card.bank}` : ''}
           </p>
         )}
 
         <h3>
-          <Wallet size={19} /> ثبت دریافتی دستی
+          <Wallet size={18} /> ثبت دریافتی دستی
         </h3>
-        <p className="section-description">
-          هر واریزی که واقعاً دیدید اینجا ثبت کنید تا دفتر شما کامل بماند. این ثبت، تأیید بانکی نیست
-          و سند رسمی نمی‌سازد.
-        </p>
         <form
           onSubmit={(e) => {
             e.preventDefault()
@@ -321,16 +211,10 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
                     amount_toman: Number(receipt.amount_toman.replace(/[,،\s]/g, '')),
                   }),
                 }),
-              'دریافتی در دفتر دستگاه ثبت شد.'
-            ).then(() => {
-              setReceipt((old) => ({
-                ...old,
-                payer: '',
-                amount_toman: '',
-                reference: '',
-                note: '',
-              }))
-            })
+              'دریافتی ثبت شد.'
+            ).then(() =>
+              setReceipt((old) => ({ ...old, payer: '', amount_toman: '', reference: '' }))
+            )
           }}
         >
           <fieldset disabled={busy}>
@@ -373,28 +257,21 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
                 />
               </label>
             </div>
-            <label>
-              توضیح (اختیاری)
-              <input
-                value={receipt.note}
-                maxLength={300}
-                onChange={(e) => setReceipt((old) => ({ ...old, note: e.target.value }))}
-              />
-            </label>
             <button className="button secondary" disabled={busy} type="submit">
               <Wallet size={17} /> ثبت در دفتر دریافتی‌ها
             </button>
           </fieldset>
         </form>
+        <p className="muted">این دفتر ثبت دستی است، نه تأیید بانکی خودکار.</p>
         {!!view.receipts.length && (
           <div className="table-scroll">
             <table className="receipt-ledger">
               <thead>
                 <tr>
                   <th>پرداخت‌کننده</th>
-                  <th>مبلغ (تومان)</th>
+                  <th>مبلغ</th>
                   <th>تاریخ</th>
-                  <th>کد پیگیری</th>
+                  <th>کد</th>
                   <th />
                 </tr>
               </thead>
@@ -421,11 +298,11 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
                                 api(`/local/billing/receipts/${row.id}/confirm`, {
                                   method: 'POST',
                                 }),
-                              'واریز تأیید شد و تحلیل‌های بسته به همین دستگاه اضافه شد.'
+                              'واریز تأیید و تحلیل اضافه شد.'
                             )
                           }
                         >
-                          <BadgeCheck size={16} /> تأیید واریز و افزودن تحلیل
+                          <BadgeCheck size={16} /> تأیید واریز
                         </button>
                       )}
                       <button
@@ -435,7 +312,7 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
                         onClick={() =>
                           void run(
                             () => api(`/local/billing/receipts/${row.id}`, { method: 'DELETE' }),
-                            'دریافتی از دفتر حذف شد.'
+                            'دریافتی حذف شد.'
                           )
                         }
                       >
@@ -446,52 +323,43 @@ export default function LocalAdminPanel({ ctx }: { ctx: AppContext }) {
                 ))}
               </tbody>
             </table>
-            <p className="muted">
-              جمع ثبت‌شده: <span dir="ltr">{fa(view.total_toman)}</span> تومان در{' '}
-              {fa(view.receipts.length)} دریافت — ثبت دستی، نه تأیید بانکی.
-            </p>
           </div>
         )}
       </section>
 
-      <SalesPanel ctx={ctx} />
-
-      <section className="reference-card" aria-label="داده دستگاه و پشتیبان">
+      <section className="reference-card admin-links-card">
         <h2>
-          <Database size={22} /> داده‌های همین دستگاه
+          <Database size={20} /> داده و پشتیبان
         </h2>
-        <CheckList
-          items={[
-            `${fa(ctx.data.orchards.length)} باغ · ${fa(ctx.data.reports.length)} پرونده عکس · ${fa(ctx.data.tasks.length)} یادآور`,
-            `${fa(labCount)} آزمایش خاک/آب · ${fa(ctx.data.reports.filter((r) => r.data.provider === 'gemini-direct-byo-key').length)} گزارش تحلیل‌شده با کلید شما`,
-            `دفتر دریافتی: ${fa(view.receipts.length)} مورد · کتابخانه پژوهش: ${state.knowledge_version}`,
-          ]}
-        />
-        <p className="section-description">
-          پشتیبان‌گیری، بازگردانی و پاک‌سازی در صفحه «داده‌ها و پشتیبان» است. کلید API در پشتیبان
-          نیست، اما کارت مقصد و دفتر دریافتی‌ها در پشتیبان هستند؛ فایل پشتیبان را جای امن نگه دارید.
+        <p className="muted">
+          {fa(ctx.data.orchards.length)} باغ · {fa(ctx.data.reports.length)} پرونده ·{' '}
+          {fa(quota?.used ?? 0)} تحلیل مصرف‌شده · {fa(view.receipts.length)} دریافتی
         </p>
         <div className="local-settings-actions">
-          <button
-            className="button secondary"
-            disabled={busy}
-            onClick={() => void run(() => load(), 'وضعیت پنل بازخوانی شد.')}
-          >
-            <RefreshCw size={17} /> بازخوانی وضعیت
-          </button>
           <button className="button secondary" onClick={() => ctx.navigate('settings')}>
             <Database size={17} /> پشتیبان و بازگردانی
           </button>
-          <button className="button secondary" onClick={() => ctx.navigate('subscription')}>
-            <CreditCard size={17} /> صفحه اعتبار و راهنمای واریز
+          <button className="button secondary" onClick={() => void ctx.navigate('subscription')}>
+            <CreditCard size={17} /> اعتبار من
+          </button>
+          <button className="button ghost" onClick={() => window.location.reload()}>
+            <RefreshCw size={16} /> بازخوانی
           </button>
         </div>
+        <p className="muted">
+          کلیدها در فایل پشتیبان نیستند؛ کارت و دفتر دریافتی در پشتیبان هستند.
+        </p>
       </section>
+
       {error && (
         <div className="form-error" role="alert">
           {error}
         </div>
       )}
+      <InfoBanner>
+        <ShieldCheck size={17} /> کاربران در هیچ صفحه‌ای نام سرویس یا مدل را نمی‌بینند؛ فقط پاسخ
+        علمی و قیمت تومانی.
+      </InfoBanner>
     </div>
   )
 }

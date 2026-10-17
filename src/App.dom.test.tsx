@@ -48,12 +48,11 @@ describe('every section opens in the standalone APK', { timeout: 30000 }, () => 
     const nav = (name: string | RegExp) => screen.getByRole('link', { name })
     // Each entry is [nav link, a unique marker that only that page's body shows].
     const pages: [string | RegExp, string][] = [
-      [/اسکن آفت/, 'آمادهٔ راه‌اندازی با کلید رایگان'],
+      [/اسکن آفت/, 'اسکن و تشخیص احتمال آفت'],
       [/تحلیل خاک و آب/, 'آزمایش خاک'],
       [/دیوار تجربه/, 'ثبت تجربه'],
       [/بازار و اقلیم/, 'قیمت'],
-      [/اعتبار من/, 'اعتبار'],
-      [/پنل مدیر/, 'پنل مدیر (نسخه مستقل)'],
+      [/اعتبار من/, 'کارت واریز'],
       [/خانه/, 'دستیار هوشمند باغداران پسته'],
     ]
     for (const [link, marker] of pages) {
@@ -67,6 +66,16 @@ describe('every section opens in the standalone APK', { timeout: 30000 }, () => 
       }
       expect(text()).not.toContain(CRASH)
     }
+
+    // The owner panel is password-protected from the first launch.
+    await user.click(nav(/پنل مدیر/))
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'ورود به پنل مدیر' })).toBeTruthy()
+    )
+    await user.type(screen.getByLabelText('رمز مدیر'), 'Pestino1404')
+    await user.click(screen.getByRole('button', { name: /باز کردن پنل مدیر/ }))
+    await waitFor(() => expect(text()).toContain('کلید سرویس تحلیل'), { timeout: 6000 })
+    expect(text()).toContain('کارت واریز و دفتر دریافت')
   })
 
   it('opens the orchard book, the photo reports, the calendar, the knowledge base and backup', async () => {

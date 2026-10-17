@@ -89,6 +89,7 @@ describe('device-direct vision (owner key)', () => {
     expect(directSettings().model).toBe('gemini-2.5-pro')
     clearDirectSettings()
     expect(directSettings()).toEqual({
+      provider: 'gemini',
       key: '',
       model: DEFAULT_DIRECT_MODEL,
       checked_at: null,
@@ -124,6 +125,7 @@ describe('device-direct vision (owner key)', () => {
         schema: {},
         payload: {},
         settings: {
+          provider: 'gemini',
           model: 'gpt-4o',
           key: 'AIzaSyExampleExampleExample123',
           checked_at: null,

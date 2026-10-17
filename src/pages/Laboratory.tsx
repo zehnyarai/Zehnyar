@@ -6,7 +6,6 @@ import {
   Droplets,
   FlaskConical,
   History,
-  Info,
   Save,
   Sprout,
   Trash2,
@@ -109,15 +108,8 @@ export default function Laboratory({ ctx }: { ctx: AppContext }) {
         </span>
         <div>
           <h1>تحلیل خاک و آب</h1>
-          <p>تفسیر آموزشی نتایج آزمایشگاه برای تصمیم‌گیری آگاهانه درباره باغ پسته</p>
+          <p>تفسیر آموزشی نتایج آزمایشگاه؛ برنامهٔ دقیق تغذیه را با کارشناس محلی مرور کنید</p>
         </div>
-      </div>
-      <div className="reference-alert">
-        <Info size={18} />
-        <p>
-          توصیه‌ها وابسته به واحد، روش نمونه‌برداری، رقم و پایه‌اند. برای برنامه دقیق تغذیه، نتایج
-          خاک، آب و برگ را با کارشناس محلی مرور کنید؛ این فرم نسخه کوددهی نیست.
-        </p>
       </div>
       <div className="reference-tabs" role="tablist" aria-label="نوع آزمایش">
         <button

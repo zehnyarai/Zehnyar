@@ -162,8 +162,8 @@ describe('offline photo analysis (the owner’s exact flow)', () => {
 
     const box = await screen.findByRole('checkbox', { name: /اجازه می‌دهم/ })
     expect((box as HTMLInputElement).checked).toBe(false)
-    expect(text()).toContain('کلید شخصی')
-    expect(text()).toContain('بهبود محصولات گوگل')
+    expect(text()).toContain('سرویس هوش مصنوعی')
+    expect(text()).not.toMatch(/Gemini|Google|گوگل/i)
 
     // Without consent: no photo leaves the phone and the owner is told exactly what to do.
     await user.click(screen.getByRole('button', { name: /تحلیل تصویر و بررسی احتمال آفت/ }))

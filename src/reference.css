@@ -2974,3 +2974,202 @@ body {
     transform: none;
   }
 }
+
+/* Owner shop, owner panel and the decluttered analysis screens (2026-10-17). */
+.activation-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #dfeae6;
+  background: var(--green-light);
+  color: var(--nilgoon-dark);
+  font-size: 13px;
+  line-height: 1.9;
+}
+.plan-grid,
+.paywall-plans {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  margin: 14px 0 8px;
+}
+.plan-card,
+.paywall-plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #fff;
+}
+.plan-card.discounted,
+.paywall-plan.discounted {
+  border-color: #bfe3d2;
+  background: linear-gradient(160deg, #f4fbf7, #eef6fd);
+}
+.plan-card b,
+.paywall-plan b {
+  font-size: 19px;
+  color: var(--nilgoon-dark);
+}
+.plan-card small,
+.paywall-plan small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.plan-card p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+.plan-discount,
+.paywall-plan > span {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--nilgoon);
+  color: #fff;
+  font-size: 11px;
+}
+.plan-table,
+.probe-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 12px;
+}
+.plan-table th,
+.plan-table td,
+.probe-table th,
+.probe-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+}
+.plan-table thead th,
+.probe-table thead th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 12px;
+}
+.plan-table tbody tr.recommended {
+  background: var(--nilgoon-light);
+}
+.provider-switch {
+  display: flex;
+  gap: 10px;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+.provider-switch button {
+  flex: 1 1 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  text-align: right;
+  cursor: pointer;
+}
+.provider-switch button.active {
+  border-color: var(--nilgoon);
+  background: var(--nilgoon-light);
+}
+.provider-switch button span {
+  font-size: 11px;
+  color: var(--muted);
+}
+.free-model-notes {
+  margin: 6px 0 14px;
+  padding-inline-start: 18px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 2;
+}
+.table-scroll {
+  overflow-x: auto;
+}
+.probe-table tbody tr.ok td:nth-child(2) {
+  color: var(--nilgoon-dark);
+  font-weight: 700;
+}
+.probe-table tbody tr.failed td:nth-child(2) {
+  color: #a94442;
+}
+.expert-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--nilgoon-light);
+  color: var(--nilgoon-dark);
+  font-size: 13px;
+  line-height: 1.9;
+}
+.expert-note svg {
+  flex: none;
+  margin-top: 4px;
+}
+.receipt-ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 10px;
+}
+.receipt-ledger th,
+.receipt-ledger td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+}
+.receipt-ledger th {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.bank-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.quota-line {
+  margin: -4px 0 14px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 2;
+}
+.local-credits .plans-card,
+.local-credits .transfer-card,
+.local-credits .reference-card {
+  margin-bottom: 14px;
+}
+.local-credits .admin-link {
+  margin-top: 4px;
+}
+.climate-details {
+  margin-top: 10px;
+}
+.climate-details summary {
+  cursor: pointer;
+  color: var(--nilgoon-dark);
+  font-size: 13px;
+}
+@media (max-width: 700px) {
+  .plan-grid,
+  .paywall-plans {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .provider-switch button {
+    flex-basis: 100%;
+  }
+}

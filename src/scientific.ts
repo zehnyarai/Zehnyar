@@ -325,3 +325,10 @@ export function careChecklist(context: DiagnosticContext) {
     ],
   }
 }
+
+/**
+ * The owner's rule of 2026-10-17: every analysis answer ends with this note. The app gives
+ * the scientific answer; acting on it is the orchard expert's call, not the app's.
+ */
+export const EXPERT_CONSULT_NOTE =
+  'این پاسخ خلاصهٔ علمی و احتمالی است. برای اطمینان بیشتر با کارشناسان باغات پسته مشورت کنید و تنها با تأیید کارشناس اقدام کنید.'

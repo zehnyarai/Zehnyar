@@ -13,12 +13,11 @@ import {
 } from 'lucide-react'
 import type { AppContext, Report } from '../types'
 import { IS_STANDALONE } from '../config'
-import { api, checkImage, errorMessage, fa, takePhoto, persianDate } from '../api'
-import { Badge, InfoBanner, Spinner } from '../components/ui'
+import { api, checkImage, errorMessage, fa, takePhoto } from '../api'
+import { Spinner } from '../components/ui'
 import Paywall, { isQuotaError } from '../components/Paywall'
 import type { QuotaPayload } from '../quota'
 import { ScientificPlan } from '../components/scientific'
-import { KeyRound } from 'lucide-react'
 import { EMPTY_CONTEXT, SYMPTOMS, validateContext } from '../scientific'
 import type { DiagnosticContext } from '../scientific'
 
@@ -59,7 +58,6 @@ export default function Analysis({
     consentBox = useRef<HTMLInputElement>(null)
   // In the offline edition this reflects the owner's own on-device key.
   const configured = ctx.data.services.vision_configured
-  const verified = configured && !!ctx.data.services.vision_verified
   // Two free analyses, then the paid package; the counter lives on this device.
   const loadQuota = useCallback(async () => {
     if (!IS_STANDALONE) return
@@ -113,9 +111,7 @@ export default function Analysis({
     setError('')
     if (mode === 'analyze' && !configured) {
       setError(
-        IS_STANDALONE
-          ? 'تحلیل عکس روی این دستگاه فعال نیست. در «داده‌ها و پشتیبان» کلید شخصی Google خود را ثبت کنید یا پرونده را بدون تحلیل ذخیره کنید.'
-          : 'مدل بینایی واقعی هنوز متصل نیست؛ تحلیل عکس انجام نمی‌شود. پرونده را می‌توانید ذخیره کنید و برنامه بررسیِ اطلاعات خودتان را ببینید.'
+        'تحلیل عکس هنوز فعال نشده است؛ عکس‌ها را می‌توانید ذخیره کنید و برنامه بررسی و مراقبت را ببینید.'
       )
       return
     }
@@ -126,7 +122,7 @@ export default function Analysis({
       setNeedConsent(true)
       if (IS_STANDALONE)
         setError(
-          'برای شروع، کادر «رضایت آگاهانه» را در همین صفحه تیک بزنید؛ بدون آن هیچ عکسی به Google فرستاده نمی‌شود.'
+          'برای شروع، کادر «رضایت آگاهانه» را در همین صفحه تیک بزنید؛ بدون آن هیچ عکسی به سرویس تحلیل فرستاده نمی‌شود.'
         )
       else setError('ارسال تصاویر و اطلاعات باغ به سرویس تحلیل نیاز به تأیید آگاهانه شما دارد.')
       // jsdom has no scrollIntoView; the focus hint is what the tests assert.
@@ -181,7 +177,7 @@ export default function Analysis({
       }
       ctx.notify(
         mode === 'analyze'
-          ? 'گزارش غربالگری احتمالی ساخته شد؛ عکس‌ها هم روی دستگاه ذخیره شدند. نتیجه نیاز به تأیید کارشناس دارد.'
+          ? 'پاسخ علمی آماده شد؛ عکس‌ها روی دستگاه ذخیره شدند. برای اطمینان بیشتر با کارشناس باغ پسته مشورت کنید.'
           : 'پرونده عکس و اطلاعات ذخیره شد؛ تصویر تحلیل نشده است.',
         'success'
       )
@@ -208,48 +204,13 @@ export default function Analysis({
           <h1>اسکن و تشخیص احتمال آفت</h1>
           <p>عکس برگ، میوه، شاخه، تنه یا هر بخش درخت پسته را همراه اطلاعات باغ ثبت کنید.</p>
         </div>
-        <Badge tone={verified ? 'green' : 'amber'}>
-          {verified
-            ? IS_STANDALONE
-              ? 'کلید شما آزموده شده است'
-              : 'مدل پاسخ تصویری داده است'
-            : configured
-              ? 'تنظیم شده؛ آزمون اتصال را بزنید'
-              : IS_STANDALONE
-                ? 'آمادهٔ راه‌اندازی با کلید رایگان'
-                : 'مدل واقعی متصل نیست'}
-        </Badge>
       </div>
       {IS_STANDALONE && !configured && (
-        <div className="reference-alert activation-alert">
-          <Info size={18} />
-          <div>
-            <strong>این بخش کار می‌کند؛ فقط کلید رایگان Google را یک بار ثبت کنید.</strong>
-            <ol className="activation-steps">
-              <li>در «داده‌ها و پشتیبان» یک کلید رایگان از Google AI Studio بسازید.</li>
-              <li>کلید را همان‌جا وارد کنید و «آزمون اتصال» را بزنید.</li>
-              <li>به همین صفحه برگردید؛ عکس بگیرید و تحلیل را شروع کنید.</li>
-            </ol>
-            <small>
-              بدون کلید هم می‌توانید عکس‌ها را ذخیره کنید و «برنامه بررسی و مراقبت» را بگیرید.
-            </small>
-          </div>
-          <button
-            className="button primary small"
-            onClick={() => ctx.navigate('settings')}
-            type="button"
-          >
-            <KeyRound size={16} /> ثبت کلید رایگان
-          </button>
-        </div>
-      )}
-      <div className="reference-alert">
-        <Info size={18} />
-        <p>
-          بررسی علمی باید مشاهدات تصویر، فرضیه‌ها و آزمایش لازم را جدا کند. از عکس تنها نمی‌توان
-          نیاز غذایی، نوع عامل بیماری یا دوز درمان را قطعی تعیین کرد.
+        <p className="activation-line">
+          <Info size={16} /> تحلیل هوشمند هنوز راه‌اندازی نشده است؛ مدیر آن را از «پنل مدیر» فعال
+          می‌کند. ذخیرهٔ عکس و برنامهٔ بررسی بدون آن هم کار می‌کند.
         </p>
-      </div>
+      )}
       <section className="reference-card scan-card">
         <div
           className={`reference-dropzone ${drag ? 'is-dragging' : ''} ${files.length ? 'with-previews' : ''}`}
@@ -549,10 +510,9 @@ export default function Analysis({
           <span>
             {IS_STANDALONE ? (
               <>
-                با تیک‌زدن این کادر اجازه می‌دهم تصویر بدون EXIF/GPS و اطلاعات باغ و آزمایش‌های
-                مرتبط، با کلید شخصی خودم مستقیماً به سرویس Google ارسال شود. روی طرح رایگان Google،
-                محتوای درخواست‌ها برای بهبود محصولات گوگل استفاده می‌شود. نتیجه احتمالی است و دقت
-                علمی محلی آن تأیید نشده است.
+                با تیک‌زدن این کادر اجازه می‌دهم تصویر بدون EXIF/GPS و اطلاعات باغ، برای بررسی به
+                سرویس هوش مصنوعی خارج از برنامه فرستاده شود. نتیجه احتمالی است و باید با کارشناس باغ
+                پسته یا آزمایش محلی تأیید شود.
               </>
             ) : (
               <>
@@ -562,45 +522,6 @@ export default function Analysis({
             )}
           </span>
         </label>
-        {configured && (
-          <InfoBanner tone={verified ? 'info' : 'warning'}>
-            مدل تنظیم‌شده:{' '}
-            <strong dir="ltr">
-              {ctx.data.services.vision_model || ctx.data.services.vision_provider}
-            </strong>
-            .
-            {verified ? (
-              <>
-                {' '}
-                آخرین پاسخ معتبر تصویری: {persianDate(ctx.data.services.vision_checked_at!)}. این
-                وضعیت اثبات دقت علمی یا تشخیص قطعی نیست.
-              </>
-            ) : (
-              <>
-                {' '}
-                هنوز پاسخ واقعی اخیر برای این تنظیمات تأیید نشده است؛ کلید یا روشن‌کردن گزینه
-                به‌تنهایی اثبات اتصال نیست. هر درخواست فقط با رضایت شما ارسال می‌شود.
-              </>
-            )}
-          </InfoBanner>
-        )}
-        {!configured && (
-          <InfoBanner tone="warning">
-            <strong>تحلیل واقعی هنوز فعال نیست.</strong> مدل بینایی در این نصب تنظیم نشده؛ ذخیره عکس
-            یا برنامه آموزشی را به جای تحلیل علمی تصویر معرفی نمی‌کنیم.
-            {IS_STANDALONE ? (
-              <p>
-                این APK نشانی سرویس آنلاین ندارد. اینترنت به‌تنهایی آن را به Gemini متصل نمی‌کند؛
-                نسخه آنلاین باید به سرور واقعی و دارای کلید امن متصل شود.
-              </p>
-            ) : (
-              <p>
-                مدیر باید کلید Gemini و مدل مجاز را در تنظیمات امن سرور فعال کند؛ کلید به کاربران
-                داده نمی‌شود.
-              </p>
-            )}
-          </InfoBanner>
-        )}
         {error && (
           <div className="form-error" role="alert">
             {error}
