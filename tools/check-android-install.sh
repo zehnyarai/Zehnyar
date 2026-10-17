@@ -12,7 +12,7 @@ launch="$(adb shell am start -W -n ir.pestino.app/.MainActivity 2>&1)"
 printf '%s\n' "$launch"
 grep -q 'Status: ok' <<< "$launch"
 # Wait for the launch to settle; this is a bounded native test, not a dev server.
-sleep 5
+sleep 8
 adb shell pidof ir.pestino.app | grep -q '[0-9]'
 if adb logcat -d -b crash | grep -q 'Process: ir.pestino.app'; then
   message="$(adb logcat -d -b crash | tail -n 70)"
@@ -23,7 +23,10 @@ printf '::notice title=Android install smoke test::API %s: APK installed and Mai
 # Do not confuse a running Activity with a rendered UI. Check visible WebView
 # accessibility text as well; a JS boot failure must stop installer delivery.
 rendered=0
-for attempt in {1..8}; do
+# A first cold start of the WebView on a fresh emulator can take well over a minute
+# (API 35 once missed a 16-second window while the same APK rendered on API 24). Waiting
+# longer does not weaken the check: the real Persian hero and scan action must still appear.
+for attempt in {1..30}; do
   adb shell uiautomator dump /sdcard/pestino-launch.xml >/dev/null 2>&1 || true
   adb pull /sdcard/pestino-launch.xml apk-output/launch-ui.xml >/dev/null 2>&1 || true
   if python3 - <<'PYUI'
@@ -43,7 +46,7 @@ PYUI
     rendered=1
     break
   fi
-  sleep 2
+  sleep 3
 done
 adb exec-out screencap -p > apk-output/launch-screen.png
 if [ "$rendered" -ne 1 ]; then
