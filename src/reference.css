@@ -3384,3 +3384,46 @@ body {
 .evidence-source small {
   color: #536c60;
 }
+
+.online-market {
+  margin-block-end: 20px;
+}
+.online-market .section-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.online-market p {
+  line-height: 1.9;
+}
+.online-market a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  overflow-wrap: anywhere;
+}
+.online-price-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 15px 0;
+  border-bottom: 1px solid #e1ebe7;
+}
+.online-price-row span {
+  color: #22634f;
+  font-weight: 750;
+}
+.online-price-row small {
+  flex-basis: 100%;
+  color: #617369;
+}
+.key-persistence-note {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #edf7f1;
+  line-height: 1.9;
+}

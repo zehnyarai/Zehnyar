@@ -4,6 +4,12 @@ const reasoningFixture = JSON.parse(
 )
 import { test, expect } from '@playwright/test'
 
+test.beforeEach(async ({ page }) => {
+  await page.route('https://www.tahlilbazaar.com/**', (route) =>
+    route.fulfill({ status: 503, body: '' })
+  )
+})
+
 test('reference header and every new screen are responsive and navigable', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(e.message))

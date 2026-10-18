@@ -7,6 +7,7 @@
  * backups. Output is still unverified AI screening, not a calibrated diagnosis.
  */
 import knowledgeData from './data/knowledge.json'
+import { readKeyStorage, writeKeyStorage } from './keyStorage'
 import {
   selectEvidence,
   evidencePrompt,
@@ -126,7 +127,6 @@ export function providerKeyHint(provider: DirectProvider, key: string): string {
 /** ListModels lives on the collection itself, without the trailing slash. */
 export const MODELS_ENDPOINT = DIRECT_ENDPOINT.replace(/\/$/, '')
 export const DEFAULT_DIRECT_MODEL = 'gemini-2.5-flash'
-const STORAGE_KEY = 'pestino-direct-vision'
 
 /**
  * Free-tier facts checked against ai.google.dev pricing on 2026-10-13:
@@ -224,17 +224,6 @@ export class DirectError extends Error {
   }
 }
 
-/** Some WebViews and private windows expose a partial or throwing localStorage. */
-function storage(): Pick<Storage, 'getItem' | 'setItem' | 'removeItem'> | null {
-  try {
-    const store = globalThis.localStorage
-    return store && typeof store.getItem === 'function' && typeof store.setItem === 'function'
-      ? store
-      : null
-  } catch {
-    return null
-  }
-}
 interface ProviderSlot {
   model: string
   key: string
@@ -268,10 +257,8 @@ function emptyStored(): StoredSettings {
 }
 /** Reads both providers' saved key/model; migrates the old single-provider shape. */
 function readStored(): StoredSettings {
-  const store = storage()
-  if (!store) return emptyStored()
   try {
-    const raw = JSON.parse(store.getItem(STORAGE_KEY) ?? '{}') as Record<string, unknown>
+    const raw = JSON.parse(readKeyStorage() ?? '{}') as Record<string, unknown>
     if (raw.version === 2 && raw.slots && typeof raw.slots === 'object') {
       const slots = raw.slots as Record<string, Partial<ProviderSlot>>
       const pick = (provider: DirectProvider): ProviderSlot => {
@@ -342,20 +329,18 @@ function moveMisplacedKey(stored: StoredSettings): StoredSettings {
   return stored
 }
 function writeStored(next: StoredSettings) {
-  const store = storage()
-  if (!store)
-    throw new DirectError('ذخیره‌سازی روی این دستگاه ممکن نشد؛ حالت خصوصی مرورگر را ببندید.')
   try {
-    store.setItem(STORAGE_KEY, JSON.stringify(next))
-  } catch {
-    throw new DirectError('ذخیره‌سازی روی این دستگاه ممکن نشد؛ حالت خصوصی مرورگر را ببندید.')
+    writeKeyStorage(JSON.stringify(next))
+  } catch (error) {
+    throw new DirectError(error instanceof Error ? error.message : 'ذخیرهٔ پایدار کلید تأیید نشد.')
   }
 }
 /** The active provider's flat view, kept for every caller and every saved report. */
-export function directSettings(): DirectSettings {
+export function directSettings(provider?: DirectProvider): DirectSettings {
   const stored = readStored()
-  const slot = stored.slots[stored.active]
-  return { provider: stored.active, ...slot, fallback: stored.fallback }
+  const target = provider ?? stored.active
+  const slot = stored.slots[target]
+  return { provider: target, ...slot, fallback: stored.fallback }
 }
 /** True when at least one provider has a key, whichever one is active. */
 export function anyProviderReady(): boolean {
@@ -1501,8 +1486,8 @@ export function labCalculations(sample: LabInput) {
 }
 
 /** Small text-only call that proves key+model+network without spending an image. */
-export async function testDirectConnection(): Promise<DirectSettings> {
-  let current = directSettings()
+export async function testDirectConnection(provider?: DirectProvider): Promise<DirectSettings> {
+  let current = directSettings(provider)
   if (current.provider === 'grok') current = await grokAccountModel(current)
   try {
     return await runConnectionTest(current)

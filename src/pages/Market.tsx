@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { CloudSun, Plus, Thermometer, Trash2, TrendingUp, Wind } from 'lucide-react'
 import type { AppContext } from '../types'
 import type { FieldRecord, MarketInput } from '../fieldwork'
-import { CULTIVARS, validateField } from '../fieldwork'
+import { CULTIVARS, validateField, parseMarketNumber } from '../fieldwork'
+import OnlineMarket from '../components/OnlineMarket'
 import { errorMessage, fa, persianDate, today } from '../api'
 import { useFieldRecords } from '../useFieldRecords'
 import { Badge, InfoBanner, Modal, Spinner } from '../components/ui'
@@ -59,7 +60,7 @@ export default function Market({ ctx }: { ctx: AppContext }) {
     try {
       if (modal === 'price') {
         if (!price.price.trim()) throw new Error('قیمت مشاهده‌شده را وارد کنید.')
-        const data = validateField('prices', { ...price, price: Number(price.price) })
+        const data = validateField('prices', { ...price, price: parseMarketNumber(price.price) })
         setBusy(true)
         await prices.save(data)
       } else {
@@ -67,10 +68,10 @@ export default function Market({ ctx }: { ctx: AppContext }) {
           throw new Error('کمینه و بیشینه دما را وارد کنید.')
         const data = validateField('climate', {
           ...weather,
-          minimum: Number(weather.minimum),
-          maximum: Number(weather.maximum),
-          humidity: weather.humidity === '' ? null : Number(weather.humidity),
-          wind: weather.wind === '' ? null : Number(weather.wind),
+          minimum: parseMarketNumber(weather.minimum),
+          maximum: parseMarketNumber(weather.maximum),
+          humidity: weather.humidity === '' ? null : parseMarketNumber(weather.humidity),
+          wind: weather.wind === '' ? null : parseMarketNumber(weather.wind),
         })
         setBusy(true)
         await climate.save(data)
@@ -134,7 +135,7 @@ export default function Market({ ctx }: { ctx: AppContext }) {
           </span>
           <div>
             <h1>بازار و اقلیم</h1>
-            <p>قیمت‌ها و هوای ثبت‌شدهٔ خودتان — نه قیمت زنده یا پیش‌بینی</p>
+            <p>نرخ‌های منتشرشده با منبع و تاریخ، کنار مشاهده‌های شخصی باغ</p>
           </div>
         </div>
         <div className="reference-tabs" role="tablist" aria-label="بازار و اقلیم">
@@ -159,6 +160,7 @@ export default function Market({ ctx }: { ctx: AppContext }) {
         </div>
         {tab === 'prices' ? (
           <>
+            <OnlineMarket />
             <div className="market-summaries">
               {priceCard(domestic, 'قیمت داخلی ثبت‌شده')}
               {priceCard(exported, 'قیمت صادراتی ثبت‌شده')}
@@ -346,7 +348,9 @@ export default function Market({ ctx }: { ctx: AppContext }) {
                   <label>
                     قیمت هر کیلوگرم *
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="decimal"
+                      maxLength={30}
                       min="0.01"
                       max="1000000000"
                       step="any"
@@ -437,7 +441,9 @@ export default function Market({ ctx }: { ctx: AppContext }) {
                         }[k]
                       }
                       <input
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
+                        maxLength={30}
                         step="any"
                         required={k === 'minimum' || k === 'maximum'}
                         min={k === 'minimum' || k === 'maximum' ? -60 : 0}

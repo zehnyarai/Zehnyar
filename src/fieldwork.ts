@@ -236,3 +236,16 @@ export interface CreditAccount {
   receipts: CreditReceipt[]
   history: { id: string; reason: string; delta: number; created_at: string }[]
 }
+
+/** Phone keyboards may emit Persian/Arabic digits; malformed numbers are never silently stripped. */
+export function parseMarketNumber(value: string): number {
+  const normalized = value
+    .trim()
+    .replace(/[۰-۹]/g, (c) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(c)))
+    .replace(/[٠-٩]/g, (c) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(c)))
+  if (!/^[+-]?(?:\d+|\d{1,3}(?:[,٬]\d{3})+)(?:[.٫]\d+)?$/.test(normalized))
+    throw new Error('عدد را کامل و با جداکنندهٔ درست وارد کنید؛ مثلاً ۲٬۷۵۰٬۰۰۰.')
+  const number = Number(normalized.replace(/[,٬]/g, '').replace('٫', '.'))
+  if (!Number.isFinite(number)) throw new Error('عدد واردشده معتبر نیست.')
+  return number
+}

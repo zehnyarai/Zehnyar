@@ -31,3 +31,5 @@ apk-output/
 deliverables/
 
 .private/
+
+native-test-output/

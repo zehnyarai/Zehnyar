@@ -160,7 +160,9 @@ describe('offline owner panel (real DOM, real device-storage layer)', () => {
     await waitFor(() => expect(calls.some((c) => c.url === '/local/vision')).toBe(true))
 
     await user.click(screen.getByRole('button', { name: /فهرست مدل‌های مجاز/ }))
-    await waitFor(() => expect(calls.some((c) => c.url === '/local/vision/models')).toBe(true))
+    await waitFor(() =>
+      expect(calls.some((c) => c.url === '/local/vision/models?provider=gemini')).toBe(true)
+    )
 
     await user.click(screen.getByRole('button', { name: /آزمون مدل‌های پیشنهادی/ }))
     await waitFor(() => expect(calls.some((c) => c.url === '/local/vision/probe')).toBe(true))
@@ -343,4 +345,87 @@ describe('admin gate protects the owner panel without ever locking the owner out
     expect(shown).not.toContain('9401 - 6524')
     expect(shown).toContain('••••')
   })
+})
+
+it('tests the SELECTED provider after switching tabs and retains both keys across remount and failed tests', async () => {
+  const { localApi, exportBackup } = await import('../standalone')
+  await localApi('/local/vision', {
+    method: 'PUT',
+    body: JSON.stringify({
+      provider: 'gemini',
+      model: 'gemini-2.5-flash',
+      key: 'AIzaSyPersistenceDummyOnly123',
+    }),
+  })
+  await localApi('/local/vision', {
+    method: 'PUT',
+    body: JSON.stringify({
+      provider: 'grok',
+      model: 'grok-4.3',
+      key: 'xai-PersistenceDummyOnly12345',
+    }),
+  })
+  const requests: { url: string; headers: Headers }[] = []
+  vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
+    requests.push({ url: String(input), headers: new Headers(init?.headers) })
+    if (String(input).endsWith('/models'))
+      return new Response(JSON.stringify({ data: [{ id: 'grok-4.3' }] }))
+    return new Response(JSON.stringify({ error: { message: 'invalid test account' } }), {
+      status: 401,
+    })
+  })
+  const user = userEvent.setup()
+  render(<LocalAdminPanel ctx={ctx} />)
+  await waitFor(() =>
+    expect((screen.getByLabelText('نام مدل') as HTMLInputElement).value).toBe('grok-4.3')
+  )
+  await user.click(screen.getByRole('tab', { name: /Gemini \(Google\)/ }))
+  await user.click(screen.getByRole('button', { name: 'آزمون اتصال' }))
+  await waitFor(() => expect(requests.length).toBeGreaterThan(0))
+  expect(requests[0].url).toContain('generativelanguage.googleapis.com')
+  expect(requests[0].headers.get('x-goog-api-key')).toBe('AIzaSyPersistenceDummyOnly123')
+  await waitFor(() => expect(screen.getByRole('alert')).toBeTruthy())
+  cleanup()
+  render(<LocalAdminPanel ctx={ctx} />)
+  await waitFor(() => expect(screen.getAllByText('کلید ثبت شده')).toHaveLength(2))
+  await user.click(screen.getByRole('tab', { name: /Grok \(xAI\)/ }))
+  const input = screen.getByLabelText(/^کلید API xAI/) as HTMLInputElement
+  expect(input.value).toBe('')
+  expect(input.placeholder).toContain('ذخیره شده')
+  await user.click(screen.getByRole('button', { name: 'آزمون اتصال' }))
+  await waitFor(() =>
+    expect(
+      requests.some(
+        (r) => r.headers.get('Authorization') === 'Bearer xai-PersistenceDummyOnly12345'
+      )
+    ).toBe(true)
+  )
+  const state = await localApi<{
+    providers: { gemini: { key_present: boolean }; grok: { key_present: boolean } }
+  }>('/local/vision')
+  expect(state.providers.gemini.key_present).toBe(true)
+  expect(state.providers.grok.key_present).toBe(true)
+  expect(await exportBackup()).not.toMatch(/PersistenceDummy|AIzaSy|xai-/)
+})
+
+it('keeps a pasted key after a failed save instead of requiring another paste', async () => {
+  const user = userEvent.setup()
+  render(<LocalAdminPanel ctx={ctx} />)
+  const input = (await screen.findByLabelText(/^کلید API Google/)) as HTMLInputElement
+  await waitFor(() =>
+    expect((screen.getByLabelText('نام مدل') as HTMLInputElement).value).toBe('gemini-2.5-flash')
+  )
+  await user.type(input, 'AIzaSyUnsavedDummyExample123')
+  const original = globalThis.localStorage
+  vi.stubGlobal('localStorage', {
+    getItem: original.getItem,
+    setItem: () => {
+      throw new Error('quota exceeded')
+    },
+    removeItem: original.removeItem,
+  })
+  await user.click(screen.getByRole('button', { name: 'ذخیره' }))
+  await screen.findByRole('alert')
+  expect(input.value).toBe('AIzaSyUnsavedDummyExample123')
+  expect(document.body.textContent).not.toContain('AIzaSyUnsavedDummyExample123')
 })

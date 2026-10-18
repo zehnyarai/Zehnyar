@@ -438,7 +438,7 @@ export default function App() {
           </p>
         </div>
         <div>
-          <span>نسخهٔ ۰.۸.۰</span>
+          <span>نسخهٔ ۰.۸.۱</span>
           <button onClick={() => setModal({ kind: 'privacy' })}>حریم خصوصی</button>
           <button onClick={() => setModal({ kind: 'help' })}>راهنما</button>
         </div>

@@ -441,7 +441,7 @@ def test_render_public_url_fallback_and_override(client, monkeypatch):
 def test_health_identifies_pestino_without_leaking_secrets(client):
     result = client.get("/api/health").json()
     assert result["app"] == "pestino"
-    assert result["version"] == "0.8.0"
+    assert result["version"] == "0.8.1"
     assert "GROQ_API_KEY" not in str(result)
 
 

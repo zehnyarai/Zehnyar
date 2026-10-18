@@ -145,6 +145,8 @@ export function Modal({
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const id = useId()
+  const close = useRef(onClose)
+  close.current = onClose
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null
     const overflow = document.body.style.overflow
@@ -157,7 +159,7 @@ export function Modal({
       ].filter((el) => !el.hasAttribute('disabled'))
     focusable()[0]?.focus()
     const handle = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') close.current()
       if (e.key === 'Tab') {
         const nodes = focusable()
         const first = nodes[0]
@@ -177,7 +179,7 @@ export function Modal({
       document.removeEventListener('keydown', handle)
       previous?.focus()
     }
-  }, [onClose])
+  }, [])
   return (
     <div
       className="modal-backdrop"

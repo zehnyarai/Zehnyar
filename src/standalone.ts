@@ -5,6 +5,7 @@
  */
 import type { AnalysisData, Bootstrap, Knowledge, Orchard, Report, Services, Task } from './types'
 import knowledgeData from './data/knowledge.json'
+import { initializeKeyStorage, flushKeyStorage, keyStorageWarning } from './keyStorage'
 import { parseReceiptPacket, receiptPacket } from './receiptTransfer'
 import { assetUrl } from './config'
 import { EMPTY_CONTEXT, validateContext } from './scientific'
@@ -255,7 +256,8 @@ function visionStatus() {
     checked_at: settings.checked_at,
     connection_ok: !!settings.ok,
     note: settings.note,
-    storage: 'دستگاه شما (خارج از فایل پشتیبان)',
+    storage: 'ذخیرهٔ پایدار همین دستگاه؛ خارج از فایل پشتیبان',
+    storage_warning: keyStorageWarning(),
     free_tier_notice: FREE_TIER_NOTICE,
     providers: providerStatus(),
     fallback: fallbackEnabled(),
@@ -471,6 +473,9 @@ function bootstrap(state: State): Bootstrap {
 }
 export async function localApi<T>(path: string, options: RequestInit = {}): Promise<T> {
   return serialize(async () => {
+    await initializeKeyStorage()
+    const query = new URLSearchParams(path.split('?')[1] ?? '')
+    path = path.split('?')[0]
     const state = await load()
     const method = options.method?.toUpperCase() ?? 'GET'
     const body = typeof options.body === 'string' ? object(JSON.parse(options.body)) : {}
@@ -570,18 +575,39 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       saveDirectSettings(String(body.model ?? ''), typed, provider)
       result = visionStatus()
     } else if (path === '/local/vision' && method === 'DELETE') {
-      clearDirectSettings()
+      clearDirectSettings(
+        body.provider === 'grok' ? 'grok' : body.provider === 'gemini' ? 'gemini' : undefined
+      )
       result = visionStatus()
     } else if (path === '/local/vision/models' && method === 'GET') {
-      result = await listDirectModels()
+      result = await listDirectModels(
+        directSettings(
+          query.get('provider') === 'grok'
+            ? 'grok'
+            : query.get('provider') === 'gemini'
+              ? 'gemini'
+              : undefined
+        )
+      )
     } else if (path === '/local/vision/probe' && method === 'POST') {
       const asked = Array.isArray(body.models) ? body.models.map(String) : []
       const models = asked.length ? asked : directSettings().model ? [directSettings().model] : []
       if (!models.length) throw new LocalError('ابتدا یک مدل انتخاب یا فهرست مدل‌ها را بگیرید.')
-      result = { results: await probeDirectModels(models), notice: FREE_TIER_NOTICE }
+      result = {
+        results: await probeDirectModels(
+          models,
+          directSettings(
+            body.provider === 'grok' ? 'grok' : body.provider === 'gemini' ? 'gemini' : undefined
+          )
+        ),
+        notice: FREE_TIER_NOTICE,
+      }
     } else if (path === '/local/vision/test' && method === 'POST') {
       // A text-only call: it proves key, model and network; it does not prove image accuracy.
-      await testDirectConnection()
+      const provider =
+        body.provider === 'grok' ? 'grok' : body.provider === 'gemini' ? 'gemini' : undefined
+      await testDirectConnection(provider)
+      if (provider) activateProvider(provider)
       result = visionStatus()
     } else if (path === '/local/vision/diagnose' && method === 'POST') {
       // Both providers, one honest row each: the owner can see which side works and why.
@@ -937,6 +963,11 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
         'این نسخه مستقل و رایگان است؛ ورود اینترنتی، تشخیص هوشمند و پرداخت ندارد.'
       )
     } else throw new LocalError('این عملیات در نسخه مستقل پشتیبانی نمی‌شود.')
+    if (path.startsWith('/local/vision') && method !== 'GET') {
+      await flushKeyStorage()
+      if (result && typeof result === 'object' && 'provider' in result)
+        result = { ...result, ...visionStatus() }
+    }
     if (modified) await save(state)
     // JSON-only state: avoid requiring structuredClone in older Android WebViews.
     return JSON.parse(JSON.stringify(result)) as T

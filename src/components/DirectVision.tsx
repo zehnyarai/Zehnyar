@@ -36,6 +36,7 @@ interface DirectStatus {
   connection_ok: boolean
   note: string
   storage: string
+  storage_warning?: string
   providers?: Record<DirectProvider, ProviderState>
   fallback?: boolean
 }
@@ -78,6 +79,7 @@ function suggestions(provider: DirectProvider) {
  */
 export default function DirectVision({ ctx }: { ctx: AppContext }) {
   const key = useRef<HTMLInputElement>(null)
+  const drafts = useRef<Record<DirectProvider, string>>({ gemini: '', grok: '' })
   const [status, setStatus] = useState<DirectStatus | null>(null)
   const [provider, setProvider] = useState<DirectProvider>('gemini')
   const [model, setModel] = useState('')
@@ -105,6 +107,7 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
   }, [])
 
   function switchProvider(next: DirectProvider) {
+    drafts.current[provider] = key.current?.value ?? ''
     setProvider(next)
     setProbe(null)
     setListed([])
@@ -113,7 +116,8 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
     setModel(saved?.model || (next === 'grok' ? DEFAULT_GROK_MODEL : 'gemini-2.5-flash'))
     setKeyNote('')
     setDiagnosis(null)
-    if (key.current) key.current.value = ''
+    if (key.current) key.current.value = drafts.current[next]
+    setKeyNote(drafts.current[next] ? 'کلید واردشده هنوز ذخیره نشده است.' : '')
   }
 
   async function call(path: string, options?: RequestInit) {
@@ -122,28 +126,53 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
     try {
       const next = await api<DirectStatus>(path, options)
       setStatus(next)
-      setProvider(next.provider)
-      setModel(next.model)
+      setProvider(provider)
+      setModel(next.providers?.[provider]?.model ?? next.model)
       await ctx.refresh()
       return true
     } catch (e) {
+      // A network failure is not a key deletion; refresh the saved status independently.
+      try {
+        const latest = await api<DirectStatus>('/local/vision')
+        setStatus(latest)
+        if (path === '/local/vision/test') setModel(latest.providers?.[provider]?.model ?? model)
+      } catch {
+        /* Keep the useful original error and any pasted draft. */
+      }
       setError(errorMessage(e))
       return false
     } finally {
-      if (key.current) key.current.value = ''
-      setKeyNote('')
       setBusy(false)
     }
   }
 
-  async function save() {
+  async function persistCurrent(): Promise<boolean> {
     const value = key.current?.value.trim() ?? ''
     const ok = await call('/local/vision', {
       method: 'PUT',
       body: JSON.stringify({ provider, model, ...(value ? { key: value } : {}) }),
     })
-    if (ok)
-      ctx.notify('تنظیمات روی همین دستگاه ذخیره شد. حالا «آزمون هر دو سرویس» را بزنید.', 'success')
+    if (ok) {
+      drafts.current[provider] = ''
+      if (key.current) key.current.value = ''
+      setKeyNote('')
+    }
+    // A failed write keeps the pasted key available; never make the owner paste it again.
+    return ok
+  }
+  async function save() {
+    if (await persistCurrent())
+      ctx.notify(
+        'کلید روی همین دستگاه ذخیره شد؛ بستن برنامه یا ناموفق بودن آزمون، آن را حذف نمی‌کند.',
+        'success'
+      )
+  }
+  async function ensureSaved(): Promise<boolean> {
+    const value = key.current?.value.trim() ?? ''
+    if (value || model !== status?.providers?.[provider]?.model) return persistCurrent()
+    if (status?.providers?.[provider]?.key_present) return true
+    setError('ابتدا کلید این سرویس را وارد و ذخیره کنید.')
+    return false
   }
 
   /**
@@ -151,6 +180,7 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
    * shortest path out of "the connection test failed" for the owner.
    */
   async function diagnose() {
+    if (key.current?.value.trim() && !(await ensureSaved())) return
     setBusy(true)
     setError('')
     setDiagnosis(null)
@@ -196,7 +226,11 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
   }
 
   async function test() {
-    const ok = await call('/local/vision/test', { method: 'POST' })
+    if (!(await ensureSaved())) return
+    const ok = await call('/local/vision/test', {
+      method: 'POST',
+      body: JSON.stringify({ provider }),
+    })
     ctx.notify(
       ok
         ? 'آزمون اتصال موفق شد؛ پاسخ متنی دریافت شد. قابلیت و کیفیت عکس با این آزمون تأیید نمی‌شود.'
@@ -206,10 +240,11 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
   }
 
   async function fetchModels() {
+    if (!(await ensureSaved())) return
     setBusy(true)
     setError('')
     try {
-      const rows = await api<{ id: string }[]>('/local/vision/models')
+      const rows = await api<{ id: string }[]>(`/local/vision/models?provider=${provider}`)
       setListed(rows.map((r) => r.id))
       ctx.notify(`${rows.length} مدل برای این کلید پیدا شد.`, 'success')
     } catch (e) {
@@ -220,18 +255,21 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
   }
 
   async function probeModels() {
+    if (!(await ensureSaved())) return
     setBusy(true)
     setError('')
     setProbe(null)
     try {
       const response = await api<{ results: ProbeResult[] }>('/local/vision/probe', {
         method: 'POST',
-        body: JSON.stringify({ models: suggestions(provider).map((m) => m.id) }),
+        body: JSON.stringify({ provider, models: suggestions(provider).map((m) => m.id) }),
       })
       setProbe(response.results)
       const first = response.results.find((r) => r.ok)
       ctx.notify(
-        first ? `این مدل پاسخ داد؛ «${first.model}» انتخاب شد.` : 'هیچ‌کدام از مدل‌ها پاسخ نداد.',
+        first
+          ? `این مدل پاسخ داد: «${first.model}». برای انتخاب، نامش را در فیلد مدل ذخیره کنید؛ کلید قبلی می‌ماند.`
+          : 'هیچ‌کدام از مدل‌ها پاسخ نداد.',
         first ? 'success' : 'error'
       )
     } catch (e) {
@@ -243,12 +281,12 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
 
   async function remove() {
     if (!confirm(`کلید ${provider === 'grok' ? 'Grok' : 'Gemini'} از این دستگاه پاک شود؟`)) return
-    const ok = await call('/local/vision', { method: 'DELETE' })
+    const ok = await call('/local/vision', { method: 'DELETE', body: JSON.stringify({ provider }) })
     if (ok) ctx.notify('کلید از این دستگاه پاک شد.', 'success')
   }
 
   const saved = status?.providers?.[provider]
-  const current = provider === status?.provider ? status : undefined
+  const current = saved ? { key_present: saved.key_present, connection_ok: saved.ok } : undefined
   return (
     <section className="card local-settings-card" aria-label="کلید مدل تحلیل">
       <h2>
@@ -257,7 +295,9 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
           {current?.key_present
             ? current.connection_ok
               ? 'اتصال آزموده شده'
-              : 'ثبت شده؛ بدون آزمون'
+              : saved?.checked_at
+                ? 'کلید ذخیره است؛ آزمون ناموفق'
+                : 'ثبت شده؛ بدون آزمون'
             : 'ثبت نشده'}
         </Badge>
       </h2>
@@ -266,6 +306,12 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
         شد، برنامه خودکار سرویس دیگر را امتحان می‌کند. کلیدها فقط روی همین دستگاه می‌مانند و کاربران
         در هیچ صفحه‌ای نام سرویس یا مدل را نمی‌بینند.
       </p>
+      <p className="key-persistence-note">
+        کلید هر سرویس فقط یک‌بار ذخیره می‌شود. خالی بودن کادر رمز پس از ذخیره برای امنیت است و به
+        معنی حذف کلید نیست. حذف برنامه/داده‌ها یا ابطال کلید در حساب سرویس استثناست؛ به وارد کردن
+        دوباره در هر بار استفاده نیازی نیست.
+      </p>
+      {status?.storage_warning && <InfoBanner tone="warning">{status.storage_warning}</InfoBanner>}
       <label className="fallback-switch">
         <input
           type="checkbox"
@@ -331,6 +377,7 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
             autoComplete="off"
             spellCheck={false}
             onChange={(e) => {
+              drafts.current[provider] = e.target.value
               const clean = cleanKey(e.target.value)
               const hint = providerKeyHint(provider, clean)
               setKeyNote(
@@ -358,7 +405,7 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
           </button>
           <button
             className="button secondary"
-            disabled={busy || !(current?.key_present ?? saved?.key_present)}
+            disabled={busy || (!saved?.key_present && !keyNote)}
             onClick={() => void test()}
           >
             <PlugZap size={17} /> آزمون اتصال
@@ -368,14 +415,14 @@ export default function DirectVision({ ctx }: { ctx: AppContext }) {
           </button>
           <button
             className="button secondary"
-            disabled={busy || !(current?.key_present ?? saved?.key_present)}
+            disabled={busy || (!saved?.key_present && !keyNote)}
             onClick={() => void fetchModels()}
           >
             <ListChecks size={17} /> فهرست مدل‌های مجاز
           </button>
           <button
             className="button secondary"
-            disabled={busy || !(current?.key_present ?? saved?.key_present)}
+            disabled={busy || (!saved?.key_present && !keyNote)}
             onClick={() => void probeModels()}
           >
             <Gauge size={17} /> آزمون مدل‌های پیشنهادی

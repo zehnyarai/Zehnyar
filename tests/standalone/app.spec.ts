@@ -12,6 +12,12 @@ async function addOrchard(page: import('@playwright/test').Page) {
   await expect(page.getByRole('heading', { name: 'باغ مستقل آزمون' })).toBeVisible()
 }
 
+test.beforeEach(async ({ page }) => {
+  await page.route('https://www.tahlilbazaar.com/**', (route) =>
+    route.fulfill({ status: 503, body: '' })
+  )
+})
+
 test('boots at the project path without a single API call or payment/signup prompt', async ({
   page,
 }) => {
