@@ -41,7 +41,8 @@ jobs:
             python3 - <<'PYDUMP'
           from pathlib import Path
           lines = [l.rstrip() for l in Path('/tmp/e2e.log').read_text(errors='ignore').splitlines() if l.strip()]
-          for line in lines[-25:]:
+          important = [l for l in lines if any(token in l for token in ('Error:', 'Timeout', 'Expected', 'Received', 'Locator:', 'toContain', 'toHave', 'tests/standalone/') )]
+          for line in important[:10]:
               print('::error title=E2E::' + line.replace('%', '%25')[:900])
           PYDUMP
           fi

@@ -188,6 +188,7 @@ export default function Market({ ctx }: { ctx: AppContext }) {
                         {r.data.grade || 'درجه نامشخص'} · {r.data.province} ·{' '}
                         {persianDate(r.data.observed_date)}
                       </small>
+                      <small>منبع: {r.data.source}</small>
                     </span>
                     <strong>
                       {fa(r.data.price, 2)} {r.data.currency === 'usd' ? 'دلار' : 'تومان'}
