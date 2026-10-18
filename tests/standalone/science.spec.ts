@@ -1,25 +1,43 @@
 import { test, expect } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
-import { buildScientificBasis, selectEvidence } from '../../src/evidence'
-import reasoning from '../fixtures/decision-reasoning.json'
+import { readFileSync } from 'node:fs'
+import type { ResearchRecord } from '../../src/research'
+const reasoning = JSON.parse(
+  readFileSync(new URL('../fixtures/decision-reasoning.json', import.meta.url), 'utf8')
+)
+const registry = JSON.parse(
+  readFileSync(new URL('../../src/data/research.json', import.meta.url), 'utf8')
+)
 
 test('saved scientific reasoning and source provenance survive reload, remain readable on mobile, and export without provider names', async ({
   page,
 }) => {
-  const pack = selectEvidence({ notes: 'خشکیدگی تنه' })
-  const basis = buildScientificBasis(
-    {
+  // This is a stored-report UI fixture, not a live diagnosis or retrieval test.
+  // Retrieval and source-ID filtering are independently covered in both runtimes.
+  const source = registry.records.find(
+    (r: ResearchRecord) => r.id === 'iran-trunk-pathogens-2026'
+  ) as ResearchRecord
+  const pack = [source]
+  const basis = {
+    version: 1,
+    catalog_version: registry.version,
+    catalog_updated_at: registry.as_of,
+    live_search: false,
+    locally_validated: false,
+    sources: pack,
+    supplied_source_ids: [source.id],
+    reasoning: {
       ...reasoning,
+      research_ids: [source.id],
       research_claims: [
         {
           statement: 'جداسازی قارچ به‌تنهایی علت را ثابت نمی‌کند.',
-          source_ids: [pack[0].id, 'fabricated-id'],
+          source_ids: [source.id],
           application_limit: 'این باغ در مطالعه نبوده؛ تشخیص عامل از عکس کافی نیست.',
         },
       ],
     },
-    pack
-  )
+  }
   await page.goto('./#/reports')
   await expect(page.getByRole('heading', { name: 'عکس‌ها و یادداشت‌ها' })).toBeVisible()
   await page.evaluate(async (science) => {

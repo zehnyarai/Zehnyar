@@ -32,8 +32,10 @@ jobs:
           # cannot download raw job logs. Only meaningful lines are kept to stay under the
           # annotation limit.
           set -o pipefail
+          set +e
           npm run test:standalone -- --project=chromium --reporter=line > /tmp/e2e.log 2>&1
           code=$?
+          set -e
           tail -c 120000 /tmp/e2e.log
           if [ "$code" -ne 0 ]; then
             python3 - <<'PYDUMP'

@@ -1,4 +1,7 @@
-import reasoningFixture from '../fixtures/decision-reasoning.json'
+import { readFileSync } from 'node:fs'
+const reasoningFixture = JSON.parse(
+  readFileSync(new URL('../fixtures/decision-reasoning.json', import.meta.url), 'utf8')
+)
 import { test, expect } from '@playwright/test'
 
 test('reference header and every new screen are responsive and navigable', async ({ page }) => {
