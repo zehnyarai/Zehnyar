@@ -1,3 +1,6 @@
+import ScientificBasis from './ScientificBasis'
+import { scientificBasisText } from '../evidence'
+import type { ScientificBasis as ScientificBasisData } from '../evidence'
 import { useCallback, useEffect, useState } from 'react'
 import { Brain, Download, History, KeyRound, Trash2, Wallet } from 'lucide-react'
 import { api, downloadText, errorMessage, fa, persianDate } from '../api'
@@ -17,6 +20,7 @@ interface LabAssessment {
   units: Record<string, string>
   calculations: { key: string; label: string; value: number; formula: string }[]
   result: {
+    scientific_basis?: ScientificBasisData
     title: string
     summary: string
     provider: string
@@ -281,6 +285,7 @@ export default function LabAI({
               ))}
             </div>
           )}
+          <ScientificBasis basis={result.result.scientific_basis} />
           <div className="care-columns">
             {SECTIONS.map(
               ([key, title]) =>
@@ -307,11 +312,20 @@ export default function LabAI({
             className="button secondary"
             onClick={() =>
               void downloadText(
-                `pestino-gemini-lab-${result.input.sample_date}.txt`,
+                `pestino-lab-${result.input.sample_date}.txt`,
                 [
                   'پستینو — تفسیر احتمالی آزمایش',
                   result.result.disclaimer,
-                  JSON.stringify(result, null, 2),
+                  result.result.title,
+                  result.result.summary,
+                  `تاریخ نمونه: ${result.input.sample_date}؛ روش: ${result.input.method}`,
+                  ...Object.entries(result.input.values).map(
+                    ([key, value]) => `${key}: ${value} ${result.units[key] ?? ''}`
+                  ),
+                  ...result.calculations.map((c) => `${c.label}: ${c.value}؛ ${c.formula}`),
+                  ...SECTIONS.flatMap(([key, title]) => [title, ...result.result[key]]),
+                  scientificBasisText(result.result.scientific_basis),
+                  EXPERT_CONSULT_NOTE,
                 ].join('\n\n')
               ).catch((e) => ctx.notify(errorMessage(e), 'error'))
             }

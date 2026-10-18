@@ -1,3 +1,4 @@
+import json
 import io
 import os
 from pathlib import Path
@@ -11,12 +12,18 @@ from pydantic import ValidationError
 
 import server.api as service
 from server.api import app
-from server.database import connect, sample_report
+from server.database import connect, sample_report as demo_sample_report
 from server.security import ATTEMPTS, SESSION_COOKIE
 
 ADMIN_EMAIL = "manager@example.com"
 ADMIN_PASSWORD = "test-admin-password-2026"
 USER_PASSWORD = "test-user-password-2026"
+
+
+def sample_report(*args, **kwargs):
+    report = demo_sample_report(*args, **kwargs)
+    report['decision_reasoning'] = json.loads(Path('tests/fixtures/decision-reasoning.json').read_text())
+    return report
 
 
 @pytest.fixture
@@ -434,7 +441,7 @@ def test_render_public_url_fallback_and_override(client, monkeypatch):
 def test_health_identifies_pestino_without_leaking_secrets(client):
     result = client.get("/api/health").json()
     assert result["app"] == "pestino"
-    assert result["version"] == "0.7.9"
+    assert result["version"] == "0.8.0"
     assert "GROQ_API_KEY" not in str(result)
 
 

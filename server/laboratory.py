@@ -9,6 +9,8 @@ from fastapi import HTTPException, Request
 from pydantic import Field, field_validator
 
 from . import gemini
+from .research import evidence_pack
+from .scientific_evidence import DecisionReasoning, CONTRACT, evidence_prompt, scientific_basis, require_reasoning_schema
 from .billing import billing_config, ledger_balance
 from .database import connect, now_iso, uid
 from .fieldwork import LabInput, StrictInput
@@ -26,6 +28,7 @@ class LabAnalysisInput(StrictInput):
 
 
 class LabResult(StrictInput):
+    decision_reasoning: DecisionReasoning | None = None
     title: str = Field(min_length=2, max_length=160)
     summary: str = Field(max_length=1600)
     findings: list[str] = Field(max_length=8)
@@ -82,20 +85,25 @@ Soil nutrient values without extraction method, tissue analysis, phenology, cult
 Do not recommend a pesticide, chemical, acid/gypsum rate, fertilizer formulation or application dose. No numerical treatment rate, calibrated confidence, disease probability, guaranteed yield or crop-safety claim. Do not repeat numeric concentrations or percentages in prose: the UI shows the original input table. Never change the original numbers.
 Mention uncertainty and the need for local expert review. Guides are educational, not current Iranian approvals or local expert validation. Do not claim live weather, prices, source verification or expert approval. Return only the requested JSON schema with nonempty limitations."""
     payload = {"user_entered_laboratory": measured, "server_calculations": computed, "reported_by_farmer": context, "orchard": orchard}
+    pack = evidence_pack(payload)
+    system += "\n" + CONTRACT["instructions"] + "\nDated scientific context: " + json.dumps(evidence_prompt(pack), ensure_ascii=False)
     try:
-        text = await gemini.generate_content(model, key, system + "\nEducational guides: " + json.dumps(guides, ensure_ascii=False), payload, LabResult.model_json_schema())
-        result = LabResult.model_validate_json(text).model_dump()
+        text = await gemini.generate_content(model, key, system + "\nEducational guides: " + json.dumps(guides, ensure_ascii=False), payload, require_reasoning_schema(LabResult.model_json_schema()))
+        parsed = LabResult.model_validate_json(text)
+        result = parsed.model_dump()
+        basis = scientific_basis(parsed.decision_reasoning, pack)
         # This is a conservative guard, not a scientific safety certification.
         prose = json.dumps({k: v for k, v in result.items() if k != "knowledge_ids"}, ensure_ascii=False)
         if re.search(r"\d[\d.,٫٬]*\s*(?:میلی[\s‌-]?لیتر|سی[\s‌-]?سی|کیلو[\s‌-]?گرم|گرم|گرام|لیتر|kg\b|g\b|ml\b|ppm\b|mg\s*/\s*(?:L|kg)\b|[%٪])", prose, re.IGNORECASE):
             raise ValueError("Unverified numerical concentration, treatment or confidence in prose")
         ids = {a["id"] for a in ARTICLES}
         result["knowledge_ids"] = [i for i in result["knowledge_ids"] if i in ids]
-        result.update({"provider": provider, "model": model, "knowledge_version": KNOWLEDGE_VERSION, "basis": "user-entered-laboratory", "disclaimer": "تفسیر احتمالی Gemini از نتایج واردشده؛ نه آزمایش مستقل، تشخیص قطعی یا نسخه سم و کود. اعتبار علمی محلی این خروجی تأیید نشده است."})
+        result.update({"scientific_basis": basis, "provider": provider, "model": model, "knowledge_version": KNOWLEDGE_VERSION, "basis": "user-entered-laboratory", "disclaimer": "تفسیر احتمالی از نتایج واردشده؛ نه آزمایش مستقل، تشخیص قطعی یا نسخه سم و کود. اعتبار علمی محلی این خروجی تأیید نشده است."})
+        result["decision_reasoning"] = basis["reasoning"]
         return {"input": sample.model_dump(mode="json"), "context": context, "units": measured["units"], "calculations": computed, "result": result}
     except (httpx.HTTPError, ValueError, KeyError, TypeError):
         logger.warning("Gemini laboratory interpretation failed or returned invalid structured data")
-        raise HTTPException(502, "Gemini پاسخ معتبر آزمایش نداد. اعتبار داخلی شما کسر نشد؛ نتیجه‌ای ساخته نشده است.")
+        raise HTTPException(502, "سرویس تحلیل پاسخ معتبر آزمایش نداد. اعتبار داخلی شما کسر نشد؛ نتیجه‌ای ساخته نشده است.")
 
 
 def serialize_lab(row):

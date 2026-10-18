@@ -1,0 +1,86 @@
+[
+  {
+    "name": "empty",
+    "context": {},
+    "ids": []
+  },
+  {
+    "name": "unknown",
+    "context": {
+      "notes": "گزارش نامفهوم"
+    },
+    "ids": []
+  },
+  {
+    "name": "structure-is-not-evidence",
+    "context": {
+      "values": {
+        "ec": null,
+        "nitrogen": ""
+      }
+    },
+    "ids": []
+  },
+  {
+    "name": "no-substring",
+    "context": {
+      "notes": "warehouse coexistence"
+    },
+    "ids": []
+  },
+  {
+    "name": "leaf-spots",
+    "context": {
+      "tree_part": "برگ",
+      "notes": "لکه روشن روی برگ"
+    },
+    "ids": ["ucipm-monitoring"]
+  },
+  {
+    "name": "trunk",
+    "context": {
+      "notes": "خشکیدگی تنه درخت جوان"
+    },
+    "ids": ["iran-trunk-pathogens-2026", "ucipm-monitoring"]
+  },
+  {
+    "name": "psylla",
+    "context": {
+      "notes": "پسیل و عسلک"
+    },
+    "ids": ["iran-psylla-ipm", "psylla-overwintering-2025"]
+  },
+  {
+    "name": "salinity-rootstock",
+    "context": {
+      "notes": "شوری آب و پایه نهال"
+    },
+    "ids": ["rootstock-review", "iran-water-quality", "pgpr-salinity-2026"]
+  },
+  {
+    "name": "numeric-ec",
+    "context": {
+      "values": {
+        "ec": 0
+      }
+    },
+    "ids": ["iran-water-quality"]
+  },
+  {
+    "name": "nutrition",
+    "context": {
+      "values": {
+        "nitrogen": 0,
+        "zinc": 10
+      }
+    },
+    "ids": ["nitrogen-budget"]
+  },
+  {
+    "name": "arabic-normalization",
+    "context": {
+      "notes": "آبياری قطره‌ای"
+    },
+    "ids": ["iran-drip-audit", "spain-water-five-year"]
+  }
+]

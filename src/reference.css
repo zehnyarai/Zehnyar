@@ -3350,3 +3350,37 @@ body {
     flex: 1;
   }
 }
+
+/* Detailed scientific reasoning is accessible without overwhelming the short answer. */
+.scientific-basis {
+  margin: 18px 0;
+  padding: 14px 18px;
+  border: 1px solid #cfe3de;
+  border-radius: 15px;
+  background: #f5faf8;
+}
+.scientific-basis summary {
+  line-height: 1.9;
+}
+.scientific-basis summary svg {
+  vertical-align: middle;
+  margin-inline-end: 5px;
+}
+.scientific-basis h4 {
+  margin: 22px 0 10px;
+  color: #1b604b;
+}
+.evidence-source {
+  padding: 16px 0;
+  border-top: 1px solid #dce9e5;
+  line-height: 1.9;
+  overflow-wrap: anywhere;
+}
+.evidence-source a {
+  direction: ltr;
+  display: inline-block;
+  font-weight: 650;
+}
+.evidence-source small {
+  color: #536c60;
+}

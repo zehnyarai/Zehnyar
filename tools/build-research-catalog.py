@@ -32,6 +32,15 @@ add('food-ai-readiness','استاندارد آمادگی AI غذایی؛ فرا�
 add('nonthermal-aflatoxin','روش‌های غیرحرارتی و زیست‌حسگرهای آفلاتوکسین','ایمنی و کیفیت محصول',2025,'review','پس از برداشت / فناوری آزمایشگاهی و صنعتی','indexed-summary','Processing and Real-Time Monitoring Strategies of Aflatoxin Reduction in Pistachios','https://www.mdpi.com/2304-8158/14/19/3411',1,'مرور، روش‌های غیرحرارتی، زیست‌حسگرها و پیش‌بینی خطر را کنار مدیریت مزرعه تا انبار بررسی می‌کند. کاهش خطر با تضمین حذف سم یکسان نیست.','دفتر محموله و زنجیره فرآوری، ارجاع آزمون معتبر و ارزیابی فناوری با استاندارد مرکز.','روش آزمایشگاهی یا گزارش کاهش آلودگی مجوز فرآوری خانگی و تضمین انطباق صادراتی نیست؛ دوز/فرمول شیمیایی منتقل نشده است.','10.3390/foods14193411','Gharibzahedi و Savas')
 add('sustainability-2026','پایداری، هزینه آب و ریسک بلندمدت باغ','اقتصاد و پایداری',2026,'observational','کالیفرنیا و Castilla-La Mancha','indexed-summary','Comparative sustainability assessment of pistachio production: A case study of California (USA) and Castilla-La Mancha (Spain)','https://www.sciencedirect.com/science/article/pii/S2665972726002916',10,'مقایسه سامانه‌های تولید بر شاخص‌های محیطی، اقتصادی و اجتماعی و ریسک آب، شوری و اقلیم تمرکز دارد؛ سود یا آب مصرفی واحد، تمام پایداری نیست.','ثبت هزینه/عملکرد واقعی، آب مصرف‌شده و کیفیت در واحد هکتار و کیلو محصول برای تصمیم باغ.','بازه‌های داده و ساختار هزینه منطقه‌ای متفاوت‌اند؛ قیمت روز، سود تضمینی یا پیش‌بینی مالی ایران از این رکورد استخراج نمی‌شود.')
 
-payload={'version':'2026-10-12.1','as_of':DATE,'scope':'مرور دامنه‌ای گزینشی منابع قابل دسترسی؛ نه جستجوی جامع همه پایگاه‌ها یا تأیید کارشناس محلی','reviewed_by_local_expert':False,'records':records}
-Path('src/data/research.json').write_text(json.dumps(payload,ensure_ascii=False,indent=2)+'\n')
+current_path = Path('src/data/research.json')
+previous = json.loads(current_path.read_text()) if current_path.exists() else {}
+existing = {r['id']: r for r in previous.get('records', [])}
+records = [existing.get(r['id'], r) if existing.get(r['id'], {}).get('checked_at', '') > DATE else r for r in records]
+for r in records:
+    if existing.get(r['id'], {}).get('tags'):
+        r['tags'] = existing[r['id']]['tags']
+known = {r['id'] for r in records}
+records += [r for r in previous.get('records', []) if r['id'] not in known]
+payload={'version':previous.get('version','2026-10-12.1'),'as_of':max(DATE,previous.get('as_of', DATE)),'scope':'مرور دامنه‌ای گزینشی منابع قابل دسترسی؛ نه جستجوی جامع همه پایگاه‌ها یا تأیید کارشناس محلی','reviewed_by_local_expert':False,'records':records}
+current_path.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+'\n')
 print('Research records:',len(records))

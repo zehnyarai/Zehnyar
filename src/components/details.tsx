@@ -1,3 +1,5 @@
+import ScientificBasis from './ScientificBasis'
+import { scientificBasisText } from '../evidence'
 import { IS_STANDALONE, assetUrl } from '../config'
 import { ScientificPlan } from './scientific'
 import { EXPERT_CONSULT_NOTE } from '../scientific'
@@ -124,6 +126,7 @@ export function ReportDetail({
       `\n${EXPERT_CONSULT_NOTE}`,
       d.disclaimer,
       `نسخه دانشنامه: ${d.knowledge_version}`,
+      scientificBasisText(d.scientific_basis),
     ].join('\n')
     try {
       const saved = await downloadText(
@@ -225,6 +228,7 @@ export function ReportDetail({
             · مدت علائم: {report.context.duration || 'نامشخص'} روز
           </div>
         )}
+        {!record && !report.is_sample && <ScientificBasis basis={d.scientific_basis} />}
         <div className="tabs report-tabs">
           {[
             ['observations', record ? 'یادداشت و محدودیت' : 'مشاهدات و احتمال‌ها', FileSearch],

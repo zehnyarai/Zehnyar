@@ -1,3 +1,4 @@
+import reasoningFixture from '../tests/fixtures/decision-reasoning.json'
 import 'fake-indexeddb/auto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Bootstrap, Orchard, Report } from './types'
@@ -300,6 +301,7 @@ describe('device-direct analysis with the owner key (offline edition)', () => {
     notes: 'چاه عمیق باغ',
   }
   const lab = {
+    decision_reasoning: reasoningFixture,
     title: 'آب چاه',
     summary: 'نمونه تک‌نقطه‌ای است.',
     findings: ['شوری نیازمند پایش فصلی است'],
@@ -313,6 +315,7 @@ describe('device-direct analysis with the owner key (offline edition)', () => {
     knowledge_ids: ['salinity'],
   }
   const screening = {
+    decision_reasoning: reasoningFixture,
     title: 'برگ پسته',
     summary: 'لکه روشن روی برگ دیده می‌شود.',
     quality: 'نور کافی',
@@ -344,7 +347,7 @@ describe('device-direct analysis with the owner key (offline edition)', () => {
       const body = String(init.body)
       const payload = body.includes('connection test')
         ? { ok: true, model: 'gemini-2.5-flash' }
-        : body.includes('laboratory')
+        : body.includes('user_entered_laboratory')
           ? lab
           : screening
       return new Response(
@@ -531,7 +534,7 @@ describe('device-direct analysis with the owner key (offline edition)', () => {
     setFetchImplementation(
       (async () =>
         new Response(
-          JSON.stringify({ choices: [{ message: { content: JSON.stringify({ ok: true }) } }] }),
+          JSON.stringify({ choices: [{ message: { content: JSON.stringify(screening) } }] }),
           { status: 200 }
         )) as unknown as typeof fetch
     )

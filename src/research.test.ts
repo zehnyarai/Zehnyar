@@ -2,14 +2,14 @@ import { expect, it } from 'vitest'
 import { RESEARCH, searchResearch, EVIDENCE_LABELS, ACCESS_LABELS } from './research'
 
 it('keeps a dated non-exhaustive evidence map separate from validated diagnosis', () => {
-  expect(RESEARCH.records).toHaveLength(24)
+  expect(RESEARCH.records).toHaveLength(27)
   expect(RESEARCH.reviewed_by_local_expert).toBe(false)
   expect(RESEARCH.scope).toContain('نه جستجوی جامع')
-  expect(new Set(RESEARCH.records.map((r) => r.id)).size).toBe(24)
+  expect(new Set(RESEARCH.records.map((r) => r.id)).size).toBe(27)
   for (const r of RESEARCH.records) {
     expect(r.expert_reviewed).toBe(false)
     expect(new URL(r.url).protocol).toBe('https:')
-    expect(r.checked_at).toBe(RESEARCH.as_of)
+    expect(r.checked_at <= RESEARCH.as_of).toBe(true)
     expect(r.limitations.length).toBeGreaterThan(45)
     expect(EVIDENCE_LABELS[r.kind]).toBeTruthy()
     expect(ACCESS_LABELS[r.access]).toBeTruthy()

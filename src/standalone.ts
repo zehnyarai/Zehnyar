@@ -609,9 +609,23 @@ export async function localApi<T>(path: string, options: RequestInit = {}): Prom
       modified = true
       let analysis
       try {
+        const orchard = state.orchards.find((o) => o.id === report.orchard_id)
         analysis = await analyzePhotosDirect(
           report.image_urls?.length ? report.image_urls : [report.image_url ?? ''],
-          report.context ?? { ...EMPTY_CONTEXT }
+          report.context ?? { ...EMPTY_CONTEXT },
+          {
+            tree_part: report.tree_part,
+            notes: report.notes,
+            orchard: orchard
+              ? {
+                  province: orchard.province,
+                  city: orchard.city,
+                  cultivar: orchard.cultivar,
+                  age: orchard.age,
+                  irrigation: orchard.irrigation,
+                }
+              : null,
+          }
         )
       } catch (error) {
         // A failed or refused call never costs the farmer an analysis, and the user sees a

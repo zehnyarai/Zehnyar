@@ -1,0 +1,93 @@
+{
+  "topics": {
+    "آب و خاک": [
+      "آب",
+      "خاک",
+      "شوری",
+      "خشکی",
+      "آبیاری",
+      "پژمردگی",
+      "water",
+      "soil",
+      "wilting",
+      "salinity",
+      "drought",
+      "ec",
+      "sar",
+      "rsc",
+      "boron",
+      "sodium",
+      "chloride"
+    ],
+    "تغذیه": [
+      "تغذیه",
+      "کود",
+      "کمبود",
+      "زردی",
+      "زرد",
+      "نیتروژن",
+      "nutrition",
+      "yellowing",
+      "nitrogen",
+      "nitrate",
+      "phosphorus",
+      "potassium",
+      "iron",
+      "zinc",
+      "organic"
+    ],
+    "آفات و بیماری‌ها": [
+      "آفت",
+      "پسیل",
+      "عسلک",
+      "شانکر",
+      "خشکیدگی",
+      "لکه",
+      "حشره",
+      "بیماری",
+      "تنه",
+      "شاخه",
+      "psylla",
+      "sticky",
+      "spots",
+      "canker",
+      "disease",
+      "pest"
+    ],
+    "برداشت و پس از برداشت": [
+      "برداشت",
+      "انبار",
+      "پوست‌گیری",
+      "خشک‌کردن",
+      "harvest",
+      "postharvest",
+      "storage"
+    ],
+    "هرس و باردهی": ["سال‌آوری", "باردهی", "هرس", "yield", "pruning"],
+    "اقلیم و گرده‌افشانی": [
+      "گل",
+      "گرده",
+      "سرما",
+      "سرمازدگی",
+      "گرده‌افشانی",
+      "گل‌دهی",
+      "bloom",
+      "pollination",
+      "frost"
+    ],
+    "پایه و رقم": ["ریشه", "طوقه", "پایه", "نهال", "rootstock", "seedling", "collar"],
+    "ایمنی و کیفیت محصول": ["آفلاتوکسین", "کپک", "محموله", "aflatoxin", "mycotoxin"],
+    "اقتصاد و پایداری": ["هزینه", "پایداری", "اقتصاد", "cost", "sustainability"]
+  },
+  "kind_tiebreak": {
+    "review": 5,
+    "extension": 4,
+    "field": 3,
+    "primary": 2,
+    "controlled": 1,
+    "observational": 1,
+    "prototype": 0,
+    "project": 0,
+    "news": 0
+  }
+}

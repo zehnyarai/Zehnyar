@@ -11,11 +11,17 @@ from fastapi.testclient import TestClient
 from PIL import Image
 
 import server.api as service
-from server.database import connect, now_iso, sample_report
+from server.database import connect, now_iso, sample_report as demo_sample_report
 from server.fieldwork import LabInput
 from server.gemini import model_name
 from server.laboratory import calculations, measured_units
 from server.security import ATTEMPTS
+
+
+def sample_report(*args, **kwargs):
+    report = demo_sample_report(*args, **kwargs)
+    report['decision_reasoning'] = json.loads(Path('tests/fixtures/decision-reasoning.json').read_text())
+    return report
 
 
 @pytest.fixture
@@ -57,7 +63,7 @@ def lab_input(kind='water'):
 
 
 def lab_result():
-    return {'title':'بررسی احتمالی آزمایش','summary':'تفسیر نیازمند بررسی روش آزمایشگاه و شرایط باغ است.','findings':['واحد و روش را با آزمایشگاه کنترل کنید.'],'nutrition_considerations':['برای نتیجه تغذیه، روش استخراج و آزمایش برگ نیز لازم است.'],'irrigation_considerations':['یکنواختی آبیاری و زهکشی را بررسی کنید.'],'care_plan':['ثبت روند و بازدید کارشناس محلی.'],'yield_quality_plan':['مدیریت محصول وابسته به رقم و مرحله رشد است.'],'needed_tests':['در صورت نیاز، آزمون بافت برگ.'],'limitations':['اعداد ورودی خوداظهاری هستند؛ دقت علمی محلی تأیید نشده است.'],'follow_up_questions':['مرحله رشد و سابقه آبیاری چیست؟'],'knowledge_ids':['nutrition']}
+    return {'decision_reasoning':json.loads(Path('tests/fixtures/decision-reasoning.json').read_text()),'title':'بررسی احتمالی آزمایش','summary':'تفسیر نیازمند بررسی روش آزمایشگاه و شرایط باغ است.','findings':['واحد و روش را با آزمایشگاه کنترل کنید.'],'nutrition_considerations':['برای نتیجه تغذیه، روش استخراج و آزمایش برگ نیز لازم است.'],'irrigation_considerations':['یکنواختی آبیاری و زهکشی را بررسی کنید.'],'care_plan':['ثبت روند و بازدید کارشناس محلی.'],'yield_quality_plan':['مدیریت محصول وابسته به رقم و مرحله رشد است.'],'needed_tests':['در صورت نیاز، آزمون بافت برگ.'],'limitations':['اعداد ورودی خوداظهاری هستند؛ دقت علمی محلی تأیید نشده است.'],'follow_up_questions':['مرحله رشد و سابقه آبیاری چیست؟'],'knowledge_ids':['nutrition']}
 
 
 def provider_mock(monkeypatch, result, inspect=None, finish='STOP', response=None, status=200):
@@ -307,3 +313,34 @@ def test_owner_image_test_requires_admin_consent_and_creates_no_invoice(client,m
         assert db.execute('SELECT COUNT(*) FROM reports WHERE is_sample=0').fetchone()[0]==0
         assert db.execute('SELECT COUNT(*) FROM credit_ledger').fetchone()[0]==0
     assert not Path(os.environ['UPLOAD_DIR']).exists()
+
+
+def test_thin_scientific_reply_is_refunded_for_photo_and_lab(client, monkeypatch):
+    register(client); enable(monkeypatch)
+    result = sample_report()
+    result.pop('decision_reasoning')
+    result.pop('id', None); result.pop('subtitle', None)
+    provider_mock(monkeypatch, result)
+    assert photo_request(client).status_code == 502
+    assert client.get('/api/bootstrap').json()['usage']['used'] == 0
+    lab = lab_result(); lab.pop('decision_reasoning')
+    provider_mock(monkeypatch, lab)
+    assert client.post('/api/lab-analyses', json={'sample': lab_input(), 'consent': True}).status_code == 502
+    assert client.get('/api/bootstrap').json()['usage']['used'] == 0
+
+
+def test_laboratory_retrieval_uses_measurements_and_returns_registry_bound_sources(client, monkeypatch):
+    register(client); enable(monkeypatch)
+    result = lab_result()
+    result['decision_reasoning']['research_ids'] = ['iran-water-quality', 'made-up', 'iran-trunk-pathogens-2026']
+    result['decision_reasoning']['research_claims'] = [{'statement': 'کیفیت آب تنها با pH ارزیابی نمی‌شود.', 'source_ids': ['iran-water-quality', 'made-up'], 'application_limit': 'مطالعه مشاهده‌ای، آستانه عمومی این باغ را تعیین نمی‌کند.'}]
+    def inspect(payload):
+        system = payload['systemInstruction']['parts'][0]['text']
+        assert 'iran-water-quality' in system and 'checked_at' in system and 'publisher-abstract' in system
+        assert 'discriminating_checks' in system
+    provider_mock(monkeypatch, result, inspect=inspect)
+    response = client.post('/api/lab-analyses', json={'sample': lab_input(), 'consent': True})
+    assert response.status_code == 201, response.text
+    basis = response.json()['result']['scientific_basis']
+    assert [s['id'] for s in basis['sources']] == ['iran-water-quality']
+    assert not basis['live_search'] and not basis['locally_validated']

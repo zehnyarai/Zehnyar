@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import reasoningFixture from '../../tests/fixtures/decision-reasoning.json'
 // Regression test for the bug the owner hit on 2026-10-13: the offline APK hid the
 // "رضایت آگاهانه" checkbox while the analyze guard still demanded it, so pressing
 // «تحلیل تصویر و بررسی احتمال آفت» could only ever answer with a consent error.
@@ -33,6 +34,7 @@ const image = new File(
 )
 const text = () => document.body.textContent?.replace(/\s+/g, ' ') ?? ''
 const screened = {
+  decision_reasoning: reasoningFixture,
   title: 'برگ پسته',
   summary: 'لکه روشن روی برگ دیده می‌شود.',
   quality: 'نور کافی',

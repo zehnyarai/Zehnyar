@@ -67,6 +67,7 @@ export interface AnalysisData {
   nutrition_considerations?: string[]
   yield_quality_plan?: string[]
   monitoring_plan?: string[]
+  scientific_basis?: import('./evidence').ScientificBasis
 }
 export interface Report {
   id: string

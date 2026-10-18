@@ -1,3 +1,4 @@
+import reasoningFixture from '../tests/fixtures/decision-reasoning.json'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   DEFAULT_DIRECT_MODEL,
@@ -61,6 +62,7 @@ function stub(body: unknown, status = 200) {
   return calls
 }
 const photo = {
+  decision_reasoning: reasoningFixture,
   title: 'برگ پسته با لکه',
   summary: 'لکه‌های روشن روی سطح برگ دیده می‌شود.',
   quality: 'نور کافی، فوکوس متوسط',
@@ -206,6 +208,27 @@ describe('device-direct vision (owner key)', () => {
     expect(body.contents[0].parts.some((p) => p.inlineData?.data === '/9j/4AAQSkZJRg==')).toBe(true)
     expect(body.generationConfig.responseJsonSchema).toBeTruthy()
   })
+  it('rejects thin new scientific replies instead of presenting an empty paid report', async () => {
+    saveDirectSettings('gemini-2.5-flash', 'AIzaSyExampleExampleExample123')
+    const { decision_reasoning: _omitted, ...thin } = photo
+    stub(geminiReply(thin))
+    await expect(
+      analyzePhotosDirect(['data:image/jpeg;base64,AAAA'], EMPTY_CONTEXT)
+    ).rejects.toThrow('منطق بررسی')
+    stub(
+      geminiReply({
+        ...photo,
+        decision_reasoning: { ...reasoningFixture, discriminating_checks: [] },
+      })
+    )
+    await expect(
+      analyzePhotosDirect(['data:image/jpeg;base64,AAAA'], EMPTY_CONTEXT)
+    ).rejects.toThrow('منطق بررسی')
+    stub(geminiReply({ ...photo, observations: [] }))
+    await expect(
+      analyzePhotosDirect(['data:image/jpeg;base64,AAAA'], EMPTY_CONTEXT)
+    ).rejects.toThrow('مشاهده')
+  })
   it('computes SAR/RSC itself and never trusts the model for arithmetic', async () => {
     const water: LabInput = {
       kind: 'water',
@@ -226,6 +249,7 @@ describe('device-direct vision (owner key)', () => {
     saveDirectSettings('gemini-2.5-flash', 'AIzaSyExampleExampleExample123')
     stub(
       geminiReply({
+        decision_reasoning: reasoningFixture,
         title: 'آب چاه',
         summary: 'شوری و نسبت جذب سدیم بررسی شود.',
         findings: ['شوری در محدوده متوسط'],
@@ -559,6 +583,12 @@ describe('xAI model names stay current and self-heal', () => {
 
     const image = 'data:image/jpeg;base64,AAAA'
     calls.length = 0
+    setFetchImplementation((async (url: string, init: RequestInit) => {
+      calls.push({ url, init })
+      return new Response(
+        JSON.stringify({ choices: [{ message: { content: JSON.stringify(photo) } }] })
+      )
+    }) as unknown as typeof fetch)
     await analyzePhotosDirect([image], { ...EMPTY_CONTEXT })
     const photoBody = JSON.parse(String(calls[0].init.body)) as {
       messages: { role: string; content: { type: string }[] }[]

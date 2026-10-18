@@ -1,3 +1,4 @@
+import reasoningFixture from '../fixtures/decision-reasoning.json'
 import { test, expect } from '@playwright/test'
 
 test('reference header and every new screen are responsive and navigable', async ({ page }) => {
@@ -161,7 +162,7 @@ test('dated research library works offline and distinguishes source evidence fro
 }) => {
   await page.goto('./#/knowledge')
   await page.getByRole('button', { name: 'پژوهش و نوآوری', exact: true }).click()
-  await expect(page.locator('.research-card')).toHaveCount(24)
+  await expect(page.locator('.research-card')).toHaveCount(27)
   await page.setViewportSize({ width: 390, height: 844 })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await page.getByLabel('جستجوی پژوهش پسته').fill('آفلاتوکسین')
@@ -178,7 +179,7 @@ test('dated research library works offline and distinguishes source evidence fro
   await page.context().setOffline(true)
   await page.reload()
   await page.getByRole('button', { name: 'پژوهش و نوآوری', exact: true }).click()
-  await expect(page.locator('.research-card')).toHaveCount(24)
+  await expect(page.locator('.research-card')).toHaveCount(27)
 })
 
 test('offline edition offers on-device key activation and refuses to fake analysis', async ({
@@ -209,6 +210,7 @@ test('offline edition offers on-device key activation and refuses to fake analys
                     probe
                       ? { ok: true, model: 'gemini-2.5-flash' }
                       : {
+                          decision_reasoning: reasoningFixture,
                           title: 'برگ پسته',
                           summary: 'لکه روشن روی برگ دیده می‌شود؛ آزمایش برگ لازم است.',
                           quality: 'نور کافی',

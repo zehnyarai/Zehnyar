@@ -12,6 +12,7 @@ export type EvidenceKind =
   | 'news'
 export interface ResearchRecord {
   id: string
+  tags?: string[]
   title: string
   topic: string
   year: number | null
