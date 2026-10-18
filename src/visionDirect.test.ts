@@ -114,6 +114,19 @@ describe('device-direct vision (owner key)', () => {
       fallback: true,
     })
   })
+  it('repairs an old single-provider xAI key filed under Gemini without asking for another paste', () => {
+    store.set(
+      'pestino-direct-vision',
+      JSON.stringify({
+        provider: 'gemini',
+        model: 'gemini-2.5-flash',
+        key: 'xai-LegacyDummyOnly12345',
+      })
+    )
+    expect(directSettings()).toMatchObject({ provider: 'grok', key: 'xai-LegacyDummyOnly12345' })
+    expect(providerStatus().gemini.key_present).toBe(false)
+    expect(providerStatus().grok.key_present).toBe(true)
+  })
   it('sends the key in a header only, never in the URL or body', async () => {
     saveDirectSettings('gemini-2.5-flash', 'AIzaSyExampleExampleExample123')
     const calls = stub(geminiReply({ ok: true }))

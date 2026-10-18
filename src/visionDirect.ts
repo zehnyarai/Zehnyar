@@ -290,7 +290,7 @@ function readStored(): StoredSettings {
       ok: raw.ok === true,
       note: typeof raw.note === 'string' ? raw.note : '',
     }
-    return stored
+    return moveMisplacedKey(stored)
   } catch {
     return emptyStored()
   }
