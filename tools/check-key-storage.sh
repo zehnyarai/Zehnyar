@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # ONLY fresh disposable CI emulators. Never run uninstall commands on an owner's phone.
 set -euo pipefail
+if [ "${GITHUB_ACTIONS:-}" != "true" ] || [ "$(adb shell getprop ro.kernel.qemu | tr -d '\r')" != "1" ]; then
+  echo 'Refusing fixture install/cleanup: only a disposable GitHub Actions emulator is allowed.' >&2
+  exit 1
+fi
 adb install --no-streaming native-test-output/keyvault-app.apk
 adb install --no-streaming native-test-output/keyvault-tests.apk
 instrument() {

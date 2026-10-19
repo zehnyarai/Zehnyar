@@ -176,3 +176,31 @@ def test_both_delivery_paths_require_stable_signing_and_upgrade_probe_never_unin
     script = (ROOT / 'tools/check-key-storage.sh').read_text()
     middle = script.split('pestinoStage seed', 1)[1].split('pestinoStage verify', 1)[0]
     assert 'adb install -r' in middle and 'adb uninstall' not in middle and 'pm clear' not in middle
+
+
+def test_ci_requires_secrets_even_with_valid_public_identity(tmp_path):
+    fixture_repository(tmp_path)
+    (tmp_path / 'android/signing-identity.json').write_text(json.dumps(identity()))
+    output = tmp_path / 'outputs'
+    env = {k: v for k, v in os.environ.items() if not k.startswith('PESTINO_ANDROID_')}
+    env['GITHUB_OUTPUT'] = str(output)
+    command = ['python3', 'tools/signing_identity.py', '--ci-status']
+    missing = subprocess.run(command, cwd=tmp_path, env=env, capture_output=True, text=True)
+    assert missing.returncode == 0 and output.read_text() == 'ready=false\n'
+    output.unlink()
+    env.update(PESTINO_ANDROID_KEYSTORE_B64='test-placeholder-only', PESTINO_ANDROID_STORE_PASSWORD='test-password-only')
+    ready = subprocess.run(command, cwd=tmp_path, env=env, capture_output=True, text=True)
+    assert ready.returncode == 0 and output.read_text() == 'ready=true\n'
+    # Readiness is not cryptographic validation: the signer still has to decode/open/pin the actual key.
+    assert 'test-password-only' not in ready.stdout + ready.stderr
+
+
+def test_fixture_runner_rejects_a_non_ci_device_before_any_install_or_cleanup(tmp_path):
+    binary = tmp_path / 'adb'
+    binary.write_text('#!/bin/sh\necho "unsafe adb invocation" >&2\nexit 99\n')
+    binary.chmod(0o700)
+    result = subprocess.run(['bash', str(ROOT / 'tools/check-key-storage.sh')],
+                            env={**os.environ, 'PATH': str(tmp_path) + os.pathsep + os.environ['PATH'], 'GITHUB_ACTIONS': 'false'}, capture_output=True, text=True)
+    assert result.returncode == 1
+    assert 'Refusing fixture' in result.stderr
+    assert 'unsafe adb invocation' not in result.stderr
