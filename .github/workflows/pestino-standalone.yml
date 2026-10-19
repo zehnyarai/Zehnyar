@@ -8,6 +8,20 @@ concurrency:
   group: pestino-free-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  signing:
+    name: Stable signing readiness (no fallback identity)
+    runs-on: ubuntu-24.04
+    outputs:
+      ready: ${{ steps.identity.outputs.ready }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require an approved certificate and durable private signing material
+        id: identity
+        env:
+          PESTINO_ANDROID_KEYSTORE_B64: ${{ secrets.PESTINO_ANDROID_KEYSTORE_B64 }}
+          PESTINO_ANDROID_STORE_PASSWORD: ${{ secrets.PESTINO_ANDROID_STORE_PASSWORD }}
+        run: python3 tools/signing_identity.py --ci-status
+
   web:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -72,6 +86,7 @@ jobs:
           path: dist
 
   apk:
+    needs: signing
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -89,7 +104,7 @@ jobs:
         run: npm ci && npm run android:standalone
       - name: Use the hosted runner Android SDK
         run: bash tools/prepare-android-sdk.sh
-      - name: Build signed installable test APK
+      - name: Compile unsigned release and test fixtures (not distributable)
         working-directory: android
         run: |
           set +e
@@ -105,24 +120,31 @@ jobs:
           PYLOG
           fi
           exit "$result"
-      - name: Sign a non-debug compatibility installer (v1, v2 and v3)
+      - name: Sign ONLY with the pinned stable certificate
+        if: needs.signing.outputs.ready == 'true'
+        env:
+          PESTINO_ANDROID_KEYSTORE_B64: ${{ secrets.PESTINO_ANDROID_KEYSTORE_B64 }}
+          PESTINO_ANDROID_STORE_PASSWORD: ${{ secrets.PESTINO_ANDROID_STORE_PASSWORD }}
+          PESTINO_ANDROID_KEY_PASSWORD: ${{ secrets.PESTINO_ANDROID_KEY_PASSWORD }}
         run: bash tools/sign-compat-apk.sh
       - name: Verify actual installer and self-contained configuration
+        if: needs.signing.outputs.ready == 'true'
         run: |
           mkdir -p apk-output
-          test -s apk-output/Pestino-0.8.1.apk
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose apk-output/Pestino-0.8.1.apk | tee apk-output/signature-info.txt
-          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging apk-output/Pestino-0.8.1.apk > apk-output/package-info.txt
+          version="$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')"
+          test -s "apk-output/Pestino-$version.apk"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "apk-output/Pestino-$version.apk" | tee apk-output/signature-info.txt
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "apk-output/Pestino-$version.apk" > apk-output/package-info.txt
           grep -q "name='ir.pestino.app'" apk-output/package-info.txt
           grep -q 'پستینو' apk-output/package-info.txt
           # APK's declared minSdk is 24, so default verification may skip v1.
           # Verify JAR compatibility explicitly, without changing app minSdk.
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --min-sdk-version 23 --max-sdk-version 23 apk-output/Pestino-0.8.1.apk | tee apk-output/signature-v1-info.txt
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --min-sdk-version 23 --max-sdk-version 23 "apk-output/Pestino-$version.apk" | tee apk-output/signature-v1-info.txt
           grep -q 'Verified using v1 scheme (JAR signing): true' apk-output/signature-v1-info.txt
           grep -q 'Verified using v2 scheme (APK Signature Scheme v2): true' apk-output/signature-info.txt
           python3 - <<'PY'
           import json, zipfile
-          with zipfile.ZipFile('apk-output/Pestino-0.8.1.apk') as apk:
+          with zipfile.ZipFile('apk-output/Pestino-' + json.load(open('package.json'))['version'] + '.apk') as apk:
               config = json.loads(apk.read('assets/capacitor.config.json'))
               assert config['appId'] == 'ir.pestino.app'
               assert config['appName'] == 'پستینو'
@@ -131,7 +153,7 @@ jobs:
               assert 'assets/public/index.html' in apk.namelist()
               assert any(p.startswith('assets/public/assets/') and p.endswith('.js') for p in apk.namelist())
           PY
-          (cd apk-output && sha256sum Pestino-0.8.1.apk > Pestino-0.8.1.apk.sha256)
+          (cd apk-output && sha256sum "Pestino-$version.apk" > "Pestino-$version.apk.sha256")
       - name: Build dummy-key AndroidKeyStore instrumentation tests
         working-directory: android
         run: |
@@ -154,13 +176,16 @@ jobs:
               print('::notice title=APK verification details::' + value)
           PYSIGN
       - uses: actions/upload-artifact@v4
+        if: needs.signing.outputs.ready == 'true'
         with:
           name: pestino-android-installer
           path: apk-output/
           retention-days: 7
 
   install:
-    needs: apk
+    needs: [apk, signing]
+    env:
+      PESTINO_RELEASE_READY: ${{ needs.signing.outputs.ready }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
@@ -170,6 +195,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
+        if: needs.signing.outputs.ready == 'true'
         with:
           name: pestino-android-installer
           path: apk-output
@@ -181,7 +207,7 @@ jobs:
         run: |
           sudo chmod 666 /dev/kvm
           echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
-      - name: Install and launch the actual APK
+      - name: Prove key retention and test the signed installer only when configured
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api }}
@@ -192,7 +218,7 @@ jobs:
           disable-animations: true
           script: |
             bash tools/check-key-storage.sh
-            bash tools/check-android-install.sh
+            if [ "$PESTINO_RELEASE_READY" = "true" ]; then bash tools/check-android-install.sh; fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -222,7 +248,8 @@ jobs:
     # because download CDNs are unavailable in the agent sandbox. No SDK,
     # cache, signing key or user dataset is checked into Git.
     # Native assets do not use a service worker; PWA cache testing is independent.
-    needs: [web, apk, install]
+    needs: [web, apk, install, signing]
+    if: needs.signing.outputs.ready == 'true'
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -230,15 +257,30 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: arena/e819b607-zehnyar
+      - name: Reject identity rotation against the existing stable delivery
+        run: python3 -c 'from tools.signing_identity import load_identity, check_previous; check_previous(load_identity())'
       - uses: actions/download-artifact@v4
         with:
           name: pestino-android-installer
           path: installers
       - name: Publish the requested verified installer on the session branch only
         run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          printf 'Built source commit: %s\nThis APK is a non-debug, test-key-signed local-only compatibility build. Photo screening and soil/water interpretation run only after the owner stores a provider key on the device in the password-protected admin panel; a text-only connection test must pass first. Users never see model names. No hosted account, no gateway, no accuracy claim.\n' "$GITHUB_SHA" > installers/BUILD.txt
-          git add installers/Pestino-0.8.1.apk installers/Pestino-0.8.1.apk.sha256 installers/package-info.txt installers/signature-info.txt installers/signature-v1-info.txt installers/BUILD.txt
+          python3 - <<'PYPIN'
+          import json, hashlib, os
+          from pathlib import Path
+          from tools.signing_identity import load_identity, check_previous
+          identity = load_identity()
+          check_previous(identity)
+          record = json.loads(Path('installers/SIGNING.json').read_text())
+          assert record['source_commit'] == os.environ['GITHUB_SHA']
+          assert record['certificate_sha256'] == identity['certificate_sha256']
+          assert hashlib.sha256(Path('installers', record['apk_name']).read_bytes()).hexdigest() == record['apk_sha256']
+          PYPIN
+          printf 'Built source commit: %s\nThis APK uses the pinned stable signing identity recorded in SIGNING.json. It is NOT an in-place upgrade for an older random-key installer. Never uninstall the existing app to bypass signature mismatch. Saved provider keys remain device-private; no live owner-account or diagnostic-accuracy certification.\n' "$GITHUB_SHA" > installers/BUILD.txt
+          version="$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')"
+          git add "installers/Pestino-$version.apk" "installers/Pestino-$version.apk.sha256" installers/package-info.txt installers/signature-info.txt installers/signature-v1-info.txt installers/BUILD.txt installers/SIGNING.json
           git commit -m 'Deliver verified self-contained Pestino Android installer' || exit 1
           git push origin arena/e819b607-zehnyar

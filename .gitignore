@@ -33,3 +33,6 @@ deliverables/
 .private/
 
 native-test-output/
+
+*.p12
+*.pfx

@@ -1,4 +1,4 @@
-import { Download, Info, Smartphone } from 'lucide-react'
+import { Info, Smartphone } from 'lucide-react'
 import type { AppContext } from '../types'
 import { InfoBanner } from '../components/ui'
 
@@ -22,18 +22,15 @@ export default function Install({ ctx }: { ctx: AppContext }) {
             نسخه ۰.۸.۱ برای اندروید ۷ به بالا: تحلیل عکس و تفسیر آزمایش، دو تحلیل رایگان و سپس بستهٔ
             تومانی، و همهٔ دفتر باغ به‌صورت آفلاین. راه‌اندازی تحلیل فقط از «پنل مدیر» انجام می‌شود.
           </p>
-          <a
-            className="button primary"
-            href="https://raw.githubusercontent.com/zehnyarai/Zehnyar/arena/e819b607-zehnyar/installers/Pestino-0.8.1.apk"
-            target="_blank"
-            rel="noreferrer"
-          >
-            <Download size={18} />
-            دانلود APK پستینو ۰.۸.۱
-          </a>
+          <InfoBanner tone="warning">
+            انتشار فایل نصب تازه تا آماده شدن امضای ثابت متوقف است. نسخهٔ آزمایشی ۰.۸.۱،
+            به‌روزرسانیِ سازگار با همهٔ نصب‌های قبلی نیست؛ برای رفع اختلاف امضا برنامهٔ فعلی را حذف
+            نکنید.
+          </InfoBanner>
           <p className="section-description">
-            اندازه و SHA-256 هر نسخه در پوشهٔ نصب (`installers/`) و در `installers/BUILD.txt` است.
-            امضا آزمایشی است و کلید فروشگاهی ثابت نیست؛ پیش از نصب نسخهٔ تازه پشتیبان بگیرید.
+            کلیدهای قبلاً ذخیره‌شده روی همان نصب باقی می‌مانند. نیازی به ارسال دوبارهٔ کلیدهای سرویس
+            تحلیل نیست. آماده شدن سازوکار امضای ثابت، به معنی بازیابی امضای تصادفی نسخه‌های قدیمی
+            نیست.
           </p>
         </section>
         <section className="reference-card">
@@ -56,7 +53,8 @@ export default function Install({ ctx }: { ctx: AppContext }) {
       <InfoBanner tone="warning">
         <Info size={18} />
         <strong>پیش از تغییر نسخه، پشتیبان بگیرید.</strong> نسخه‌های آزمایشی ممکن است امضای متفاوت
-        داشته باشند و روی هم نصب نشوند. بدون پشتیبان برنامه یا داده‌ها را حذف نکنید.
+        داشته باشند و روی هم نصب نشوند. برای رفع این خطا برنامه یا داده‌ها را حذف نکنید، حتی اگر
+        پشتیبان گرفته‌اید.
         <button className="text-button" onClick={() => ctx.navigate('settings')}>
           داده‌ها و پشتیبان
         </button>

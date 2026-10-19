@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "status": "not_configured",
+  "package_id": "ir.pestino.app",
+  "key_alias": "pestino-release",
+  "certificate_sha256": null
+}

@@ -22,8 +22,17 @@ env:
 
 jobs:
   configuration:
+    outputs:
+      ready: ${{ steps.identity.outputs.ready }}
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      - id: identity
+        name: Require the same stable Android identity (no debug installer)
+        env:
+          PESTINO_ANDROID_KEYSTORE_B64: ${{ secrets.PESTINO_ANDROID_KEYSTORE_B64 }}
+          PESTINO_ANDROID_STORE_PASSWORD: ${{ secrets.PESTINO_ANDROID_STORE_PASSWORD }}
+        run: python3 tools/signing_identity.py --ci-status
       - name: Explain the build prerequisite
         env:
           PUBLIC_SERVER: ${{ inputs.server_url || vars.PESTINO_SERVER_URL }}
@@ -36,7 +45,9 @@ jobs:
           fi
 
   apk:
+    needs: configuration
     if: >-
+      needs.configuration.outputs.ready == 'true' &&
       github.ref == 'refs/heads/arena/e819b607-zehnyar' &&
       (inputs.server_url != '' || vars.PESTINO_SERVER_URL != '')
     runs-on: ubuntu-latest
@@ -66,25 +77,31 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew :app:assembleDebug --no-daemon --stacktrace
+          ./gradlew :app:assembleRelease --no-daemon --stacktrace
+      - name: Sign with the stable identity, never a fresh debug key
+        env:
+          PESTINO_ANDROID_KEYSTORE_B64: ${{ secrets.PESTINO_ANDROID_KEYSTORE_B64 }}
+          PESTINO_ANDROID_STORE_PASSWORD: ${{ secrets.PESTINO_ANDROID_STORE_PASSWORD }}
+          PESTINO_ANDROID_KEY_PASSWORD: ${{ secrets.PESTINO_ANDROID_KEY_PASSWORD }}
+        run: bash tools/sign-compat-apk.sh
       - name: Verify package and signature
         run: |
           mkdir -p apk-output
-          cp android/app/build/outputs/apk/debug/app-debug.apk apk-output/Pestino-0.8.1-test.apk
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose apk-output/Pestino-0.8.1-test.apk
-          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging apk-output/Pestino-0.8.1-test.apk > apk-output/package-info.txt
+          version="$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose "apk-output/Pestino-$version.apk"
+          "$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "apk-output/Pestino-$version.apk" > apk-output/package-info.txt
           grep -q "name='ir.pestino.app'" apk-output/package-info.txt
           grep -q 'پستینو' apk-output/package-info.txt
           python3 - <<'PY'
           import json, os, zipfile
-          with zipfile.ZipFile('apk-output/Pestino-0.8.1-test.apk') as apk:
+          with zipfile.ZipFile('apk-output/Pestino-' + json.load(open('package.json'))['version'] + '.apk') as apk:
               config = json.loads(apk.read('assets/capacitor.config.json'))
               assert config['appId'] == 'ir.pestino.app'
               assert config['appName'] == 'پستینو'
               assert config['server']['url'] == os.environ['CAPACITOR_SERVER_URL']
               assert 'classes.dex' in apk.namelist()
           PY
-          (cd apk-output && sha256sum Pestino-0.8.1-test.apk > Pestino-0.8.1-test.apk.sha256)
+          (cd apk-output && sha256sum "Pestino-$version.apk" > "Pestino-$version.apk.sha256")
       - uses: actions/upload-artifact@v4
         with:
           name: pestino-test-apk
@@ -94,4 +111,4 @@ jobs:
       - name: Describe test limitations
         run: |
           echo '## Installable Pestino test APK' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Artifact: pestino-test-apk. This is a debug-signed test build, not a production/store release. Real device testing, stable private release signing, scientific validation and service configuration are still required.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Artifact: pestino-test-apk. This uses the pinned stable certificate; it does not repair historical random-key installs. Switching hosted/standalone mode is not a proven data migration. Real device testing, secure signing-key backup, scientific validation and service configuration are still required.' >> "$GITHUB_STEP_SUMMARY"
