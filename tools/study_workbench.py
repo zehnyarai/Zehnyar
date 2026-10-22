@@ -130,7 +130,7 @@ def main(argv=None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     prep = sub.add_parser("prepare", help="collect verse and local tafsir source material")
     prep.add_argument("--start", required=True, help="verse id, e.g. 2:41")
-    prep.add_argument("--count", type=int, default=10)
+    prep.add_argument("--count", type=int, default=50)
     prep.add_argument("--output", type=Path, required=True)
     check = sub.add_parser("validate", help="check a completed batch; no files are changed")
     check.add_argument("batch", type=Path)
