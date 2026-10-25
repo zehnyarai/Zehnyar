@@ -53,6 +53,9 @@
       "apiBaseUrl": "",
       "datasetVersion": "2.0.0",
       "verifiedAt": "2026-10-25"
+    },
+    "experiments": {
+      "baseUrl": "/app"
     }
   }
 }

@@ -179,3 +179,19 @@ def test_api_costs_endpoint_returns_verified_fees():
 
 def test_api_unknown_country_returns_404():
     assert client.get("/api/countries/ZZ").status_code == 404
+
+
+def test_root_keeps_json_for_api_clients_and_redirects_browsers():
+    payload = client.get("/").json()
+    assert payload["name"] == "Zehnyar API"
+    assert payload["datasetVersion"] == DATASET["meta"]["version"]
+    browser = client.get("/", headers={"accept": "text/html"}, follow_redirects=False)
+    # 307 to /app/ when the web preview is built, unchanged JSON otherwise.
+    assert browser.status_code in (200, 307)
+
+
+def test_health_reports_dataset_shape():
+    health = client.get("/health").json()
+    assert health["status"] == "ok"
+    assert health["countries"] == 15
+    assert health["visas"] == 58

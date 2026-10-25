@@ -12,8 +12,9 @@ import time
 from typing import List, Optional
 
 import httpx
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 
 from .engine.engine import (
@@ -62,16 +63,44 @@ class AdvisorRequest(BaseModel):
     country: Optional[str] = None
 
 
+PREVIEW_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "mobile", "web-preview")
+
+
+def _preview_ready() -> bool:
+    return os.path.isfile(os.path.join(PREVIEW_DIR, "index.html"))
+
+
 @app.get("/")
-def root():
+def root(request: Request):
     dataset = load_dataset()
-    return {
+    info = {
         "name": "Zehnyar API",
         "version": API_VERSION,
         "datasetVersion": dataset["meta"]["version"],
         "lastVerified": dataset["meta"]["lastVerified"],
         "docs": "/docs",
     }
+    if _preview_ready():
+        info["app"] = "/app/"
+        if "text/html" in request.headers.get("accept", ""):
+            # Browsers get the visual app; API clients keep the JSON contract.
+            return RedirectResponse(url="/app/", status_code=307)
+    return info
+
+
+@app.get("/app", include_in_schema=False)
+def app_preview_redirect():
+    # The exported web build is served under /app/ so that "/" keeps its JSON contract.
+
+    if not _preview_ready():
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "messageFa": "نسخه وب ساخته نشده است. دستور «npm run preview:web» را در پوشه mobile اجرا کنید.",
+                "messageEn": "Web build not found. Run `npm run preview:web` inside mobile/.",
+            },
+        )
+    return RedirectResponse(url="/app/")
 
 
 @app.get("/health")
@@ -331,3 +360,10 @@ def checklist(visa_id: str):
                 "items": [{"id": f"doc_{i+1}", **item} for i, item in enumerate(base)],
             }
     raise HTTPException(status_code=404, detail={"messageFa": "این مسیر یافت نشد.", "messageEn": "Visa route not found."})
+
+
+if _preview_ready():
+    # Serve the static Expo web build (design preview of the mobile app) when present.
+    from fastapi.staticfiles import StaticFiles
+
+    app.mount("/app", StaticFiles(directory=PREVIEW_DIR, html=True), name="web-preview")
