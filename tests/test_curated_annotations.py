@@ -11,7 +11,7 @@ class CuratedAnnotationTests(unittest.TestCase):
         data = json.loads((static / "verse-study-annotations.json").read_text(encoding="utf-8"))
         registry = json.loads((static / "tafsir-sources.json").read_text(encoding="utf-8"))
         source_ids = {source["id"] for source in registry["sources"]}
-        expected = {f"1:{n}" for n in range(1, 8)} | {f"2:{n}" for n in range(1, 281)}
+        expected = {f"1:{n}" for n in range(1, 8)} | {f"2:{n}" for n in range(1, 287)}
         self.assertEqual(set(data["verses"]), expected)
         for verse_id, annotation in data["verses"].items():
             for section in ("notes", "messages", "principles", "framework", "thematic", "context", "network"):
