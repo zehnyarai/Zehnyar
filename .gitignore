@@ -23,3 +23,6 @@ release/*.aab
 release/*.keystore
 release/*
 !release/.gitkeep
+
+# Static web preview build output
+mobile/web-preview/
