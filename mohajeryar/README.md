@@ -69,7 +69,6 @@ mohajeryar/
 │   └── static/            # CSS، JS، فونت وزیرمتن، آیکون‌ها، Service Worker
 ├── tests/                 # ۵۳ آزمون موتور و API
 ├── mobile/android/        # پوستهٔ بومی Android/WebView
-├── scripts/               # ابزارهای ساخت
 ├── install.sh / install.bat
 └── Dockerfile
 ```
@@ -156,7 +155,6 @@ gradle -p mobile/android assembleDebug
 
 - `render.yaml` برای Render (پلن رایگان، دیسک پایدار برای SQLite)
 - `Dockerfile` و `docker-compose.yml` برای هر سروری
-- `fly.toml` نمونه برای Fly.io
 
 پس از استقرار، همان آدرس را در APK وارد کنید یا با مرورگر «افزودن به صفحهٔ اصلی» را بزنید تا نسخهٔ PWA نصب شود.
 

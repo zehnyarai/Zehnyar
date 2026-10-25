@@ -1,0 +1,66 @@
+name: Package Mohajeryar Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v1.0.0)"
+        required: true
+        default: "v1.0.0"
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Build installable archive
+        run: |
+          VERSION="${{ inputs.tag || github.ref_name }}"
+          NAME="mohajeryar-${VERSION#v}.zip"
+          echo "PACKAGE=$NAME" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=$VERSION" >> "$GITHUB_ENV"
+          cd mohajeryar
+          zip -qr "../$NAME" . \
+            -x "data/*.db*" \
+            -x "tests/*.db*" \
+            -x "**/__pycache__/*" \
+            -x "**/*.pyc" \
+            -x "mobile/android/.gradle/*" \
+            -x "mobile/android/build/*" \
+            -x "mobile/android/app/build/*" \
+            -x ".venv/*"
+          cd ..
+          ls -lh "$NAME"
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: "مهاجریار ${{ env.RELEASE_TAG }} — سامانه هوشمند انتخاب مسیر مهاجرت"
+          generate_release_notes: true
+          body: |
+            بستهٔ نصب مهاجریار (FastAPI + PWA + پوستهٔ اندروید).
+
+            ## نصب سریع
+            ```bash
+            unzip mohajeryar-*.zip -d mohajeryar
+            cd mohajeryar
+            ./install.sh
+            ./run.sh
+            ```
+            سپس <http://127.0.0.1:8000> را باز کنید. ویندوز: `install.bat` و `run.bat`.
+            داکر: `docker compose up --build`.
+
+            ## اندروید
+            APK جداگانه در Release با برچسب `apk-mohajeryar` منتشر می‌شود.
+
+            > این ابزار جایگزین مشاورهٔ حقوقی یا بررسی سفارت نیست.
+          files: ${{ env.PACKAGE }}

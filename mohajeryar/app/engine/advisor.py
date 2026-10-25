@@ -139,9 +139,11 @@ def rank_results(
 def overall_readiness(results: list[ProgramResult], profile: Profile) -> int:
     if not results:
         return 0
-    top = results[0]
-    best = max((r.readiness for r in results if r.status != "ineligible"), default=top.readiness)
-    base = round(best * 0.7 + top.readiness * 0.3)
+    ranked = [r for r in results if r.status != "ineligible"] or results[:1]
+    weights = (0.6, 0.25, 0.15)
+    weighted = sum(r.readiness * w for r, w in zip(ranked[:3], weights))
+    total_weight = sum(weights[: len(ranked[:3])])
+    base = round(weighted / total_weight)
     docs = profile.documents
     bonus = sum(
         1

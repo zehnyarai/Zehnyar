@@ -82,7 +82,15 @@ def _date(form: Mapping[str, Any]) -> date | None:
     return None
 
 
-def _language(form: Mapping[str, Any], prefix: str) -> LanguageProfile:
+LEVELS = {"none", "a1", "a2", "b1", "b2", "c1", "c2"}
+
+
+def _language(
+    form: Mapping[str, Any],
+    prefix: str,
+    errors: dict[str, str] | None = None,
+    label: str = "زبان",
+) -> LanguageProfile:
     def score(name: str) -> float | None:
         raw = _text(form, f"{prefix}_{name}")
         if not raw:
@@ -92,8 +100,14 @@ def _language(form: Mapping[str, Any], prefix: str) -> LanguageProfile:
         except ValueError:
             return None
 
+    level = (_text(form, f"{prefix}_level", "none") or "none").lower()
+    if level not in LEVELS:
+        if errors is not None:
+            errors.setdefault(f"{prefix}_level", f"سطح {label} انتخاب‌شده معتبر نیست.")
+        level = "none"
+
     data: dict[str, Any] = {
-        "level": _text(form, f"{prefix}_level", "none") or "none",
+        "level": level,
         "test": _text(form, f"{prefix}_test"),
         "listening": score("listening"),
         "reading": score("reading"),
@@ -103,7 +117,12 @@ def _language(form: Mapping[str, Any], prefix: str) -> LanguageProfile:
     clb = _optional_int(form, f"{prefix}_clb")
     if clb:
         data["clb"] = clb
-    return LanguageProfile.model_validate(data)
+    try:
+        return LanguageProfile.model_validate(data)
+    except ValidationError:
+        if errors is not None:
+            errors.setdefault(f"{prefix}_level", f"اطلاعات {label} معتبر نیست.")
+        return LanguageProfile()
 
 
 def parse_profile(form: Mapping[str, Any]) -> tuple[Profile | None, dict[str, str], dict[str, Any]]:
@@ -128,9 +147,9 @@ def parse_profile(form: Mapping[str, Any]) -> tuple[Profile | None, dict[str, st
         "eca": _bool(form, "eca"),
         "recognition": _text(form, "recognition", "unknown") or "unknown",
         "nz_qualification_level": _int(form, "nz_qualification_level"),
-        "english": _language(form, "english"),
-        "german": _language(form, "german"),
-        "french": _language(form, "french"),
+        "english": _language(form, "english", errors, "انگلیسی"),
+        "german": _language(form, "german", errors, "آلمانی"),
+        "french": _language(form, "french", errors, "فرانسه"),
         "occupation_title": _text(form, "occupation_title"),
         "occupation_code": _text(form, "occupation_code"),
         "occupation_shortage": _bool(form, "occupation_shortage"),
@@ -157,7 +176,7 @@ def parse_profile(form: Mapping[str, Any]) -> tuple[Profile | None, dict[str, st
         "passive_income_eur": _float(form, "passive_income_eur"),
         "remote_work": _bool(form, "remote_work"),
         "spouse_education": _text(form, "spouse_education", "none") or "none",
-        "spouse_english": _language(form, "spouse_english"),
+        "spouse_english": _language(form, "spouse_english", errors, "انگلیسی همسر"),
         "spouse_canadian_experience_years": _float(form, "spouse_canadian_experience_years"),
         "relatives_in": [c.upper() for c in _list(form, "relatives_in")],
         "prior_stay": [c.upper() for c in _list(form, "prior_stay")],

@@ -6,6 +6,13 @@
   <title>{% block title %}{{ brand }} | {{ tagline }}{% endblock %}</title>
   <meta name="description" content="{% block description %}ارزیابی شفاف ۱۲ مسیر مهاجرت به ۷ کشور بر پایه‌ی قواعد رسمی ۲۰۲۶؛ امتیاز، شکاف‌ها، هزینه، زمان و نقشه‌ی راه.{% endblock %}">
   <meta name="theme-color" content="#0e7c6b" media="(prefers-color-scheme: light)">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="{{ brand }}">
+  <meta property="og:title" content="{% block og_title %}{{ brand }} | {{ tagline }}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}ارزیابی ۱۲ مسیر مهاجرت به ۷ کشور با قواعد رسمی ۲۰۲۶؛ امتیاز، شکاف‌ها، هزینه، زمان و نقشه‌ی راه.{% endblock %}">
+  <meta property="og:image" content="/static/icons/icon-512.png">
+  <meta property="og:locale" content="fa_IR">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#0b1220" media="(prefers-color-scheme: dark)">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/static/icons/favicon.svg" type="image/svg+xml">

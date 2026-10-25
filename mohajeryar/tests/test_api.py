@@ -104,6 +104,17 @@ def test_validation_errors_return_422(client):
     response = client.post("/assess", data={"name": "", "birth_date": "2030-01-01"})
     assert response.status_code == 422
     assert "alert" in response.text
+    assert 'data-error-fields="birth_date"' in response.text
+
+
+def test_invalid_language_level_is_reported_not_crashed(client):
+    response = client.post(
+        "/assess",
+        data={"name": "زبان نامعتبر", "birth_date": "1994-01-01", "english_level": "z9"},
+    )
+    assert response.status_code == 422
+    assert "wizard-form" in response.text
+    assert "english_level" in response.text
 
 
 def test_profiles_lifecycle(client, assessment_id):
