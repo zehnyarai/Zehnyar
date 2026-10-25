@@ -1,0 +1,72 @@
+"""Curated occupation intelligence: Canadian NOC 2021 with TEER, Australian ANZSCO
+and a demand signal per destination.  Codes are indicative and must be confirmed
+against the official NOC/ANZSCO editions before filing.
+"""
+
+
+def occ(noc, teer, anzsco, fa, en, group_fa, group_en, demand, stem=False):
+    return {
+        "noc": noc,
+        "teer": teer,
+        "anzsco": anzsco,
+        "titleFa": fa,
+        "titleEn": en,
+        "groupFa": group_fa,
+        "groupEn": group_en,
+        "inDemand": demand,
+        "stem": stem,
+    }
+
+
+OCCUPATIONS = [
+    occ("21231", "1", "261313", "مهندس نرم‌افزار", "Software engineer", "فناوری اطلاعات", "Information technology", ["CA", "AU", "UK", "DE", "NL", "NZ", "SE", "DK", "AE"], stem=True),
+    occ("21232", "1", "261312", "برنامه‌نویس و توسعه‌دهنده نرم‌افزار", "Software developer", "فناوری اطلاعات", "Information technology", ["CA", "AU", "DE", "NL", "DK", "AE"], stem=True),
+    occ("21211", "1", "224114", "دانشمند داده", "Data scientist", "فناوری اطلاعات", "Information technology", ["CA", "AU", "UK", "DE", "NL", "DK"], stem=True),
+    occ("21220", "1", "262112", "متخصص امنیت سایبری", "Cybersecurity specialist", "فناوری اطلاعات", "Information technology", ["CA", "AU", "UK", "DE", "NL", "AE", "US"], stem=True),
+    occ("21234", "1", "261212", "توسعه‌دهنده وب", "Web developer", "فناوری اطلاعات", "Information technology", ["CA", "AU", "DE", "AE"], stem=True),
+    occ("21222", "1", "261111", "تحلیلگر سیستم‌های اطلاعاتی", "Information systems analyst", "فناوری اطلاعات", "Information technology", ["CA", "AU", "NL", "DK"], stem=True),
+    occ("21311", "1", "263111", "مهندس شبکه و زیرساخت", "Computer network engineer", "فناوری اطلاعات", "Information technology", ["CA", "AU", "DE", "DK"], stem=True),
+    occ("21301", "1", "233512", "مهندس مکانیک", "Mechanical engineer", "مهندسی", "Engineering", ["CA", "AU", "DE", "NL", "SE", "DK", "NZ"], stem=True),
+    occ("21310", "1", "233211", "مهندس عمران", "Civil engineer", "مهندسی", "Engineering", ["CA", "AU", "UK", "DE", "NL", "NZ", "SE", "OM"], stem=True),
+    occ("21321", "1", "233311", "مهندس برق", "Electrical engineer", "مهندسی", "Engineering", ["CA", "AU", "DE", "NL", "SE", "DK"], stem=True),
+    occ("21322", "1", "233511", "مهندس صنایع و تولید", "Industrial engineer", "مهندسی", "Engineering", ["CA", "DE", "NL", "SE", "DK"], stem=True),
+    occ("21300", "1", "233914", "مهندس فناوری ساخت", "Manufacturing engineer", "مهندسی", "Engineering", ["CA", "DE", "SE", "DK"], stem=True),
+    occ("22300", "2", "312212", "تکنسین مهندسی عمران", "Civil engineering technologist", "فنی و مهندسی", "Engineering technology", ["CA", "AU", "NZ", "OM"]),
+    occ("22310", "2", "312312", "تکنسین مهندسی برق", "Electrical engineering technologist", "فنی و مهندسی", "Engineering technology", ["CA", "AU", "NZ"]),
+    occ("31301", "1", "254418", "پرستار ثبت‌شده", "Registered nurse", "درمان و سلامت", "Health", ["CA", "AU", "UK", "DE", "NL", "NZ", "SE", "DK", "AE", "OM", "US"]),
+    occ("33102", "3", "423312", "بهیار و دستیار پرستاری", "Nursing assistant", "درمان و سلامت", "Health", ["CA", "DE", "SE", "DK", "AE", "OM"]),
+    occ("31100", "1", "253111", "پزشک عمومی", "General practitioner", "درمان و سلامت", "Health", ["CA", "AU", "UK", "DE", "NL", "NZ", "SE", "DK", "AE", "OM"]),
+    occ("31102", "1", "251513", "داروساز", "Pharmacist", "درمان و سلامت", "Health", ["CA", "AU", "UK", "DE", "NZ", "SE", "AE"]),
+    occ("31110", "1", "252311", "دندان‌پزشک", "Dentist", "درمان و سلامت", "Health", ["CA", "AU", "UK", "DE", "NZ", "SE", "DK", "AE"]),
+    occ("31202", "1", "252511", "فیزیوتراپیست", "Physiotherapist", "درمان و سلامت", "Health", ["CA", "AU", "UK", "DE", "NL", "NZ", "SE", "DK"]),
+    occ("31201", "1", "252411", "کاردرمانگر", "Occupational therapist", "درمان و سلامت", "Health", ["CA", "AU", "UK", "NZ", "SE", "DK"]),
+    occ("32101", "1", "253411", "روان‌پزشک", "Psychiatrist", "درمان و سلامت", "Health", ["CA", "AU", "UK", "NZ", "SE", "DK"]),
+    occ("41301", "1", "272511", "مددکار اجتماعی", "Social worker", "خدمات اجتماعی", "Social services", ["CA", "AU", "UK", "NZ", "SE", "DK"]),
+    occ("41220", "1", "241411", "دبیر متوسطه", "Secondary school teacher", "آموزش", "Education", ["CA", "AU", "UK", "NZ", "AE", "OM"]),
+    occ("41221", "1", "241111", "آموزگار ابتدایی", "Primary school teacher", "آموزش", "Education", ["CA", "AU", "UK", "NZ", "AE", "OM"]),
+    occ("41200", "1", "242111", "استاد دانشگاه و پژوهشگر", "University lecturer", "آموزش", "Education", ["CA", "AU", "UK", "DE", "NL", "NZ", "SE", "DK", "US"]),
+    occ("11100", "1", "221111", "حسابدار و حسابرس", "Accountant and auditor", "مالی و حسابداری", "Finance and accounting", ["CA", "AU", "UK", "NL", "AE", "OM", "NZ"]),
+    occ("12200", "2", "221112", "تکنسین حسابداری", "Accounting technician", "مالی و حسابداری", "Finance and accounting", ["CA", "AU", "NZ", "AE"]),
+    occ("10010", "0", "132211", "مدیر مالی", "Financial manager", "مدیریت", "Management", ["CA", "AU", "UK", "NL", "AE", "OM"]),
+    occ("11200", "1", "132312", "متخصص منابع انسانی", "Human resources professional", "مدیریت", "Management", ["CA", "AU", "UK", "NL", "AE"]),
+    occ("11202", "1", "225113", "متخصص بازاریابی", "Marketing specialist", "بازاریابی", "Marketing", ["CA", "AU", "UK", "NL", "AE", "DK"]),
+    occ("52100", "1", "232411", "طراح گرافیک", "Graphic designer", "طراحی", "Design", ["CA", "AU", "UK", "NL", "AE"]),
+    occ("52110", "1", "232511", "طراح داخلی", "Interior designer", "طراحی", "Design", ["CA", "AU", "AE"]),
+    occ("22212", "1", "233311", "نقشه‌بردار", "Surveyor", "مهندسی", "Engineering", ["CA", "AU", "NZ", "OM"], stem=True),
+    occ("72400", "2", "341111", "برقکار ساختمان", "Construction electrician", "فنی و حرفه‌ای", "Skilled trades", ["CA", "AU", "NZ", "SE", "DK", "OM"]),
+    occ("72200", "2", "341112", "برقکار صنعتی", "Industrial electrician", "فنی و حرفه‌ای", "Skilled trades", ["CA", "AU", "NZ", "SE", "DK"]),
+    occ("72300", "2", "334111", "لوله‌کش", "Plumber", "فنی و حرفه‌ای", "Skilled trades", ["CA", "AU", "NZ", "SE", "DK"]),
+    occ("72106", "2", "322313", "جوشکار", "Welder", "فنی و حرفه‌ای", "Skilled trades", ["CA", "AU", "NZ", "SE", "DK", "OM"]),
+    occ("72410", "2", "321211", "مکانیک خودرو", "Automotive technician", "فنی و حرفه‌ای", "Skilled trades", ["CA", "AU", "NZ", "SE", "DK", "OM"]),
+    occ("73400", "3", "721214", "اپراتور ماشین‌آلات سنگین", "Heavy equipment operator", "فنی و حرفه‌ای", "Skilled trades", ["CA", "AU", "NZ", "OM"]),
+    occ("73300", "3", "733111", "راننده کامیون", "Truck driver", "حمل‌ونقل", "Transport", ["CA", "AU", "NZ", "SE", "DK"]),
+    occ("63200", "3", "351311", "آشپز", "Cook", "خدمات غذایی", "Food services", ["CA", "AU", "NZ", "SE", "DK", "AE", "OM"]),
+    occ("63202", "3", "351411", "قناد", "Baker", "خدمات غذایی", "Food services", ["CA", "AU", "NZ", "SE", "DK"]),
+    occ("13100", "2", "551111", "کارشناس اداری", "Administrative officer", "اداری", "Administration", ["CA", "AU", "NZ", "AE"]),
+    occ("64100", "4", "621111", "فروشنده فروشگاه", "Retail salesperson", "فروش", "Retail", ["CA", "AU", "NZ", "AE"]),
+    occ("65200", "4", "431511", "خدمات‌کار رستوران", "Food service attendant", "خدمات غذایی", "Food services", ["CA", "AU", "NZ", "AE"]),
+    occ("51120", "1", "212111", "تهیه‌کننده و کارگردان", "Producer and director", "رسانه", "Media", ["CA", "AU", "UK", "US"]),
+    occ("53110", "1", "232411", "عکاس", "Photographer", "رسانه", "Media", ["CA", "AU", "AE"]),
+    occ("21230", "1", "261399", "مهندس تست و تضمین کیفیت نرم‌افزار", "Software quality engineer", "فناوری اطلاعات", "Information technology", ["CA", "AU", "DE", "NL", "AE"], stem=True),
+    occ("21233", "2", "261399", "کارشناس پشتیبانی شبکه", "Network support technician", "فناوری اطلاعات", "Information technology", ["CA", "AU", "DE", "AE"]),
+]
