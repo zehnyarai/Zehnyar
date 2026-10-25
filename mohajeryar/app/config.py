@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.0.2"
 
 
 def _flag(name: str, default: str = "0") -> bool:
