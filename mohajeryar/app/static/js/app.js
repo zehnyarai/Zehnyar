@@ -405,7 +405,17 @@
       if (box) box.checked = true;
     }
 
-    wizard.addEventListener("submit", () => {
+    wizard.addEventListener("submit", (event) => {
+      if (current < total) {
+        // جلوگیری از ارسال زودهنگام با کلید Enter
+        event.preventDefault();
+        if (next) next.click();
+        return;
+      }
+      if (!validateStep()) {
+        event.preventDefault();
+        return;
+      }
       if (submit) {
         submit.disabled = true;
         submit.textContent = "در حال محاسبه…";
