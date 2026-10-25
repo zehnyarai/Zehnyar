@@ -1,5 +1,6 @@
 import React from 'react';
 import { Alert, View } from 'react-native';
+import Constants from 'expo-constants';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, gradients, radius, spacing } from '../theme';
@@ -7,6 +8,8 @@ import { useDirection, useI18n } from '../i18n';
 import { useAppState } from '../core/appState';
 import { totals, meta } from '../core/data';
 import { Button, Card, Divider, KeyValue, Pill, PressableScale, ScrollScreen, SectionTitle, Text, TrustBadge } from '../components/ui';
+
+const appVersion = (Constants.expoConfig && Constants.expoConfig.version) || '2.0.1';
 
 export default function ProfileScreen() {
   const { t, lang, pick, setLanguage } = useI18n();
@@ -75,7 +78,7 @@ export default function ProfileScreen() {
             <KeyValue label={t('profile.dataVersion')} value={meta.version} />
             <KeyValue label={t('profile.verifiedAt')} value={lang === 'fa' ? 'مهر ۱۴۰۵ / اکتبر ۲۰۲۶' : 'October 2026'} tone={colors.success} />
             <KeyValue label={t('profile.coverage')} value={`${totals.countries} • ${totals.visas} • ${totals.occupations}`} />
-            <KeyValue label={t('profile.developer')} value="2.0.0" />
+            <KeyValue label={t('profile.developer')} value={appVersion} />
           </View>
           <View style={{ marginTop: spacing.sm }}>
             <TrustBadge label={t('home.trusted')} value={t('home.verifiedValue')} />
