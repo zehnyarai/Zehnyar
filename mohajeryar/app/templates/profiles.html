@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon %}
+{% block title %}پروفایل‌های من | {{ brand }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">ذخیره‌شده روی این سرور</span>
+      <h1>پروفایل‌های من</h1>
+      <p>هر پروفایل، تاریخچه‌ی ارزیابی‌ها و امکان محاسبه‌ی مجدد با قواعد به‌روز را دارد.</p>
+    </div>
+    <a class="button button--primary" href="/wizard">{{ icon("plus", 17) }} پروفایل جدید</a>
+  </header>
+
+  <div class="stats-row">
+    <div class="stat-box"><strong>{{ stats.profiles | fa }}</strong><span>پروفایل</span></div>
+    <div class="stat-box"><strong>{{ stats.assessments | fa }}</strong><span>ارزیابی ثبت‌شده</span></div>
+  </div>
+
+  {% if profiles %}
+  <div class="profile-list">
+    {% for item in profiles %}
+    <article class="card profile-row">
+      <div class="profile-row__main">
+        <span class="avatar">{{ item.name[:1] }}</span>
+        <div>
+          <h2>{{ item.name }}</h2>
+          <p>
+            ساخته‌شده {{ item.created_at[:10] | fa_date }} · آخرین به‌روزرسانی {{ item.updated_at[:10] | fa_date }}
+          </p>
+          <div class="profile-row__meta">
+            <span class="badge badge--neutral">{{ item.assessments | fa }} ارزیابی</span>
+            {% if item.last_assessment %}<span class="meta-pill">{{ icon("clock", 14) }} آخرین: {{ item.last_assessment[:10] | fa_date }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="profile-row__actions">
+        {% if item.assessments %}
+        <a class="button button--primary button--small" href="/profiles/{{ item.id }}/latest">نتیجه‌ی آخر</a>
+        {% endif %}
+        <form method="post" action="/profiles/{{ item.id }}/reassess">
+          <button class="button button--ghost button--small" type="submit">{{ icon("refresh", 15) }} ارزیابی مجدد</button>
+        </form>
+        <a class="button button--ghost button--small" href="/profiles/{{ item.id }}/edit">{{ icon("edit", 15) }} ویرایش</a>
+        <form method="post" action="/profiles/{{ item.id }}/delete"
+              onsubmit="return confirm('این پروفایل و همه‌ی ارزیابی‌های آن حذف شود؟');">
+          <button class="button button--danger button--small" type="submit">{{ icon("trash", 15) }} حذف</button>
+        </form>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <span class="empty-state__icon">{{ icon("compass", 38) }}</span>
+    <h2>هنوز پروفایلی ذخیره نکرده‌اید</h2>
+    <p>با تکمیل شش گام کوتاه، ۱۲ مسیر مهاجرتی را برای شرایط خودتان مقایسه کنید.</p>
+    <a class="button button--primary button--large" href="/wizard">شروع اولین ارزیابی {{ icon("arrow-left", 17) }}</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

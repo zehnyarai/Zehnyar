@@ -1,0 +1,774 @@
+{
+  "schema_version": 1,
+  "verified_on": "2026-10-25",
+  "note": "همه‌ی اعداد و آستانه‌ها در تاریخ مشخص‌شده بررسی و از منابع رسمی استخراج شده‌اند. قوانین مهاجرت سالانه تغییر می‌کند؛ پیش از اقدام، صفحه‌ی رسمی هر برنامه را دوباره بررسی کنید.",
+  "programs": [
+    {
+      "id": "ca-ee",
+      "country_code": "CA",
+      "country_name": "کانادا",
+      "flag": "🇨🇦",
+      "name": "اکسپرس اینتری (FSW / CEC)",
+      "short_name": "اکسپرس اینتری",
+      "category": "skilled",
+      "summary": "مسیر اصلی نیروی کار ماهر به اقامت دائم کانادا؛ بر پایه‌ی امتیاز CRS و برنامه‌های فدرال.",
+      "official_url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry.html",
+      "timeline_months": "۶ تا ۱۲ ماه پس از ارسال درخواست کامل",
+      "pr_path": "اقامت دائم از بدو ورود",
+      "citizenship_path": "پس از ۳ سال (۱۰۹۵ روز) حضور فیزیکی در ۵ سال",
+      "fees": [
+        {
+          "label": "هزینه پردازش متقاضی اصلی",
+          "amount": 990,
+          "currency": "CAD",
+          "per": "applicant"
+        },
+        {
+          "label": "هزینه حق اقامت دائم (RPRF)",
+          "amount": 600,
+          "currency": "CAD",
+          "per": "applicant"
+        },
+        {
+          "label": "همسر همراه",
+          "amount": 1590,
+          "currency": "CAD",
+          "per": "spouse"
+        },
+        {
+          "label": "هر فرزند وابسته",
+          "amount": 270,
+          "currency": "CAD",
+          "per": "child"
+        }
+      ],
+      "extra_costs": [
+        {
+          "label": "آزمون زبان (آیلتس/سلپیپ)",
+          "amount": 300,
+          "currency": "CAD",
+          "approximate": true
+        },
+        {
+          "label": "ارزیابی مدارک (ECA)",
+          "amount": 250,
+          "currency": "CAD",
+          "approximate": true
+        },
+        {
+          "label": "ترجمه و تأیید مدارک",
+          "amount": 300,
+          "currency": "CAD",
+          "approximate": true
+        },
+        {
+          "label": "معاینات پزشکی و سوءپیشینه",
+          "amount": 400,
+          "currency": "CAD",
+          "approximate": true
+        }
+      ],
+      "sources": [
+        {
+          "title": "IRCC — Express Entry",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry.html"
+        },
+        {
+          "title": "IRCC — معیارهای CRS",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/check-score/crs-criteria.html"
+        },
+        {
+          "title": "IRCC — تغییرات ۳ نوامبر ۲۰۲۶",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/changes.html"
+        },
+        {
+          "title": "IRCC — جدول هزینه‌ها",
+          "url": "https://ircc.canada.ca/english/information/fees/fees.asp"
+        },
+        {
+          "title": "IRCC — Federal Skilled Worker",
+          "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/who-can-apply/federal-skilled-workers.html"
+        }
+      ],
+      "warnings": [
+        "از ۳ نوامبر ۲۰۲۶ محاسبه‌ی امتیاز برای سابقه‌ی کاری کانادا و پیشنهاد شغلی تغییر می‌کند و قرعه‌کشی‌ها حدود دو هفته متوقف می‌شود.",
+        "داشتن ۶۷ امتیاز FSW شرط ورود به استخر است؛ دعوت شدن به امتیاز CRS رقابتی نیاز دارد."
+      ]
+    },
+    {
+      "id": "de-bluecard",
+      "country_code": "DE",
+      "country_name": "آلمان",
+      "flag": "🇩🇪",
+      "name": "کارت آبی اروپا (EU Blue Card)",
+      "short_name": "کارت آبی",
+      "category": "work",
+      "summary": "اقامت کاری برای متخصصان دارای مدرک دانشگاهی یا تجربه‌ی هم‌ارز، با پیشنهاد شغلی و حداقل حقوق سالانه.",
+      "official_url": "https://www.make-it-in-germany.com/en/visa-residence/types/eu-blue-card",
+      "timeline_months": "۲ تا ۴ ماه (با روش تسریع‌شده کمتر)",
+      "pr_path": "اقامت دائم پس از ۲۱ ماه با آلمانی B1 یا ۲۷ ماه با A1",
+      "citizenship_path": "پس از ۵ سال اقامت قانونی (با شرایط زبان و درآمد)",
+      "fees": [
+        {
+          "label": "ویزای ملی (D-Visa)",
+          "amount": 75,
+          "currency": "EUR",
+          "per": "applicant"
+        },
+        {
+          "label": "صدور کارت اقامت",
+          "amount": 100,
+          "currency": "EUR",
+          "per": "applicant"
+        }
+      ],
+      "extra_costs": [
+        {
+          "label": "ترجمه و تأیید مدارک",
+          "amount": 300,
+          "currency": "EUR",
+          "approximate": true
+        },
+        {
+          "label": "بیمه درمانی و اثبات تمکن",
+          "amount": 400,
+          "currency": "EUR",
+          "approximate": true
+        },
+        {
+          "label": "آزمون زبان آلمانی (در صورت نیاز)",
+          "amount": 200,
+          "currency": "EUR",
+          "approximate": true
+        }
+      ],
+      "sources": [
+        {
+          "title": "Make it in Germany — EU Blue Card",
+          "url": "https://www.make-it-in-germany.com/en/visa-residence/types/eu-blue-card"
+        },
+        {
+          "title": "Make it in Germany — اقامت دائم",
+          "url": "https://www.make-it-in-germany.com/en/living-in-germany/permanent-residence"
+        },
+        {
+          "title": "ANABIN — پایگاه شناسایی مدارک",
+          "url": "https://anabin.kmk.org/anabin.html"
+        }
+      ],
+      "warnings": [
+        "آستانه‌ی حقوق ۲۰۲۶: ۵۰٬۷۰۰ یورو در سال؛ برای مشاغل کمبود نیرو، فارغ‌التحصیلان سه سال اخیر و متخصصان IT بدون مدرک: ۴۵٬۹۳۴٫۲۰ یورو.",
+        "مدرک باید در آلمان «شناخته‌شده» باشد؛ نتیجه‌ی ANABIN را قبل از اقدام بررسی کنید."
+      ]
+    },
+    {
+      "id": "de-chancenkarte",
+      "country_code": "DE",
+      "country_name": "آلمان",
+      "flag": "🇩🇪",
+      "name": "کارت فرصت (Chancenkarte)",
+      "short_name": "کارت فرصت",
+      "category": "job_search",
+      "summary": "ویزای جست‌وجوی کار تا ۱۲ ماه بدون پیشنهاد شغلی؛ بر پایه‌ی سیستم امتیازی (حداقل ۶ امتیاز).",
+      "official_url": "https://www.make-it-in-germany.com/en/visa-residence/types/opportunity-card",
+      "timeline_months": "۱ تا ۳ ماه",
+      "pr_path": "مسیر مستقیم اقامت دائم نیست؛ پس از یافتن شغل به کارت آبی یا ویزای کار تبدیل می‌شود",
+      "citizenship_path": "پس از ۵ سال اقامت قانونی و تبدیل به اقامت کاری",
+      "fees": [
+        {
+          "label": "ویزای ملی (D-Visa)",
+          "amount": 75,
+          "currency": "EUR",
+          "per": "applicant"
+        },
+        {
+          "label": "تبدیل به اقامت کاری پس از یافتن شغل",
+          "amount": 100,
+          "currency": "EUR",
+          "per": "applicant",
+          "note": "در برخی ایالت‌ها ۵۶ تا ۱۰۰ یورو"
+        }
+      ],
+      "extra_costs": [
+        {
+          "label": "اثبات تمکن مالی (۱۲ ماه × ۱٬۰۹۱ یورو)",
+          "amount": 13092,
+          "currency": "EUR",
+          "approximate": false,
+          "note": "پول شما می‌ماند؛ سپرده‌ی مسدود یا قرارداد کار پاره‌وقت پذیرفته است.",
+          "refundable": true
+        },
+        {
+          "label": "ترجمه و تأیید مدارک",
+          "amount": 300,
+          "currency": "EUR",
+          "approximate": true
+        },
+        {
+          "label": "بیمه درمانی",
+          "amount": 650,
+          "currency": "EUR",
+          "approximate": true
+        }
+      ],
+      "sources": [
+        {
+          "title": "Make it in Germany — Opportunity Card",
+          "url": "https://www.make-it-in-germany.com/en/visa-residence/types/opportunity-card"
+        },
+        {
+          "title": "Make it in Germany — سیستم امتیازدهی",
+          "url": "https://www.make-it-in-germany.com/en/visa-residence/types/opportunity-card/points-system"
+        }
+      ],
+      "warnings": [
+        "حداقل ۶ امتیاز لازم است؛ داشتن مدرک کاملاً شناخته‌شده مسیر مستقیم است.",
+        "برای مسیر امتیازی، آلمانی A1 یا انگلیسی B2 حداقل شرط زبان است."
+      ]
+    },
+    {
+      "id": "nl-hsm",
+      "country_code": "NL",
+      "country_name": "هلند",
+      "flag": "🇳🇱",
+      "name": "مهاجر متخصص (Kennismigrant)",
+      "short_name": "مهاجر متخصص",
+      "category": "work",
+      "summary": "اقامت کاری سریع با کارفرمای «حامی شناخته‌شده» و حداقل حقوق ماهانه بر اساس سن.",
+      "official_url": "https://ind.nl/en/residence-permits/work/highly-skilled-migrant",
+      "timeline_months": "۲ تا ۳ ماه (در عمل گاهی ۲ هفته)",
+      "pr_path": "اقامت دائم پس از ۵ سال اقامت مستمر",
+      "citizenship_path": "پس از ۵ سال اقامت و آزمون زبان/شهروندی",
+      "fees": [
+        {
+          "label": "هزینه‌ی درخواست IND",
+          "amount": 423,
+          "currency": "EUR",
+          "per": "applicant"
+        }
+      ],
+      "extra_costs": [
+        {
+          "label": "ترجمه و تأیید مدارک",
+          "amount": 250,
+          "currency": "EUR",
+          "approximate": true
+        },
+        {
+          "label": "بیمه درمانی هلند",
+          "amount": 600,
+          "currency": "EUR",
+          "approximate": true
+        }
+      ],
+      "sources": [
+        {
+          "title": "IND — درآمد مورد نیاز ۲۰۲۶",
+          "url": "https://ind.nl/en/required-amounts-income-requirements"
+        },
+        {
+          "title": "IND — هزینه‌های درخواست",
+          "url": "https://ind.nl/en/fees-costs-of-an-application"
+        },
+        {
+          "title": "IND — فهرست حامیان شناخته‌شده",
+          "url": "https://ind.nl/en/public-register-recognised-sponsors"
+        }
+      ],
+      "warnings": [
+        "بدون کارفرمای حامی شناخته‌شده (Recognised Sponsor) این مسیر ممکن نیست.",
+        "آستانه‌ی ۲۰۲۶: ۳۰ سال و بیشتر ۵٬۹۴۲ یورو؛ زیر ۳۰ سال ۴٬۳۵۷ یورو؛ معیار کاهش‌یافته ۳٬۱۲۲ یورو در ماه (بدون حقوق تعطیلات)."
+      ]
+    },
+    {
+      "id": "nl-bluecard",
+      "country_code": "NL",
+      "country_name": "هلند",
+      "flag": "🇳🇱",
+      "name": "کارت آبی اروپا (هلند)",
+      "short_name": "کارت آبی",
+      "category": "work",
+      "summary": "اقامت کاری برای دارندگان مدرک آموزش عالی با آستانه‌ی حقوق بالاتر؛ مسیر کم‌دردسر برای جابه‌جایی در اروپا.",
+      "official_url": "https://ind.nl/en/residence-permits/work/eu-blue-card",
+      "timeline_months": "۱ تا ۳ ماه",
+      "pr_path": "اقامت دائم هلند پس از ۵ سال؛ امکان جابه‌جایی به کشورهای اروپایی پس از ۱۲ ماه",
+      "citizenship_path": "پس از ۵ سال اقامت و آزمون زبان/شهروندی",
+      "fees": [
+        {
+          "label": "هزینه‌ی درخواست IND",
+          "amount": 423,
+          "currency": "EUR",
+          "per": "applicant"
+        }
+      ],
+      "extra_costs": [
+        {
+          "label": "ترجمه و تأیید مدارک",
+          "amount": 250,
+          "currency": "EUR",
+          "approximate": true
+        }
+      ],
+      "sources": [
+        {
+          "title": "IND — درآمد مورد نیاز ۲۰۲۶",
+          "url": "https://ind.nl/en/required-amounts-income-requirements"
+        },
+        {
+          "title": "IND — EU Blue Card",
+          "url": "https://ind.nl/en/residence-permits/work/eu-blue-card"
+        }
+      ],
+      "warnings": [
+        "آستانه‌ی ۲۰۲۶: ۵٬۹۴۲ یورو در ماه؛ معیار کاهش‌یافته برای فارغ‌التحصیلان سه سال اخیر ۴٬۷۵۴ یورو در ماه.",
+        "مدرک باید حداقل سه سال آموزش عالی باشد."
+      ]
+    },
+    {
+      "id": "uk-skilled",
+      "country_code": "GB",
+      "country_name": "بریتانیا",
+      "flag": "🇬🇧",
+      "name": "ویزای کارگر ماهر (Skilled Worker)",
+      "short_name": "کارگر ماهر",
+      "category": "work",
+      "summary": "ویزای کاری با حمایت کارفرمای دارای مجوز و حداقل حقوق سالانه؛ مسیر اقامت دائم پس از ۵ سال.",
+      "official_url": "https://www.gov.uk/skilled-worker-visa",
+      "timeline_months": "۳ هفته تا ۳ ماه پس از دریافت گواهی حمایت",
+      "pr_path": "اقامت دائم (ILR) پس از ۵ سال",
+      "citizenship_path": "یک سال پس از اقامت دائم (حدود ۶ سال)",
+      "fees": [
+        {
+          "label": "هزینه‌ی ویزا (تا ۳ سال)",
+          "amount": 819,
+          "currency": "GBP",
+          "per": "applicant"
+        },
+        {
+          "label": "هزینه‌ی ویزا (بیش از ۳ سال)",
+          "amount": 1618,
+          "currency": "GBP",
+          "per": "applicant"
+        },
+        {
+          "label": "هزینه‌ی سلامت (IHS) هر سال",
+          "amount": 1035,
+          "currency": "GBP",
+          "per": "applicant",
+          "per_year": true
+        }
+      ],
+      "extra_costs": [
+        {
+          "label": "اثبات تمکن (۹۰ روز)",
+          "amount": 1270,
+          "currency": "GBP",
+          "note": "پول شما می‌ماند",
+          "refundable": true
+        },
+        {
+          "label": "آزمون زبان انگلیسی",
+          "amount": 200,
+          "currency": "GBP",
+          "approximate": true
+        },
+        {
+          "label": "ترجمه و تأیید مدارک",
+          "amount": 200,
+          "currency": "GBP",
+          "approximate": true
+        }
+      ],
+      "sources": [
+        {
+          "title": "GOV.UK — Skilled Worker visa",
+          "url": "https://www.gov.uk/skilled-worker-visa"
+        },
+        {
+          "title": "GOV.UK — شرایط حقوق",
+          "url": "https://www.gov.uk/skilled-worker-visa/your-job"
+        },
+        {
+          "title": "GOV.UK — هزینه‌ها",
+          "url": "https://www.gov.uk/skilled-worker-visa/how-much-it-costs"
+        }
+      ],
+      "warnings": [
+        "از ۸ ژانویه ۲۰۲۶ حداقل سطح زبان انگلیسی از B1 به B2 افزایش یافته است.",
+        "آستانه‌ی عمومی ۲۰۲۶: ۴۱٬۷۰۰ پوند در سال یا «نرخ رایج» شغل — هر کدام بالاتر باشد."
+      ]
+    },
+    {
+      "id": "au-189",
+      "country_code": "AU",
+      "country_name": "استرالیا",
+      "flag": "🇦🇺",
+      "name": "ویزای مستقل ماهر (Subclass 189)",
+      "short_name": "مستقل ۱۸۹",
+      "category": "skilled",
+      "summary": "اقامت دائم بدون حمایت کارفرما یا ایالت؛ بر پایه‌ی امتیاز، ارزیابی مهارت و دعوت‌نامه.",
+      "official_url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skilled-independent-189",
+      "timeline_months": "۶ تا ۱۲ ماه پس از دعوت‌نامه",
+      "pr_path": "اقامت دائم از بدو ورود",
+      "citizenship_path": "پس از ۴ سال اقامت (شامل ۱۲ ماه اقامت دائم)",
+      "fees": [
+        {
+          "label": "هزینه‌ی ویزا — متقاضی اصلی",
+          "amount": 6135,
+          "currency": "AUD",
+          "per": "applicant"
+        },
+        {
+          "label": "همسر/شریک",
+          "amount": 3070,
+          "currency": "AUD",
+          "per": "spouse"
+        },
+        {
+          "label": "هر فرزند",
+          "amount": 1540,
+          "currency": "AUD",
+          "per": "child"
+        }
+      ],
+      "extra_costs": [
+        {
+          "label": "ارزیابی مهارت",
+          "amount": 800,
+          "currency": "AUD",
+          "approximate": true
+        },
+        {
+          "label": "آزمون زبان انگلیسی",
+          "amount": 400,
+          "currency": "AUD",
+          "approximate": true
+        },
+        {
+          "label": "معاینات پزشکی و سوءپیشینه",
+          "amount": 600,
+          "currency": "AUD",
+          "approximate": true
+        }
+      ],
+      "sources": [
+        {
+          "title": "Home Affairs — Subclass 189",
+          "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skilled-independent-189"
+        },
+        {
+          "title": "Home Affairs — جدول امتیاز ۱۸۹",
+          "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skilled-independent-189/points-table"
+        }
+      ],
+      "warnings": [
+        "حداقل ۶۵ امتیاز شرط قانونی است، اما در دورهای اخیر دعوت‌نامه‌ها معمولاً با امتیاز بسیار بالاتر صادر شده‌اند.",
+        "ارزیابی مهارت (Skills Assessment) و شغل در فهرست مشاغل الزامی است."
+      ]
+    },
+    {
+      "id": "au-190",
+      "country_code": "AU",
+      "country_name": "استرالیا",
+      "flag": "🇦🇺",
+      "name": "ویزای نامزدشده‌ی ایالتی (Subclass 190)",
+      "short_name": "نامزدشده ۱۹۰",
+      "category": "skilled",
+      "summary": "اقامت دائم با نامزدی یک ایالت یا قلمرو؛ ۵ امتیاز اضافه و نیاز به تعهد اقامت در ایالت.",
+      "official_url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skilled-nominated-190",
+      "timeline_months": "۶ تا ۱۲ ماه پس از دعوت‌نامه",
+      "pr_path": "اقامت دائم از بدو ورود",
+      "citizenship_path": "پس از ۴ سال اقامت (شامل ۱۲ ماه اقامت دائم)",
+      "fees": [
+        {
+          "label": "هزینه‌ی ویزا — متقاضی اصلی",
+          "amount": 6140,
+          "currency": "AUD",
+          "per": "applicant"
+        },
+        {
+          "label": "همسر/شریک",
+          "amount": 3070,
+          "currency": "AUD",
+          "per": "spouse"
+        },
+        {
+          "label": "هر فرزند",
+          "amount": 1535,
+          "currency": "AUD",
+          "per": "child"
+        }
+      ],
+      "extra_costs": [
+        {
+          "label": "ارزیابی مهارت",
+          "amount": 800,
+          "currency": "AUD",
+          "approximate": true
+        },
+        {
+          "label": "هزینه‌ی نامزدی ایالت",
+          "amount": 350,
+          "currency": "AUD",
+          "approximate": true
+        },
+        {
+          "label": "آزمون زبان و مدارک",
+          "amount": 700,
+          "currency": "AUD",
+          "approximate": true
+        }
+      ],
+      "sources": [
+        {
+          "title": "Home Affairs — Subclass 190",
+          "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skilled-nominated-190"
+        },
+        {
+          "title": "Home Affairs — جدول امتیازها",
+          "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skilled-nominated-190/points-table"
+        }
+      ],
+      "warnings": [
+        "هر ایالت شرایط و فهرست مشاغل مستقل خود را دارد و ممکن است هزینه‌ی نامزدی جداگانه بگیرد."
+      ]
+    },
+    {
+      "id": "au-491",
+      "country_code": "AU",
+      "country_name": "استرالیا",
+      "flag": "🇦🇺",
+      "name": "ویزای کار منطقه‌ای (Subclass 491)",
+      "short_name": "منطقه‌ای ۴۹۱",
+      "category": "skilled",
+      "summary": "ویزای موقت ۵ ساله با نامزدی منطقه‌ای؛ ۱۵ امتیاز اضافه و مسیر اقامت دائم از طریق ویزای ۱۹۱.",
+      "official_url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skilled-work-regional-491",
+      "timeline_months": "۶ تا ۱۲ ماه پس از دعوت‌نامه",
+      "pr_path": "پس از ۳ سال اقامت و کار در منطقه با ویزای ۱۹۱",
+      "citizenship_path": "پس از ۴ سال اقامت (شامل ۱۲ ماه اقامت دائم)",
+      "fees": [
+        {
+          "label": "هزینه‌ی ویزا — متقاضی اصلی",
+          "amount": 6140,
+          "currency": "AUD",
+          "per": "applicant"
+        },
+        {
+          "label": "همسر/شریک",
+          "amount": 3070,
+          "currency": "AUD",
+          "per": "spouse"
+        },
+        {
+          "label": "هر فرزند",
+          "amount": 1535,
+          "currency": "AUD",
+          "per": "child"
+        }
+      ],
+      "extra_costs": [
+        {
+          "label": "ارزیابی مهارت",
+          "amount": 800,
+          "currency": "AUD",
+          "approximate": true
+        },
+        {
+          "label": "هزینه‌ی نامزدی منطقه‌ای",
+          "amount": 350,
+          "currency": "AUD",
+          "approximate": true
+        },
+        {
+          "label": "آزمون زبان و مدارک",
+          "amount": 700,
+          "currency": "AUD",
+          "approximate": true
+        }
+      ],
+      "sources": [
+        {
+          "title": "Home Affairs — Subclass 491",
+          "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skilled-work-regional-491"
+        },
+        {
+          "title": "Home Affairs — ویزای ۱۹۱",
+          "url": "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/skilled-regional-191"
+        }
+      ],
+      "warnings": [
+        "این ویزا موقت است و اقامت دائم مشروط به رعایت شرایط کار و اقامت منطقه‌ای در ۳ سال است."
+      ]
+    },
+    {
+      "id": "nz-smc",
+      "country_code": "NZ",
+      "country_name": "نیوزیلند",
+      "flag": "🇳🇿",
+      "name": "اقامت نیروی کار ماهر (SMC)",
+      "short_name": "نیروی کار ماهر",
+      "category": "work",
+      "summary": "اقامت مستقیم با پیشنهاد شغلی از کارفرمای معتبر و کسب ۶ امتیاز از مدرک، ثبت حرفه‌ای، درآمد یا سابقه‌ی کاری در نیوزیلند.",
+      "official_url": "https://www.immigration.govt.nz/visas/skilled-migrant-category-resident-visa/",
+      "timeline_months": "۳ تا ۶ ماه پس از دعوت‌نامه",
+      "pr_path": "اقامت (Resident) از بدو ورود؛ اقامت دائم (Permanent Resident) پس از ۲ سال",
+      "citizenship_path": "پس از ۵ سال اقامت",
+      "fees": [
+        {
+          "label": "هزینه‌ی درخواست + عوارض مهاجرت",
+          "amount": 6450,
+          "currency": "NZD",
+          "per": "applicant"
+        }
+      ],
+      "extra_costs": [
+        {
+          "label": "ارزیابی مدارک (IQA) در صورت نیاز",
+          "amount": 850,
+          "currency": "NZD",
+          "approximate": true
+        },
+        {
+          "label": "آزمون زبان انگلیسی",
+          "amount": 400,
+          "currency": "NZD",
+          "approximate": true
+        },
+        {
+          "label": "معاینات پزشکی و سوءپیشینه",
+          "amount": 500,
+          "currency": "NZD",
+          "approximate": true
+        }
+      ],
+      "sources": [
+        {
+          "title": "Immigration NZ — SMC",
+          "url": "https://www.immigration.govt.nz/visas/skilled-migrant-category-resident-visa/"
+        },
+        {
+          "title": "Immigration NZ — آستانه‌ی دستمزد",
+          "url": "https://www.immigration.govt.nz/live/resident-visas-to-live-in-new-zealand/skilled-residence-pathways-in-new-zealand/skilled-migrant-category-pathway-to-residence/pay-rates-for-the-skilled-migrant-category-resident-visa/"
+        }
+      ],
+      "warnings": [
+        "از ۹ مارس ۲۰۲۶ آستانه‌ی دستمزد SMC ساعتی ۳۵ دلار نیوزیلند است (برای مشاغل ANZSCO سطح ۱ تا ۳).",
+        "داشتن شغل یا پیشنهاد شغلی از کارفرمای معتبر الزامی است؛ این مسیر بدون پیشنهاد شغلی ممکن نیست."
+      ]
+    },
+    {
+      "id": "pt-d7",
+      "country_code": "PT",
+      "country_name": "پرتغال",
+      "flag": "🇵🇹",
+      "name": "ویزای D7 (درآمد غیرفعال)",
+      "short_name": "D7",
+      "category": "income",
+      "summary": "اقامت برای بازنشستگان و دارندگان درآمد غیرفعال پایدار (اجاره، سود سهام، حقوق بازنشستگی).",
+      "official_url": "https://vistos.mne.gov.pt/en/national-visas/necessary-documentation/residence-visas",
+      "timeline_months": "۳ تا ۶ ماه",
+      "pr_path": "اقامت دائم پس از ۵ سال",
+      "citizenship_path": "پس از ۵ سال اقامت قانونی و زبان A2",
+      "fees": [
+        {
+          "label": "ویزای ملی D",
+          "amount": 110,
+          "currency": "EUR",
+          "per": "applicant"
+        },
+        {
+          "label": "مجوز اقامت AIMA",
+          "amount": 186,
+          "currency": "EUR",
+          "per": "applicant",
+          "note": "۱۶۰ تا ۲۴۷ یورو بسته به مورد"
+        }
+      ],
+      "extra_costs": [
+        {
+          "label": "حساب بانکی، NIF و ترجمه",
+          "amount": 500,
+          "currency": "EUR",
+          "approximate": true
+        },
+        {
+          "label": "بیمه درمانی و اجاره/اقامت",
+          "amount": 900,
+          "currency": "EUR",
+          "approximate": true
+        }
+      ],
+      "sources": [
+        {
+          "title": "Vistos (وزارت خارجه پرتغال)",
+          "url": "https://vistos.mne.gov.pt/en/national-visas/necessary-documentation/residence-visas"
+        },
+        {
+          "title": "AIMA — مهاجرت و پناهندگی",
+          "url": "https://aima.gov.pt/en"
+        }
+      ],
+      "warnings": [
+        "حداقل درآمد ۲۰۲۶: ۹۲۰ یورو در ماه برای متقاضی اصلی؛ ۵۰٪ بیشتر برای همسر و ۳۰٪ برای هر فرزند.",
+        "حداقل پس‌انداز تقریبی ۱۱٬۰۴۰ یورو (۱۲ برابر درآمد ماهانه) و محل اقامت در پرتغال لازم است."
+      ]
+    },
+    {
+      "id": "pt-d8",
+      "country_code": "PT",
+      "country_name": "پرتغال",
+      "flag": "🇵🇹",
+      "name": "ویزای D8 (دیجیتال نومد)",
+      "short_name": "D8",
+      "category": "remote",
+      "summary": "اقامت برای دورکاران و فریلنسرهایی که درآمد فعال خود را از خارج پرتغال دریافت می‌کنند.",
+      "official_url": "https://vistos.mne.gov.pt/en/national-visas/necessary-documentation/residence-visas",
+      "timeline_months": "۳ تا ۶ ماه",
+      "pr_path": "اقامت دائم پس از ۵ سال",
+      "citizenship_path": "پس از ۵ سال اقامت قانونی و زبان A2",
+      "fees": [
+        {
+          "label": "ویزای ملی D",
+          "amount": 110,
+          "currency": "EUR",
+          "per": "applicant"
+        },
+        {
+          "label": "مجوز اقامت AIMA",
+          "amount": 186,
+          "currency": "EUR",
+          "per": "applicant",
+          "note": "۱۶۰ تا ۲۴۷ یورو بسته به مورد"
+        }
+      ],
+      "extra_costs": [
+        {
+          "label": "حساب بانکی، NIF و ترجمه",
+          "amount": 500,
+          "currency": "EUR",
+          "approximate": true
+        },
+        {
+          "label": "بیمه درمانی",
+          "amount": 400,
+          "currency": "EUR",
+          "approximate": true
+        }
+      ],
+      "sources": [
+        {
+          "title": "Vistos (وزارت خارجه پرتغال)",
+          "url": "https://vistos.mne.gov.pt/en/national-visas/necessary-documentation/residence-visas"
+        },
+        {
+          "title": "AIMA — مهاجرت و پناهندگی",
+          "url": "https://aima.gov.pt/en"
+        }
+      ],
+      "warnings": [
+        "حداقل درآمد ۲۰۲۶: ۳٬۶۸۰ یورو در ماه (۴ برابر حداقل دستمزد ملی)؛ برای همسر ۵۰٪ و هر فرزند ۳۰٪ اضافه.",
+        "درآمد باید از کارفرما یا مشتری خارج از پرتغال باشد."
+      ]
+    }
+  ]
+}

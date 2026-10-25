@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon, status_badge %}
+{% block title %}مقایسه‌ی مسیرها | {{ brand }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav class="breadcrumb" aria-label="مسیر صفحه">
+    <a href="/">خانه</a><span>/</span>
+    <a href="/results/{{ assessment.id }}">نتیجه‌ی ارزیابی</a><span>/</span>
+    <span>مقایسه</span>
+  </nav>
+
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">مقایسه‌ی موازی</span>
+      <h1>کدام مسیر برای شما مناسب‌تر است؟</h1>
+      <p>چهار مسیر را کنار هم ببینید؛ برای تغییر انتخاب، روی هر مسیر بزنید.</p>
+    </div>
+    <a class="button button--ghost button--small" href="/results/{{ assessment.id }}">بازگشت به نتیجه</a>
+  </header>
+
+  <div class="compare-picker" role="group" aria-label="انتخاب مسیر برای مقایسه">
+    {% for result in results %}
+    {% set is_selected = result in selected %}
+    {% set others = selected | rejectattr('program_id', 'equalto', result.program_id) | list %}
+    {% set chosen = others if is_selected else (others + [result]) %}
+    {% set qs = chosen | map(attribute='program_id') | join('&p=') %}
+    <a class="compare-chip {% if is_selected %}is-active{% endif %}"
+       href="/compare/{{ assessment.id }}{% if qs %}?p={{ qs }}{% endif %}"
+       aria-pressed="{{ 'true' if is_selected else 'false' }}">
+      <span>{{ result.country_flag }}</span> {{ result.program_name }}
+    </a>
+    {% endfor %}
+  </div>
+
+  <div class="compare-table-wrap">
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th scope="col">معیار</th>
+          {% for result in selected %}
+          <th scope="col">
+            <span class="compare-country">{{ result.country_flag }} {{ result.country_name }}</span>
+            <strong>{{ result.program_name }}</strong>
+            {{ status_badge(result) }}
+          </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">آمادگی</th>
+          {% for result in selected %}
+          <td>
+            <div class="compare-readiness">
+              <strong>{{ result.readiness | fa_percent }}</strong>
+              <div class="mini-bar"><span style="width: {{ result.readiness }}%"></span></div>
+            </div>
+          </td>
+          {% endfor %}
+        </tr>
+        <tr>
+          <th scope="row">امتیاز</th>
+          {% for result in selected %}
+          <td>
+            {% if result.score is not none %}
+            <strong>{{ result.score | fa }}</strong>{% if result.score_threshold %} <small>از {{ result.score_threshold | fa }}</small>{% endif %}
+            <br><small>{{ result.score_unit }}</small>
+            {% else %}—{% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        <tr>
+          <th scope="row">سطح رقابت</th>
+          {% for result in selected %}<td>{{ result.band_label or "—" }}</td>{% endfor %}
+        </tr>
+        <tr>
+          <th scope="row">هزینه‌ی تقریبی</th>
+          {% for result in selected %}<td>{{ result.total_cost_eur | fa }} یورو</td>{% endfor %}
+        </tr>
+        <tr>
+          <th scope="row">زمان پرونده</th>
+          {% for result in selected %}<td>{{ result.timeline_months }}</td>{% endfor %}
+        </tr>
+        <tr>
+          <th scope="row">اقامت دائم</th>
+          {% for result in selected %}<td>{{ result.pr_path }}</td>{% endfor %}
+        </tr>
+        <tr>
+          <th scope="row">شهروندی</th>
+          {% for result in selected %}<td>{{ result.citizenship_path }}</td>{% endfor %}
+        </tr>
+        <tr>
+          <th scope="row">مانع‌های اصلی</th>
+          {% for result in selected %}
+          <td>
+            {% if result.blockers %}
+            <ul class="compare-gaps">
+              {% for item in result.blockers[:3] %}<li>{{ item.label }}</li>{% endfor %}
+            </ul>
+            {% else %}<span class="ok-text">{{ icon("check", 14) }} بدون مانع اصلی</span>{% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        <tr>
+          <th scope="row">نقاط قوت</th>
+          {% for result in selected %}
+          <td>
+            {% if result.highlights %}
+            <ul class="compare-gaps compare-gaps--ok">
+              {% for item in result.highlights[:3] %}<li>{{ item }}</li>{% endfor %}
+            </ul>
+            {% else %}—{% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        <tr>
+          <th scope="row">منبع رسمی</th>
+          {% for result in selected %}
+          <td><a class="text-link" href="{{ result.official_url }}" target="_blank" rel="noopener">صفحه‌ی رسمی {{ icon("arrow-left", 13) }}</a></td>
+          {% endfor %}
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="compare-note">
+    {{ icon("info", 18) }}
+    <p>
+      هزینه‌ها و زمان‌ها تقریبی‌اند و به پرونده‌ی شما بستگی دارند. مسیرهایی که «نیازمند پیشنهاد شغلی» هستند،
+      تا زمانی که قرارداد کار ندارند در جدول با وضعیت مشخص نمایش داده می‌شوند.
+    </p>
+  </div>
+</div>
+{% endblock %}

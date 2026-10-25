@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon %}
+{% block title %}{{ brand }} | {{ tagline }}{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero__glow" aria-hidden="true"></div>
+  <div class="container hero__grid">
+    <div class="hero__copy">
+      <span class="eyebrow"><span class="eyebrow__dot"></span> نسخه‌ی ۲۰۲۶ · قواعد رسمی، بدون حدس</span>
+      <h1>مسیر مهاجرتت را<br><span class="text-gradient">با داده انتخاب کن</span>، نه با حدس.</h1>
+      <p class="hero__lead">
+        ۱۲ مسیر مهاجرتی در ۷ کشور را در یک ارزیابی مقایسه کن: امتیاز واقعی، شکاف‌های قابل رفع،
+        هزینه‌ی تقریبی، زمان و نقشه‌ی راه. همه‌چیز شفاف، بدون ثبت‌نام و با امکان اجرای محلی.
+      </p>
+      <div class="hero__actions">
+        <a class="button button--primary button--large" href="/wizard">
+          شروع ارزیابی رایگان
+          {{ icon("arrow-left", 18) }}
+        </a>
+        <a class="button button--ghost button--large" href="#paths">مشاهده‌ی مسیرها</a>
+      </div>
+      <ul class="hero__trust">
+        <li>{{ icon("check-circle", 16) }} ۱۲ مسیر · ۷ کشور</li>
+        <li>{{ icon("check-circle", 16) }} ۴۰+ معیار ارزیابی</li>
+        <li>{{ icon("check-circle", 16) }} داده روی سرور خودتان</li>
+      </ul>
+    </div>
+
+    <div class="hero__visual" aria-label="نمونه‌ی خروجی ارزیابی">
+      <div class="preview-card">
+        <div class="preview-card__head">
+          <span class="preview-card__badge">نمونه‌ی خروجی</span>
+          <span class="preview-card__date">ارزیابی ۶ گانه</span>
+        </div>
+        <div class="preview-card__body">
+          <div class="preview-ring">
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r="52" class="preview-ring__track"></circle>
+              <circle cx="60" cy="60" r="52" class="preview-ring__value"></circle>
+            </svg>
+            <div><strong>۷۸٪</strong><small>آمادگی کلی</small></div>
+          </div>
+          <div class="preview-list">
+            <div class="preview-row">
+              <span class="preview-row__flag">🇩🇪</span>
+              <div>
+                <strong>کارت آبی آلمان</strong>
+                <small>حقوق بالای آستانه · ۲۱ ماه تا اقامت دائم</small>
+              </div>
+              <span class="dot dot--green"></span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-row__flag">🇨🇦</span>
+              <div>
+                <strong>اکسپرس اینتری</strong>
+                <small>CRS ۴۸۲ · نیاز به ارتقای زبان</small>
+              </div>
+              <span class="dot dot--amber"></span>
+            </div>
+            <div class="preview-row">
+              <span class="preview-row__flag">🇳🇱</span>
+              <div>
+                <strong>مهاجر متخصص هلند</strong>
+                <small>نیازمند کارفرمای حامی</small>
+              </div>
+              <span class="dot dot--slate"></span>
+            </div>
+          </div>
+        </div>
+        <div class="preview-card__foot">
+          <span>{{ icon("shield", 15) }} ارزیابی قاعده‌محور</span>
+          <span>{{ icon("clock", 15) }} ۳ دقیقه</span>
+        </div>
+      </div>
+      <div class="hero__chip hero__chip--one">هزینه‌ها به یورو</div>
+      <div class="hero__chip hero__chip--two">نقشه‌ی راه مرحله‌به‌مرحله</div>
+    </div>
+  </div>
+</section>
+
+<section class="stats-strip" aria-label="خلاصه‌ی سامانه">
+  <div class="container stats-strip__grid">
+    <div><strong>۱۲</strong><span>مسیر مهاجرتی</span></div>
+    <div><strong>۷</strong><span>کشور مقصد</span></div>
+    <div><strong>۴۰+</strong><span>معیار و شرط</span></div>
+    <div><strong>۰</strong><span>ثبت‌نام لازم</span></div>
+  </div>
+</section>
+
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">چرا مهاجریار</span>
+      <h2>به‌جای ده‌ها وبلاگ پراکنده، یک تحلیل منسجم</h2>
+      <p>همه‌ی اعداد از قواعد رسمی می‌آیند و در یک موتور واحد، برای شرایط <em>شما</em> محاسبه می‌شوند.</p>
+    </div>
+    <div class="feature-grid">
+      <article class="feature-card">
+        <span class="feature-card__icon">{{ icon("target", 22) }}</span>
+        <h3>ارزیابی شخصی، نه عمومی</h3>
+        <p>سن، مدرک، زبان، سابقه، پیشنهاد شغلی و وضعیت خانواده در ۱۲ برنامه‌ی متفاوت سنجیده می‌شود.</p>
+      </article>
+      <article class="feature-card">
+        <span class="feature-card__icon">{{ icon("alert", 22) }}</span>
+        <h3>شکاف + راه‌حل</h3>
+        <p>فقط نمی‌گوییم «واجد شرایط نیستید»؛ می‌گوییم چه چیزی کم است، چقدر اثر دارد و چطور رفع می‌شود.</p>
+      </article>
+      <article class="feature-card">
+        <span class="feature-card__icon">{{ icon("wallet", 22) }}</span>
+        <h3>هزینه و زمان واقعی</h3>
+        <p>هزینه‌های دولتی، آزمون زبان، ارزیابی مدارک و مدت تقریبی هر مرحله به تفکیک متقاضی و همراهان.</p>
+      </article>
+      <article class="feature-card">
+        <span class="feature-card__icon">{{ icon("route", 22) }}</span>
+        <h3>نقشه‌ی راه اجرایی</h3>
+        <p>از انتخاب مسیر تا ثبت اقامت: مراحل، مدارک، ترتیب زمانی و مسیر اقامت دائم و شهروندی.</p>
+      </article>
+      <article class="feature-card">
+        <span class="feature-card__icon">{{ icon("book", 22) }}</span>
+        <h3>منبع و تاریخ بررسی</h3>
+        <p>هر برنامه به صفحه‌ی رسمی و تاریخ آخرین بازبینی وصل است؛ قواعد در فایل JSON قابل به‌روزرسانی‌اند.</p>
+      </article>
+      <article class="feature-card">
+        <span class="feature-card__icon">{{ icon("shield", 22) }}</span>
+        <h3>حریم خصوصی و آفلاین</h3>
+        <p>بدون حساب کاربری؛ پروفایل‌ها در دیتابیس خودتان ذخیره می‌شوند و اپلیکیشن نصب‌شدنی است.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="section section--tint" id="paths">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">مسیرها و کشورها</span>
+      <h2>۷ کشور، ۱۲ مسیر با قواعد متفاوت</h2>
+      <p>هر کشور منطق خودش را دارد: کانادا امتیاز CRS، آلمان حقوق و امتیاز، هلند حامی شغلی، استرالیا امتیاز مهارتی و پرتغال درآمد.</p>
+    </div>
+    <div class="country-grid">
+      {% for code, meta in countries.items() %}
+      <article class="country-card">
+        <div class="country-card__head">
+          <span class="country-card__flag">{{ meta.flag }}</span>
+          <div>
+            <h3>{{ meta.country_name }}</h3>
+            <span class="country-card__code">{{ code }}</span>
+          </div>
+        </div>
+        <ul class="country-card__programs">
+          {% for program in programs if program.country_code == code %}
+          <li>
+            <span>{{ program.short_name or program.name }}</span>
+            <span class="country-card__category">
+              {{ {"skilled": "مهارتی", "work": "کاری", "job_search": "جست‌وجوی کار", "income": "درآمدی", "remote": "دورکاری"}.get(program.category, program.category) }}
+            </span>
+          </li>
+          {% endfor %}
+        </ul>
+        <a class="country-card__link" href="/wizard?focus={{ code }}">ارزیابی برای {{ meta.country_name }} {{ icon("arrow-left", 15) }}</a>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section" id="how">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">در سه گام</span>
+      <h2>از پرسش تا برنامه‌ی اقدام</h2>
+    </div>
+    <ol class="steps-grid">
+      <li class="step-card">
+        <span class="step-card__num">۱</span>
+        <h3>پروفایل را بساز</h3>
+        <p>شش گام کوتاه: هویت، تحصیلات، زبان، سابقه‌ی کاری، وضعیت مالی و اولویت‌ها. حدود سه دقیقه.</p>
+      </li>
+      <li class="step-card">
+        <span class="step-card__num">۲</span>
+        <h3>نتیجه را مقایسه کن</h3>
+        <p>هر ۱۲ مسیر با امتیاز، وضعیت، شکاف‌های مشخص، هزینه و زمان رتبه‌بندی می‌شوند؛ مسیرها را کنار هم بگذار.</p>
+      </li>
+      <li class="step-card">
+        <span class="step-card__num">۳</span>
+        <h3>نقشه‌ی راه بگیر</h3>
+        <p>مراحل، مدارک و اقدام بعدی را ببین؛ ذخیره کن، چاپ بگیر یا از API استفاده کن.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="section section--tint">
+  <div class="container split">
+    <div class="split__copy">
+      <span class="eyebrow">شفافیت</span>
+      <h2>هر عدد، یک منبع</h2>
+      <p>
+        قواعد و آستانه‌ها در فایل <code class="code">app/rules/programs.json</code> نگهداری می‌شوند و
+        موتور ارزیابی در <code class="code">app/engine/</code> برای هر کشور جداگانه تست می‌شود.
+        آخرین بازبینی: <strong>{{ verified | fa_date }}</strong>.
+      </p>
+      <ul class="check-list">
+        <li>{{ icon("check", 16) }} آستانه‌های حقوق کانادا، آلمان، هلند و بریتانیا برای ۲۰۲۶</li>
+        <li>{{ icon("check", 16) }} جدول‌های امتیاز استرالیا و امتیاز CRS کانادا</li>
+        <li>{{ icon("check", 16) }} محاسبه‌ی هزینه با ارز اصلی و تبدیل تقریبی به یورو</li>
+        <li>{{ icon("check", 16) }} هشدار صریح برای تغییرات پیش‌رو (مثل CRS از ۳ نوامبر ۲۰۲۶)</li>
+      </ul>
+      <a class="text-link" href="/methodology">روش‌شناسی کامل و فهرست منابع {{ icon("arrow-left", 15) }}</a>
+    </div>
+    <div class="transparency-card">
+      <div class="transparency-card__head">
+        <span class="pulse"></span>
+        <strong>وضعیت قواعد</strong>
+        <span class="badge badge--eligible">فعال</span>
+      </div>
+      <dl>
+        <div><dt>تعداد برنامه</dt><dd>۱۲</dd></div>
+        <div><dt>کشورها</dt><dd>۷</dd></div>
+        <div><dt>آخرین بازبینی</dt><dd>{{ verified | fa_date }}</dd></div>
+        <div><dt>نسخه‌ی قواعد</dt><dd>1.0</dd></div>
+      </dl>
+      <div class="transparency-card__foot">
+        <span>{{ icon("info", 15) }} تغییرات پیش‌رو در ارزیابی هشدار داده می‌شود.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container faq">
+    <div class="section-head">
+      <span class="eyebrow">پرسش‌های متداول</span>
+      <h2>چیزهایی که باید بدانید</h2>
+    </div>
+    <details class="faq__item">
+      <summary>آیا این سامانه مشاوره‌ی حقوقی یا وکیل مهاجرت است؟</summary>
+      <p>نه. مهاجریار یک ابزار تحلیلی قاعده‌محور است که شرایط شما را با قواعد عمومی هر برنامه مقایسه می‌کند. پرونده‌های خاص (سوءپیشینه، مشکل پزشکی، سابقه‌ی رد ویزا) نیازمند بررسی کارشناس رسمی است.</p>
+    </details>
+    <details class="faq__item">
+      <summary>داده‌ها چقدر به‌روز هستند؟</summary>
+      <p>آستانه‌ها و هزینه‌ها از منابع رسمی در تاریخ {{ verified | fa_date }} استخراج شده‌اند. سال ۲۰۲۶ تغییرات مهمی داشته؛ مثلاً محاسبه‌ی امتیاز کانادا از ۳ نوامبر ۲۰۲۶ تغییر می‌کند و در موتور ما به‌صورت تاریخ‌محور لحاظ شده است.</p>
+    </details>
+    <details class="faq__item">
+      <summary>چرا بعضی مسیرها «نیازمند پیشنهاد شغلی» هستند؟</summary>
+      <p>برخی ویزاها (کارت آبی آلمان، مهاجر متخصص هلند، کارگر ماهر بریتانیا و SMC نیوزیلند) بدون قرارداد کار معتبر صادر نمی‌شوند. ارزیابی، این واقعیت را پنهان نمی‌کند و روی یافتن شغل تمرکز می‌دهد.</p>
+    </details>
+    <details class="faq__item">
+      <summary>پروفایل من کجا ذخیره می‌شود؟</summary>
+      <p>در نسخه‌ی پیش‌فرض، روی همان سروری که برنامه را اجرا می‌کنید (SQLite). هیچ داده‌ای به سرویس خارجی فرستاده نمی‌شود، مگر این‌که خودتان کلید مشاور هوشمند (Groq) را فعال کنید.</p>
+    </details>
+    <details class="faq__item">
+      <summary>اپلیکیشن نصب‌شدنی است؟</summary>
+      <p>بله. صفحه در مرورگر موبایل و دسکتاپ قابل نصب است (PWA) و بسته‌ی نصبی دسکتاپ/سرور نیز همراه پروژه ارائه می‌شود. نسخه‌ی اندروید با WebView در پوشه‌ی <code class="code">mobile/android</code> آماده است.</p>
+    </details>
+  </div>
+</section>
+
+<section class="cta-band">
+  <div class="container cta-band__inner">
+    <div>
+      <h2>سه دقیقه وقت بگذار، سال‌ها مسیر را روشن کن.</h2>
+      <p>ارزیابی رایگان است، ثبت‌نام نمی‌خواهد و نتیجه را می‌توانی ذخیره و مقایسه کنی.</p>
+    </div>
+    <a class="button button--invert button--large" href="/wizard">
+      شروع ارزیابی
+      {{ icon("arrow-left", 18) }}
+    </a>
+  </div>
+</section>
+{% endblock %}

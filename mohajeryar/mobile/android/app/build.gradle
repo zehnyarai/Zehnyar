@@ -1,0 +1,38 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'ai.mohajeryar.app'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'ai.mohajeryar.app'
+        // اندروید ۶ و بالاتر؛ APK هیچ کد بومی اختصاصی ندارد.
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+        resConfigs 'fa', 'en'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    packaging {
+        resources.excludes += ['META-INF/*.kotlin_module']
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.11.0'
+}

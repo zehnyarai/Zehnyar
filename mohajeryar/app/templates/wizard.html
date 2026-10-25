@@ -1,0 +1,627 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon %}
+{% block title %}ارزیابی مسیر مهاجرت | {{ brand }}{% endblock %}
+{% block description %}پروفایل خود را در شش گام تکمیل کنید و ۱۲ مسیر مهاجرتی را با قواعد ۲۰۲۶ مقایسه کنید.{% endblock %}
+{% block main_class %}page page--wizard{% endblock %}
+
+{% block content %}
+{% set country_options = [
+  ("IR", "ایران"), ("AF", "افغانستان"), ("IQ", "عراق"), ("TR", "ترکیه"), ("PK", "پاکستان"),
+  ("IN", "هند"), ("SY", "سوریه"), ("LB", "لبنان"), ("AE", "امارات"), ("AZ", "آذربایجان"),
+  ("GE", "گرجستان"), ("RU", "روسیه"), ("DE", "آلمان"), ("NL", "هلند"), ("GB", "بریتانیا"),
+  ("CA", "کانادا"), ("AU", "استرالیا"), ("NZ", "نیوزیلند"), ("PT", "پرتغال"), ("US", "آمریکا"),
+  ("OTHER", "سایر")
+] %}
+{% set dest_options = [("CA", "کانادا"), ("DE", "آلمان"), ("NL", "هلند"), ("GB", "بریتانیا"), ("AU", "استرالیا"), ("NZ", "نیوزیلند"), ("PT", "پرتغال")] %}
+
+<div class="container wizard-shell">
+  <header class="wizard-header">
+    <div>
+      <span class="eyebrow">ارزیابی چندمسیره</span>
+      <h1>پروفایل مهاجرتی شما</h1>
+      <p>هر چه دقیق‌تر پاسخ دهید، ارزیابی و برنامه‌ی اقدام واقعی‌تر می‌شود. هیچ فیلدی به سرویس خارجی فرستاده نمی‌شود.</p>
+    </div>
+    <div class="wizard-meta">
+      <span class="meta-pill">{{ icon("clock", 15) }} حدود ۳ دقیقه</span>
+      <span class="meta-pill">{{ icon("shield", 15) }} بدون ثبت‌نام</span>
+    </div>
+  </header>
+
+  {% if errors %}
+  <div class="alert alert--error" role="alert">
+    {{ icon("alert", 18) }}
+    <div>
+      <strong>چند مورد نیاز به اصلاح دارد</strong>
+      <ul>
+        {% for field, message in errors.items() %}<li>{{ message }}</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="wizard-progress" id="wizard-progress" aria-label="مراحل ارزیابی">
+    <div class="wizard-progress__bar"><span id="progress-bar"></span></div>
+    <ol class="wizard-progress__steps">
+      <li class="is-active" data-progress-step="1"><span>۱</span> پایه</li>
+      <li data-progress-step="2"><span>۲</span> تحصیلات</li>
+      <li data-progress-step="3"><span>۳</span> زبان</li>
+      <li data-progress-step="4"><span>۴</span> سابقه‌ی کار</li>
+      <li data-progress-step="5"><span>۵</span> شغل و مالی</li>
+      <li data-progress-step="6"><span>۶</span> اولویت‌ها</li>
+    </ol>
+  </div>
+
+  <form id="wizard-form" class="wizard" method="post" action="/assess"
+        data-error-fields="{{ errors.keys()|join(',') if errors else '' }}" novalidate>
+    <input type="hidden" name="profile_id" value="{{ profile_id }}">
+
+    <!-- ---------------------------------------------------------- گام ۱ -->
+    <fieldset class="wizard-step is-active" data-step="1">
+      <legend class="sr-only">اطلاعات پایه</legend>
+      <div class="step-head">
+        <h2>۱. اطلاعات پایه</h2>
+        <p>ملیت و کشور سکونت، سن و وضعیت خانوادگی، پایه‌ی همه‌ی مسیرها را تعیین می‌کند.</p>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label for="name">نام پروفایل</label>
+          <input id="name" name="name" type="text" maxlength="80" placeholder="مثلاً: مسیر من ۱۴۰۵"
+                 value="{{ fv(form, 'name', '') }}">
+          <small>فقط برای تشخیص در فهرست پروفایل‌ها؛ می‌تواند نام مستعار باشد.</small>
+        </div>
+        <div class="field">
+          <label for="birth_date">تاریخ تولد <span class="req">*</span></label>
+          <input id="birth_date" name="birth_date" type="date" required
+                 value="{{ fv(form, 'birth_date', '') }}">
+          <small>میلادی. سن در زمان دعوت‌نامه/درخواست محاسبه می‌شود.</small>
+        </div>
+        <div class="field">
+          <label for="nationality">ملیت</label>
+          <select id="nationality" name="nationality">
+            {% for code, label in country_options %}
+            <option value="{{ code }}" {% if fv(form, 'nationality', 'IR') == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="residence">کشور سکونت فعلی</label>
+          <select id="residence" name="residence">
+            {% for code, label in country_options %}
+            <option value="{{ code }}" {% if fv(form, 'residence', 'IR') == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="marital_status">وضعیت تأهل</label>
+          <select id="marital_status" name="marital_status" data-spouse-source>
+            {% for value, label in [("single", "مجرد"), ("married", "متأهل"), ("common_law", "هم‌زیستی رسمی"), ("divorced", "جدا‌شده"), ("widowed", "بیوه")] %}
+            <option value="{{ value }}" {% if fv(form, 'marital_status', 'single') == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="dependents">فرزند وابسته</label>
+          <input id="dependents" name="dependents" type="number" min="0" max="10" step="1"
+                 value="{{ fv(form, 'dependents', 0) }}">
+        </div>
+      </div>
+
+      <label class="switch-field">
+        <input type="checkbox" name="spouse_included" id="spouse_included" data-spouse-toggle
+               {% if fv(form, 'spouse_included', false) %}checked{% endif %}>
+        <span class="switch-field__box"></span>
+        <span>
+          <strong>همسر/شریک زندگی همراه من مهاجرت می‌کند</strong>
+          <small>در امتیاز CRS، امتیاز استرالیا، هزینه‌ها و آستانه‌ی درآمد مؤثر است.</small>
+        </span>
+      </label>
+
+      <div class="form-grid" data-spouse-fields>
+        <div class="field">
+          <label for="spouse_education">تحصیلات همسر</label>
+          <select id="spouse_education" name="spouse_education">
+            {% for value, label in [("none", "بدون مدرک"), ("secondary", "دیپلم"), ("diploma1", "کاردانی/۱ سال"), ("diploma2", "دو سال"), ("bachelor", "کارشناسی"), ("master", "کارشناسی ارشد"), ("phd", "دکتری")] %}
+            <option value="{{ value }}" {% if fv(form, 'spouse_education', 'none') == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="spouse_english_level">سطح انگلیسی همسر</label>
+          <select id="spouse_english_level" name="spouse_english_level">
+            {% for value, label in [("none", "بدون دانش"), ("a1", "A1"), ("a2", "A2"), ("b1", "B1"), ("b2", "B2"), ("c1", "C1"), ("c2", "C2")] %}
+            <option value="{{ value }}" {% if fv(form, 'spouse_english.level', 'none') == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="spouse_canadian_experience_years">سابقه‌ی کار همسر در کانادا (سال)</label>
+          <input id="spouse_canadian_experience_years" name="spouse_canadian_experience_years" type="number" min="0" max="30" step="0.5"
+                 value="{{ fv(form, 'spouse_canadian_experience_years', 0) }}">
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- ---------------------------------------------------------- گام ۲ -->
+    <fieldset class="wizard-step" data-step="2">
+      <legend class="sr-only">تحصیلات</legend>
+      <div class="step-head">
+        <h2>۲. تحصیلات</h2>
+        <p>سطح و رشته‌ی تحصیلی، در امتیاز کانادا، استرالیا، آلمان و نیوزیلند نقش مستقیم دارد.</p>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label for="education_level">بالاترین مدرک</label>
+          <select id="education_level" name="education_level">
+            {% for value, label in [("none", "بدون مدرک"), ("secondary", "دیپلم متوسطه"), ("diploma1", "کاردانی / یک سال"), ("diploma2", "دو سال"), ("bachelor", "کارشناسی"), ("two_or_more", "دو مدرک (یکی ۳ ساله+)"), ("master", "کارشناسی ارشد"), ("phd", "دکتری")] %}
+            <option value="{{ value }}" {% if fv(form, 'education_level', 'bachelor') == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="education_field">حوزه‌ی تحصیلی</label>
+          <select id="education_field" name="education_field">
+            {% for value, label in [("stem", "فنی، مهندسی، ریاضی و IT"), ("health", "پزشکی و سلامت"), ("business", "مدیریت و مالی"), ("arts", "هنر و علوم انسانی"), ("education", "آموزش"), ("trades", "فنی‌وحرفه‌ای"), ("other", "سایر")] %}
+            <option value="{{ value }}" {% if fv(form, 'education_field', 'stem') == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="education_country">کشور محل تحصیل</label>
+          <select id="education_country" name="education_country">
+            {% for code, label in country_options %}
+            <option value="{{ code }}" {% if fv(form, 'education_country', 'IR') == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="graduation_year">سال فارغ‌التحصیلی</label>
+          <input id="graduation_year" name="graduation_year" type="number" min="1950" max="2035" step="1"
+                 placeholder="مثلاً ۲۰۱۹" value="{{ fv(form, 'graduation_year', '') }}">
+          <small>برای معیار «فارغ‌التحصیل سه سال اخیر» در آلمان/هلند و ویزای تازه‌وارد بریتانیا.</small>
+        </div>
+        <div class="field">
+          <label for="recognition">وضعیت شناسایی مدرک در آلمان</label>
+          <select id="recognition" name="recognition">
+            {% for value, label in [("unknown", "بررسی نکرده‌ام"), ("full", "کاملاً شناخته‌شده (ANABIN)"), ("partial", "شناسایی جزئی"), ("none", "ردشده / ناشناخته")] %}
+            <option value="{{ value }}" {% if fv(form, 'recognition', 'unknown') == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <small><a href="https://anabin.kmk.org/anabin.html" target="_blank" rel="noopener">جست‌وجو در ANABIN</a> — لازم برای کارت آبی و کارت فرصت.</small>
+        </div>
+        <div class="field">
+          <label for="nz_qualification_level">سطح مدرک در نیوزیلند (NZQF)</label>
+          <select id="nz_qualification_level" name="nz_qualification_level">
+            <option value="0" {% if fv(form, 'nz_qualification_level', 0)|int == 0 %}selected{% endif %}>ارزیابی نشده / نامشخص</option>
+            {% for level in [3, 4, 5, 6, 7, 8, 9, 10] %}
+            <option value="{{ level }}" {% if fv(form, 'nz_qualification_level', 0)|int == level %}selected{% endif %}>Level {{ level }}</option>
+            {% endfor %}
+          </select>
+          <small>اگر NZQA ارزیابی کرده است، سطح را انتخاب کنید؛ در غیر این صورت خالی بگذارید.</small>
+        </div>
+      </div>
+      <label class="switch-field">
+        <input type="checkbox" name="eca" {% if fv(form, 'eca', false) %}checked{% endif %}>
+        <span class="switch-field__box"></span>
+        <span><strong>ارزیابی مدارک برای کانادا (ECA) را انجام داده‌ام</strong>
+        <small>یکی از پیش‌شرط‌های اکسپرس اینتری است.</small></span>
+      </label>
+    </fieldset>
+
+    <!-- ---------------------------------------------------------- گام ۳ -->
+    <fieldset class="wizard-step" data-step="3">
+      <legend class="sr-only">زبان</legend>
+      <div class="step-head">
+        <h2>۳. زبان</h2>
+        <p>
+          اگر نمره‌ی آزمون دارید وارد کنید؛ وگرنه سطح تقریبی کافی است. نمره‌ی دقیق، ارزیابی کانادا را واقعی‌تر می‌کند.
+        </p>
+      </div>
+
+      <div class="language-card">
+        <div class="language-card__head">
+          <h3>انگلیسی</h3>
+          <span class="hint">CLB 7 ≈ آیلتس ۶ در هر مهارت · B2</span>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="english_level">سطح</label>
+            <select id="english_level" name="english_level" data-lang-level="english">
+              {% for value, label in [("none", "بدون دانش"), ("a1", "A1"), ("a2", "A2"), ("b1", "B1"), ("b2", "B2"), ("c1", "C1"), ("c2", "C2")] %}
+              <option value="{{ value }}" {% if fv(form, 'english.level', 'b2') == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="english_test">مدرک/آزمون</label>
+            <select id="english_test" name="english_test" data-test-select="english">
+              {% for value, label in [("", "بدون آزمون"), ("ielts", "آیلتس"), ("celpip", "CELPIP"), ("pte", "PTE"), ("toefl", "TOEFL")] %}
+              <option value="{{ value }}" {% if fv(form, 'english.test', '') == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-grid form-grid--scores" data-test-scores="english">
+          {% for skill, label in [("listening", "Listening"), ("reading", "Reading"), ("writing", "Writing"), ("speaking", "Speaking")] %}
+          <div class="field">
+            <label for="english_{{ skill }}">{{ label }}</label>
+            <input id="english_{{ skill }}" name="english_{{ skill }}" type="number" min="0" max="12" step="0.5"
+                   placeholder="—" value="{{ fv(form, 'english.' + skill, '') }}">
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="language-card">
+        <div class="language-card__head">
+          <h3>آلمانی</h3>
+          <span class="hint">برای کارت آبی لازم نیست؛ برای اقامت دائم و کارت فرصت مؤثر است.</span>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="german_level">سطح</label>
+            <select id="german_level" name="german_level">
+              {% for value, label in [("none", "بدون دانش"), ("a1", "A1"), ("a2", "A2"), ("b1", "B1"), ("b2", "B2"), ("c1", "C1"), ("c2", "C2")] %}
+              <option value="{{ value }}" {% if fv(form, 'german.level', 'none') == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="german_test">مدرک/آزمون</label>
+            <select id="german_test" name="german_test">
+              <option value="">بدون آزمون</option>
+              {% for value, label in [("goethe", "Goethe"), ("telc", "telc"), ("testdaf", "TestDaF"), ("dsh", "DSH")] %}
+              <option value="{{ value }}" {% if fv(form, 'german.test', '') == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="language-card">
+        <div class="language-card__head">
+          <h3>فرانسه</h3>
+          <span class="hint">برای قرعه‌کشی‌های فرانسه‌زبان کانادا تا ۵۰ امتیاز اضافه.</span>
+        </div>
+        <div class="form-grid">
+          <div class="field">
+            <label for="french_level">سطح</label>
+            <select id="french_level" name="french_level">
+              {% for value, label in [("none", "بدون دانش"), ("a1", "A1"), ("a2", "A2"), ("b1", "B1"), ("b2", "B2"), ("c1", "C1"), ("c2", "C2")] %}
+              <option value="{{ value }}" {% if fv(form, 'french.level', 'none') == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="french_test">مدرک/آزمون</label>
+            <select id="french_test" name="french_test">
+              <option value="">بدون آزمون</option>
+              {% for value, label in [("tef", "TEF Canada"), ("tcf", "TCF Canada"), ("delf", "DELF/DALF")] %}
+              <option value="{{ value }}" {% if fv(form, 'french.test', '') == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- ---------------------------------------------------------- گام ۴ -->
+    <fieldset class="wizard-step" data-step="4">
+      <legend class="sr-only">سابقه‌ی کاری</legend>
+      <div class="step-head">
+        <h2>۴. سابقه‌ی کاری</h2>
+        <p>برای امتیاز کانادا و استرالیا، سابقه‌ی ۱۰ سال گذشته مهم است؛ برای آلمان ۵ و ۷ سال.</p>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label for="occupation_title">عنوان شغل</label>
+          <input id="occupation_title" name="occupation_title" type="text" maxlength="120"
+                 placeholder="مثلاً: مهندس نرم‌افزار" value="{{ fv(form, 'occupation_title', '') }}">
+        </div>
+        <div class="field">
+          <label for="occupation_code">کد شغل (اختیاری)</label>
+          <input id="occupation_code" name="occupation_code" type="text" maxlength="30"
+                 placeholder="NOC / ANZSCO / SOC" value="{{ fv(form, 'occupation_code', '') }}">
+        </div>
+        <div class="field">
+          <label for="total_experience_years">کل سابقه (سال)</label>
+          <input id="total_experience_years" name="total_experience_years" type="number" min="0" max="50" step="0.5"
+                 value="{{ fv(form, 'total_experience_years', 0) }}">
+        </div>
+        <div class="field">
+          <label for="experience_last5">سابقه در ۵ سال گذشته</label>
+          <input id="experience_last5" name="experience_last5" type="number" min="0" max="50" step="0.5"
+                 value="{{ fv(form, 'experience_last5', 0) }}">
+        </div>
+        <div class="field">
+          <label for="experience_last7">سابقه در ۷ سال گذشته</label>
+          <input id="experience_last7" name="experience_last7" type="number" min="0" max="50" step="0.5"
+                 value="{{ fv(form, 'experience_last7', 0) }}">
+        </div>
+        <div class="field">
+          <label for="experience_last10">سابقه در ۱۰ سال گذشته</label>
+          <input id="experience_last10" name="experience_last10" type="number" min="0" max="50" step="0.5"
+                 value="{{ fv(form, 'experience_last10', 0) }}">
+        </div>
+        <div class="field">
+          <label for="canadian_experience_years">سابقه‌ی کار در کانادا</label>
+          <input id="canadian_experience_years" name="canadian_experience_years" type="number" min="0" max="30" step="0.5"
+                 value="{{ fv(form, 'canadian_experience_years', 0) }}">
+        </div>
+        <div class="field">
+          <label for="australian_experience_years">سابقه‌ی کار در استرالیا</label>
+          <input id="australian_experience_years" name="australian_experience_years" type="number" min="0" max="30" step="0.5"
+                 value="{{ fv(form, 'australian_experience_years', 0) }}">
+        </div>
+        <div class="field">
+          <label for="nz_experience_years">سابقه‌ی کار در نیوزیلند</label>
+          <input id="nz_experience_years" name="nz_experience_years" type="number" min="0" max="30" step="0.5"
+                 value="{{ fv(form, 'nz_experience_years', 0) }}">
+        </div>
+        <div class="field">
+          <label for="registration_years">سابقه‌ی ثبت حرفه‌ای (نیوزیلند)</label>
+          <input id="registration_years" name="registration_years" type="number" min="0" max="40" step="0.5"
+                 value="{{ fv(form, 'registration_years', 0) }}">
+          <small>برای مشاغل دارای ثبت قانونی (پزشکی، مهندسی، حسابداری).</small>
+        </div>
+      </div>
+      <div class="switch-grid">
+        <label class="switch-field">
+          <input type="checkbox" name="occupation_shortage" {% if fv(form, 'occupation_shortage', false) %}checked{% endif %}>
+          <span class="switch-field__box"></span>
+          <span><strong>شغلم در فهرست مشاغل کمبود نیرو است</strong>
+          <small>آلمان، بریتانیا و استرالیا فهرست‌های متفاوتی دارند.</small></span>
+        </label>
+        <label class="switch-field">
+          <input type="checkbox" name="skills_assessment" {% if fv(form, 'skills_assessment', false) %}checked{% endif %}>
+          <span class="switch-field__box"></span>
+          <span><strong>ارزیابی مهارت استرالیا را انجام داده‌ام</strong>
+          <small>الزامی برای ویزاهای ۱۸۹/۱۹۰/۴۹۱.</small></span>
+        </label>
+      </div>
+    </fieldset>
+
+    <!-- ---------------------------------------------------------- گام ۵ -->
+    <fieldset class="wizard-step" data-step="5">
+      <legend class="sr-only">شغل و وضعیت مالی</legend>
+      <div class="step-head">
+        <h2>۵. پیشنهاد شغلی و وضعیت مالی</h2>
+        <p>بسیاری از مسیرها بدون قرارداد کار باز نمی‌شوند؛ اگر پیشنهاد دارید، دقیق وارد کنید.</p>
+      </div>
+
+      <label class="switch-field switch-field--hero">
+        <input type="checkbox" name="has_job_offer" id="has_job_offer" data-job-toggle
+               {% if fv(form, 'has_job_offer', false) %}checked{% endif %}>
+        <span class="switch-field__box"></span>
+        <span><strong>پیشنهاد شغلی یا قرارداد کار دارم</strong>
+        <small>در کشور مقصد، با کارفرمای مشخص و حقوق سالانه.</small></span>
+      </label>
+
+      <div class="form-grid" data-job-fields>
+        <div class="field">
+          <label for="job_offer_country">کشور پیشنهاد</label>
+          <select id="job_offer_country" name="job_offer_country">
+            <option value="" {% if not fv(form, 'job_offer_country', '') %}selected{% endif %}>— انتخاب کنید —</option>
+            {% for code, label in dest_options %}
+            <option value="{{ code }}" {% if fv(form, 'job_offer_country', '') == code %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="job_offer_salary">حقوق سالانه (ناخالص)</label>
+          <input id="job_offer_salary" name="job_offer_salary" type="number" min="0" step="100"
+                 placeholder="مثلاً ۵۵۰۰۰" value="{{ fv(form, 'job_offer_salary', '') }}">
+        </div>
+        <div class="field">
+          <label for="job_offer_currency">واحد پول</label>
+          <select id="job_offer_currency" name="job_offer_currency">
+            {% for code in ["EUR", "GBP", "CAD", "AUD", "NZD", "USD"] %}
+            <option value="{{ code }}" {% if fv(form, 'job_offer_currency', 'EUR') == code %}selected{% endif %}>{{ code }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="job_offer_contract_years">مدت قرارداد (سال)</label>
+          <input id="job_offer_contract_years" name="job_offer_contract_years" type="number" min="0" max="10" step="0.5"
+                 value="{{ fv(form, 'job_offer_contract_years', 1) }}">
+        </div>
+        <div class="field">
+          <label for="job_offer_wage_multiple">دستمزد نسبت به میانه (کانادا)</label>
+          <select id="job_offer_wage_multiple" name="job_offer_wage_multiple">
+            {% for value, label in [("0", "نامشخص / کمتر از ۱٫۳ برابر"), ("1.3", "۱٫۳ برابر"), ("1.5", "۱٫۵ برابر"), ("2", "۲ برابر یا بیشتر")] %}
+            <option value="{{ value }}" {% if (fv(form, 'job_offer_wage_multiple', 0)|float) == (value|float) %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <small>برای عامل جدید LMIF کانادا (از ۳ نوامبر ۲۰۲۶).</small>
+        </div>
+      </div>
+      <div class="switch-grid" data-job-fields>
+        <label class="switch-field">
+          <input type="checkbox" name="job_offer_recognized_sponsor" {% if fv(form, 'job_offer_recognized_sponsor', false) %}checked{% endif %}>
+          <span class="switch-field__box"></span>
+          <span><strong>کارفرما حامی/دارای مجوز است</strong>
+          <small>هلند، بریتانیا و نیوزیلند این شرط را الزامی می‌کنند.</small></span>
+        </label>
+        <label class="switch-field">
+          <input type="checkbox" name="job_offer_going_rate" {% if fv(form, 'job_offer_going_rate', true) %}checked{% endif %}>
+          <span class="switch-field__box"></span>
+          <span><strong>حقوق، نرخ رایج شغل (Going Rate) را پوشش می‌دهد</strong>
+          <small>بریتانیا علاوه بر آستانه‌ی عمومی، این شرط را دارد.</small></span>
+        </label>
+        <label class="switch-field">
+          <input type="checkbox" name="job_offer_shortage" {% if fv(form, 'job_offer_shortage', false) %}checked{% endif %}>
+          <span class="switch-field__box"></span>
+          <span><strong>شغل در فهرست کمبود نیرو است</strong>
+          <small>آستانه‌ی حقوق کاهش‌یافته را فعال می‌کند.</small></span>
+        </label>
+      </div>
+
+      <div class="step-subhead">
+        <h3>تمکن مالی و درآمد</h3>
+        <p>مبالغ را به یورو وارد کنید (تقریبی کافی است). اثبات تمکن، هزینه نیست و پول شما می‌ماند.</p>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label for="savings_eur">پس‌انداز قابل ارائه (یورو)</label>
+          <input id="savings_eur" name="savings_eur" type="number" min="0" step="100"
+                 placeholder="مثلاً ۱۵۰۰۰" value="{{ fv(form, 'savings_eur', '') }}">
+        </div>
+        <div class="field">
+          <label for="monthly_income_eur">درآمد ماهانه (یورو)</label>
+          <input id="monthly_income_eur" name="monthly_income_eur" type="number" min="0" step="50"
+                 value="{{ fv(form, 'monthly_income_eur', '') }}">
+        </div>
+        <div class="field">
+          <label for="passive_income_eur">درآمد غیرفعال ماهانه (یورو)</label>
+          <input id="passive_income_eur" name="passive_income_eur" type="number" min="0" step="50"
+                 value="{{ fv(form, 'passive_income_eur', '') }}">
+          <small>اجاره، سود سهام، حقوق بازنشستگی — برای D7 پرتغال.</small>
+        </div>
+      </div>
+      <label class="switch-field">
+        <input type="checkbox" name="remote_work" {% if fv(form, 'remote_work', false) %}checked{% endif %}>
+        <span class="switch-field__box"></span>
+        <span><strong>دورکاری از خارج کشور مقصد دارم</strong>
+        <small>برای D8 پرتغال و مسیرهای دیجیتال نومد.</small></span>
+      </label>
+    </fieldset>
+
+    <!-- ---------------------------------------------------------- گام ۶ -->
+    <fieldset class="wizard-step" data-step="6">
+      <legend class="sr-only">اولویت‌ها و مدارک</legend>
+      <div class="step-head">
+        <h2>۶. اولویت‌ها و مدارک</h2>
+        <p>رتبه‌بندی نهایی بر اساس همین اولویت‌ها و آمادگی مدارک انجام می‌شود.</p>
+      </div>
+
+      <div class="step-subhead"><h3>کشورهای هدف</h3><p>اگر انتخاب کنید، این کشورها در رتبه‌بندی وزن بیشتری می‌گیرند.</p></div>
+      <div class="chip-select">
+        {% for code, label in dest_options %}
+        <label class="chip">
+          <input type="checkbox" name="target_countries" value="{{ code }}"
+                 {% if code in fv(form, 'target_countries', []) %}checked{% endif %}>
+          <span>{{ label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+
+      <div class="step-subhead"><h3>اولویت‌های شما</h3><p>حداکثر ۳ مورد را انتخاب کنید؛ رتبه‌بندی بر همین اساس تنظیم می‌شود.</p></div>
+      <div class="chip-select">
+        {% for value, label in [("speed", "سرعت"), ("cost", "هزینه‌ی کمتر"), ("pr", "اقامت دائم سریع"), ("citizenship", "شهروندی"), ("family", "همراهی خانواده"), ("job_market", "بازار کار"), ("english", "کشور انگلیسی‌زبان"), ("low_risk", "کم‌ریسک")] %}
+        <label class="chip">
+          <input type="checkbox" name="priorities" value="{{ value }}"
+                 {% if value in fv(form, 'priorities', []) %}checked{% endif %}>
+          <span>{{ label }}</span>
+        </label>
+        {% endfor %}
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="max_budget_eur">سقف بودجه (یورو)</label>
+          <input id="max_budget_eur" name="max_budget_eur" type="number" min="0" step="500"
+                 value="{{ fv(form, 'max_budget_eur', 6000) }}">
+        </div>
+        <div class="field">
+          <label for="passport_valid_years">اعتبار گذرنامه (سال)</label>
+          <input id="passport_valid_years" name="passport_valid_years" type="number" min="0" max="20" step="0.5"
+                 value="{{ fv(form, 'documents.passport_valid_years', 3) }}">
+        </div>
+      </div>
+
+      <div class="step-subhead"><h3>سابقه در کشورها</h3><p>تحصیل یا کار قبلی و بستگان درجه‌یک، امتیاز اضافه می‌دهد.</p></div>
+      <div class="two-col">
+        <div>
+          <span class="mini-label">قبلاً در این کشورها بوده‌ام</span>
+          <div class="chip-select">
+            {% for code, label in dest_options %}
+            <label class="chip chip--sm">
+              <input type="checkbox" name="prior_stay" value="{{ code }}"
+                     {% if code in fv(form, 'prior_stay', []) %}checked{% endif %}>
+              <span>{{ label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        <div>
+          <span class="mini-label">بستگان درجه‌یک مقیم</span>
+          <div class="chip-select">
+            {% for code, label in dest_options %}
+            <label class="chip chip--sm">
+              <input type="checkbox" name="relatives_in" value="{{ code }}"
+                     {% if code in fv(form, 'relatives_in', []) %}checked{% endif %}>
+              <span>{{ label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="step-subhead"><h3>مدارک آماده</h3><p>هرچه بیشتر آماده باشد، آمادگی نهایی و برنامه‌ی اقدام دقیق‌تر می‌شود.</p></div>
+      <div class="switch-grid switch-grid--compact">
+        {% for name, label in [
+          ("birth_certificate", "شناسنامه / گواهی تولد"),
+          ("education_transcripts", "مدارک تحصیلی و ریزنمرات"),
+          ("language_certificate", "مدرک زبان"),
+          ("employment_letters", "نامه‌های سابقه‌ی کار"),
+          ("police_clearance", "گواهی عدم سوءپیشینه"),
+          ("medical", "معاینات پزشکی"),
+          ("proof_of_funds", "صورت‌حساب / تمکن مالی"),
+          ("doc_eca", "ارزیابی مدارک (ECA)"),
+          ("marriage_certificate", "سند ازدواج")
+        ] %}
+        <label class="switch-field switch-field--compact">
+          <input type="checkbox" name="{{ name }}" {% if fv(form, 'documents.' + name, false) %}checked{% endif %}>
+          <span class="switch-field__box"></span>
+          <span><strong>{{ label }}</strong></span>
+        </label>
+        {% endfor %}
+      </div>
+
+      <label class="switch-field">
+        <input type="checkbox" name="willing_to_learn_language" {% if fv(form, 'willing_to_learn_language', true) %}checked{% endif %}>
+        <span class="switch-field__box"></span>
+        <span><strong>برای یادگیری زبان کشور مقصد آماده‌ام</strong>
+        <small>در برنامه‌ی راه و رتبه‌بندی لحاظ می‌شود.</small></span>
+      </label>
+
+      <div class="field">
+        <label for="notes">توضیح اضافه (اختیاری)</label>
+        <textarea id="notes" name="notes" rows="3" maxlength="800"
+                  placeholder="مثلاً: سابقه‌ی رد ویزا، مدرک در حال ارزیابی، محدودیت زمانی...">{{ fv(form, 'notes', '') }}</textarea>
+      </div>
+
+      <div class="consent-note">
+        {{ icon("shield", 16) }}
+        داده‌ها فقط روی همین سرور ذخیره می‌شوند و می‌توانید هر زمان پروفایل را حذف کنید.
+      </div>
+    </fieldset>
+
+    <div class="wizard-nav">
+      <button class="button button--ghost" type="button" id="wizard-prev" disabled>
+        {{ icon("arrow-right", 17) }} مرحله‌ی قبل
+      </button>
+      <span class="wizard-nav__status" id="wizard-status">گام ۱ از ۶</span>
+      <button class="button button--primary" type="button" id="wizard-next">
+        مرحله‌ی بعد {{ icon("arrow-left", 17) }}
+      </button>
+      <button class="button button--primary button--large" type="submit" id="wizard-submit" hidden>
+        دریافت ارزیابی {{ icon("sparkles", 18) }}
+      </button>
+    </div>
+  </form>
+
+  <aside class="wizard-aside">
+    <h2>{{ icon("info", 18) }} نکته‌های دقت</h2>
+    <ul>
+      <li>سن بر اساس تاریخ دعوت‌نامه در نظر گرفته می‌شود؛ در استرالیا سقف ۴۵ سال قطعی است.</li>
+      <li>حقوق را «سالانه و ناخالص» وارد کنید؛ آستانه‌های هلند ماهانه‌اند و خودکار تبدیل می‌شوند.</li>
+      <li>اگر مدرک خارج از کشور مقصد دارید، وضعیت شناسایی آن را مشخص کنید.</li>
+      <li>هزینه‌های نمایش‌داده‌شده تقریبی‌اند و نرخ ارز ثابت نیست.</li>
+    </ul>
+    <div class="wizard-aside__foot">
+      <strong>ذخیره‌ی خودکار پیش‌نویس</strong>
+      <p>پاسخ‌ها در همین مرورگر نگه داشته می‌شوند تا اگر صفحه را بستید، ادامه دهید.</p>
+    </div>
+  </aside>
+</div>
+{% endblock %}

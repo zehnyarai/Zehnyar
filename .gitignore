@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# داده و محیط
+mohajeryar/data/*.db
+mohajeryar/data/*.db-*
+mohajeryar/tests/*.db
+mohajeryar/tests/*.db-*
+.env
+
+# ساخت اندروید
+mohajeryar/mobile/android/.gradle/
+mohajeryar/mobile/android/build/
+mohajeryar/mobile/android/app/build/
+mohajeryar/mobile/android/local.properties
+*.iml
+
+# خروجی‌های موقت
+release/*.tmp
+.DS_Store

@@ -1,0 +1,49 @@
+{
+  "name": "مهاجریار — سامانه هوشمند مهاجرت",
+  "short_name": "مهاجریار",
+  "description": "ارزیابی شفاف ۱۲ مسیر مهاجرت در ۷ کشور: امتیاز، شکاف‌ها، هزینه، زمان و نقشه‌ی راه.",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#f6f4ee",
+  "theme_color": "#0e7c6b",
+  "categories": ["productivity", "education", "utilities"],
+  "icons": [
+    {
+      "src": "/static/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "ارزیابی جدید",
+      "short_name": "ارزیابی",
+      "url": "/wizard",
+      "icons": [{ "src": "/static/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "پروفایل‌های من",
+      "short_name": "پروفایل‌ها",
+      "url": "/profiles",
+      "icons": [{ "src": "/static/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

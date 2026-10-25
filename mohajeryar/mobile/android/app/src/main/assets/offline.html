@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مهاجریار — اتصال قطع است</title>
+<style>
+  :root { --primary:#0e7c6b; --deep:#0a5f52; --bg:#f6f4ee; --ink:#14231f; --muted:#5d6f69; --surface:#fff; --line:#e3ded1; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0d1513; --ink:#eef5f2; --muted:#a7b8b2; --surface:#16221f; --line:#26332f; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; padding: 24px;
+    display: grid; place-items: center;
+    font-family: "Vazirmatn", "Segoe UI", Tahoma, sans-serif;
+    background: radial-gradient(900px 500px at 100% -10%, rgba(14,124,107,.2), transparent 60%), var(--bg);
+    color: var(--ink);
+  }
+  main { max-width: 460px; width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 28px 24px; text-align: center; box-shadow: 0 24px 60px rgba(10,40,34,.12); }
+  .icon { font-size: 44px; margin-bottom: 8px; }
+  h1 { font-size: 19px; margin: 0 0 10px; }
+  p { font-size: 13.5px; line-height: 2; color: var(--muted); margin: 0 0 18px; }
+  .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  button { font: inherit; font-size: 14px; font-weight: 600; padding: 12px 18px; border-radius: 14px; cursor: pointer; border: 1.5px solid transparent; }
+  .primary { background: linear-gradient(135deg, var(--primary), var(--deep)); color: #fff; }
+  .ghost { background: transparent; border-color: var(--line); color: var(--ink); }
+  small { display: block; margin-top: 18px; font-size: 11.5px; color: var(--muted); line-height: 1.9; }
+</style>
+</head>
+<body>
+<main>
+  <div class="icon" aria-hidden="true">📡</div>
+  <h1>ارتباط با سرور مهاجریار برقرار نشد</h1>
+  <p>
+    اینترنت یا شبکهٔ محلی را بررسی کنید. اگر سرور را روی رایانه اجرا می‌کنید، مطمئن شوید
+    <code>run.sh</code> (یا <code>run.bat</code>) در حال اجراست و گوشی به همان شبکه وصل است.
+  </p>
+  <div class="row">
+    <button class="primary" id="retry">تلاش دوباره</button>
+    <button class="ghost" id="change">تغییر آدرس سرور</button>
+  </div>
+  <small>پاسخ‌های ارزیابی قبلی که در مرورگر ذخیره شده‌اند، در نسخهٔ وب قابل مشاهده‌اند.</small>
+</main>
+<script>
+  (function () {
+    const bridge = window.Mohajeryar;
+    document.getElementById("retry").addEventListener("click", () => {
+      if (bridge && bridge.saved()) bridge.load(bridge.saved());
+      else location.reload();
+    });
+    document.getElementById("change").addEventListener("click", () => {
+      if (bridge) bridge.setup();
+    });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+services:
+  mohajeryar:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: production
+      AI_ENABLED: "${AI_ENABLED:-1}"
+      GROQ_API_KEY: "${GROQ_API_KEY:-}"
+    volumes:
+      - mohajeryar-data:/data
+    restart: unless-stopped
+
+volumes:
+  mohajeryar-data:

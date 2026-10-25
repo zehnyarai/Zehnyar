@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon %}
+{% block title %}صفحه پیدا نشد | {{ brand }}{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="empty-state empty-state--page">
+    <span class="error-code">۴۰۴</span>
+    <h1>{{ message or "صفحه پیدا نشد" }}</h1>
+    <p>ممکن است لینک قدیمی باشد یا ارزیابی حذف شده باشد.</p>
+    <div class="empty-state__actions">
+      <a class="button button--primary" href="/wizard">ارزیابی جدید</a>
+      <a class="button button--ghost" href="/">بازگشت به خانه</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
