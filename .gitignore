@@ -21,3 +21,5 @@ mobile/ios/
 release/*.apk
 release/*.aab
 release/*.keystore
+release/*
+!release/.gitkeep
