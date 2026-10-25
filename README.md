@@ -60,14 +60,24 @@ cd mobile
 npm ci
 npm start           # Expo dev server
 npm test            # تست رابط کاربری
+node ../tools/parity_check.js   # هم‌ارزی موتور پایتون و جاوااسکریپت
 ```
 
-### ساخت APK امضاشده (بدون نیاز به ابزار محلی)
+### فایل نصبی آماده
 
-GitHub → Actions → **Android release APK** → *Run workflow*. پس از حدود ۱۵ دقیقه:
+آخرین بیلد امضاشده: **[Releases → v2.0.1](https://github.com/zehnyarai/Zehnyar/releases/tag/v2.0.1)**
 
-- فایل نصبی در بخش **Releases** با نام `Zehnyar-2.0.0-universal.apk`
-- و در **Artifacts** همین اجرا (`zehnyar-release-apk`)
+| مورد | مقدار |
+|---|---|
+| فایل | `Zehnyar-2.0.1-universal.apk` (حدود ۷۱ مگابایت) |
+| بسته | `ai.zehnyar.app` · نسخه ۲٫۰٫۱ · کد ۲۱ |
+| امضا | release، همه معماری‌ها در یک فایل |
+
+راهنمای نصب روی گوشی، ثبات کلید امضا و آماده‌سازی فروشگاه‌ها: [`docs/release-notes-2.0.md`](docs/release-notes-2.0.md)
+
+### ساخت مجدد APK
+
+GitHub → Actions → **Android release APK** → *Run workflow* (یا push یک تگ `v*`). پس از حدود ۱۳ دقیقه فایل نصبی به بخش Releases و به Artifacts همان اجرا افزوده می‌شود.
 
 برای ساخت پایدار، فایل keystore تولیدشده (artifact با نام `zehnyar-release-keystore`) را دانلود و به‌صورت Secret با نام `ANDROID_KEYSTORE_BASE64` ذخیره کنید تا همه بیلدهای آینده با یک کلید امضا شوند (شرط به‌روزرسانی اپ در فروشگاه‌ها).
 
