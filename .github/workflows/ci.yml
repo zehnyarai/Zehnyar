@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  backend:
+    name: Backend engine and API
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Rebuild dataset
+        run: python3 tools/build_dataset.py
+      - name: Fail if the committed dataset is stale
+        run: git diff --exit-code shared/dataset.json
+      - name: Run tests
+        run: python -m pytest backend/tests -q
+
+  mobile:
+    name: Mobile engine, parity and UI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Python test dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Build dataset and sync bundle
+        run: |
+          python3 tools/build_dataset.py
+          node tools/sync_mobile_data.js
+          python3 tools/make_fixtures.py
+      - name: Persian copy purity check
+        run: node tools/check_i18n.js
+      - name: Cross-engine parity
+        run: node tools/parity_check.js
+      - name: Install app dependencies
+        working-directory: mobile
+        run: npm ci --no-audit --no-fund
+      - name: UI tests
+        working-directory: mobile
+        run: npm test -- --silent
+      - name: Bundle the Android JS build
+        working-directory: mobile
+        run: npx expo export --platform android --output-dir /tmp/export-check

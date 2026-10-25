@@ -1,0 +1,4058 @@
+{
+ "skilled_en": {
+  "profile": {
+   "age": 31,
+   "maritalStatus": "single",
+   "spouse": null,
+   "educationId": "master",
+   "educationStem": false,
+   "languages": [
+    {
+     "testId": "ielts",
+     "skills": {
+      "listening": 8.0,
+      "reading": 7.5,
+      "writing": 7.0,
+      "speaking": 7.5
+     },
+     "cefr": null
+    }
+   ],
+   "work": {
+    "totalYears": 6.0,
+    "overseasYears": 6.0,
+    "inCountryYears": 0,
+    "occupationCode": "21231",
+    "jobOffer": false,
+    "salaryAnnualLocal": null,
+    "salaryCurrency": "USD",
+    "licensing": false,
+    "selfEmployedYears": 0
+   },
+   "funds": {
+    "availableUsd": 40000.0,
+    "cashUsd": 0,
+    "assetsUsd": 0
+   },
+   "adaptability": {
+    "relativeInCountry": false,
+    "priorStudyInCountry": false,
+    "priorWorkInCountry": false,
+    "eca": true
+   },
+   "goal": "work",
+   "familySize": 2,
+   "investmentUsd": 0,
+   "remoteIncomeUsd": 0,
+   "startupBacking": false,
+   "studyOffer": false,
+   "recentGraduate": false,
+   "achievement": false,
+   "nomination": false
+  },
+  "countries": {
+   "CA": {
+    "goalMatch": true,
+    "visas": {
+     "ca_pnp": {
+      "chance": 69.5,
+      "readiness": 77.1,
+      "achieved": 81.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "ca_ee_fsw": {
+      "chance": 68.9,
+      "readiness": 74.0,
+      "achieved": 74.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "ca_study": {
+      "chance": 20.6,
+      "readiness": 68.0,
+      "achieved": 68.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "ca_suv": {
+      "chance": 20.3,
+      "readiness": 67.0,
+      "achieved": 67.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "ca_work": {
+      "chance": 17.1,
+      "readiness": 53.0,
+      "achieved": 53.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "ca_pnp"
+   },
+   "DE": {
+    "goalMatch": true,
+    "visas": {
+     "de_chancenkarte": {
+      "chance": 63.9,
+      "readiness": 76.0,
+      "achieved": 76.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "de_job_seeker": {
+      "chance": 57.7,
+      "readiness": 68.0,
+      "achieved": 68.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "de_student": {
+      "chance": 17.6,
+      "readiness": 55.0,
+      "achieved": 55.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "de_blue_card": {
+      "chance": 16.7,
+      "readiness": 51.0,
+      "achieved": 51.0,
+      "eligible": false,
+      "blockers": [
+       "salary_gate"
+      ]
+     },
+     "de_self_employed": {
+      "chance": 16.4,
+      "readiness": 50.0,
+      "achieved": 50.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "de_chancenkarte"
+   },
+   "AU": {
+    "goalMatch": true,
+    "visas": {
+     "au_190": {
+      "chance": 55.3,
+      "readiness": 63.0,
+      "achieved": 85.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "au_189": {
+      "chance": 53.9,
+      "readiness": 63.0,
+      "achieved": 85.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "au_491": {
+      "chance": 52.4,
+      "readiness": 58.6,
+      "achieved": 85.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "au_student": {
+      "chance": 19.9,
+      "readiness": 65.0,
+      "achieved": 65.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "au_sid": {
+      "chance": 13.9,
+      "readiness": 39.0,
+      "achieved": 39.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "au_190"
+   },
+   "US": {
+    "goalMatch": true,
+    "visas": {
+     "us_eb2_niw": {
+      "chance": 25.9,
+      "readiness": 48.0,
+      "achieved": 48.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "us_f1": {
+      "chance": 21.0,
+      "readiness": 70.0,
+      "achieved": 70.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "us_eb1a": {
+      "chance": 14.6,
+      "readiness": 42.0,
+      "achieved": 42.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "us_h1b": {
+      "chance": 14.2,
+      "readiness": 40.0,
+      "achieved": 40.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "us_eb5": {
+      "chance": 12.3,
+      "readiness": 32.0,
+      "achieved": 32.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     }
+    },
+    "best": "us_eb2_niw"
+   },
+   "NL": {
+    "goalMatch": true,
+    "visas": {
+     "nl_orientation": {
+      "chance": 27.0,
+      "readiness": 96.0,
+      "achieved": 96.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "nl_student": {
+      "chance": 20.1,
+      "readiness": 66.0,
+      "achieved": 66.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "nl_startup": {
+      "chance": 19.0,
+      "readiness": 61.0,
+      "achieved": 61.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "nl_hsm": {
+      "chance": 18.0,
+      "readiness": 66.0,
+      "achieved": 66.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     },
+     "nl_blue_card": {
+      "chance": 17.6,
+      "readiness": 64.0,
+      "achieved": 64.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "nl_orientation"
+   },
+   "UK": {
+    "goalMatch": true,
+    "visas": {
+     "uk_hpi": {
+      "chance": 26.7,
+      "readiness": 95.0,
+      "achieved": 95.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "uk_student": {
+      "chance": 19.6,
+      "readiness": 64.0,
+      "achieved": 64.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "uk_innovator": {
+      "chance": 18.7,
+      "readiness": 60.0,
+      "achieved": 60.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "uk_global_talent": {
+      "chance": 14.6,
+      "readiness": 42.0,
+      "achieved": 42.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "uk_skilled_worker": {
+      "chance": 13.5,
+      "readiness": 42.9,
+      "achieved": 30.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "uk_hpi"
+   },
+   "DK": {
+    "goalMatch": true,
+    "visas": {
+     "dk_positive_list": {
+      "chance": 20.6,
+      "readiness": 68.0,
+      "achieved": 68.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "dk_study": {
+      "chance": 19.6,
+      "readiness": 64.0,
+      "achieved": 64.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "dk_pay_limit": {
+      "chance": 17.3,
+      "readiness": 62.0,
+      "achieved": 62.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "dk_positive_list"
+   },
+   "NZ": {
+    "goalMatch": false,
+    "visas": {
+     "nz_student": {
+      "chance": 20.1,
+      "readiness": 66.0,
+      "achieved": 66.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "nz_investor": {
+      "chance": 16.0,
+      "readiness": 48.0,
+      "achieved": 48.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     },
+     "nz_smc": {
+      "chance": 14.6,
+      "readiness": 42.0,
+      "achieved": 42.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "nz_aewv": {
+      "chance": 12.7,
+      "readiness": 39.0,
+      "achieved": 39.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "nz_student"
+   },
+   "SE": {
+    "goalMatch": false,
+    "visas": {
+     "se_study": {
+      "chance": 19.6,
+      "readiness": 64.0,
+      "achieved": 64.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "se_researcher": {
+      "chance": 14.6,
+      "readiness": 42.0,
+      "achieved": 42.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "se_work": {
+      "chance": 12.9,
+      "readiness": 40.0,
+      "achieved": 40.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "se_study"
+   },
+   "IT": {
+    "goalMatch": false,
+    "visas": {
+     "it_student": {
+      "chance": 19.4,
+      "readiness": 63.0,
+      "achieved": 63.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "it_digital_nomad": {
+      "chance": 19.0,
+      "readiness": 61.0,
+      "achieved": 61.0,
+      "eligible": false,
+      "blockers": [
+       "remote_income_gate"
+      ]
+     },
+     "it_blue_card": {
+      "chance": 17.4,
+      "readiness": 54.0,
+      "achieved": 54.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "it_student"
+   },
+   "ES": {
+    "goalMatch": false,
+    "visas": {
+     "es_digital_nomad": {
+      "chance": 19.2,
+      "readiness": 62.0,
+      "achieved": 62.0,
+      "eligible": false,
+      "blockers": [
+       "remote_income_gate"
+      ]
+     },
+     "es_student": {
+      "chance": 19.2,
+      "readiness": 62.0,
+      "achieved": 62.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "es_hqp": {
+      "chance": 16.9,
+      "readiness": 52.0,
+      "achieved": 52.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "es_digital_nomad"
+   },
+   "TR": {
+    "goalMatch": false,
+    "visas": {
+     "tr_student": {
+      "chance": 19.2,
+      "readiness": 62.0,
+      "achieved": 62.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "tr_investment": {
+      "chance": 12.8,
+      "readiness": 34.0,
+      "achieved": 34.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     },
+     "tr_work": {
+      "chance": 11.1,
+      "readiness": 31.0,
+      "achieved": 31.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "tr_student"
+   },
+   "OM": {
+    "goalMatch": false,
+    "visas": {
+     "om_student": {
+      "chance": 19.0,
+      "readiness": 61.0,
+      "achieved": 61.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "om_work": {
+      "chance": 13.7,
+      "readiness": 38.0,
+      "achieved": 38.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "om_investor": {
+      "chance": 13.2,
+      "readiness": 36.0,
+      "achieved": 36.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     }
+    },
+    "best": "om_student"
+   },
+   "FR": {
+    "goalMatch": false,
+    "visas": {
+     "fr_student": {
+      "chance": 16.9,
+      "readiness": 52.0,
+      "achieved": 52.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "fr_business": {
+      "chance": 16.9,
+      "readiness": 52.0,
+      "achieved": 52.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "fr_talent": {
+      "chance": 15.3,
+      "readiness": 52.0,
+      "achieved": 52.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "fr_student"
+   },
+   "AE": {
+    "goalMatch": false,
+    "visas": {
+     "ae_nomad": {
+      "chance": 16.7,
+      "readiness": 51.1,
+      "achieved": 47.0,
+      "eligible": false,
+      "blockers": [
+       "remote_income_gate"
+      ]
+     },
+     "ae_work": {
+      "chance": 13.2,
+      "readiness": 36.0,
+      "achieved": 36.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "ae_golden": {
+      "chance": 8.7,
+      "readiness": 16.0,
+      "achieved": 16.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     }
+    },
+    "best": "ae_nomad"
+   }
+  },
+  "summary": {
+   "countries": 15,
+   "eligibleCountries": 4,
+   "bestCountry": "CA"
+  }
+ },
+ "student_young": {
+  "profile": {
+   "age": 23,
+   "maritalStatus": "single",
+   "spouse": null,
+   "educationId": "bachelor",
+   "educationStem": false,
+   "languages": [
+    {
+     "testId": "toefl",
+     "skills": {
+      "listening": 24.0,
+      "reading": 22.0,
+      "writing": 25.0,
+      "speaking": 23.0
+     },
+     "cefr": null
+    }
+   ],
+   "work": {
+    "totalYears": 1.0,
+    "overseasYears": 1.0,
+    "inCountryYears": 0,
+    "occupationCode": "21232",
+    "jobOffer": false,
+    "salaryAnnualLocal": null,
+    "salaryCurrency": "USD",
+    "licensing": false,
+    "selfEmployedYears": 0
+   },
+   "funds": {
+    "availableUsd": 52000.0,
+    "cashUsd": 0,
+    "assetsUsd": 0
+   },
+   "adaptability": {
+    "relativeInCountry": false,
+    "priorStudyInCountry": false,
+    "priorWorkInCountry": false,
+    "eca": false
+   },
+   "goal": "study",
+   "familySize": 1,
+   "investmentUsd": 0,
+   "remoteIncomeUsd": 0,
+   "startupBacking": false,
+   "studyOffer": true,
+   "recentGraduate": false,
+   "achievement": false,
+   "nomination": false
+  },
+  "countries": {
+   "UK": {
+    "goalMatch": true,
+    "visas": {
+     "uk_student": {
+      "chance": 87.1,
+      "readiness": 95.0,
+      "achieved": 95.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "uk_hpi": {
+      "chance": 23.1,
+      "readiness": 79.0,
+      "achieved": 79.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "uk_innovator": {
+      "chance": 14.8,
+      "readiness": 43.0,
+      "achieved": 43.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "uk_skilled_worker": {
+      "chance": 12.1,
+      "readiness": 35.7,
+      "achieved": 25.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     },
+     "uk_global_talent": {
+      "chance": 10.5,
+      "readiness": 24.0,
+      "achieved": 24.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "uk_student"
+   },
+   "AU": {
+    "goalMatch": true,
+    "visas": {
+     "au_student": {
+      "chance": 85.3,
+      "readiness": 95.0,
+      "achieved": 95.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "au_190": {
+      "chance": 42.3,
+      "readiness": 48.1,
+      "achieved": 65.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "au_189": {
+      "chance": 41.2,
+      "readiness": 48.1,
+      "achieved": 65.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "au_491": {
+      "chance": 40.1,
+      "readiness": 44.8,
+      "achieved": 65.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "au_sid": {
+      "chance": 10.9,
+      "readiness": 26.0,
+      "achieved": 26.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "au_student"
+   },
+   "OM": {
+    "goalMatch": true,
+    "visas": {
+     "om_student": {
+      "chance": 85.0,
+      "readiness": 92.0,
+      "achieved": 92.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "om_investor": {
+      "chance": 11.4,
+      "readiness": 28.0,
+      "achieved": 28.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     },
+     "om_work": {
+      "chance": 10.0,
+      "readiness": 22.0,
+      "achieved": 22.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "om_student"
+   },
+   "ES": {
+    "goalMatch": true,
+    "visas": {
+     "es_student": {
+      "chance": 84.3,
+      "readiness": 92.0,
+      "achieved": 92.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "es_digital_nomad": {
+      "chance": 15.1,
+      "readiness": 44.0,
+      "achieved": 44.0,
+      "eligible": false,
+      "blockers": [
+       "remote_income_gate"
+      ]
+     },
+     "es_hqp": {
+      "chance": 12.8,
+      "readiness": 34.0,
+      "achieved": 34.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "es_student"
+   },
+   "TR": {
+    "goalMatch": true,
+    "visas": {
+     "tr_student": {
+      "chance": 84.1,
+      "readiness": 91.0,
+      "achieved": 91.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "tr_investment": {
+      "chance": 10.9,
+      "readiness": 26.0,
+      "achieved": 26.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     },
+     "tr_work": {
+      "chance": 8.4,
+      "readiness": 17.0,
+      "achieved": 17.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "tr_student"
+   },
+   "NL": {
+    "goalMatch": true,
+    "visas": {
+     "nl_student": {
+      "chance": 83.6,
+      "readiness": 92.0,
+      "achieved": 92.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "nl_orientation": {
+      "chance": 22.6,
+      "readiness": 77.0,
+      "achieved": 77.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "nl_startup": {
+      "chance": 15.8,
+      "readiness": 47.0,
+      "achieved": 47.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "nl_hsm": {
+      "chance": 14.1,
+      "readiness": 46.0,
+      "achieved": 46.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     },
+     "nl_blue_card": {
+      "chance": 14.1,
+      "readiness": 46.0,
+      "achieved": 46.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "nl_student"
+   },
+   "IT": {
+    "goalMatch": true,
+    "visas": {
+     "it_student": {
+      "chance": 82.7,
+      "readiness": 91.0,
+      "achieved": 91.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "it_digital_nomad": {
+      "chance": 14.6,
+      "readiness": 42.0,
+      "achieved": 42.0,
+      "eligible": false,
+      "blockers": [
+       "remote_income_gate"
+      ]
+     },
+     "it_blue_card": {
+      "chance": 13.2,
+      "readiness": 36.0,
+      "achieved": 36.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "it_student"
+   },
+   "CA": {
+    "goalMatch": true,
+    "visas": {
+     "ca_study": {
+      "chance": 82.4,
+      "readiness": 93.0,
+      "achieved": 93.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "ca_pnp": {
+      "chance": 41.4,
+      "readiness": 63.8,
+      "achieved": 67.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "ca_ee_fsw": {
+      "chance": 18.7,
+      "readiness": 60.0,
+      "achieved": 60.0,
+      "eligible": false,
+      "blockers": [
+       "points_gate"
+      ]
+     },
+     "ca_suv": {
+      "chance": 17.6,
+      "readiness": 55.0,
+      "achieved": 55.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "ca_work": {
+      "chance": 14.4,
+      "readiness": 41.0,
+      "achieved": 41.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "ca_study"
+   },
+   "DK": {
+    "goalMatch": true,
+    "visas": {
+     "dk_study": {
+      "chance": 82.0,
+      "readiness": 91.0,
+      "achieved": 91.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "dk_positive_list": {
+      "chance": 16.9,
+      "readiness": 52.0,
+      "achieved": 52.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "dk_pay_limit": {
+      "chance": 13.7,
+      "readiness": 44.0,
+      "achieved": 44.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "dk_study"
+   },
+   "NZ": {
+    "goalMatch": true,
+    "visas": {
+     "nz_student": {
+      "chance": 81.3,
+      "readiness": 91.0,
+      "achieved": 91.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "nz_investor": {
+      "chance": 13.5,
+      "readiness": 37.0,
+      "achieved": 37.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     },
+     "nz_smc": {
+      "chance": 10.3,
+      "readiness": 27.0,
+      "achieved": 27.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "custom_points"
+      ]
+     },
+     "nz_aewv": {
+      "chance": 9.7,
+      "readiness": 24.0,
+      "achieved": 24.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "nz_student"
+   },
+   "SE": {
+    "goalMatch": true,
+    "visas": {
+     "se_study": {
+      "chance": 81.3,
+      "readiness": 91.0,
+      "achieved": 91.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "se_researcher": {
+      "chance": 9.0,
+      "readiness": 20.0,
+      "achieved": 20.0,
+      "eligible": false,
+      "blockers": [
+       "education_gate",
+       "flag_gate"
+      ]
+     },
+     "se_work": {
+      "chance": 7.8,
+      "readiness": 14.0,
+      "achieved": 14.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "se_study"
+   },
+   "DE": {
+    "goalMatch": true,
+    "visas": {
+     "de_student": {
+      "chance": 74.4,
+      "readiness": 84.0,
+      "achieved": 84.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "de_chancenkarte": {
+      "chance": 33.3,
+      "readiness": 55.0,
+      "achieved": 55.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "de_job_seeker": {
+      "chance": 31.1,
+      "readiness": 51.0,
+      "achieved": 51.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "de_self_employed": {
+      "chance": 13.7,
+      "readiness": 38.0,
+      "achieved": 38.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "de_blue_card": {
+      "chance": 13.2,
+      "readiness": 36.0,
+      "achieved": 36.0,
+      "eligible": false,
+      "blockers": [
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "de_student"
+   },
+   "US": {
+    "goalMatch": true,
+    "visas": {
+     "us_f1": {
+      "chance": 71.3,
+      "readiness": 86.0,
+      "achieved": 86.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "us_h1b": {
+      "chance": 11.2,
+      "readiness": 27.0,
+      "achieved": 27.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "us_eb1a": {
+      "chance": 10.5,
+      "readiness": 24.0,
+      "achieved": 24.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "us_eb5": {
+      "chance": 10.5,
+      "readiness": 24.0,
+      "achieved": 24.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     },
+     "us_eb2_niw": {
+      "chance": 10.0,
+      "readiness": 22.0,
+      "achieved": 22.0,
+      "eligible": false,
+      "blockers": [
+       "education_gate"
+      ]
+     }
+    },
+    "best": "us_f1"
+   },
+   "FR": {
+    "goalMatch": true,
+    "visas": {
+     "fr_student": {
+      "chance": 70.3,
+      "readiness": 78.0,
+      "achieved": 78.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "fr_business": {
+      "chance": 13.9,
+      "readiness": 39.0,
+      "achieved": 39.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "fr_talent": {
+      "chance": 12.1,
+      "readiness": 36.0,
+      "achieved": 36.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "fr_student"
+   },
+   "AE": {
+    "goalMatch": false,
+    "visas": {
+     "ae_nomad": {
+      "chance": 13.2,
+      "readiness": 35.9,
+      "achieved": 33.0,
+      "eligible": false,
+      "blockers": [
+       "remote_income_gate"
+      ]
+     },
+     "ae_work": {
+      "chance": 9.8,
+      "readiness": 21.0,
+      "achieved": 21.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "ae_golden": {
+      "chance": 7.1,
+      "readiness": 9.0,
+      "achieved": 9.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     }
+    },
+    "best": "ae_nomad"
+   }
+  },
+  "summary": {
+   "countries": 15,
+   "eligibleCountries": 14,
+   "bestCountry": "UK"
+  }
+ },
+ "family_de": {
+  "profile": {
+   "age": 38,
+   "maritalStatus": "married",
+   "spouse": {
+    "educationId": "bachelor",
+    "languageTestId": null,
+    "languageClb": 7.0,
+    "workYears": 5.0
+   },
+   "educationId": "bachelor",
+   "educationStem": false,
+   "languages": [
+    {
+     "testId": "goethe",
+     "skills": {},
+     "cefr": "B2"
+    },
+    {
+     "testId": "ielts",
+     "skills": {
+      "listening": 6.5,
+      "reading": 6.0,
+      "writing": 6.0,
+      "speaking": 6.5
+     },
+     "cefr": null
+    }
+   ],
+   "work": {
+    "totalYears": 11.0,
+    "overseasYears": 11.0,
+    "inCountryYears": 0,
+    "occupationCode": "31301",
+    "jobOffer": false,
+    "salaryAnnualLocal": 52000.0,
+    "salaryCurrency": "EUR",
+    "licensing": false,
+    "selfEmployedYears": 0
+   },
+   "funds": {
+    "availableUsd": 18000.0,
+    "cashUsd": 0,
+    "assetsUsd": 0
+   },
+   "adaptability": {
+    "relativeInCountry": true,
+    "priorStudyInCountry": false,
+    "priorWorkInCountry": false,
+    "eca": false
+   },
+   "goal": "work",
+   "familySize": 4,
+   "investmentUsd": 0,
+   "remoteIncomeUsd": 0,
+   "startupBacking": false,
+   "studyOffer": false,
+   "recentGraduate": false,
+   "achievement": false,
+   "nomination": false
+  },
+  "countries": {
+   "DE": {
+    "goalMatch": true,
+    "visas": {
+     "de_blue_card": {
+      "chance": 77.5,
+      "readiness": 89.0,
+      "achieved": 89.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "de_job_seeker": {
+      "chance": 68.7,
+      "readiness": 81.0,
+      "achieved": 81.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "de_chancenkarte": {
+      "chance": 24.4,
+      "readiness": 85.0,
+      "achieved": 85.0,
+      "eligible": false,
+      "blockers": [
+       "funds_gate"
+      ]
+     },
+     "de_self_employed": {
+      "chance": 16.2,
+      "readiness": 56.8,
+      "achieved": 56.8,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "de_student": {
+      "chance": 16.0,
+      "readiness": 55.5,
+      "achieved": 55.5,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     }
+    },
+    "best": "de_blue_card"
+   },
+   "AU": {
+    "goalMatch": true,
+    "visas": {
+     "au_190": {
+      "chance": 56.9,
+      "readiness": 64.8,
+      "achieved": 87.5,
+      "eligible": true,
+      "blockers": []
+     },
+     "au_189": {
+      "chance": 55.5,
+      "readiness": 64.8,
+      "achieved": 87.5,
+      "eligible": true,
+      "blockers": []
+     },
+     "au_491": {
+      "chance": 53.9,
+      "readiness": 60.3,
+      "achieved": 87.5,
+      "eligible": true,
+      "blockers": []
+     },
+     "au_sid": {
+      "chance": 14.8,
+      "readiness": 43.0,
+      "achieved": 43.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "au_student": {
+      "chance": 13.6,
+      "readiness": 43.3,
+      "achieved": 43.3,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     }
+    },
+    "best": "au_190"
+   },
+   "UK": {
+    "goalMatch": true,
+    "visas": {
+     "uk_hpi": {
+      "chance": 24.0,
+      "readiness": 83.0,
+      "achieved": 83.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "uk_skilled_worker": {
+      "chance": 18.9,
+      "readiness": 60.7,
+      "achieved": 42.5,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "uk_innovator": {
+      "chance": 17.7,
+      "readiness": 55.5,
+      "achieved": 55.5,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "uk_global_talent": {
+      "chance": 15.2,
+      "readiness": 44.5,
+      "achieved": 44.5,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "uk_student": {
+      "chance": 14.1,
+      "readiness": 46.3,
+      "achieved": 46.3,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     }
+    },
+    "best": "uk_hpi"
+   },
+   "NL": {
+    "goalMatch": true,
+    "visas": {
+     "nl_hsm": {
+      "chance": 22.8,
+      "readiness": 78.0,
+      "achieved": 78.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "nl_orientation": {
+      "chance": 19.3,
+      "readiness": 72.5,
+      "achieved": 72.5,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "nl_blue_card": {
+      "chance": 18.6,
+      "readiness": 69.0,
+      "achieved": 69.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     },
+     "nl_startup": {
+      "chance": 13.8,
+      "readiness": 44.7,
+      "achieved": 44.7,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "nl_student": {
+      "chance": 12.9,
+      "readiness": 40.2,
+      "achieved": 40.2,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     }
+    },
+    "best": "nl_hsm"
+   },
+   "CA": {
+    "goalMatch": true,
+    "visas": {
+     "ca_pnp": {
+      "chance": 22.7,
+      "readiness": 77.1,
+      "achieved": 81.0,
+      "eligible": false,
+      "blockers": [
+       "funds_gate"
+      ]
+     },
+     "ca_ee_fsw": {
+      "chance": 21.5,
+      "readiness": 72.0,
+      "achieved": 72.0,
+      "eligible": false,
+      "blockers": [
+       "funds_gate"
+      ]
+     },
+     "ca_work": {
+      "chance": 16.9,
+      "readiness": 52.0,
+      "achieved": 52.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "ca_suv": {
+      "chance": 16.7,
+      "readiness": 59.0,
+      "achieved": 59.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "ca_study": {
+      "chance": 14.9,
+      "readiness": 50.1,
+      "achieved": 50.1,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     }
+    },
+    "best": "ca_pnp"
+   },
+   "IT": {
+    "goalMatch": true,
+    "visas": {
+     "it_blue_card": {
+      "chance": 21.2,
+      "readiness": 71.0,
+      "achieved": 71.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "it_student": {
+      "chance": 16.4,
+      "readiness": 50.0,
+      "achieved": 50.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "it_digital_nomad": {
+      "chance": 15.1,
+      "readiness": 50.9,
+      "achieved": 50.9,
+      "eligible": false,
+      "blockers": [
+       "remote_income_gate",
+       "funds_gate"
+      ]
+     }
+    },
+    "best": "it_blue_card"
+   },
+   "ES": {
+    "goalMatch": true,
+    "visas": {
+     "es_hqp": {
+      "chance": 21.0,
+      "readiness": 70.0,
+      "achieved": 70.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "es_digital_nomad": {
+      "chance": 14.9,
+      "readiness": 50.0,
+      "achieved": 50.0,
+      "eligible": false,
+      "blockers": [
+       "remote_income_gate",
+       "funds_gate"
+      ]
+     },
+     "es_student": {
+      "chance": 14.6,
+      "readiness": 48.4,
+      "achieved": 48.4,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     }
+    },
+    "best": "es_hqp"
+   },
+   "FR": {
+    "goalMatch": true,
+    "visas": {
+     "fr_talent": {
+      "chance": 20.3,
+      "readiness": 67.0,
+      "achieved": 67.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "fr_student": {
+      "chance": 15.8,
+      "readiness": 47.0,
+      "achieved": 47.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "fr_business": {
+      "chance": 13.2,
+      "readiness": 41.4,
+      "achieved": 41.4,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     }
+    },
+    "best": "fr_talent"
+   },
+   "DK": {
+    "goalMatch": true,
+    "visas": {
+     "dk_positive_list": {
+      "chance": 19.4,
+      "readiness": 63.0,
+      "achieved": 63.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "dk_pay_limit": {
+      "chance": 17.8,
+      "readiness": 65.0,
+      "achieved": 65.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     },
+     "dk_study": {
+      "chance": 13.3,
+      "readiness": 42.0,
+      "achieved": 42.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     }
+    },
+    "best": "dk_positive_list"
+   },
+   "OM": {
+    "goalMatch": true,
+    "visas": {
+     "om_work": {
+      "chance": 18.7,
+      "readiness": 60.0,
+      "achieved": 60.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "om_student": {
+      "chance": 14.3,
+      "readiness": 46.9,
+      "achieved": 46.9,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "om_investor": {
+      "chance": 13.2,
+      "readiness": 36.0,
+      "achieved": 36.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     }
+    },
+    "best": "om_work"
+   },
+   "SE": {
+    "goalMatch": true,
+    "visas": {
+     "se_work": {
+      "chance": 18.0,
+      "readiness": 57.0,
+      "achieved": 57.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "se_researcher": {
+      "chance": 13.5,
+      "readiness": 43.0,
+      "achieved": 43.0,
+      "eligible": false,
+      "blockers": [
+       "education_gate",
+       "flag_gate"
+      ]
+     },
+     "se_study": {
+      "chance": 13.3,
+      "readiness": 42.2,
+      "achieved": 42.2,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     }
+    },
+    "best": "se_work"
+   },
+   "TR": {
+    "goalMatch": true,
+    "visas": {
+     "tr_work": {
+      "chance": 17.1,
+      "readiness": 53.0,
+      "achieved": 53.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "tr_student": {
+      "chance": 16.2,
+      "readiness": 49.0,
+      "achieved": 49.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "tr_investment": {
+      "chance": 12.8,
+      "readiness": 34.0,
+      "achieved": 34.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     }
+    },
+    "best": "tr_work"
+   },
+   "US": {
+    "goalMatch": true,
+    "visas": {
+     "us_eb2_niw": {
+      "chance": 17.1,
+      "readiness": 53.0,
+      "achieved": 53.0,
+      "eligible": false,
+      "blockers": [
+       "education_gate"
+      ]
+     },
+     "us_eb1a": {
+      "chance": 14.2,
+      "readiness": 40.0,
+      "achieved": 40.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "us_f1": {
+      "chance": 13.1,
+      "readiness": 40.8,
+      "achieved": 40.8,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "us_h1b": {
+      "chance": 12.8,
+      "readiness": 34.0,
+      "achieved": 34.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "us_eb5": {
+      "chance": 12.8,
+      "readiness": 34.0,
+      "achieved": 34.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     }
+    },
+    "best": "us_eb2_niw"
+   },
+   "AE": {
+    "goalMatch": false,
+    "visas": {
+     "ae_nomad": {
+      "chance": 17.4,
+      "readiness": 54.3,
+      "achieved": 50.0,
+      "eligible": false,
+      "blockers": [
+       "remote_income_gate"
+      ]
+     },
+     "ae_work": {
+      "chance": 15.8,
+      "readiness": 47.0,
+      "achieved": 47.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "ae_golden": {
+      "chance": 10.0,
+      "readiness": 22.0,
+      "achieved": 22.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     }
+    },
+    "best": "ae_nomad"
+   },
+   "NZ": {
+    "goalMatch": false,
+    "visas": {
+     "nz_investor": {
+      "chance": 16.7,
+      "readiness": 51.0,
+      "achieved": 51.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     },
+     "nz_aewv": {
+      "chance": 16.0,
+      "readiness": 48.0,
+      "achieved": 48.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "nz_smc": {
+      "chance": 13.7,
+      "readiness": 38.0,
+      "achieved": 38.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "nz_student": {
+      "chance": 13.2,
+      "readiness": 41.5,
+      "achieved": 41.5,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     }
+    },
+    "best": "nz_investor"
+   }
+  },
+  "summary": {
+   "countries": 15,
+   "eligibleCountries": 2,
+   "bestCountry": "DE"
+  }
+ },
+ "investor": {
+  "profile": {
+   "age": 45,
+   "maritalStatus": "single",
+   "spouse": null,
+   "educationId": "bachelor",
+   "educationStem": false,
+   "languages": [],
+   "work": {
+    "totalYears": 15.0,
+    "overseasYears": 15.0,
+    "inCountryYears": 0,
+    "occupationCode": "10010",
+    "jobOffer": false,
+    "salaryAnnualLocal": null,
+    "salaryCurrency": "USD",
+    "licensing": false,
+    "selfEmployedYears": 0
+   },
+   "funds": {
+    "availableUsd": 1200000.0,
+    "cashUsd": 900000.0,
+    "assetsUsd": 300000.0
+   },
+   "adaptability": {
+    "relativeInCountry": false,
+    "priorStudyInCountry": false,
+    "priorWorkInCountry": false,
+    "eca": false
+   },
+   "goal": "investment",
+   "familySize": 3,
+   "investmentUsd": 900000.0,
+   "remoteIncomeUsd": 0,
+   "startupBacking": true,
+   "studyOffer": false,
+   "recentGraduate": false,
+   "achievement": false,
+   "nomination": false
+  },
+  "countries": {
+   "TR": {
+    "goalMatch": true,
+    "visas": {
+     "tr_investment": {
+      "chance": 88.6,
+      "readiness": 100.0,
+      "achieved": 100.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "tr_student": {
+      "chance": 14.2,
+      "readiness": 40.0,
+      "achieved": 40.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "tr_work": {
+      "chance": 11.5,
+      "readiness": 33.0,
+      "achieved": 33.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "tr_investment"
+   },
+   "OM": {
+    "goalMatch": true,
+    "visas": {
+     "om_investor": {
+      "chance": 85.6,
+      "readiness": 100.0,
+      "achieved": 100.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "om_student": {
+      "chance": 14.2,
+      "readiness": 40.0,
+      "achieved": 40.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "om_work": {
+      "chance": 12.3,
+      "readiness": 32.0,
+      "achieved": 32.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "om_investor"
+   },
+   "US": {
+    "goalMatch": true,
+    "visas": {
+     "us_eb5": {
+      "chance": 74.5,
+      "readiness": 92.0,
+      "achieved": 92.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "us_f1": {
+      "chance": 14.5,
+      "readiness": 48.0,
+      "achieved": 48.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate"
+      ]
+     },
+     "us_eb1a": {
+      "chance": 12.8,
+      "readiness": 34.0,
+      "achieved": 34.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "us_eb2_niw": {
+      "chance": 12.3,
+      "readiness": 32.0,
+      "achieved": 32.0,
+      "eligible": false,
+      "blockers": [
+       "education_gate"
+      ]
+     },
+     "us_h1b": {
+      "chance": 11.4,
+      "readiness": 28.0,
+      "achieved": 28.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "us_eb5"
+   },
+   "AE": {
+    "goalMatch": true,
+    "visas": {
+     "ae_golden": {
+      "chance": 36.2,
+      "readiness": 58.0,
+      "achieved": 58.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "ae_nomad": {
+      "chance": 17.4,
+      "readiness": 54.3,
+      "achieved": 50.0,
+      "eligible": false,
+      "blockers": [
+       "remote_income_gate"
+      ]
+     },
+     "ae_work": {
+      "chance": 11.9,
+      "readiness": 30.0,
+      "achieved": 30.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "ae_golden"
+   },
+   "FR": {
+    "goalMatch": false,
+    "visas": {
+     "fr_business": {
+      "chance": 67.0,
+      "readiness": 86.0,
+      "achieved": 86.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "fr_student": {
+      "chance": 13.2,
+      "readiness": 36.0,
+      "achieved": 36.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "fr_talent": {
+      "chance": 12.5,
+      "readiness": 38.0,
+      "achieved": 38.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "fr_business"
+   },
+   "NL": {
+    "goalMatch": false,
+    "visas": {
+     "nl_startup": {
+      "chance": 65.7,
+      "readiness": 83.0,
+      "achieved": 83.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "nl_orientation": {
+      "chance": 20.6,
+      "readiness": 68.0,
+      "achieved": 68.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "nl_blue_card": {
+      "chance": 14.9,
+      "readiness": 50.0,
+      "achieved": 50.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     },
+     "nl_hsm": {
+      "chance": 14.5,
+      "readiness": 48.0,
+      "achieved": 48.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     },
+     "nl_student": {
+      "chance": 13.3,
+      "readiness": 42.0,
+      "achieved": 42.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate"
+      ]
+     }
+    },
+    "best": "nl_startup"
+   },
+   "DE": {
+    "goalMatch": false,
+    "visas": {
+     "de_self_employed": {
+      "chance": 64.1,
+      "readiness": 83.0,
+      "achieved": 83.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "de_job_seeker": {
+      "chance": 28.7,
+      "readiness": 47.0,
+      "achieved": 47.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "de_chancenkarte": {
+      "chance": 26.0,
+      "readiness": 43.0,
+      "achieved": 43.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "de_blue_card": {
+      "chance": 14.6,
+      "readiness": 42.0,
+      "achieved": 42.0,
+      "eligible": false,
+      "blockers": [
+       "salary_gate"
+      ]
+     },
+     "de_student": {
+      "chance": 13.9,
+      "readiness": 39.0,
+      "achieved": 39.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "de_self_employed"
+   },
+   "NZ": {
+    "goalMatch": true,
+    "visas": {
+     "nz_investor": {
+      "chance": 15.1,
+      "readiness": 44.0,
+      "achieved": 44.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     },
+     "nz_student": {
+      "chance": 13.3,
+      "readiness": 42.0,
+      "achieved": 42.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate"
+      ]
+     },
+     "nz_aewv": {
+      "chance": 11.5,
+      "readiness": 33.0,
+      "achieved": 33.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     },
+     "nz_smc": {
+      "chance": 10.3,
+      "readiness": 32.0,
+      "achieved": 32.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate",
+       "custom_points"
+      ]
+     }
+    },
+    "best": "nz_investor"
+   },
+   "UK": {
+    "goalMatch": false,
+    "visas": {
+     "uk_innovator": {
+      "chance": 25.1,
+      "readiness": 88.0,
+      "achieved": 88.0,
+      "eligible": false,
+      "blockers": [
+       "language_gate"
+      ]
+     },
+     "uk_hpi": {
+      "chance": 17.8,
+      "readiness": 65.0,
+      "achieved": 65.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate"
+      ]
+     },
+     "uk_student": {
+      "chance": 12.7,
+      "readiness": 39.0,
+      "achieved": 39.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate"
+      ]
+     },
+     "uk_global_talent": {
+      "chance": 11.9,
+      "readiness": 35.0,
+      "achieved": 35.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate"
+      ]
+     },
+     "uk_skilled_worker": {
+      "chance": 9.8,
+      "readiness": 28.6,
+      "achieved": 20.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "uk_innovator"
+   },
+   "CA": {
+    "goalMatch": false,
+    "visas": {
+     "ca_suv": {
+      "chance": 21.5,
+      "readiness": 72.0,
+      "achieved": 72.0,
+      "eligible": false,
+      "blockers": [
+       "language_gate"
+      ]
+     },
+     "ca_pnp": {
+      "chance": 17.0,
+      "readiness": 52.4,
+      "achieved": 55.0,
+      "eligible": false,
+      "blockers": [
+       "language_gate"
+      ]
+     },
+     "ca_study": {
+      "chance": 12.7,
+      "readiness": 39.0,
+      "achieved": 39.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate"
+      ]
+     },
+     "ca_ee_fsw": {
+      "chance": 12.5,
+      "readiness": 38.0,
+      "achieved": 38.0,
+      "eligible": false,
+      "blockers": [
+       "language_gate",
+       "points_gate"
+      ]
+     },
+     "ca_work": {
+      "chance": 12.3,
+      "readiness": 37.0,
+      "achieved": 37.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate"
+      ]
+     }
+    },
+    "best": "ca_suv"
+   },
+   "ES": {
+    "goalMatch": false,
+    "visas": {
+     "es_digital_nomad": {
+      "chance": 16.9,
+      "readiness": 52.0,
+      "achieved": 52.0,
+      "eligible": false,
+      "blockers": [
+       "remote_income_gate"
+      ]
+     },
+     "es_student": {
+      "chance": 14.4,
+      "readiness": 41.0,
+      "achieved": 41.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "es_hqp": {
+      "chance": 13.7,
+      "readiness": 38.0,
+      "achieved": 38.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "es_digital_nomad"
+   },
+   "IT": {
+    "goalMatch": false,
+    "visas": {
+     "it_digital_nomad": {
+      "chance": 16.9,
+      "readiness": 52.0,
+      "achieved": 52.0,
+      "eligible": false,
+      "blockers": [
+       "remote_income_gate"
+      ]
+     },
+     "it_student": {
+      "chance": 14.4,
+      "readiness": 41.0,
+      "achieved": 41.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "it_blue_card": {
+      "chance": 14.2,
+      "readiness": 40.0,
+      "achieved": 40.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "it_digital_nomad"
+   },
+   "DK": {
+    "goalMatch": false,
+    "visas": {
+     "dk_study": {
+      "chance": 14.2,
+      "readiness": 40.0,
+      "achieved": 40.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "dk_pay_limit": {
+      "chance": 12.5,
+      "readiness": 38.0,
+      "achieved": 38.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     },
+     "dk_positive_list": {
+      "chance": 11.3,
+      "readiness": 32.0,
+      "achieved": 32.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "dk_study"
+   },
+   "SE": {
+    "goalMatch": false,
+    "visas": {
+     "se_study": {
+      "chance": 14.2,
+      "readiness": 40.0,
+      "achieved": 40.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "se_researcher": {
+      "chance": 10.5,
+      "readiness": 28.0,
+      "achieved": 28.0,
+      "eligible": false,
+      "blockers": [
+       "education_gate",
+       "flag_gate"
+      ]
+     },
+     "se_work": {
+      "chance": 9.3,
+      "readiness": 22.0,
+      "achieved": 22.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "se_study"
+   },
+   "AU": {
+    "goalMatch": false,
+    "visas": {
+     "au_student": {
+      "chance": 12.7,
+      "readiness": 39.0,
+      "achieved": 39.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate"
+      ]
+     },
+     "au_sid": {
+      "chance": 11.5,
+      "readiness": 33.0,
+      "achieved": 33.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate"
+      ]
+     },
+     "au_189": {
+      "chance": 9.9,
+      "readiness": 29.6,
+      "achieved": 40.0,
+      "eligible": false,
+      "blockers": [
+       "age_gate",
+       "language_gate",
+       "points_gate"
+      ]
+     },
+     "au_190": {
+      "chance": 9.9,
+      "readiness": 29.6,
+      "achieved": 40.0,
+      "eligible": false,
+      "blockers": [
+       "age_gate",
+       "language_gate",
+       "points_gate"
+      ]
+     },
+     "au_491": {
+      "chance": 9.6,
+      "readiness": 27.6,
+      "achieved": 40.0,
+      "eligible": false,
+      "blockers": [
+       "age_gate",
+       "language_gate",
+       "points_gate"
+      ]
+     }
+    },
+    "best": "au_student"
+   }
+  },
+  "summary": {
+   "countries": 15,
+   "eligibleCountries": 7,
+   "bestCountry": "TR"
+  }
+ },
+ "bare": {
+  "profile": {
+   "age": 52,
+   "maritalStatus": "single",
+   "spouse": null,
+   "educationId": "highschool",
+   "educationStem": false,
+   "languages": [],
+   "work": {
+    "totalYears": 0.0,
+    "overseasYears": 0,
+    "inCountryYears": 0,
+    "occupationCode": null,
+    "jobOffer": false,
+    "salaryAnnualLocal": null,
+    "salaryCurrency": "USD",
+    "licensing": false,
+    "selfEmployedYears": 0
+   },
+   "funds": {
+    "availableUsd": 2000.0,
+    "cashUsd": 0,
+    "assetsUsd": 0
+   },
+   "adaptability": {
+    "relativeInCountry": false,
+    "priorStudyInCountry": false,
+    "priorWorkInCountry": false,
+    "eca": false
+   },
+   "goal": "work",
+   "familySize": 1,
+   "investmentUsd": 0,
+   "remoteIncomeUsd": 0,
+   "startupBacking": false,
+   "studyOffer": false,
+   "recentGraduate": false,
+   "achievement": false,
+   "nomination": false
+  },
+  "countries": {
+   "FR": {
+    "goalMatch": false,
+    "visas": {
+     "fr_student": {
+      "chance": 11.9,
+      "readiness": 30.0,
+      "achieved": 30.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "fr_business": {
+      "chance": 6.0,
+      "readiness": 5.3,
+      "achieved": 5.3,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "fr_talent": {
+      "chance": 5.4,
+      "readiness": 2.0,
+      "achieved": 2.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "fr_student"
+   },
+   "NZ": {
+    "goalMatch": false,
+    "visas": {
+     "nz_investor": {
+      "chance": 10.9,
+      "readiness": 26.0,
+      "achieved": 26.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     },
+     "nz_student": {
+      "chance": 6.2,
+      "readiness": 7.0,
+      "achieved": 7.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate",
+       "funds_gate"
+      ]
+     },
+     "nz_aewv": {
+      "chance": 5.6,
+      "readiness": 3.0,
+      "achieved": 3.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     },
+     "nz_smc": {
+      "chance": 5.5,
+      "readiness": 3.0,
+      "achieved": 3.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate",
+       "custom_points"
+      ]
+     }
+    },
+    "best": "nz_investor"
+   },
+   "OM": {
+    "goalMatch": false,
+    "visas": {
+     "om_investor": {
+      "chance": 10.5,
+      "readiness": 24.0,
+      "achieved": 24.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     },
+     "om_student": {
+      "chance": 6.8,
+      "readiness": 9.2,
+      "achieved": 9.2,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "om_work": {
+      "chance": 5.5,
+      "readiness": 2.0,
+      "achieved": 2.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "om_investor"
+   },
+   "UK": {
+    "goalMatch": false,
+    "visas": {
+     "uk_innovator": {
+      "chance": 10.3,
+      "readiness": 27.0,
+      "achieved": 27.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate"
+      ]
+     },
+     "uk_hpi": {
+      "chance": 8.3,
+      "readiness": 20.0,
+      "achieved": 20.0,
+      "eligible": false,
+      "blockers": [
+       "education_gate",
+       "flag_gate",
+       "language_gate"
+      ]
+     },
+     "uk_student": {
+      "chance": 6.3,
+      "readiness": 8.1,
+      "achieved": 8.1,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate",
+       "funds_gate"
+      ]
+     },
+     "uk_skilled_worker": {
+      "chance": 6.0,
+      "readiness": 5.7,
+      "achieved": 4.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate",
+       "salary_gate"
+      ]
+     },
+     "uk_global_talent": {
+      "chance": 5.4,
+      "readiness": 2.0,
+      "achieved": 2.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate"
+      ]
+     }
+    },
+    "best": "uk_innovator"
+   },
+   "AE": {
+    "goalMatch": false,
+    "visas": {
+     "ae_nomad": {
+      "chance": 10.2,
+      "readiness": 22.8,
+      "achieved": 21.0,
+      "eligible": false,
+      "blockers": [
+       "remote_income_gate"
+      ]
+     },
+     "ae_work": {
+      "chance": 5.5,
+      "readiness": 2.0,
+      "achieved": 2.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "ae_golden": {
+      "chance": 5.2,
+      "readiness": 1.0,
+      "achieved": 1.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     }
+    },
+    "best": "ae_nomad"
+   },
+   "TR": {
+    "goalMatch": false,
+    "visas": {
+     "tr_investment": {
+      "chance": 10.0,
+      "readiness": 22.0,
+      "achieved": 22.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     },
+     "tr_student": {
+      "chance": 7.1,
+      "readiness": 10.7,
+      "achieved": 10.7,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "tr_work": {
+      "chance": 5.6,
+      "readiness": 3.0,
+      "achieved": 3.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "tr_investment"
+   },
+   "US": {
+    "goalMatch": false,
+    "visas": {
+     "us_eb5": {
+      "chance": 9.8,
+      "readiness": 21.0,
+      "achieved": 21.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     },
+     "us_f1": {
+      "chance": 5.7,
+      "readiness": 4.4,
+      "achieved": 4.4,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate",
+       "funds_gate"
+      ]
+     },
+     "us_eb1a": {
+      "chance": 5.5,
+      "readiness": 2.0,
+      "achieved": 2.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "us_eb2_niw": {
+      "chance": 5.2,
+      "readiness": 1.0,
+      "achieved": 1.0,
+      "eligible": false,
+      "blockers": [
+       "education_gate"
+      ]
+     },
+     "us_h1b": {
+      "chance": 5.0,
+      "readiness": 0.0,
+      "achieved": 0.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "education_gate"
+      ]
+     }
+    },
+    "best": "us_eb5"
+   },
+   "IT": {
+    "goalMatch": false,
+    "visas": {
+     "it_student": {
+      "chance": 7.1,
+      "readiness": 10.6,
+      "achieved": 10.6,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "it_digital_nomad": {
+      "chance": 5.9,
+      "readiness": 4.8,
+      "achieved": 4.8,
+      "eligible": false,
+      "blockers": [
+       "remote_income_gate",
+       "funds_gate"
+      ]
+     },
+     "it_blue_card": {
+      "chance": 5.4,
+      "readiness": 2.0,
+      "achieved": 2.0,
+      "eligible": false,
+      "blockers": [
+       "education_gate",
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "it_student"
+   },
+   "ES": {
+    "goalMatch": false,
+    "visas": {
+     "es_student": {
+      "chance": 6.8,
+      "readiness": 9.3,
+      "achieved": 9.3,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "es_digital_nomad": {
+      "chance": 6.0,
+      "readiness": 5.1,
+      "achieved": 5.1,
+      "eligible": false,
+      "blockers": [
+       "remote_income_gate",
+       "funds_gate"
+      ]
+     },
+     "es_hqp": {
+      "chance": 5.4,
+      "readiness": 2.0,
+      "achieved": 2.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "education_gate"
+      ]
+     }
+    },
+    "best": "es_student"
+   },
+   "DK": {
+    "goalMatch": false,
+    "visas": {
+     "dk_study": {
+      "chance": 6.5,
+      "readiness": 7.7,
+      "achieved": 7.7,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "dk_positive_list": {
+      "chance": 5.6,
+      "readiness": 3.0,
+      "achieved": 3.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "flag_gate"
+      ]
+     },
+     "dk_pay_limit": {
+      "chance": 5.4,
+      "readiness": 2.0,
+      "achieved": 2.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "dk_study"
+   },
+   "SE": {
+    "goalMatch": false,
+    "visas": {
+     "se_study": {
+      "chance": 6.5,
+      "readiness": 7.7,
+      "achieved": 7.7,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "se_work": {
+      "chance": 5.0,
+      "readiness": 0.0,
+      "achieved": 0.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     },
+     "se_researcher": {
+      "chance": 5.0,
+      "readiness": 0.0,
+      "achieved": 0.0,
+      "eligible": false,
+      "blockers": [
+       "education_gate",
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "se_study"
+   },
+   "CA": {
+    "goalMatch": false,
+    "visas": {
+     "ca_study": {
+      "chance": 6.4,
+      "readiness": 8.3,
+      "achieved": 8.3,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate",
+       "funds_gate"
+      ]
+     },
+     "ca_work": {
+      "chance": 6.4,
+      "readiness": 7.0,
+      "achieved": 7.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate"
+      ]
+     },
+     "ca_suv": {
+      "chance": 6.2,
+      "readiness": 7.4,
+      "achieved": 7.4,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate",
+       "funds_gate"
+      ]
+     },
+     "ca_pnp": {
+      "chance": 6.0,
+      "readiness": 5.7,
+      "achieved": 6.0,
+      "eligible": false,
+      "blockers": [
+       "education_gate",
+       "language_gate",
+       "funds_gate"
+      ]
+     },
+     "ca_ee_fsw": {
+      "chance": 5.0,
+      "readiness": 0.0,
+      "achieved": 0.0,
+      "eligible": false,
+      "blockers": [
+       "age_gate",
+       "language_gate",
+       "experience_gate",
+       "points_gate",
+       "funds_gate"
+      ]
+     }
+    },
+    "best": "ca_study"
+   },
+   "DE": {
+    "goalMatch": false,
+    "visas": {
+     "de_student": {
+      "chance": 6.3,
+      "readiness": 6.6,
+      "achieved": 6.6,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "de_self_employed": {
+      "chance": 6.1,
+      "readiness": 5.8,
+      "achieved": 5.8,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "de_job_seeker": {
+      "chance": 5.8,
+      "readiness": 4.0,
+      "achieved": 4.0,
+      "eligible": false,
+      "blockers": [
+       "education_gate",
+       "funds_gate"
+      ]
+     },
+     "de_chancenkarte": {
+      "chance": 5.7,
+      "readiness": 4.0,
+      "achieved": 4.0,
+      "eligible": false,
+      "blockers": [
+       "education_gate",
+       "custom_points",
+       "funds_gate"
+      ]
+     },
+     "de_blue_card": {
+      "chance": 5.4,
+      "readiness": 2.0,
+      "achieved": 2.0,
+      "eligible": false,
+      "blockers": [
+       "education_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "de_student"
+   },
+   "AU": {
+    "goalMatch": false,
+    "visas": {
+     "au_student": {
+      "chance": 6.2,
+      "readiness": 7.5,
+      "achieved": 7.5,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate",
+       "funds_gate"
+      ]
+     },
+     "au_sid": {
+      "chance": 5.6,
+      "readiness": 3.0,
+      "achieved": 3.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate"
+      ]
+     },
+     "au_189": {
+      "chance": 5.0,
+      "readiness": 0.0,
+      "achieved": 0.0,
+      "eligible": false,
+      "blockers": [
+       "age_gate",
+       "language_gate",
+       "points_gate"
+      ]
+     },
+     "au_190": {
+      "chance": 5.0,
+      "readiness": 0.0,
+      "achieved": 0.0,
+      "eligible": false,
+      "blockers": [
+       "age_gate",
+       "language_gate",
+       "points_gate"
+      ]
+     },
+     "au_491": {
+      "chance": 5.0,
+      "readiness": 0.0,
+      "achieved": 0.0,
+      "eligible": false,
+      "blockers": [
+       "age_gate",
+       "language_gate",
+       "points_gate"
+      ]
+     }
+    },
+    "best": "au_student"
+   },
+   "NL": {
+    "goalMatch": false,
+    "visas": {
+     "nl_student": {
+      "chance": 6.0,
+      "readiness": 6.2,
+      "achieved": 6.2,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "language_gate",
+       "funds_gate"
+      ]
+     },
+     "nl_startup": {
+      "chance": 5.9,
+      "readiness": 4.5,
+      "achieved": 4.5,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "nl_orientation": {
+      "chance": 5.5,
+      "readiness": 3.1,
+      "achieved": 3.1,
+      "eligible": false,
+      "blockers": [
+       "education_gate",
+       "flag_gate",
+       "funds_gate"
+      ]
+     },
+     "nl_hsm": {
+      "chance": 5.4,
+      "readiness": 2.0,
+      "achieved": 2.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     },
+     "nl_blue_card": {
+      "chance": 5.3,
+      "readiness": 2.0,
+      "achieved": 2.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "education_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "nl_student"
+   }
+  },
+  "summary": {
+   "countries": 15,
+   "eligibleCountries": 0,
+   "bestCountry": "FR"
+  }
+ },
+ "digital_nomad": {
+  "profile": {
+   "age": 29,
+   "maritalStatus": "single",
+   "spouse": null,
+   "educationId": "bachelor",
+   "educationStem": false,
+   "languages": [
+    {
+     "testId": "duolingo",
+     "skills": {
+      "overall": 125.0
+     },
+     "cefr": null
+    }
+   ],
+   "work": {
+    "totalYears": 5.0,
+    "overseasYears": 5.0,
+    "inCountryYears": 0,
+    "occupationCode": "21234",
+    "jobOffer": false,
+    "salaryAnnualLocal": null,
+    "salaryCurrency": "USD",
+    "licensing": false,
+    "selfEmployedYears": 0
+   },
+   "funds": {
+    "availableUsd": 25000.0,
+    "cashUsd": 0,
+    "assetsUsd": 0
+   },
+   "adaptability": {
+    "relativeInCountry": false,
+    "priorStudyInCountry": false,
+    "priorWorkInCountry": false,
+    "eca": false
+   },
+   "goal": "selfsponsored",
+   "familySize": 1,
+   "investmentUsd": 0,
+   "remoteIncomeUsd": 4200.0,
+   "startupBacking": false,
+   "studyOffer": false,
+   "recentGraduate": false,
+   "achievement": false,
+   "nomination": false
+  },
+  "countries": {
+   "ES": {
+    "goalMatch": true,
+    "visas": {
+     "es_digital_nomad": {
+      "chance": 78.0,
+      "readiness": 92.0,
+      "achieved": 92.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "es_student": {
+      "chance": 18.5,
+      "readiness": 59.0,
+      "achieved": 59.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "es_hqp": {
+      "chance": 15.5,
+      "readiness": 46.0,
+      "achieved": 46.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "es_digital_nomad"
+   },
+   "IT": {
+    "goalMatch": true,
+    "visas": {
+     "it_digital_nomad": {
+      "chance": 75.4,
+      "readiness": 91.0,
+      "achieved": 91.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "it_student": {
+      "chance": 18.7,
+      "readiness": 60.0,
+      "achieved": 60.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "it_blue_card": {
+      "chance": 16.0,
+      "readiness": 48.0,
+      "achieved": 48.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "it_digital_nomad"
+   },
+   "AE": {
+    "goalMatch": true,
+    "visas": {
+     "ae_nomad": {
+      "chance": 63.1,
+      "readiness": 70.7,
+      "achieved": 65.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "ae_work": {
+      "chance": 12.3,
+      "readiness": 32.0,
+      "achieved": 32.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "ae_golden": {
+      "chance": 8.4,
+      "readiness": 15.0,
+      "achieved": 15.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     }
+    },
+    "best": "ae_nomad"
+   },
+   "DE": {
+    "goalMatch": true,
+    "visas": {
+     "de_chancenkarte": {
+      "chance": 60.5,
+      "readiness": 72.0,
+      "achieved": 72.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "de_job_seeker": {
+      "chance": 38.5,
+      "readiness": 63.0,
+      "achieved": 63.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "de_student": {
+      "chance": 17.4,
+      "readiness": 54.0,
+      "achieved": 54.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "de_self_employed": {
+      "chance": 16.2,
+      "readiness": 49.0,
+      "achieved": 49.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "de_blue_card": {
+      "chance": 16.0,
+      "readiness": 48.0,
+      "achieved": 48.0,
+      "eligible": false,
+      "blockers": [
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "de_chancenkarte"
+   },
+   "CA": {
+    "goalMatch": false,
+    "visas": {
+     "ca_pnp": {
+      "chance": 66.9,
+      "readiness": 74.3,
+      "achieved": 78.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "ca_ee_fsw": {
+      "chance": 20.1,
+      "readiness": 66.0,
+      "achieved": 66.0,
+      "eligible": false,
+      "blockers": [
+       "points_gate"
+      ]
+     },
+     "ca_study": {
+      "chance": 19.9,
+      "readiness": 65.0,
+      "achieved": 65.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "ca_suv": {
+      "chance": 18.7,
+      "readiness": 60.0,
+      "achieved": 60.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "ca_work": {
+      "chance": 16.4,
+      "readiness": 50.0,
+      "achieved": 50.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "ca_pnp"
+   },
+   "AU": {
+    "goalMatch": false,
+    "visas": {
+     "au_190": {
+      "chance": 55.3,
+      "readiness": 63.0,
+      "achieved": 85.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "au_189": {
+      "chance": 53.9,
+      "readiness": 63.0,
+      "achieved": 85.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "au_491": {
+      "chance": 52.4,
+      "readiness": 58.6,
+      "achieved": 85.0,
+      "eligible": true,
+      "blockers": []
+     },
+     "au_student": {
+      "chance": 19.9,
+      "readiness": 65.0,
+      "achieved": 65.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "au_sid": {
+      "chance": 13.7,
+      "readiness": 38.0,
+      "achieved": 38.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "au_190"
+   },
+   "UK": {
+    "goalMatch": true,
+    "visas": {
+     "uk_hpi": {
+      "chance": 25.4,
+      "readiness": 89.0,
+      "achieved": 89.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "uk_student": {
+      "chance": 19.9,
+      "readiness": 65.0,
+      "achieved": 65.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "uk_innovator": {
+      "chance": 18.5,
+      "readiness": 59.0,
+      "achieved": 59.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "uk_skilled_worker": {
+      "chance": 13.5,
+      "readiness": 42.9,
+      "achieved": 30.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     },
+     "uk_global_talent": {
+      "chance": 13.5,
+      "readiness": 37.0,
+      "achieved": 37.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "uk_hpi"
+   },
+   "NL": {
+    "goalMatch": true,
+    "visas": {
+     "nl_orientation": {
+      "chance": 22.8,
+      "readiness": 78.0,
+      "achieved": 78.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "nl_student": {
+      "chance": 19.2,
+      "readiness": 62.0,
+      "achieved": 62.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "nl_startup": {
+      "chance": 17.8,
+      "readiness": 56.0,
+      "achieved": 56.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "nl_hsm": {
+      "chance": 14.5,
+      "readiness": 48.0,
+      "achieved": 48.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     },
+     "nl_blue_card": {
+      "chance": 14.5,
+      "readiness": 48.0,
+      "achieved": 48.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "nl_orientation"
+   },
+   "US": {
+    "goalMatch": false,
+    "visas": {
+     "us_f1": {
+      "chance": 19.6,
+      "readiness": 64.0,
+      "achieved": 64.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "us_eb1a": {
+      "chance": 12.3,
+      "readiness": 32.0,
+      "achieved": 32.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "us_h1b": {
+      "chance": 12.3,
+      "readiness": 32.0,
+      "achieved": 32.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "us_eb5": {
+      "chance": 12.1,
+      "readiness": 31.0,
+      "achieved": 31.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     },
+     "us_eb2_niw": {
+      "chance": 11.9,
+      "readiness": 30.0,
+      "achieved": 30.0,
+      "eligible": false,
+      "blockers": [
+       "education_gate"
+      ]
+     }
+    },
+    "best": "us_f1"
+   },
+   "NZ": {
+    "goalMatch": false,
+    "visas": {
+     "nz_student": {
+      "chance": 19.2,
+      "readiness": 62.0,
+      "achieved": 62.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "nz_investor": {
+      "chance": 15.8,
+      "readiness": 47.0,
+      "achieved": 47.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     },
+     "nz_aewv": {
+      "chance": 12.5,
+      "readiness": 38.0,
+      "achieved": 38.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     },
+     "nz_smc": {
+      "chance": 11.7,
+      "readiness": 34.0,
+      "achieved": 34.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "custom_points"
+      ]
+     }
+    },
+    "best": "nz_student"
+   },
+   "DK": {
+    "goalMatch": false,
+    "visas": {
+     "dk_study": {
+      "chance": 18.7,
+      "readiness": 60.0,
+      "achieved": 60.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "dk_pay_limit": {
+      "chance": 14.1,
+      "readiness": 46.0,
+      "achieved": 46.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     },
+     "dk_positive_list": {
+      "chance": 12.5,
+      "readiness": 38.0,
+      "achieved": 38.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "dk_study"
+   },
+   "SE": {
+    "goalMatch": false,
+    "visas": {
+     "se_study": {
+      "chance": 18.7,
+      "readiness": 60.0,
+      "achieved": 60.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "se_researcher": {
+      "chance": 10.9,
+      "readiness": 30.0,
+      "achieved": 30.0,
+      "eligible": false,
+      "blockers": [
+       "education_gate",
+       "flag_gate"
+      ]
+     },
+     "se_work": {
+      "chance": 10.5,
+      "readiness": 28.0,
+      "achieved": 28.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "se_study"
+   },
+   "TR": {
+    "goalMatch": false,
+    "visas": {
+     "tr_student": {
+      "chance": 18.3,
+      "readiness": 58.0,
+      "achieved": 58.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "tr_investment": {
+      "chance": 12.8,
+      "readiness": 34.0,
+      "achieved": 34.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     },
+     "tr_work": {
+      "chance": 10.7,
+      "readiness": 29.0,
+      "achieved": 29.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "tr_student"
+   },
+   "OM": {
+    "goalMatch": false,
+    "visas": {
+     "om_student": {
+      "chance": 18.0,
+      "readiness": 57.0,
+      "achieved": 57.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "om_investor": {
+      "chance": 13.2,
+      "readiness": 36.0,
+      "achieved": 36.0,
+      "eligible": false,
+      "blockers": [
+       "investment_gate"
+      ]
+     },
+     "om_work": {
+      "chance": 12.8,
+      "readiness": 34.0,
+      "achieved": 34.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     }
+    },
+    "best": "om_student"
+   },
+   "FR": {
+    "goalMatch": false,
+    "visas": {
+     "fr_student": {
+      "chance": 16.4,
+      "readiness": 50.0,
+      "achieved": 50.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "fr_business": {
+      "chance": 16.4,
+      "readiness": 50.0,
+      "achieved": 50.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate"
+      ]
+     },
+     "fr_talent": {
+      "chance": 14.5,
+      "readiness": 48.0,
+      "achieved": 48.0,
+      "eligible": false,
+      "blockers": [
+       "flag_gate",
+       "salary_gate"
+      ]
+     }
+    },
+    "best": "fr_student"
+   }
+  },
+  "summary": {
+   "countries": 15,
+   "eligibleCountries": 6,
+   "bestCountry": "ES"
+  }
+ }
+}

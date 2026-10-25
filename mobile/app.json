@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "Zehnyar",
+    "slug": "zehnyar",
+    "scheme": "zehnyar",
+    "version": "2.0.1",
+    "orientation": "portrait",
+    "icon": "./src/assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "splash": {
+      "image": "./src/assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F2FAF9"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ai.zehnyar.app"
+    },
+    "android": {
+      "package": "ai.zehnyar.app",
+      "versionCode": 21,
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/adaptive-icon.png",
+        "backgroundColor": "#0B6E63"
+      },
+      "edgeToEdgeEnabled": true,
+      "permissions": [],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./src/assets/icon.png"
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./src/assets/splash.png",
+          "imageWidth": 180,
+          "resizeMode": "contain",
+          "backgroundColor": "#F2FAF9"
+        }
+      ]
+    ],
+    "extra": {
+      "apiBaseUrl": "",
+      "datasetVersion": "2.0.0",
+      "verifiedAt": "2026-10-25"
+    },
+    "experiments": {
+      "baseUrl": "/app"
+    }
+  }
+}
