@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#123f56" />
+    <meta name="theme-color" content="#1b6d75" />
     <meta name="application-name" content="قرآن‌پژوهه" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -29,20 +29,32 @@
       <section id="search-screen" class="screen search-screen" aria-labelledby="search-title">
         <div class="research-home-layout">
           <div class="search-workbench">
-            <p class="eyebrow">جست‌وجو در متن قرآن</p>
-            <h1 id="search-title">از واژه تا <em>آیهٔ قرآن</em></h1>
-            <p class="lede">هر فیلد یک مسیر مستقلِ جست‌وجو دارد. یک یا چند فیلد را پر کنید تا آیاتِ متن و آیاتِ موضوعیِ مرتبط، با دلیلِ ورودشان، فهرست شوند.</p>
+            <p class="eyebrow">جست‌وجوی موضوعی در قرآن</p>
+            <h1 id="search-title">از یک مفهوم تا <em>آیهٔ مرتبط</em></h1>
+            <p class="lede">موضوع، مفهوم یا واژه‌ای بنویسید؛ آیه‌های مرتبط را ببینید و برای جست‌وجوی دقیق‌تر، مسیرهای پیشرفته را باز کنید.</p>
 
             <form id="concept-form" class="research-form" novalidate>
-              <div class="search-field"><label for="keyword-query"><b>کلیدواژه</b><small>جست‌وجوی دقیق در متن</small></label><input id="keyword-query" maxlength="120" autocomplete="off" placeholder="مثل: حق، میزان" /></div>
-              <div class="search-field"><label for="concept-query"><b>مفهوم</b><small>مثل: عدالت، رحمت</small></label><input id="concept-query" maxlength="120" autocomplete="off" placeholder="مفهومِ پژوهش" /></div>
-              <div class="search-field"><label for="topic-query"><b>موضوع</b><small>از نقشهٔ موضوعات</small></label><input id="topic-query" maxlength="120" autocomplete="off" placeholder="مثل: تجارت، هجرت" /></div>
-              <div class="search-field"><label for="quranic-equivalent-query"><b>معادل قرآنی</b><small>واژهٔ عربی</small></label><input id="quranic-equivalent-query" maxlength="120" autocomplete="off" placeholder="مثل: قسط، رحمة" /></div>
-              <div class="search-field"><label for="translation-equivalent-query"><b>معادل ترجمه</b><small>جست‌وجوی دقیق فارسی</small></label><input id="translation-equivalent-query" maxlength="120" autocomplete="off" placeholder="مثل: دادگری" /></div>
-              <div class="search-field"><label for="semantic-query"><b>هم‌معنا</b><small>خانوادهٔ معنایی</small></label><input id="semantic-query" maxlength="120" autocomplete="off" placeholder="مثل: بخشش، آمرزش" /></div>
-              <div class="search-field"><label for="synonym-query"><b>مترادف</b><small>مسیر واژگانی نزدیک</small></label><input id="synonym-query" maxlength="120" autocomplete="off" placeholder="مثل: عشق، محبت" /></div>
-              <div class="search-field"><label for="root-query"><b>هم‌ریشه</b><small>ریشه یا صورت عربی</small></label><input id="root-query" maxlength="80" autocomplete="off" placeholder="مثل: دمغ، ح ب ب" /></div>
-              <div class="form-actions"><span>نتیجه بر پایهٔ فیلدهای پُر‌شده ساخته می‌شود.</span><button type="submit">جست‌وجو در قرآن <span aria-hidden="true">←</span></button></div>
+              <div class="primary-search">
+                <label for="concept-query">چه موضوعی را در قرآن دنبال می‌کنید؟</label>
+                <div class="primary-search-row">
+                  <input id="concept-query" maxlength="120" autocomplete="off" placeholder="مثلاً: عدالت، امید، خانواده…" />
+                  <button type="submit">جست‌وجو <span aria-hidden="true">←</span></button>
+                </div>
+                <small>با یک واژه یا مفهوم شروع کنید؛ مسیرهای بیشتر همیشه در دسترس‌اند.</small>
+              </div>
+              <details class="advanced-search">
+                <summary><span aria-hidden="true">＋</span> جست‌وجوی پیشرفته با فیلدهای دیگر</summary>
+                <p>هر مسیر جداگانه و شفاف بررسی می‌شود؛ لازم نیست بیش از یک فیلد را پر کنید.</p>
+                <div class="advanced-search-grid">
+                  <div class="search-field"><label for="keyword-query"><b>کلیدواژهٔ دقیق</b><small>جست‌وجوی عبارت در متن</small></label><input id="keyword-query" maxlength="120" autocomplete="off" placeholder="مثل: حق، میزان" /></div>
+                  <div class="search-field"><label for="topic-query"><b>موضوع</b><small>از نقشهٔ موضوعات</small></label><input id="topic-query" maxlength="120" autocomplete="off" placeholder="مثل: تجارت، هجرت" /></div>
+                  <div class="search-field"><label for="quranic-equivalent-query"><b>معادل قرآنی</b><small>واژهٔ عربی</small></label><input id="quranic-equivalent-query" maxlength="120" autocomplete="off" placeholder="مثل: قسط، رحمة" /></div>
+                  <div class="search-field"><label for="translation-equivalent-query"><b>معادل ترجمه</b><small>جست‌وجوی دقیق فارسی</small></label><input id="translation-equivalent-query" maxlength="120" autocomplete="off" placeholder="مثل: دادگری" /></div>
+                  <div class="search-field"><label for="semantic-query"><b>هم‌معنا</b><small>خانوادهٔ معنایی</small></label><input id="semantic-query" maxlength="120" autocomplete="off" placeholder="مثل: بخشش، آمرزش" /></div>
+                  <div class="search-field"><label for="synonym-query"><b>مترادف</b><small>مسیر واژگانی نزدیک</small></label><input id="synonym-query" maxlength="120" autocomplete="off" placeholder="مثل: عشق، محبت" /></div>
+                  <div class="search-field"><label for="root-query"><b>هم‌ریشه</b><small>ریشه یا صورت عربی</small></label><input id="root-query" maxlength="80" autocomplete="off" placeholder="مثل: دمغ، ح ب ب" /></div>
+                </div>
+              </details>
             </form>
             <p id="search-status" class="search-status" role="status" aria-live="polite"></p>
             <div class="simple-library-links"><button id="open-topic-library" type="button">نقشهٔ موضوعات قرآن</button><button id="open-surah-library" type="button">پژوهش سوره‌ها</button></div>

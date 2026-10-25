@@ -103,6 +103,10 @@ class QuranResearchTests(unittest.TestCase):
         self.assertIn("نقلِ بدون بازنویسی", script)
         self.assertIn("تأمل در داستان‌های قرآنی", html)
 
+        self.assertIn('id="concept-query"', html)
+        self.assertIn('details class="advanced-search"', html)
+        self.assertIn("جست‌وجوی پیشرفته با فیلدهای دیگر", html)
+
     def test_sources_dialog_separates_the_requested_research_source_fields(self):
         html = (Path(main.STATIC_DIR) / "index.html").read_text(encoding="utf-8")
         for label in ("متن قرآن", "تفاسیر جامع", "کتب علوم قرآنی", "مقالات قرآنی", "مقالات تفسیری"):

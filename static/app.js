@@ -303,7 +303,7 @@ function searchResearchFields() {
   const primary = values.keyword || values.concept || values.topic || values.quranicEquivalent || values.translationEquivalent || values.semantic || values.synonym || values.root;
   if (!primary) {
     status.textContent = "دست‌کم یکی از مسیرهای جست‌وجو را وارد کنید.";
-    $("#keyword-query").focus();
+    $("#concept-query").focus();
     return;
   }
 

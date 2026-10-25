@@ -9,9 +9,13 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "theme_color": "#075b7a",
-  "background_color": "#f4fbff",
-  "categories": ["education", "reference", "books"],
+  "theme_color": "#1b6d75",
+  "background_color": "#eff8ff",
+  "categories": [
+    "education",
+    "reference",
+    "books"
+  ],
   "icons": [
     {
       "src": "static/icons/zehnyar-192.png",
