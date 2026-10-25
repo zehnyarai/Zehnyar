@@ -14,7 +14,7 @@ import {
 } from '../components/ui';
 import { ChanceDial } from '../components/charts';
 import { ChecklistItem, FeeList, VisaCard } from '../components/cards';
-import { money, percent } from '../core/format';
+import { money, num, percent, scorePair } from '../core/format';
 
 const TABS = ['overview', 'visas', 'costs', 'documents'];
 
@@ -108,7 +108,7 @@ export default function CountryDetailScreen({ route, navigation }) {
                 {scoredSelected.eligible
                   ? <Pill label={t('results.eligible')} tone="success" icon="checkmark-circle" />
                   : <Pill label={t('results.needsFix')} tone="warn" icon="alert-circle" />}
-                <Pill label={`${scoredSelected.achieved}/${scoredSelected.maxPoints}`} tone="sky" />
+                <Pill label={scorePair(scoredSelected.achieved, scoredSelected.maxPoints, lang)} tone="sky" />
               </View>
             </View>
           </View>
@@ -321,7 +321,7 @@ export default function CountryDetailScreen({ route, navigation }) {
                   <Text variant="h3" color={colors.ink} style={{ textAlign: dir.text }}>{t('country.documents')}</Text>
                   <Text variant="micro" color={colors.ink50} style={{ textAlign: dir.text }}>{t('country.checklistHint')}</Text>
                 </View>
-                <Pill label={`${checked.length}/${documents.length}`} tone="teal" icon="checkmark-done" />
+                <Pill label={scorePair(checked.length, documents.length, lang)} tone="teal" icon="checkmark-done" />
               </View>
               <View style={{ marginTop: spacing.sm }}>
                 <ProgressBar value={checked.length} max={documents.length} />

@@ -65,20 +65,21 @@ export function PressableScale({ children, onPress, style, disabled, accessibili
   );
 }
 
-export function Button({ label, onPress, variant = 'primary', icon, style, disabled, loading, size = 'md' }) {
+export function Button({ label, onPress, variant = 'primary', icon, style, disabled, loading, size = 'md', textColor }) {
+  const fg = variant === 'primary' ? colors.white : (textColor || colors.teal700);
   const height = size === 'sm' ? 42 : 54;
   const content = (
     <View style={[styles.buttonInner, { height }, size === 'sm' && { paddingHorizontal: spacing.md }]}>
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? colors.white : colors.teal700} />
+        <ActivityIndicator color={fg} />
       ) : (
         <>
-          {icon ? <Ionicons name={icon} size={18} color={variant === 'primary' ? colors.white : colors.teal700} /> : null}
+          {icon ? <Ionicons name={icon} size={18} color={fg} /> : null}
           <Text
             variant="h3"
             style={[
               styles.buttonLabel,
-              variant === 'primary' ? { color: colors.white } : { color: colors.teal700 },
+              { color: fg },
             ]}
           >
             {label}

@@ -6,7 +6,7 @@ import { colors, fonts, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { useAppState } from '../core/appState';
 import { Button, Card, EmptyState, Pill, PressableScale, ScrollScreen, SectionTitle, Text } from '../components/ui';
-import { percent } from '../core/format';
+import { num, percent } from '../core/format';
 
 const EFFORT_TONE = { easy: 'success', medium: 'warn', hard: 'danger', locked: 'neutral' };
 
@@ -57,7 +57,7 @@ export default function AdvisorScreen({ navigation }) {
             <Text variant="micro" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('results.readinessLabel')}</Text>
           </View>
           <View style={styles.metric}>
-            <Text variant="h2" color={colors.white}>{result.summary.eligibleCountries}</Text>
+            <Text variant="h2" color={colors.white}>{num(result.summary.eligibleCountries, lang)}</Text>
             <Text variant="micro" style={{ color: 'rgba(255,255,255,0.7)' }}>{t('results.filterEligible')}</Text>
           </View>
         </View>
@@ -95,7 +95,7 @@ export default function AdvisorScreen({ navigation }) {
                     </Text>
                     <View style={{ flexDirection: dir.row, gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                       <Pill label={`${t('advisor.effortLabel')}: ${t(`advisor.effort.${item.effort}`)}`} tone={EFFORT_TONE[item.effort] || 'neutral'} />
-                      {item.gain > 0 ? <Pill label={`${t('advisor.gainLabel')} +${item.gain}`} tone="success" /> : null}
+                      {item.gain > 0 ? <Pill label={`${t('advisor.gainLabel')} +${num(item.gain, lang)}`} tone="success" /> : null}
                     </View>
                   </View>
                 </View>
@@ -113,7 +113,7 @@ export default function AdvisorScreen({ navigation }) {
                 <Card key={`week-${index}`} level={0}>
                   <View style={{ flexDirection: dir.row, alignItems: 'center', gap: spacing.sm }}>
                     <View style={styles.weekBadge}>
-                      <Text variant="micro" style={{ color: colors.teal700, fontFamily: fonts.bold }}>{percent(index + 1, lang).replace('٪', '')}</Text>
+                      <Text variant="micro" style={{ color: colors.teal700, fontFamily: fonts.bold }}>{num(index + 1, lang)}</Text>
                     </View>
                     <Text variant="bodyStrong" color={colors.ink} style={{ flex: 1, textAlign: dir.text }}>
                       {t(`advisor.week${index + 1}`)}

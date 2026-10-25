@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { colors, fonts, gradients, radius, shadow, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { useAppState } from '../core/appState';
@@ -18,7 +19,7 @@ const REASONS = [
 ];
 
 export default function HomeScreen({ navigation }) {
-  const { t, lang, pick } = useI18n();
+  const { t, lang, pick, toggleLanguage } = useI18n();
   const dir = useDirection();
   const { profile, updateProfile, hasAssessment, result } = useAppState();
 
@@ -48,7 +49,13 @@ export default function HomeScreen({ navigation }) {
             <Text variant="h3" color={colors.white} style={{ textAlign: dir.text }}>{t('appName')}</Text>
             <Text variant="micro" style={{ color: 'rgba(255,255,255,0.72)', textAlign: dir.text }}>{t('appTagline')}</Text>
           </View>
-          <PressableScale onPress={() => navigation.navigate('Profile')}>
+          <PressableScale
+            accessibilityLabel={t('profile.language')}
+            onPress={() => {
+              Haptics.selectionAsync().catch(() => {});
+              toggleLanguage();
+            }}
+          >
             <View style={styles.langPill}>
               <Text variant="micro" style={{ color: colors.white, fontFamily: fonts.bold }}>
                 {lang === 'fa' ? 'EN' : 'فا'}

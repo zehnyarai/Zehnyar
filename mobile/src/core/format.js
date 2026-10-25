@@ -27,7 +27,23 @@ export function money(value, lang, currency = 'USD', symbol) {
 
 export function percent(value, lang, digits = 0) {
   const rounded = Number(value).toFixed(digits).replace(/\.0$/, '');
-  return lang === 'fa' ? `${toPersianDigits(rounded)}٪` : `${rounded}%`;
+  if (lang !== 'fa') return `${rounded}%`;
+  return `${toPersianDigits(rounded).replace(/\./g, '٫')}٪`;
+}
+
+/** Localised plain number, with optional thousands grouping. */
+export function num(value, lang, group = false) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return lang === 'fa' ? '—' : '—';
+  const numeric = Number(value);
+  const text = Number.isInteger(numeric) ? String(numeric) : String(Math.round(numeric * 10) / 10);
+  const decorated = group ? groupThousands(text) : text;
+  if (lang !== 'fa') return decorated;
+  return toPersianDigits(decorated).replace(/,/g, '٬').replace(/\./g, '٫');
+}
+
+/** "12 / 20" style score, respecting the active language's digits. */
+export function scorePair(value, max, lang) {
+  return `${num(value, lang)} / ${num(max, lang)}`;
 }
 
 export function duration(years) {

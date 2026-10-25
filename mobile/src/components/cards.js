@@ -3,7 +3,7 @@ import { Linking, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
-import { money, percent } from '../core/format';
+import { money, num, percent, scorePair } from '../core/format';
 import { Card, Chip, Pill, PressableScale, Text, TrustBadge, Button, Divider, KeyValue } from './ui';
 import { CriteriaBar, MiniBar, ScoreArc } from './charts';
 
@@ -51,7 +51,7 @@ export function CountryCard({ item, onPress, showChance = true }) {
                   <Pill label={t('results.needsFix')} tone="warn" icon="alert-circle" />
                 )}
                 <Pill label={pick(best.bandFa, best.bandEn)} tone="sky" />
-                <Pill label={`${t('country.yourScore')} ${best.achieved}/${best.maxPoints}`} tone="neutral" />
+                <Pill label={`${t('country.yourScore')} ${scorePair(best.achieved, best.maxPoints, lang)}`} tone="neutral" />
               </View>
             </>
           ) : (
@@ -59,7 +59,7 @@ export function CountryCard({ item, onPress, showChance = true }) {
               {Array.from(new Set(item.visas.map((visa) => visa.type))).slice(0, 3).map((type) => (
                 <Pill key={type} label={t(`visaTypes.${type}`)} tone="teal" />
               ))}
-              <Pill label={`${item.visas.length} ${t('country.visas')}`} tone="neutral" />
+              <Pill label={`${num(item.visas.length, lang)} ${t('country.visas')}`} tone="neutral" />
             </View>
           )}
         </View>
@@ -77,14 +77,14 @@ export function CountryCard({ item, onPress, showChance = true }) {
 }
 
 export function FeaturedCountry({ country, onPress }) {
-  const { pick, t } = useI18n();
+  const { pick, t, lang } = useI18n();
   const dir = useDirection();
   return (
     <PressableScale onPress={onPress}>
       <Card padded={false} style={{ width: 208, marginRight: spacing.sm }}>
         <View style={styles.featuredTop}>
           <Text style={{ fontSize: 26 }}>{country.flag}</Text>
-          <Pill label={`${country.visas.length}`} tone="teal" icon="documents-outline" />
+          <Pill label={num(country.visas.length, lang)} tone="teal" icon="documents-outline" />
         </View>
         <View style={{ padding: spacing.md, paddingTop: spacing.sm }}>
           <Text variant="h3" color={colors.ink} style={{ textAlign: dir.text }}>
@@ -134,9 +134,9 @@ export function VisaCard({ visa, best, expanded, onToggle }) {
           <View style={{ marginTop: spacing.sm }}>
             <CriteriaBar value={visa.achieved} max={visa.maxPoints} />
             <View style={{ flexDirection: dir.row, justifyContent: 'space-between', marginTop: 4 }}>
-              <Text variant="micro" color={colors.ink35}>{`${t('country.yourScore')}: ${visa.achieved}`}</Text>
-              <Text variant="micro" color={colors.ink35}>{`${t('country.passMark')}: ${visa.passMark}`}</Text>
-              <Text variant="micro" color={colors.ink35}>{`${t('country.maxPoints')}: ${visa.maxPoints}`}</Text>
+              <Text variant="micro" color={colors.ink35}>{`${t('country.yourScore')}: ${num(visa.achieved, lang)}`}</Text>
+              <Text variant="micro" color={colors.ink35}>{`${t('country.passMark')}: ${num(visa.passMark, lang)}`}</Text>
+              <Text variant="micro" color={colors.ink35}>{`${t('country.maxPoints')}: ${num(visa.maxPoints, lang)}`}</Text>
             </View>
           </View>
         </View>
@@ -169,7 +169,7 @@ export function VisaCard({ visa, best, expanded, onToggle }) {
                   {pick(crit.labelFa, crit.labelEn)}
                 </Text>
                 <Text variant="micro" style={{ color: crit.score > 0 ? colors.teal700 : colors.ink35, fontFamily: fonts.semibold }}>
-                  {`${crit.score} / ${crit.max}`}
+                  {scorePair(crit.score, crit.max, lang)}
                 </Text>
               </View>
               <View style={{ marginTop: 3 }}>
@@ -219,7 +219,7 @@ export function FeeList({ costs, lang }) {
               icon={line.verified ? 'shield-checkmark' : 'information-circle'}
             />
             {line.payer === 'employer' ? <Pill label={t('country.employer')} tone="sky" /> : null}
-            {line.count > 1 ? <Pill label={`${line.count}×`} tone="neutral" /> : null}
+            {line.count > 1 ? <Pill label={`${num(line.count, lang)}×`} tone="neutral" /> : null}
           </View>
         </View>
       ))}

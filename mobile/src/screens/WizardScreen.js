@@ -2,7 +2,9 @@ import React, { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { colors, fonts, gradients, radius, spacing } from '../theme';
+import { localiseNumber, money } from '../core/format';
 import { useDirection, useI18n } from '../i18n';
 import { useAppState } from '../core/appState';
 import { educationLevels, languageTests, occupations, findOccupation } from '../core/data';
@@ -65,6 +67,7 @@ export default function WizardScreen({ navigation }) {
   };
 
   const goNext = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     if (step === STEPS.length - 2) {
       compute(t);
       navigation.replace('Results');
@@ -88,7 +91,7 @@ export default function WizardScreen({ navigation }) {
           <IconButton icon={dir.isRtl ? 'close' : 'close'} onPress={() => navigation.goBack()} bg="rgba(255,255,255,0.14)" color={colors.white} size={38} />
           <View style={{ flex: 1 }}>
             <Text variant="micro" style={{ color: 'rgba(255,255,255,0.7)', textAlign: dir.text }}>
-              {`${t('wizard.stepLabel')} ${lang === 'fa' ? toFa(step + 1) : step + 1} ${t('common.of')} ${lang === 'fa' ? toFa(STEPS.length) : STEPS.length}`}
+              {`${t('wizard.stepLabel')} ${localiseNumber(step + 1, lang)} ${t('common.of')} ${localiseNumber(STEPS.length, lang)}`}
             </Text>
             <Text variant="h2" color={colors.white} style={{ textAlign: dir.text }}>
               {t(`wizard.steps.${stepKey}.title`)}
@@ -467,7 +470,7 @@ export default function WizardScreen({ navigation }) {
           {stepKey === 'review' ? (
             <View style={{ gap: spacing.sm }}>
               <ReviewRow label={t('wizard.summaryGoal')} value={t(`goals.${profile.goal}.label`)} icon="flag-outline" />
-              <ReviewRow label={t('wizard.summaryAge')} value={`${profile.age} ${t('common.years')}`} icon="calendar-outline" />
+              <ReviewRow label={t('wizard.summaryAge')} value={`${localiseNumber(profile.age, lang)} ${t('common.years')}`} icon="calendar-outline" />
               <ReviewRow label={t('wizard.summaryEducation')} value={t(`types.${profile.educationId}`)} icon="school-outline" />
               <ReviewRow
                 label={t('wizard.summaryLanguage')}
@@ -476,11 +479,11 @@ export default function WizardScreen({ navigation }) {
               />
               <ReviewRow
                 label={t('wizard.summaryWork')}
-                value={`${profile.work.totalYears} ${t('common.years')}${profile.work.occupationCode ? ` • ${pick(findOccupation(profile.work.occupationCode)?.titleFa, findOccupation(profile.work.occupationCode)?.titleEn)}` : ''}`}
+                value={`${localiseNumber(profile.work.totalYears, lang)} ${t('common.years')}${profile.work.occupationCode ? ` • ${pick(findOccupation(profile.work.occupationCode)?.titleFa, findOccupation(profile.work.occupationCode)?.titleEn)}` : ''}`}
                 icon="briefcase-outline"
               />
-              <ReviewRow label={t('wizard.summaryFunds')} value={`$${profile.funds.availableUsd.toLocaleString('en-US')}`} icon="wallet-outline" />
-              <ReviewRow label={t('wizard.summaryFamily')} value={`${profile.familySize}`} icon="people-outline" />
+              <ReviewRow label={t('wizard.summaryFunds')} value={money(profile.funds.availableUsd, lang, 'USD')} icon="wallet-outline" />
+              <ReviewRow label={t('wizard.summaryFamily')} value={localiseNumber(profile.familySize, lang)} icon="people-outline" />
               <Card style={{ backgroundColor: colors.teal100, borderColor: colors.teal300, marginTop: spacing.xs }}>
                 <View style={{ flexDirection: dir.row, gap: spacing.sm, alignItems: 'center' }}>
                   <Ionicons name="shield-checkmark" size={18} color={colors.teal700} />
@@ -582,10 +585,6 @@ function ReviewRow({ label, value, icon }) {
       </View>
     </Card>
   );
-}
-
-function toFa(value) {
-  return String(value).replace(/[0-9]/g, (digit) => '۰۱۲۳۴۵۶۷۸۹'[Number(digit)]);
 }
 
 const styles = {

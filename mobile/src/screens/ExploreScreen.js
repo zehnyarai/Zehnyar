@@ -6,6 +6,7 @@ import { colors, fonts, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { useAppState } from '../core/appState';
 import { allVisaTypes, countries, totals } from '../core/data';
+import { num } from '../core/format';
 import { Card, Chip, Pill, ScrollScreen, SectionTitle, Text } from '../components/ui';
 import { CountryCard, FeaturedCountry } from '../components/cards';
 
@@ -52,9 +53,9 @@ export default function ExploreScreen({ navigation }) {
           />
         </View>
         <View style={{ flexDirection: dir.row, gap: spacing.xs, marginTop: spacing.sm, flexWrap: 'wrap' }}>
-          <Pill label={`${totals.countries} ${t('explore.countLabel')}`} tone="gold" icon="earth" />
-          <Pill label={`${totals.visas} ${t('home.statsVisas')}`} tone="sky" icon="documents" />
-          <Pill label={`${totals.occupations} ${t('home.statsOccupations')}`} tone="teal" icon="briefcase" />
+          <Pill label={`${num(totals.countries, lang)} ${t('explore.countLabel')}`} tone="gold" icon="earth" />
+          <Pill label={`${num(totals.visas, lang)} ${t('home.statsVisas')}`} tone="sky" icon="documents" />
+          <Pill label={`${num(totals.occupations, lang)} ${t('home.statsOccupations')}`} tone="teal" icon="briefcase" />
         </View>
       </LinearGradient>
 
@@ -84,7 +85,7 @@ export default function ExploreScreen({ navigation }) {
       ) : null}
 
       <View style={{ paddingHorizontal: spacing.md }}>
-        <SectionTitle title={t('nav.explore')} subtitle={`${list.length} ${t('explore.countLabel')}`} />
+        <SectionTitle title={t('nav.explore')} subtitle={`${num(list.length, lang)} ${t('explore.countLabel')}`} />
         <View style={{ marginTop: spacing.sm }}>
           {list.map((country) => {
             const assessed = result ? result.countries.find((item) => item.code === country.code) : null;

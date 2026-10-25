@@ -8,7 +8,7 @@ import { useAppState } from '../core/appState';
 import { Button, Card, Chip, EmptyState, Pill, PressableScale, ScrollScreen, SectionTitle, Text } from '../components/ui';
 import { ChanceDial, RadarChart } from '../components/charts';
 import { CountryCard } from '../components/cards';
-import { percent } from '../core/format';
+import { num, percent } from '../core/format';
 
 const FILTERS = ['all', 'eligible', 'goal'];
 
@@ -83,7 +83,7 @@ export default function ResultsScreen({ navigation }) {
           />
           <Button
             label={t('results.assessAgain')}
-            variant="ghost"
+            variant="outline"
             icon="create-outline"
             onPress={() => navigation.navigate('Wizard', { from: 'results' })}
             style={{ flex: 1 }}
@@ -115,7 +115,7 @@ export default function ResultsScreen({ navigation }) {
             <Card key={`${item.id}-${index}`} level={0} padded={false}>
               <View style={{ flexDirection: dir.row, alignItems: 'flex-start', gap: spacing.sm, padding: spacing.md }}>
                 <View style={styles.rankBadge}>
-                  <Text variant="micro" style={{ color: colors.teal700, fontFamily: fonts.bold }}>{percent(index + 1, lang).replace('٪', '')}</Text>
+                  <Text variant="micro" style={{ color: colors.teal700, fontFamily: fonts.bold }}>{num(index + 1, lang)}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text variant="bodyStrong" color={colors.ink} style={{ textAlign: dir.text }}>{pick(item.labelFa, item.labelEn)}</Text>
@@ -124,7 +124,7 @@ export default function ResultsScreen({ navigation }) {
                   </Text>
                 </View>
                 {item.gain > 0 ? (
-                  <Pill label={`+${percent(item.gain, lang).replace('٪', '')}`} tone="success" icon="trending-up" />
+                  <Pill label={`+${num(item.gain, lang)}`} tone="success" icon="trending-up" />
                 ) : (
                   <Pill label={t('results.blockerTitle')} tone="danger" icon="alert" />
                 )}
@@ -147,11 +147,11 @@ export default function ResultsScreen({ navigation }) {
             <Text variant="micro" color={colors.ink50}>{t('results.readinessLabel')}</Text>
           </View>
           <View style={styles.summaryTile}>
-            <Text variant="h2" color={colors.sky700}>{result.summary.eligibleCountries}</Text>
+            <Text variant="h2" color={colors.sky700}>{num(result.summary.eligibleCountries, lang)}</Text>
             <Text variant="micro" color={colors.ink50}>{t('results.filterEligible')}</Text>
           </View>
           <View style={styles.summaryTile}>
-            <Text variant="h2" color={colors.gold}>{result.summary.countries}</Text>
+            <Text variant="h2" color={colors.gold}>{num(result.summary.countries, lang)}</Text>
             <Text variant="micro" color={colors.ink50}>{t('home.statsCountries')}</Text>
           </View>
         </View>
