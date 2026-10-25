@@ -21,7 +21,7 @@ cd mohajeryar
 
 - مستندات کامل: [`mohajeryar/README.md`](mohajeryar/README.md)
 - روش‌شناسی و منابع: صفحهٔ `/methodology` پس از اجرا
-- آزمون‌ها: `cd mohajeryar && ../.venv/bin/python -m pytest -q` (۵۳ آزمون)
+- آزمون‌ها: `cd mohajeryar && ../.venv/bin/python -m pytest -q` (۵۴ آزمون)
 - نسخهٔ اندروید: workflow «Build Mohajeryar APK» → Release با برچسب `apk-mohajeryar`
 
 ### ساختار سریع

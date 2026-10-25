@@ -570,7 +570,8 @@
           ("marriage_certificate", "سند ازدواج")
         ] %}
         <label class="switch-field switch-field--compact">
-          <input type="checkbox" name="{{ name }}" {% if fv(form, 'documents.' + name, false) %}checked{% endif %}>
+          <input type="checkbox" name="{{ name }}"
+                 {% if fv(form, 'documents.eca' if name == 'doc_eca' else 'documents.' + name, false) %}checked{% endif %}>
           <span class="switch-field__box"></span>
           <span><strong>{{ label }}</strong></span>
         </label>

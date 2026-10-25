@@ -813,7 +813,15 @@ input[type="date"] { direction: ltr; text-align: end; }
   mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px));
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 9px), #000 calc(100% - 8px));
 }
-.preview-ring__value { font-size: 1.3rem; font-weight: 800; color: var(--primary-strong); }
+.preview-ring__value {
+  display: grid;
+  place-items: center;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--primary-strong);
+}
+.preview-ring__value strong { font-size: 1.25rem; font-weight: 800; }
+.preview-ring__value small { font-size: .58rem; color: var(--ink-muted); }
 
 .preview-list { display: grid; gap: .45rem; }
 .preview-row {
@@ -1200,11 +1208,22 @@ input[type="date"] { direction: ltr; text-align: end; }
 .chat-message--typing { opacity: .7; font-style: italic; }
 .chat-panel__form {
   display: flex;
+  align-items: flex-end;
   gap: .5rem;
   padding: .8rem;
   border-top: 1px solid var(--line);
 }
-.chat-panel__form input { flex: 1; padding: .6rem .8rem; font-size: .86rem; }
+.chat-panel__form input,
+.chat-panel__form textarea {
+  flex: 1;
+  min-height: 44px;
+  max-height: 110px;
+  height: 44px;
+  padding: .55rem .8rem;
+  font-size: .86rem;
+  line-height: 1.7;
+  resize: none;
+}
 .chat-panel__note {
   padding: 0 .9rem .8rem;
   font-size: .7rem;
@@ -2340,3 +2359,55 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .wizard-progress__steps li.is-active > span { background: rgba(255, 255, 255, .22); }
 .wizard-progress__steps li.is-done > span { background: color-mix(in oklab, var(--primary) 20%, transparent); }
 .wizard-step > legend { padding: 0; }
+
+/* هشدار بدون جاوااسکریپت */
+.noscript-banner {
+  margin: 0;
+  padding: .7rem var(--gutter);
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: .82rem;
+  text-align: center;
+  border-bottom: 1px solid color-mix(in oklab, var(--warn) 30%, var(--line));
+}
+
+/* یکدست‌سازی فهرست‌ها و جدول‌های جزئیات */
+.profile-chips,
+.country-card__programs,
+.warning-list,
+.gap-list,
+.steps-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.profile-chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .25rem .6rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  font-size: .74rem;
+  color: var(--ink-soft);
+}
+.country-card__programs li { display: flex; gap: .3rem; align-items: baseline; }
+.country-card__programs li::before { content: "•"; color: var(--primary); }
+.warning-list ul { list-style: disc; }
+.gap-list li { margin: 0; }
+.detail-block { min-width: 0; }
+.detail-block > .data-table {
+  display: block;
+  overflow-x: auto;
+  white-space: normal;
+}
+.steps-grid { counter-reset: none; }
+.wins-list li::marker { color: var(--accent); font-weight: 800; }
+
+/* تکمیل استایل‌های کوچک */
+.icon { flex-shrink: 0; vertical-align: middle; }
+.preview-card__date { font-size: .72rem; color: var(--ink-muted); }
+.footer-brand { min-width: 0; }
+.data-table--costs td:last-child { white-space: nowrap; }
+.data-table--costs tr.is-refundable td { color: var(--ink-muted); }

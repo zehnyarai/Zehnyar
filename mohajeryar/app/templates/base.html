@@ -31,6 +31,9 @@
 </head>
 <body class="{% block body_class %}{% endblock %}" data-assessment-id="{{ assessment.id if assessment else '' }}">
   <a class="skip-link" href="#main">پرش به محتوای اصلی</a>
+  <noscript>
+    <p class="noscript-banner">برای ویزارد چندمرحله‌ای و تحلیل تعاملی، جاوااسکریپت را فعال کنید. ارسال فرم بدون آن هم بررسی می‌شود.</p>
+  </noscript>
 
   <header class="site-header" id="site-header">
     <div class="container header-inner">

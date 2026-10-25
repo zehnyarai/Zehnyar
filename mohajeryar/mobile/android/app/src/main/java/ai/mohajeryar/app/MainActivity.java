@@ -132,7 +132,7 @@ public class MainActivity extends Activity {
     }
 
     /** پل جاوااسکریپت برای صفحهٔ راه‌اندازی و مدیریت اتصال. */
-    private class Bridge {
+    public class Bridge {
 
         @JavascriptInterface
         public String saved() {

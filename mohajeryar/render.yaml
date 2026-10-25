@@ -2,7 +2,9 @@ services:
   - type: web
     name: mohajeryar
     runtime: python
-    plan: free
+    # پلن starter برای دیسک پایدار SQLite لازم است؛ روی پلن free بلوک disk را حذف کنید
+    # (در آن حالت داده‌ها با هر بازاستقرار پاک می‌شوند).
+    plan: starter
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:

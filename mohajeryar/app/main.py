@@ -95,12 +95,22 @@ async def security_and_limits(request: Request, call_next):
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
     response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     response.headers.setdefault("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
-    response.headers.setdefault(
-        "Content-Security-Policy",
-        "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; "
-        "script-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; "
-        "base-uri 'self'; form-action 'self'; frame-ancestors *",
-    )
+    if request.url.path.startswith("/api/docs"):
+        # مستندات تعاملی OpenAPI به دارایی‌های CDN نیاز دارد؛ فقط برای همین مسیر باز می‌شود.
+        csp = (
+            "default-src 'self'; img-src 'self' data: https://fastapi.tiangolo.com; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "font-src 'self' data: https://cdn.jsdelivr.net; connect-src 'self'; "
+            "base-uri 'self'; form-action 'self'; frame-ancestors *"
+        )
+    else:
+        csp = (
+            "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; "
+            "script-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'; "
+            "base-uri 'self'; form-action 'self'; frame-ancestors *"
+        )
+    response.headers.setdefault("Content-Security-Policy", csp)
     if settings.production and request.url.scheme == "https":
         response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
     return response

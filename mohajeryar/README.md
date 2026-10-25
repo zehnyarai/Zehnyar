@@ -67,7 +67,7 @@ mohajeryar/
 │   ├── rules/programs.json# قوانین، هزینه‌ها، منابع و تاریخ بازبینی
 │   ├── templates/         # Jinja2 راست‌به‌چپ
 │   └── static/            # CSS، JS، فونت وزیرمتن، آیکون‌ها، Service Worker
-├── tests/                 # ۵۳ آزمون موتور و API
+├── tests/                 # ۵۴ آزمون موتور و API
 ├── mobile/android/        # پوستهٔ بومی Android/WebView
 ├── install.sh / install.bat
 └── Dockerfile
@@ -153,7 +153,7 @@ gradle -p mobile/android assembleDebug
 
 ## استقرار
 
-- `render.yaml` برای Render (پلن رایگان، دیسک پایدار برای SQLite)
+- `render.yaml` برای Render (پلن starter با دیسک پایدار؛ برای پلن رایگان بلوک `disk` را حذف کنید و بدانید داده‌ها پایدار نمی‌مانند)
 - `Dockerfile` و `docker-compose.yml` برای هر سروری
 
 پس از استقرار، همان آدرس را در APK وارد کنید یا با مرورگر «افزودن به صفحهٔ اصلی» را بزنید تا نسخهٔ PWA نصب شود.
