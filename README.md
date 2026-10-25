@@ -51,6 +51,17 @@ Intelligent immigration assessment platform with an Android super-app.
 
 ---
 
+### پیش‌نمایش وب (بدون نصب)
+
+همان رابط کاربری اپ، از طریق خروجی وب Expo:
+
+```bash
+cd mobile && npm run preview:web      # ساخت خروجی استاتیک در mobile/web-preview
+cd .. && .venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+سپس «/» در مرورگر به «/app/» هدایت می‌شود و اپ کامل اجرا می‌شود؛ درخواست‌های JSON همچنان از «/api» پاسخ می‌گیرند.
+
 ## ۲. اجرای سریع / Quick start
 
 ### اپلیکیشن موبایل
