@@ -7,8 +7,8 @@ from functools import lru_cache
 from pathlib import Path
 
 from app.engine.types import CostItem, Factor, Gap, ProgramResult, Source, Step
-from app.formatting import fa_digits
 from app.engine.utils import convert_to_eur
+from app.formatting import fa_digits
 from app.schemas import Profile
 
 RULES_FILE = Path(__file__).resolve().parent.parent / "rules" / "programs.json"

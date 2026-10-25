@@ -141,7 +141,7 @@ def overall_readiness(results: list[ProgramResult], profile: Profile) -> int:
         return 0
     ranked = [r for r in results if r.status != "ineligible"] or results[:1]
     weights = (0.6, 0.25, 0.15)
-    weighted = sum(r.readiness * w for r, w in zip(ranked[:3], weights))
+    weighted = sum(r.readiness * w for r, w in zip(ranked[:3], weights, strict=False))
     total_weight = sum(weights[: len(ranked[:3])])
     base = round(weighted / total_weight)
     docs = profile.documents

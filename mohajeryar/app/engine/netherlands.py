@@ -14,8 +14,8 @@ from app.engine.base import (
     program_meta,
 )
 from app.engine.types import ProgramResult
-from app.formatting import education_label
 from app.engine.utils import age_on, convert_to_eur
+from app.formatting import education_label
 from app.schemas import Profile
 
 HSM_ID = "nl-hsm"

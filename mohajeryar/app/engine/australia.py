@@ -13,8 +13,8 @@ from app.engine.base import (
     program_meta,
 )
 from app.engine.types import ProgramResult
-from app.formatting import education_label
 from app.engine.utils import age_on, english_test_band
+from app.formatting import education_label
 from app.schemas import Profile
 
 PROGRAM_IDS = {"189": "au-189", "190": "au-190", "491": "au-491"}

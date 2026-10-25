@@ -5,7 +5,7 @@ from datetime import date
 
 import pytest
 
-from app.engine.advisor import rank_results, build_roadmap, documents_checklist
+from app.engine.advisor import build_roadmap, documents_checklist, rank_results
 from app.engine.registry import assess_all
 from app.schemas import Documents, LanguageProfile, Profile
 

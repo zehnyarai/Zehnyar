@@ -14,7 +14,7 @@ from app.engine.base import (
     program_meta,
 )
 from app.engine.types import CostItem, ProgramResult
-from app.engine.utils import age_on, at_least, convert, level_rank
+from app.engine.utils import age_on, at_least, convert
 from app.schemas import Profile
 
 PROGRAM_ID = "uk-skilled"

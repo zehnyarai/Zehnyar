@@ -8,17 +8,17 @@ from datetime import date
 
 from app.engine.base import (
     build_costs,
-    local_offer,
     documents_score,
     estimate_readiness,
     factor,
     finish_result,
     gap,
+    local_offer,
     program_meta,
 )
-from app.formatting import education_label
 from app.engine.types import ProgramResult
-from app.engine.utils import age_on, clb_profile, level_rank, min_clb
+from app.engine.utils import age_on, clb_profile, min_clb
+from app.formatting import education_label
 from app.schemas import Profile
 
 PROGRAM_ID = "ca-ee"

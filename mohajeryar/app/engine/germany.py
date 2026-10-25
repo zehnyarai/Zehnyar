@@ -14,8 +14,8 @@ from app.engine.base import (
     program_meta,
 )
 from app.engine.types import ProgramResult
+from app.engine.utils import age_on, at_least, convert_to_eur, level_rank
 from app.formatting import education_label
-from app.engine.utils import age_on, at_least, convert_to_eur, level_rank, min_clb
 from app.schemas import Profile
 
 BC_ID = "de-bluecard"
@@ -29,12 +29,6 @@ EDU_LEVELS = {"none", "secondary", "diploma1", "diploma2"}
 
 def _recent_graduate(profile: Profile, rule_date: date) -> bool:
     return bool(profile.graduation_year and profile.graduation_year >= rule_date.year - 3)
-
-
-def _degree_recognized(profile: Profile) -> bool:
-    return profile.recognition == "full" or (
-        profile.recognition == "unknown" and profile.education_level not in EDU_LEVELS
-    )
 
 
 def _shortage(profile: Profile) -> bool:
@@ -52,7 +46,6 @@ def _blue_card(profile: Profile, rule_date: date) -> ProgramResult:
     threshold = BLUE_CARD_REDUCED if reduced else BLUE_CARD_STANDARD
 
     has_degree = profile.education_level not in EDU_LEVELS
-    recognition_ok = _degree_recognized(profile)
     it_route = (
         not has_degree
         and profile.education_field in {"stem"}
