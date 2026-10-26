@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,14 +21,23 @@ const SKILL_KEYS = ['listening', 'reading', 'writing', 'speaking'];
 export default function WizardScreen({ navigation }) {
   const { t, lang, pick } = useI18n();
   const dir = useDirection();
-  const { profile, updateProfile, updateNested, setProfile, compute } = useAppState();
+  const { profile, updateProfile, updateNested, setProfile, compute, canStartAssessment } = useAppState();
   const [step, setStep] = useState(0);
   const [occupationSheet, setOccupationSheet] = useState(false);
   const [testSheet, setTestSheet] = useState(false);
   const [search, setSearch] = useState('');
+  const [computing, setComputing] = useState(false);
 
   const stepKey = STEPS[step];
   const progress = ((step + 1) / STEPS.length) * 100;
+
+  useEffect(() => {
+    let mounted = true;
+    canStartAssessment().then((allowed) => {
+      if (mounted && !allowed) navigation.replace('Payments');
+    }).catch(() => {});
+    return () => { mounted = false; };
+  }, [canStartAssessment, navigation]);
 
   const filteredOccupations = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -66,11 +75,21 @@ export default function WizardScreen({ navigation }) {
     setProfile((current) => ({ ...current, languages: current.languages.filter((_, i) => i !== index) }));
   };
 
-  const goNext = () => {
+  const goNext = async () => {
+    if (computing) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     if (step === STEPS.length - 2) {
-      compute(t);
-      navigation.replace('Results');
+      setComputing(true);
+      try {
+        const computed = await compute(t);
+        if (!computed) {
+          navigation.replace('Payments');
+          return;
+        }
+        navigation.replace('Results');
+      } finally {
+        setComputing(false);
+      }
       return;
     }
     setStep((current) => Math.min(STEPS.length - 1, current + 1));
@@ -503,6 +522,7 @@ export default function WizardScreen({ navigation }) {
               label={step === STEPS.length - 2 ? t('wizard.calculate') : t('common.next')}
               icon={step === STEPS.length - 2 ? 'sparkles' : dir.isRtl ? 'arrow-back' : 'arrow-forward'}
               onPress={goNext}
+              loading={computing}
               style={{ flex: 1.6 }}
             />
           </View>

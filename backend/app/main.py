@@ -1,4 +1,4 @@
-"""Zehnyar API.
+"""Visayar API.
 
 Public read-only reference data plus the deterministic assessment engine.
 The mobile client mirrors this engine so it works fully offline; these
@@ -14,8 +14,10 @@ from typing import List, Optional
 import httpx
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel, Field
+
+from .payments import ADMIN as payments_admin_router, router as payments_router
 
 from .engine.engine import (
     Profile,
@@ -38,13 +40,15 @@ DISCLAIMER_EN = (
     "destination country's official portal before applying."
 )
 
-app = FastAPI(title="Zehnyar API", version=API_VERSION)
+app = FastAPI(title="Visayar API", version=API_VERSION)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(payments_router)
+app.include_router(payments_admin_router)
 
 _cache: dict = {}
 
@@ -74,7 +78,7 @@ def _preview_ready() -> bool:
 def root(request: Request):
     dataset = load_dataset()
     info = {
-        "name": "Zehnyar API",
+        "name": "Visayar API",
         "version": API_VERSION,
         "datasetVersion": dataset["meta"]["version"],
         "lastVerified": dataset["meta"]["lastVerified"],
@@ -101,6 +105,14 @@ def app_preview_redirect():
             },
         )
     return RedirectResponse(url="/app/")
+
+
+@app.get("/admin/payments", include_in_schema=False)
+def payments_admin_page():
+    page = os.path.join(os.path.dirname(__file__), "admin_payments.html")
+    if not os.path.isfile(page):
+        raise HTTPException(status_code=404, detail="Admin page not found")
+    return FileResponse(page, media_type="text/html", headers={"Cache-Control": "no-store"})
 
 
 @app.get("/health")

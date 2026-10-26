@@ -1,5 +1,5 @@
-import React from 'react';
-import { ScrollView, View } from 'react-native';
+import React, { useState } from 'react';
+import { Image, ScrollView, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -21,15 +21,27 @@ const REASONS = [
 export default function HomeScreen({ navigation }) {
   const { t, lang, pick, toggleLanguage } = useI18n();
   const dir = useDirection();
-  const { profile, updateProfile, hasAssessment, result } = useAppState();
+  const { profile, updateProfile, hasAssessment, result, canStartAssessment } = useAppState();
+  const [checkingAccess, setCheckingAccess] = useState(false);
 
   const draft = profile.languages.length > 0 || profile.work.totalYears > 0 || profile.investmentUsd > 0;
   const best = result ? result.countries[0] : null;
   const featured = [...countries].sort((a, b) => a.priority - b.priority).slice(0, 6);
 
-  const startAssessment = (goal) => {
-    if (goal) updateProfile({ goal });
-    navigation.navigate('Wizard', { from: 'home' });
+  const startAssessment = async (goal) => {
+    if (checkingAccess) return;
+    setCheckingAccess(true);
+    try {
+      const allowed = await canStartAssessment();
+      if (!allowed) {
+        navigation.navigate('Payments');
+        return;
+      }
+      if (goal) updateProfile({ goal });
+      navigation.navigate('Wizard', { from: 'home' });
+    } finally {
+      setCheckingAccess(false);
+    }
   };
 
   return (
@@ -42,9 +54,7 @@ export default function HomeScreen({ navigation }) {
       >
         <View style={styles.heroGlow} />
         <View style={{ flexDirection: dir.row, alignItems: 'center', gap: spacing.sm }}>
-          <View style={styles.logoMark}>
-            <Ionicons name="compass" size={20} color={colors.teal800} />
-          </View>
+          <Image source={require('../assets/icon.png')} style={styles.logoMark} accessibilityLabel={t('appName')} />
           <View style={{ flex: 1 }}>
             <Text variant="h3" color={colors.white} style={{ textAlign: dir.text }}>{t('appName')}</Text>
             <Text variant="micro" style={{ color: 'rgba(255,255,255,0.72)', textAlign: dir.text }}>{t('appTagline')}</Text>
@@ -84,6 +94,7 @@ export default function HomeScreen({ navigation }) {
             label={hasAssessment ? t('home.ctaResult') : draft ? t('home.ctaContinue') : t('home.ctaStart')}
             icon={hasAssessment ? 'analytics-outline' : 'sparkles-outline'}
             onPress={() => (hasAssessment ? navigation.navigate('Results') : startAssessment())}
+            loading={checkingAccess && !hasAssessment}
             variant="light"
           />
           <View style={{ flexDirection: dir.row, alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 2 }}>

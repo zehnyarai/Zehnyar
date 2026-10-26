@@ -108,8 +108,8 @@ def main():
     countries.sort(key=lambda c: (c["priority"], c["nameEn"]))
     dataset = {
         "meta": {
-            "nameFa": "ذهن‌یار",
-            "nameEn": "Zehnyar",
+            "nameFa": "ویزایار",
+            "nameEn": "Visayar",
             "version": "2.0.0",
             "lastVerified": LAST_VERIFIED,
             "currencyNoteFa": "نرخ‌های ارز مرجع و تقریبی هستند و تنها برای مقایسه یکسان به کار می‌روند.",

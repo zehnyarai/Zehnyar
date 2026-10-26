@@ -18,6 +18,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import ExploreScreen from './src/screens/ExploreScreen';
 import AdvisorScreen from './src/screens/AdvisorScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import PaymentsScreen from './src/screens/PaymentsScreen';
 import WizardScreen from './src/screens/WizardScreen';
 import ResultsScreen from './src/screens/ResultsScreen';
 import CountryDetailScreen from './src/screens/CountryDetailScreen';
@@ -107,6 +108,7 @@ function Root() {
       <Stack.Screen name="Wizard" component={WizardScreen} options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="Results" component={ResultsScreen} />
       <Stack.Screen name="CountryDetail" component={CountryDetailScreen} />
+      <Stack.Screen name="Payments" component={PaymentsScreen} options={{ animation: 'slide_from_right' }} />
     </Stack.Navigator>
   );
 }

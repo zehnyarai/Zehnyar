@@ -89,7 +89,7 @@ jobs:
               -keyalg RSA -keysize 2048 -validity 10950 \
               -storepass "$ANDROID_KEYSTORE_PASSWORD" \
               -keypass "$ANDROID_KEY_PASSWORD" \
-              -dname "CN=Zehnyar, OU=Mobile, O=Zehnyar, L=Amsterdam, C=NL"
+              -dname "CN=Visayar, OU=Mobile, O=Visayar, L=Amsterdam, C=NL"
             echo "Generated an ephemeral keystore. Store the uploaded keystore artifact in repository secrets to keep a stable signing key."
           fi
 
@@ -111,16 +111,16 @@ jobs:
           set -euo pipefail
           mkdir -p release
           cp mobile/android/app/build/outputs/apk/release/app-release.apk \
-             "release/Zehnyar-${RELEASE_VERSION}-universal.apk"
+             "release/Visayar-${RELEASE_VERSION}-universal.apk"
           cp "$ANDROID_KEYSTORE_PATH" release/zehnyar-release.keystore
-          ( cd release && sha256sum "Zehnyar-${RELEASE_VERSION}-universal.apk" > SHA256SUMS.txt )
+          ( cd release && sha256sum "Visayar-${RELEASE_VERSION}-universal.apk" > SHA256SUMS.txt )
           cat release/SHA256SUMS.txt
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: zehnyar-release-apk
-          path: release/Zehnyar-*-universal.apk
+          path: release/Visayar-*-universal.apk
           retention-days: 90
 
       - name: Upload keystore artifact
@@ -136,13 +136,13 @@ jobs:
         run: |
           set -euo pipefail
           TAG="v${RELEASE_VERSION}"
-          APK="release/Zehnyar-${RELEASE_VERSION}-universal.apk"
+          APK="release/Visayar-${RELEASE_VERSION}-universal.apk"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" release/SHA256SUMS.txt --clobber
-            gh release edit "$TAG" --title "Zehnyar ${RELEASE_VERSION} — Android release"
+            gh release edit "$TAG" --title "Visayar ${RELEASE_VERSION} — Android release"
           else
             gh release create "$TAG" "$APK" release/SHA256SUMS.txt \
-              --title "Zehnyar ${RELEASE_VERSION} — Android release" \
+              --title "Visayar ${RELEASE_VERSION} — Android release" \
               --notes-file docs/release-body.md
           fi
           echo "Release $TAG published."

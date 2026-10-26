@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 
 /**
- * Zehnyar design language: "نیلگون" teal paired with a soft "آسمانی" sky blue,
+ * Visayar design language: "نیلگون" teal paired with a soft "آسمانی" sky blue,
  * warm ivory surfaces and a single restrained gold accent for official marks.
  */
 export const colors = {

@@ -1,5 +1,5 @@
 /**
- * Zehnyar assessment engine — JavaScript mirror of backend/app/engine/engine.py.
+ * Visayar assessment engine — JavaScript mirror of backend/app/engine/engine.py.
  *
  * The rule semantics are identical and kept in sync by tools/parity_check.js.
  * CommonJS on purpose: Metro and Node both load it without a build step.

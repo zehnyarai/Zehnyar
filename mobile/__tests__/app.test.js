@@ -11,6 +11,7 @@ import HomeScreen from '../src/screens/HomeScreen';
 import ExploreScreen from '../src/screens/ExploreScreen';
 import AdvisorScreen from '../src/screens/AdvisorScreen';
 import ProfileScreen from '../src/screens/ProfileScreen';
+import PaymentsScreen from '../src/screens/PaymentsScreen';
 import WizardScreen from '../src/screens/WizardScreen';
 import ResultsScreen from '../src/screens/ResultsScreen';
 import CountryDetailScreen from '../src/screens/CountryDetailScreen';
@@ -71,7 +72,7 @@ function renderWithProviders(element, { profile = baseProfile, result = null } =
   return tree;
 }
 
-describe('Zehnyar app', () => {
+describe('Visayar app', () => {
   beforeEach(() => {
     jest.useFakeTimers();
   });
@@ -95,7 +96,7 @@ describe('Zehnyar app', () => {
   it('renders the home screen with the trust badge and calls to action', () => {
     const tree = renderWithProviders(<HomeScreen navigation={navigation} />);
     const text = JSON.stringify(tree.toJSON());
-    expect(text).toContain('ذهن‌یار');
+    expect(text).toContain('ویزایار');
     expect(text).toContain('آخرین استعلام رسمی');
     expect(text).toContain('هدف شما چیست؟');
     expect(text).toContain('ادامه ارزیابی من');
@@ -107,6 +108,15 @@ describe('Zehnyar app', () => {
     renderWithProviders(<AdvisorScreen navigation={navigation} />);
     renderWithProviders(<ExploreScreen navigation={navigation} profile={baseProfile} result={assessed} />);
     renderWithProviders(<AdvisorScreen navigation={navigation} profile={baseProfile} result={assessed} />);
+  });
+
+  it('renders the manual payment panel and all discounted assessment bundles', () => {
+    const tree = renderWithProviders(<PaymentsScreen navigation={navigation} />);
+    const text = JSON.stringify(tree.toJSON());
+    expect(text).toContain('اعتبار ارزیابی');
+    expect(text).toContain('۶۰۰٬۰۰۰ تومان');
+    expect(text).toContain('دوازده ارزیابی');
+    expect(text).toContain('اطلاعات کارت هنوز تنظیم نشده است');
   });
 
   it('walks through all eight wizard steps', () => {
