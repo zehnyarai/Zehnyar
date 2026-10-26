@@ -8,6 +8,8 @@ on:
         required: false
         default: ''
   push:
+    branches:
+      - 'arena/7d04dbdc-zehnyar'
     tags:
       - 'v*'
 
@@ -138,11 +140,16 @@ jobs:
           TAG="v${RELEASE_VERSION}"
           APK="release/Visayar-${RELEASE_VERSION}-universal.apk"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$APK" release/SHA256SUMS.txt --clobber
-            gh release edit "$TAG" --title "Visayar ${RELEASE_VERSION} — Android release"
+            if [ "${GITHUB_REF_TYPE}" = "tag" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+              gh release upload "$TAG" "$APK" release/SHA256SUMS.txt --clobber
+              gh release edit "$TAG" --title "Visayar ${RELEASE_VERSION} — Android release"
+              echo "Release $TAG updated."
+            else
+              echo "Release $TAG already exists; branch validation build will not replace its assets."
+            fi
           else
             gh release create "$TAG" "$APK" release/SHA256SUMS.txt \
               --title "Visayar ${RELEASE_VERSION} — Android release" \
               --notes-file docs/release-body.md
+            echo "Release $TAG published."
           fi
-          echo "Release $TAG published."
