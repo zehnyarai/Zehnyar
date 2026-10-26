@@ -9,9 +9,9 @@ import { useAppState } from '../core/appState';
 import { totals, meta } from '../core/data';
 import { Button, Card, Divider, KeyValue, Pill, PressableScale, ScrollScreen, SectionTitle, Text, TrustBadge } from '../components/ui';
 
-const appVersion = (Constants.expoConfig && Constants.expoConfig.version) || '2.0.1';
+const appVersion = (Constants.expoConfig && Constants.expoConfig.version) || '2.1.0';
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }) {
   const { t, lang, pick, setLanguage } = useI18n();
   const dir = useDirection();
   const { resetAll, hasAssessment } = useAppState();
@@ -72,6 +72,10 @@ export default function ProfileScreen() {
       </LinearGradient>
 
       <View style={{ padding: spacing.md, gap: spacing.md }}>
+        <Card>
+          <SectionTitle title={t('payments.title')} subtitle={t('payments.subtitle')} />
+          <Button label={t('payments.packages')} icon="card-outline" onPress={() => navigation.navigate('Payments')} style={{ marginTop: spacing.sm }} />
+        </Card>
         <Card>
           <SectionTitle title={t('profile.dataTitle')} />
           <View style={{ marginTop: spacing.xs }}>

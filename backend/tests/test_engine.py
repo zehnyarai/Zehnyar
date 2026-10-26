@@ -183,7 +183,7 @@ def test_api_unknown_country_returns_404():
 
 def test_root_keeps_json_for_api_clients_and_redirects_browsers():
     payload = client.get("/").json()
-    assert payload["name"] == "Zehnyar API"
+    assert payload["name"] == "Visayar API"
     assert payload["datasetVersion"] == DATASET["meta"]["version"]
     browser = client.get("/", headers={"accept": "text/html"}, follow_redirects=False)
     # 307 to /app/ when the web preview is built, unchanged JSON otherwise.

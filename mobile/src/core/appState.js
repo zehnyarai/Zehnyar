@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { dataset } from './data';
 import engine from './engine';
 import { clearAll, loadProfile, saveProfile, saveResult } from './storage';
+import { consumeAssessmentCredit, hasAssessmentAccess } from './paymentApi';
 
 const AppStateContext = createContext(null);
 
@@ -45,7 +46,11 @@ export function AppStateProvider({ children, initialProfile, initialResult }) {
     setProfile((current) => ({ ...current, [key]: { ...current[key], ...patch } }));
   }, [setProfile]);
 
-  const compute = useCallback((t) => {
+  const canStartAssessment = useCallback(() => hasAssessmentAccess(), []);
+
+  const compute = useCallback(async (t) => {
+    const allowance = await consumeAssessmentCredit();
+    if (!allowance) return false;
     const next = engine.assess(dataset, profile, t);
     setResult(next);
     saveResult(next);
@@ -66,10 +71,11 @@ export function AppStateProvider({ children, initialProfile, initialResult }) {
     result,
     setResult,
     compute,
+    canStartAssessment,
     resetAll,
     hydrated,
     hasAssessment: !!result,
-  }), [profile, setProfile, updateProfile, updateNested, result, compute, resetAll, hydrated]);
+  }), [profile, setProfile, updateProfile, updateNested, result, compute, canStartAssessment, resetAll, hydrated]);
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 }

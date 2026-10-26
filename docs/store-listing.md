@@ -1,15 +1,15 @@
-# متن فروشگاه — ذهن‌یار / Zehnyar store listing
+# متن فروشگاه — ویزایار / Visayar store listing
 
-## فارسی (کافه‌بازار، مایکت، گوگل‌پلی)
+## فارسی (نسخهٔ توزیع مستقیم)
 
-**نام برنامه:** ذهن‌یار — ارزیابی هوشمند مهاجرت
+**نام برنامه:** ویزایار — سامانه هوشمند مهاجرت
 
 **توضیح کوتاه (۸۰ نویسه):**
 شانس قبولی مهاجرت خود را در ۱۵ کشور با داده رسمی بسنجید و نقشه راه بگیرید.
 
 **توضیح کامل:**
 
-ذهن‌یار یک سامانه ارزیابی و راهنمای مهاجرت است که شرایط اعلام‌شده مراجع رسمی را به امتیاز قابل فهم و برنامه اقدام تبدیل می‌کند. پاسخ پرسش‌نامه چند دقیقه‌ای، تصویری دقیق از نقاط قوت و ضعف پرونده شما می‌سازد.
+ویزایار یک سامانه ارزیابی و راهنمای مهاجرت است که شرایط اعلام‌شده مراجع رسمی را به امتیاز قابل فهم و برنامه اقدام تبدیل می‌کند. پاسخ پرسش‌نامه چند دقیقه‌ای، تصویری دقیق از نقاط قوت و ضعف پرونده شما می‌سازد.
 
 چه چیزی به دست می‌آورید:
 
@@ -25,7 +25,9 @@
 
 • فهرست مدارک قابل علامت‌گذاری، برای اینکه هیچ سندی جا نماند.
 
-• حریم خصوصی کامل: بدون ثبت‌نام، بدون ارسال داده؛ همه محاسبات روی گوشی شما انجام می‌شود و برنامه بدون اینترنت کار می‌کند.
+• دو ارزیابی کامل رایگان؛ پس از آن بسته‌های اعتبار ارزیابی با پرداخت تومانی در نسخهٔ توزیع مستقیم. رسید پرداخت فقط برای بررسی مدیر ارسال می‌شود؛ پاسخ‌ها و نتایج پرونده روی گوشی می‌مانند.
+
+• کارکرد آفلاین برای ارزیابی‌های رایگان؛ خرید اعتبار و بررسی رسید به اینترنت نیاز دارد.
 
 • رابط دوزبانه فارسی و انگلیسی با فونت وزیرمتن و ارقام فارسی.
 
@@ -37,20 +39,20 @@
 
 **رده‌بندی سنی:** همه سنین (بدون محتوای حساس)
 
-**مجوزها:** بدون مجوز حساس؛ بدون دسترسی به دوربین، میکروفون، مخاطبین و موقعیت مکانی
+**مجوزها:** دسترسی به تصاویر فقط پس از درخواست کاربر و برای انتخاب تصویر رسید پرداخت
 
 ---
 
 ## English (Google Play)
 
-**Name:** Zehnyar — Immigration Intelligence
+**Name:** Visayar — Immigration Intelligence
 
 **Short description (80 chars):**
 Score your migration odds across 15 countries on official rules and get a roadmap.
 
 **Full description:**
 
-Zehnyar turns published government requirements into a clear score and an executable plan. A short questionnaire produces a precise picture of your file's strengths and gaps.
+Visayar turns published government requirements into a clear score and an executable plan. A short questionnaire produces a precise picture of your file's strengths and gaps.
 
 What you get:
 
@@ -66,7 +68,9 @@ What you get:
 
 • A document checklist stored on your device so nothing is missed.
 
-• Privacy by design: no account, no upload. Every calculation runs on your phone and the app works fully offline.
+• Two full assessments are free; paid assessment-credit bundles are available in the direct-distribution build. Only the payment receipt and contact details are sent for manual review; assessment answers and results stay on the device.
+
+• Free assessment works offline; purchasing and receipt review require an internet connection.
 
 • Bilingual Persian and English interface with the Vazirmatn typeface and Persian numerals.
 
@@ -74,7 +78,7 @@ Note: results are rule-based estimates. They are not a guarantee of approval, a 
 
 **Category:** Tools / Lifestyle
 **Content rating:** Everyone
-**Data safety:** No data collected, no data shared, no account required.
+**Important:** The card-transfer payment flow is for the direct APK only. Before publishing a build on Google Play, replace it with Google Play Billing; check the current Cafe Bazaar and Myket billing requirements separately.
 
 ---
 
@@ -82,14 +86,17 @@ Note: results are rule-based estimates. They are not a guarantee of approval, a 
 
 | پرسش | پاسخ |
 |---|---|
-| Does your app collect or share any of the required user data types? | No |
-| Is all of the user data encrypted in transit? | Not applicable — no data leaves the device |
-| Do you provide a way for users to request that their data is deleted? | Yes — «حذف همه اطلاعات» in Settings removes everything locally |
-| Permissions | None of the sensitive Android permissions are requested |
+| Does your app collect or share user data? | Yes — phone number, payment reference, receipt image and app-scoped installation ID, only for payment verification and credit delivery. |
+| Is all of the user data encrypted in transit? | Yes, when deployed behind HTTPS; production release must not use plain HTTP. |
+| Do you provide a way for users to request deletion? | The payment operator must provide a published privacy contact and handle requests subject to financial-record retention requirements. |
+| Permissions | Photo-library access is requested only when the user chooses a payment receipt image. |
 | Ads / analytics / third-party SDKs | None |
 
 ## متن سیاست حریم خصوصی (برای پیوست به فروشگاه)
 
-ذهن‌یار هیچ اطلاعاتی از کاربر جمع‌آوری، ذخیره روی سرور یا ارسال نمی‌کند. پاسخ‌های پرسش‌نامه، نتایج ارزیابی و وضعیت فهرست مدارک فقط در حافظه محلی دستگاه ذخیره می‌شوند. برنامه به اینترنت نیازی ندارد و هیچ حساب کاربری یا شناسه تبلیغاتی ایجاد نمی‌کند. با گزینه «حذف همه اطلاعات» در بخش تنظیمات، تمام داده‌های محلی پاک می‌شود. برای پرسش درباره حریم خصوصی می‌توانید از طریق صفحه مخزن پروژه با ما در تماس باشید.
+پاسخ‌های ارزیابی، نتایج و فهرست مدارک فقط روی دستگاه می‌مانند. اگر کاربر بستهٔ ارزیابی بخرد، شمارهٔ همراه، شناسهٔ پیگیری، شناسهٔ تصادفی نصب و تصویر رسید برای بررسی پرداخت به سرور امن ارسال می‌شوند؛ هیچ پاسخ ارزیابی یا دادهٔ پرونده بارگذاری نمی‌شود. با گزینه «حذف همه اطلاعات» در بخش تنظیمات، تمام داده‌های محلی پاک می‌شود. برای پرسش درباره حریم خصوصی می‌توانید از طریق صفحه مخزن پروژه با ما در تماس باشید.
 
-Zehnyar collects nothing and uploads nothing. Questionnaire answers, assessment results and checklist state are stored only in the device's local storage. The app requires no internet connection, no account and no advertising identifier. "Erase everything" in Settings removes all local data.
+Assessment answers, results and checklist state stay on the device. If a user buys credits, their phone number, transfer reference, random installation ID and receipt image are sent to the operator’s HTTPS server for manual payment review; assessment answers and case data are never uploaded.
+
+
+**انتشار فروشگاهی:** جریان کارت‌به‌کارت فعلی فقط برای فایل نصبی مستقیم است. برای گوگل‌پلی باید صورتحساب گوگل‌پلی جایگزین آن شود؛ الزامات پرداخت درون‌برنامه‌ای کافه‌بازار و مایکت نیز جداگانه بررسی و پیاده‌سازی شوند.

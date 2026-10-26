@@ -1,4 +1,4 @@
-"""Zehnyar assessment engine.
+"""Visayar assessment engine.
 
 Declarative rule evaluation shared (by spec) with the TypeScript engine in
 mobile/src/core/engine.js.  Every rule kind is documented in docs/engine-spec.md.

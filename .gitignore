@@ -26,3 +26,7 @@ release/*
 
 # Static web preview build output
 mobile/web-preview/
+
+# Local payment records and uploaded receipts (never commit customer payment data)
+/data/
+/backend/data/

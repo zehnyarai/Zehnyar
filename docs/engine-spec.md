@@ -1,4 +1,4 @@
-# Zehnyar assessment engine — specification
+# Visayar assessment engine — specification
 
 The engine is **data-driven**: `shared/dataset.json` describes every route as a
 list of scoring criteria and eligibility gates, and both implementations

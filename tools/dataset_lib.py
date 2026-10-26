@@ -1,4 +1,4 @@
-"""Shared helpers for building the Zehnyar dataset.
+"""Shared helpers for building the Visayar dataset.
 
 The dataset is the single source of truth consumed by both the Python backend
 engine and the TypeScript mobile engine.  Everything the scoring logic needs is

@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "Zehnyar",
-    "slug": "zehnyar",
-    "scheme": "zehnyar",
-    "version": "2.0.1",
+    "name": "ویزایار",
+    "slug": "visayar",
+    "scheme": "visayar",
+    "version": "2.1.0",
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",
     "userInterfaceStyle": "light",
@@ -18,14 +18,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "ai.zehnyar.app"
+      "bundleIdentifier": "ai.visayar.app"
     },
     "android": {
-      "package": "ai.zehnyar.app",
-      "versionCode": 21,
+      "package": "ai.visayar.app",
+      "versionCode": 22,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/adaptive-icon.png",
-        "backgroundColor": "#0B6E63"
+        "backgroundColor": "#F3FAF9"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [],
@@ -46,6 +46,14 @@
           "imageWidth": 180,
           "resizeMode": "contain",
           "backgroundColor": "#F2FAF9"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "برای بارگذاری رسید پرداخت به دسترسی تصاویر نیاز است.",
+          "cameraPermission": false,
+          "microphonePermission": false
         }
       ]
     ],
