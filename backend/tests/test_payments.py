@@ -30,9 +30,12 @@ def test_payment_prices_and_free_quota(monkeypatch, tmp_path):
     assert config["freeAssessments"] == 2
     assert {p["sku"]: p["priceToman"] for p in config["packages"]} == {
         "assessment_1": 600_000,
-        "assessment_3": 1_800_000,
-        "assessment_6": 3_600_000,
-        "assessment_12": 7_200_000,
+        "assessment_3": 1_500_000,
+        "assessment_6": 2_700_000,
+        "assessment_12": 4_800_000,
+    }
+    assert {p["sku"]: p["discountPercent"] for p in config["packages"]} == {
+        "assessment_1": 0, "assessment_3": 17, "assessment_6": 25, "assessment_12": 33,
     }
     assert client.get(f"/api/payments/credits/{INSTALL}").json() == {"freeRemaining": 2, "paidCredits": 0}
     assert client.post(f"/api/payments/consume/{INSTALL}").json()["consumed"] == "free"
@@ -49,7 +52,7 @@ def test_manual_receipt_admin_approval_grants_credits_once(monkeypatch, tmp_path
     )
     assert response.status_code == 200, response.text
     request_id = response.json()["requestId"]
-    assert response.json()["priceToman"] == 1_800_000
+    assert response.json()["priceToman"] == 1_500_000
     assert client.get("/api/admin/payments").status_code == 401
     login = client.post("/api/admin/auth/login", json={"username": "owner", "password": ADMIN_PASSWORD})
     assert login.status_code == 200
