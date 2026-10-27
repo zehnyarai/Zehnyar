@@ -1480,6 +1480,7 @@ $("#admin-proposals").addEventListener("click", (event) => {
   }
 });
 window.addEventListener("popstate", restoreFromHistory);
+window.addEventListener("online", refreshPublicProposals);
 
 if ("serviceWorker" in navigator && /^(https?:)$/.test(location.protocol)) {
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
