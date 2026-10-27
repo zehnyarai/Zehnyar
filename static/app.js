@@ -901,6 +901,7 @@ const MODERN_RESEARCH_LENSES = [
 
 function detailPanelResearch(verse) {
   const annotation = reviewedStudyFor(verse) || {};
+  const curated = (annotation.research || []).map((item) => `<li><b>موضوع پژوهشی: ${escapeHTML(item.title)}</b><p>${escapeHTML(item.question)}</p><small>پایهٔ پیشنهادی: ${escapeHTML(item.evidence)}</small></li>`).join("");
   const tokens = [...new Set(verseTokens(verse).filter((token) => token.key.length >= 3).map((token) => JSON.stringify(token)))].map((item) => JSON.parse(item)).slice(0, 4);
   const lexical = tokens.map((token) => {
     const matches = state.corpus.filter((record) => record.arabicNormalized.split(" ").includes(token.key));
@@ -913,7 +914,7 @@ function detailPanelResearch(verse) {
   const sourceQuestion = sources.length >= 2 ? `<li><b>پژوهش تطبیقی در خوانش مفسران</b><p>${sources.map((entry) => escapeHTML(entry.source.title)).join(" و ")} را در شرح همین آیه کنار هم بگذارید. کدام واژه یا گزاره را برجسته می‌کنند و کجا اختلاف روش دارند؟</p><small>${sources.map((entry) => `${escapeHTML(entry.source.title)}، نسخه ${escapeHTML(entry.source.version)}`).join("؛ ")}</small></li>` : "";
   const keys = new Set(tokens.map((token) => token.key));
   const modern = MODERN_RESEARCH_LENSES.filter((lens) => lens.terms.some((term) => [...keys].some((key) => key.includes(term)))).slice(0, 2).map((lens) => `<li><b>زاویهٔ معاصر: ${escapeHTML(lens.title)}</b><p>${escapeHTML(lens.question)}</p><small>پیوند پیشنهادی فقط از واژهٔ «${escapeHTML(tokens.find((token) => lens.terms.some((term) => token.key.includes(term)))?.raw || "متن آیه")}» آغاز می‌شود؛ این مقایسه ادعای کاربرد قطعی یا پیش‌بینی علمی نیست.</small></li>`).join("");
-  const items = [lexical, thematicItems, contextItems, sourceQuestion, modern].filter(Boolean).join("");
+  const items = [curated, lexical, thematicItems, contextItems, sourceQuestion, modern].filter(Boolean).join("");
   return `<section class="detail-panel research-panel"><p class="eyebrow">کارگاه پرسش‌سازی</p><h3>پژوهش در آیهٔ ${escapeHTML(verse.reference)}</h3><p class="reading-notice">این‌ها سرنخ و طرحِ اولیهٔ پژوهش بر اساس واژهٔ آیه، سیاقِ ثبت‌شده و متن‌های منبع‌دارند؛ پاسخ یا نتیجهٔ قطعی نیستند. برای زاویهٔ معاصر، ابتدا معنای آیه در بافت خودش و سپس حدود قیاس امروز را روشن کنید.</p><ol class="research-question-list">${items || `<li><b>پرسش متن‌محور</b><p>واژه‌های محوریِ همین آیه را در متن عربی، ترجمه، آیات مجاور و شرح‌های منبع‌دار ردیابی کنید؛ هر نتیجه را به شاهد مشخص پیوند دهید.</p></li>`}</ol></section>`;
 }
 

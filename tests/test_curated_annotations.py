@@ -92,11 +92,18 @@ class CuratedAnnotationTests(unittest.TestCase):
 
     def test_fatiha_editorial_batch_has_four_cited_items_in_each_requested_field(self):
         data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        corpus = json.loads((ROOT / "static/offline-corpus.json").read_text(encoding="utf-8"))["verses"]
         for ayah in range(1, 8):
             entry = data[f"1:{ayah}"]
             for field in ("notes", "principles", "messages"):
                 self.assertGreaterEqual(len(entry[field]), 4, f"1:{ayah} needs four {field}")
                 self.assertTrue(all(item.get("evidence") for item in entry[field]))
+            self.assertGreaterEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("title") and item.get("question") and item.get("evidence") for item in entry["research"]))
+            tuple_record = next(row for row in corpus if f"{row[0]}:{row[1]}" == f"1:{ayah}")
+            translation = tuple_record[3].strip()
+            for field in ("notes", "principles", "messages"):
+                self.assertTrue(all(item["text"].strip() != translation for item in entry[field]))
 
     def test_user_suggestions_remain_under_verse_notes_messages_and_principles(self):
         app = (ROOT / "static/app.js").read_text(encoding="utf-8")
