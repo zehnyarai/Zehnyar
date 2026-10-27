@@ -10,22 +10,16 @@ import { groupThousands, toPersianDigits } from '../core/format';
 import { checkRequest, loadPaymentPanel, submitReceipt } from '../core/paymentApi';
 
 const PACKAGES = [
-  { sku: 'assessment_1', credits: 1, priceToman: 600000, discountPercent: 0, label: 'single' },
-  { sku: 'assessment_3', credits: 3, priceToman: 1500000, discountPercent: 17, label: 'three' },
-  { sku: 'assessment_6', credits: 6, priceToman: 2700000, discountPercent: 25, label: 'six' },
-  { sku: 'assessment_12', credits: 12, priceToman: 4800000, discountPercent: 33, label: 'twelve' },
+  { sku: 'assessment_1', credits: 1, priceToman: 600000, label: 'single' },
+  { sku: 'assessment_3', credits: 3, priceToman: 1800000, label: 'three' },
+  { sku: 'assessment_6', credits: 6, priceToman: 3600000, label: 'six' },
+  { sku: 'assessment_12', credits: 12, priceToman: 7200000, label: 'twelve' },
 ];
 
 function amount(value, lang, t) {
   const separator = lang === 'fa' ? String.fromCharCode(0x066c) : ',';
   const formatted = groupThousands(value).replace(/,/g, separator);
   return `${lang === 'fa' ? toPersianDigits(formatted) : formatted} ${t('payments.toman')}`;
-}
-
-function discountLabel(value, lang, t) {
-  const number = lang === 'fa' ? toPersianDigits(String(value)) : String(value);
-  const sign = lang === 'fa' ? String.fromCharCode(0x066a) : '%';
-  return `${t('payments.save')} ${number}${sign}`;
 }
 
 function asciiDigits(value) {
@@ -149,8 +143,6 @@ export default function PaymentsScreen({ navigation }) {
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: dir.row, alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                         <Text variant="bodyStrong" style={{ color: colors.ink }}>{t(`payments.${item.label}`)}</Text>
-                        {item.discountPercent >= 25 ? <Pill label={discountLabel(item.discountPercent, lang, t)} tone="sky" /> : null}
-                        {item.sku === 'assessment_12' ? <Pill label={t('payments.bestValue')} tone="gold" /> : null}
                       </View>
                       <Text variant="micro" color={colors.ink50} style={{ marginTop: 3, textAlign: dir.text }}>
                         {amount(Math.round(item.priceToman / item.credits), lang, t)} {t('payments.perAssessment')}

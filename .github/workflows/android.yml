@@ -9,7 +9,8 @@ on:
         default: ''
   push:
     branches:
-      - 'arena/7d04dbdc-zehnyar'
+      - 'arena/96fa3fb8-zehnyar'
+      - 'main'
     tags:
       - 'v*'
 
