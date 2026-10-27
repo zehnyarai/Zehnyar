@@ -185,13 +185,16 @@ class QuranResearchTests(unittest.TestCase):
     def test_full_cited_tafsir_sources_cover_the_complete_corpus(self):
         static_dir = Path(main.STATIC_DIR)
         registry = json.loads((static_dir / "tafsir-sources.json").read_text(encoding="utf-8"))
-        self.assertEqual(len(registry["sources"]), 2)
+        self.assertEqual(len(registry["sources"]), 5)
+        self.assertEqual({source["id"] for source in registry["sources"]}, {"fa_qe_persian_mokhtasar", "ar_qe_arabic_moyassar", "ar_tabari_qurancom", "ar_qurtubi_qurancom", "fa_mizan_furqan"})
         for source in registry["sources"]:
             payload = json.loads((static_dir / source["file"].removeprefix("static/")).read_text(encoding="utf-8"))
-            verse_total = sum(len(ayahs) for ayahs in payload["verses"].values())
+            verse_total = sum(len(ayahs) for ayahs in payload.get("verses", {}).values())
+            verse_total = verse_total or sum(len(ayahs) for ayahs in payload.get("ayahMapping", {}).values())
             self.assertEqual(verse_total, 6236)
             self.assertEqual(payload["edition"]["version"], source["version"])
-            self.assertTrue(source["sourceUrl"].startswith("https://quranenc.com/"))
+            self.assertTrue(source["sourceUrl"].startswith("https://"))
+            self.assertTrue(source.get("attribution"))
 
     def test_requested_tafsir_catalog_is_explicit_without_claiming_unloaded_texts(self):
         static_dir = Path(main.STATIC_DIR)
@@ -201,7 +204,10 @@ class QuranResearchTests(unittest.TestCase):
         titles = " ".join(item["title"] for item in requested["items"])
         for title in ("طبری", "زمخشری", "قرطبی", "الميزان", "من هدى", "من وحي", "الكاشف", "مفاتيح الغيب", "نمونه", "تسنیم"):
             self.assertIn(title, titles)
-        self.assertTrue(all(item["status"] != "available" for item in requested["items"]))
+        self.assertEqual(
+            {item["id"] for item in requested["items"] if item["status"] == "available"},
+            {"tabari", "qurtubi", "mizan"},
+        )
         self.assertTrue(all(item["basis"] for item in requested["items"]))
 
     def test_all_initial_story_dossiers_have_anchored_material(self):
@@ -254,7 +260,7 @@ class QuranResearchTests(unittest.TestCase):
 
     def test_markdown_registry_exports_all_lexical_evidence(self):
         registry = main.research_markdown("عدالت", "topic")
-        self.assertIn("# دفتر کامل شواهد ذهن‌یار", registry)
+        self.assertIn("# دفتر کامل شواهد قرآن‌پژوهه", registry)
         self.assertIn("## شواهد واژگانی", registry)
         self.assertIn("## مسیرهای رواییِ پیشنهادی", registry)
         self.assertIn("ص 38:21", registry)

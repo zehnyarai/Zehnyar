@@ -100,6 +100,20 @@ class CuratedAnnotationTests(unittest.TestCase):
         self.assertIn('id="admin-token" type="password"', html)
         self.assertNotIn("ZEHNYAR_ADMIN_TOKEN", app)
 
+    def test_brand_sources_and_per_section_notes_are_wired(self):
+        html = (ROOT / "static/index.html").read_text(encoding="utf-8")
+        app = (ROOT / "static/app.js").read_text(encoding="utf-8")
+        manifest = json.loads((ROOT / "static/manifest.webmanifest").read_text(encoding="utf-8"))
+        self.assertIn("قرآن‌پژوهه", html)
+        self.assertEqual(manifest["short_name"], "قرآن‌پژوهه")
+        self.assertNotIn('data-detail-tab="notebook"', html)
+        self.assertIn("data-field-note", app)
+        self.assertIn("FIELD_NOTES_KEY", app)
+        self.assertIn("loadDeferredTafsir", app)
+        self.assertIn("data-load-tafsir", app)
+        for host in ("quran.inoor.ir", "noorlib.ir", "noormags.ir", "ensani.ir"):
+            self.assertIn(host, html)
+
     def test_advanced_search_stays_collapsed_without_removing_fields(self):
         html = (ROOT / "static/index.html").read_text(encoding="utf-8")
         self.assertIn('<details class="advanced-search">', html)

@@ -7,6 +7,7 @@ const TAFSIR_SOURCES_URL = "static/tafsir-sources.json";
 const TAFSIR_CATALOG_URL = "static/tafsir-catalog.json";
 const VERSE_STUDIES_URL = "static/verse-study-annotations.json";
 const NOTEBOOK_KEY = "zehnyar-verse-notebook-v2";
+const FIELD_NOTES_KEY = "quran-pazhuheh-field-notes-v1";
 const VERSE_PROPOSALS_KEY = "quran-pazhuheh-verse-proposals-v1";
 const ADMIN_TOKEN_KEY = "zehnyar-admin-token-session";
 const PAGE_SIZE = 12;
@@ -21,6 +22,11 @@ const state = {
   concepts: [],
   topicCategories: [],
   tafsirSources: [],
+  tafsirRegistry: [],
+  tafsirLoads: new Map(),
+  tafsirLoading: null,
+  tafsirLoadFailed: false,
+  fieldNotes: loadFieldNotes(),
   tafsirCatalog: [],
   verseStudies: {},
   stories: [],
@@ -86,6 +92,23 @@ function loadNotebook() {
 
 function persistNotebook() {
   localStorage.setItem(NOTEBOOK_KEY, JSON.stringify(state.notebook));
+}
+
+function loadFieldNotes() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(FIELD_NOTES_KEY) || "{}");
+    return saved && typeof saved === "object" && !Array.isArray(saved) ? saved : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveFieldNote(input) {
+  const key = `${input.dataset.verseId}:${input.dataset.fieldNote}`;
+  state.fieldNotes[key] = input.value.slice(0, 3000);
+  localStorage.setItem(FIELD_NOTES_KEY, JSON.stringify(state.fieldNotes));
+  const status = input.parentElement.querySelector(".field-note-status");
+  if (status) status.textContent = "ذخیره شد؛ فقط روی همین دستگاه.";
 }
 
 function loadVerseProposals() {
@@ -182,18 +205,52 @@ async function loadData() {
   state.topicCategories = catalog.categories || [];
   state.stories = (await storyResponse.json()).stories || [];
   state.storyDossiers = (await storyDossiersResponse.json()).dossiers || {};
-  const tafsirResults = await Promise.allSettled((tafsirRegistry.sources || []).map(async (source) => {
-    const response = await fetch(source.file);
-    if (!response.ok) throw new Error(`بارگیری ${source.title} ناموفق بود.`);
-    const payload = await response.json();
-    return { ...source, verses: payload.verses || {}, contents: payload.contents || {}, ayahMapping: payload.ayahMapping || {}, edition: payload.edition || {} };
-  }));
+  state.tafsirRegistry = tafsirRegistry.sources || [];
+  const tafsirResults = await Promise.allSettled(state.tafsirRegistry.filter((source) => source.preload !== false).map(loadTafsirSource));
   state.tafsirSources = tafsirResults.filter((result) => result.status === "fulfilled").map((result) => result.value);
   state.corpus = corpus.verses.map(recordFromTuple);
   state.recordById = new Map(state.corpus.map((record) => [record.id, record]));
   $("#result-corpus").textContent = `${faNumber(state.corpus.length)} آیه`;
   await refreshPublicProposals();
   renderStarters();
+}
+
+function loadTafsirSource(source) {
+  if (state.tafsirLoads.has(source.id)) return state.tafsirLoads.get(source.id);
+  const request = fetch(source.file).then((response) => {
+    if (!response.ok) throw new Error(`بارگیری ${source.title} ناموفق بود.`);
+    return response.json();
+  }).then((payload) => ({
+    ...source,
+    verses: payload.verses || {},
+    contents: payload.contents || {},
+    ayahMapping: payload.ayahMapping || {},
+    edition: payload.edition || {},
+  })).catch((error) => {
+    state.tafsirLoads.delete(source.id);
+    throw error;
+  });
+  state.tafsirLoads.set(source.id, request);
+  return request;
+}
+
+async function loadDeferredTafsir(sourceId) {
+  const source = state.tafsirRegistry.find((item) => item.id === sourceId && item.preload === false);
+  if (!source || state.tafsirSources.some((loaded) => loaded.id === sourceId) || state.tafsirLoading) return;
+  state.tafsirLoading = sourceId;
+  state.tafsirLoadFailed = false;
+  renderDetailPanel();
+  try {
+    const loaded = await loadTafsirSource(source);
+    // Keep only one large comparison text in memory at a time on mobile.
+    state.tafsirSources = [...state.tafsirSources.filter((item) => item.preload !== false), loaded];
+  } catch {
+    state.tafsirLoadFailed = true;
+  } finally {
+    state.tafsirLoads.delete(sourceId);
+    state.tafsirLoading = null;
+  }
+  if (state.detailTab === "tafsir") renderDetailPanel();
 }
 
 function renderStarters() {
@@ -821,14 +878,21 @@ function sourceEvidenceNotice(verse) {
 function tafsirCatalogCards() {
   const requested = state.tafsirCatalog.find((collection) => collection.id === "requested-comparative");
   if (!requested?.items?.length) return "";
-  return `<section class="tafsir-catalog"><p class="eyebrow">فهرستِ مقایسه‌ایِ درخواستی</p><h3>${escapeHTML(requested.title)}</h3><p class="reading-notice">متنِ دیجیتالِ یک اثر فقط وقتی ذیل آیه نشان داده می‌شود که نسخهٔ دقیق، انتساب و مجوز یا شرایط بازنشرِ آن ثبت شده باشد. «موجود بودن در اینترنت» به‌تنهایی مجوز کپی یا انتسابِ متن نیست.</p><div class="tafsir-catalog-grid">${requested.items.map((item) => `<article class="tafsir-catalog-card"><h4>${escapeHTML(item.title)}</h4><p>${escapeHTML(item.author)}</p><small>${escapeHTML(item.language)} · ${escapeHTML(item.era)}</small><b>${item.status === "needs-permission" ? "نیازمند اجازهٔ بازنشر" : "نیازمند نسخهٔ محقق و بازبینی‌شده"}</b><span>برای این آیه هنوز متنِ مجاز و نسخه‌دارِ این اثر وارد نشده است.</span><em>${escapeHTML(item.basis)}</em></article>`).join("")}</div></section>`;
+  return `<section class="tafsir-catalog"><p class="eyebrow">فهرستِ مقایسه‌ایِ درخواستی</p><h3>${escapeHTML(requested.title)}</h3><p class="reading-notice">فهرست، وضعیت واقعی هر متن را نشان می‌دهد؛ متنِ بدون انتساب یا نسخه به آیه نسبت داده نمی‌شود.</p><div class="tafsir-catalog-grid">${requested.items.map((item) => `<article class="tafsir-catalog-card"><h4>${escapeHTML(item.title)}</h4><p>${escapeHTML(item.author)}</p><small>${escapeHTML(item.language)} · ${escapeHTML(item.era || "")}</small><b>${item.status === "available" ? "متن در برنامه موجود است" : item.status === "needs-permission" ? "نیازمند اجازهٔ بازنشر" : "نیازمند نسخهٔ محقق و بازبینی‌شده"}</b><span>${item.status === "available" ? "متن آیه‌به‌آیه در پروندهٔ تفاسیر همین آیه قابل مشاهده است." : "متن این اثر هنوز در برنامه وارد نشده است."}</span><em>${escapeHTML(item.basis)}</em></article>`).join("")}</div></section>`;
 }
 
 function detailPanelTafsir(verse) {
   const entries = tafsirEntries(verse);
   const catalogue = tafsirCatalogCards();
-  if (!entries.length) return `<section class="detail-panel tafsir-panel"><p class="eyebrow">منابع تفسیری</p><h3>متن منبع‌دارِ فعال موقتاً بارگیری نشد.</h3><p>هستهٔ جست‌وجو همچنان محلی است؛ با اتصال بعدی، متنِ بدون‌ویرایشِ منابع دوباره بارگیری می‌شود.</p>${catalogue}</section>`;
-  return `<section class="detail-panel tafsir-panel"><p class="eyebrow">تفاسیرِ منبع‌دارِ آیه</p><h3>متنِ کامل، انتساب، نسخه و پیوندِ دقیق</h3><p class="reading-notice">متن‌های فعال زیر بدون خلاصه‌سازی یا بازنویسیِ ذهن‌یار نمایش داده می‌شوند. اختلاف زبان و اثر به‌معنای همسان‌بودنِ تفسیرها نیست؛ برای پژوهش، هر دو را جداگانه بخوانید.</p>${entries.map(({ source, text, footnotes }) => `<article class="source-card" lang="${escapeHTML(source.language)}" dir="rtl"><div class="source-card-head"><div><h4>${escapeHTML(source.title)}</h4><p>${escapeHTML(source.author)}</p></div><a href="${escapeHTML(source.sourceUrl)}" target="_blank" rel="noreferrer">منبع ↗</a></div><p class="source-citation">${escapeHTML(tafsirCitation(source))}</p><div class="source-text">${escapeHTML(text)}</div>${footnotes ? `<div class="source-footnotes"><b>پانویسِ منبع</b>${escapeHTML(footnotes)}</div>` : ""}</article>`).join("")}${catalogue}</section>`;
+  const extended = state.tafsirRegistry.filter((source) => source.preload === false).map((source) => {
+    const loaded = state.tafsirSources.some((item) => item.id === source.id);
+    const loading = state.tafsirLoading === source.id;
+    return `<article class="tafsir-choice"><div><b>${escapeHTML(source.title)}</b><small>${escapeHTML(source.author)} · نسخه ${escapeHTML(source.version)}</small></div>${loaded ? `<span class="tafsir-loaded">متن بارگیری‌شده</span>` : `<button type="button" data-load-tafsir="${escapeHTML(source.id)}" ${state.tafsirLoading ? "disabled" : ""}>${loading ? "در حال بارگیری…" : "نمایش متن کامل"}</button>`}</article>`;
+  }).join("");
+  const loadingNotice = state.tafsirLoading ? `<p class="source-availability" role="status">در حال دریافت و آماده‌سازی متن انتخاب‌شده؛ به‌دلیل حجم منابع، هر بار یک تفسیر تکمیلی بارگیری می‌شود.</p>` : "";
+  const errorNotice = state.tafsirLoadFailed ? `<p class="study-unavailable">بارگیری کامل نشد؛ اتصال را بررسی و دوباره روی «نمایش متن کامل» بزنید.</p>` : "";
+  const body = entries.map(({ source, text, footnotes }) => `<article class="source-card" lang="${escapeHTML(source.language)}" dir="rtl"><div class="source-card-head"><div><h4>${escapeHTML(source.title)}</h4><p>${escapeHTML(source.author)}</p></div><a href="${escapeHTML(source.sourceUrl)}" target="_blank" rel="noreferrer">نسخه و منبع ↗</a></div><p class="source-citation">${escapeHTML(tafsirCitation(source))}${source.license ? ` · ${escapeHTML(source.license)}` : ""}</p><div class="source-text">${escapeHTML(text)}</div>${footnotes ? `<div class="source-footnotes"><b>پانویسِ منبع</b>${escapeHTML(footnotes)}</div>` : ""}</article>`).join("");
+  return `<section class="detail-panel tafsir-panel"><p class="eyebrow">تفاسیرِ منبع‌دارِ آیه</p><h3>متنِ کامل، انتساب، نسخه و پیوندِ دقیق</h3><p class="reading-notice">متن‌ها بدون خلاصه‌سازی یا بازنویسی نمایش داده می‌شوند. منابع عربی و فارسی دیدگاه‌های متفاوت دارند؛ نقلِ یک مفسر را با نظر دیگران یکی نگیرید. برای حفظ سرعت و حافظهٔ گوشی، متن‌های تکمیلی جداگانه و به‌درخواست شما بارگیری می‌شوند.</p>${loadingNotice}${errorNotice}<div class="tafsir-choices"><h4>تفاسیر تکمیلی: طبری، قرطبی و المیزان</h4>${extended}</div>${body || `<p class="study-unavailable">برای این آیه متن تفسیری از منابع بارگیری‌شده در دسترس نیست.</p>`}${catalogue}</section>`;
 }
 
 function detailPanelNotes(verse) {
@@ -946,6 +1010,13 @@ function detailPanelNotebook(verse) {
     <div class="note-actions"><button id="save-note" type="button">ذخیرهٔ یادداشت</button><span id="note-status"></span></div></section>`;
 }
 
+function fieldNotePanel(verse, field) {
+  const labels = { notes: "نکات مهم آیه", foundations: "اصول زندگی و مبانی", framework: "چارچوب معنایی", messages: "پیام‌های آیه", context: "سیاق آیات", thematic: "تفسیر موضوعی", network: "نظم شبکه‌ای", quran: "نسبت با قرآن", tafsir: "تفاسیر منبع‌دار" };
+  const key = `${verse.id}:${field}`;
+  const inputId = `field-note-${field}`;
+  return `<section class="field-note-panel"><label for="${inputId}"><b>یادداشت من</b><span>یادداشت شخصی برای بخش «${escapeHTML(labels[field] || field)}»</span></label><textarea id="${inputId}" class="note-area" data-field-note="${escapeHTML(field)}" data-verse-id="${escapeHTML(verse.id)}" maxlength="3000" placeholder="پرسش، برداشت شخصی یا ارجاعی که می‌خواهید برای این بخش نگه دارید…">${escapeHTML(state.fieldNotes[key] || "")}</textarea><small class="field-note-status" aria-live="polite">ذخیرهٔ خودکار فقط در همین دستگاه</small></section>`;
+}
+
 function renderDetailPanel() {
   const verse = state.selected;
   if (!verse) return;
@@ -959,9 +1030,9 @@ function renderDetailPanel() {
     network: detailPanelNetwork,
     quran: detailPanelQuran,
     tafsir: detailPanelTafsir,
-    notebook: detailPanelNotebook,
   };
-  $("#detail-panels").innerHTML = (panels[state.detailTab] || detailPanelNotes)(verse);
+  const panel = (panels[state.detailTab] || detailPanelNotes)(verse);
+  $("#detail-panels").innerHTML = `${panel}${fieldNotePanel(verse, state.detailTab)}`;
 }
 
 function saveNote() {
@@ -1318,6 +1389,11 @@ $$("#detail-screen [data-detail-tab]").forEach((button) => button.addEventListen
   renderDetail();
 }));
 
+$("#detail-panels").addEventListener("input", (event) => {
+  const fieldNote = event.target.closest("[data-field-note]");
+  if (fieldNote) saveFieldNote(fieldNote);
+});
+
 $("#detail-panels").addEventListener("submit", (event) => {
   const form = event.target.closest("[data-proposal-form]");
   if (!form) return;
@@ -1326,6 +1402,8 @@ $("#detail-panels").addEventListener("submit", (event) => {
 });
 
 $("#detail-panels").addEventListener("click", (event) => {
+  const tafsirButton = event.target.closest("[data-load-tafsir]");
+  if (tafsirButton) return loadDeferredTafsir(tafsirButton.dataset.loadTafsir);
   const deleteButton = event.target.closest("[data-delete-proposal]");
   if (deleteButton) return deleteVerseProposal(deleteButton.dataset.deleteProposal);
   const contextButton = event.target.closest("[data-context-id]");

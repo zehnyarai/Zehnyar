@@ -275,7 +275,7 @@ TOPIC_CATEGORIES = [
 ]
 
 READING_PROTOCOL = [
-    {"id": "text", "title": "متن، ترجمه و واژهٔ شاهد", "description": "پیش از برداشت، ببینید تطابق در عربی است یا ترجمه و کدام واژه آیه را وارد نتیجه کرده است.", "availability": "فعال در ذهن‌یار"},
+    {"id": "text", "title": "متن، ترجمه و واژهٔ شاهد", "description": "پیش از برداشت، ببینید تطابق در عربی است یا ترجمه و کدام واژه آیه را وارد نتیجه کرده است.", "availability": "فعال در قرآن‌پژوهه"},
     {"id": "context", "title": "سیاق نزدیک و پیوستگی سوره", "description": "آیه‌های پیش و پس را بخوانید و نتیجه را از موضوع و حرکتِ سوره جدا نکنید.", "availability": "سیاق نزدیک فعال؛ مطالعهٔ سوره با کاربر"},
     {"id": "narrative", "title": "داستان، شخصیت و پیامد", "description": "روایت را در بازهٔ خودش بخوانید؛ گفت‌وگو، شخصیت‌ها، نقطهٔ تغییر و فرجام را از هم جدا کنید.", "availability": "آیه‌های لنگر و پرسش‌های روایی برای موضوع‌های فهرست‌شده فعال است"},
     {"id": "linguistics", "title": "صرف، نحو و چندمعنایی", "description": "ریشه، نقش دستوری و اشتراک لفظی باید با منبع زبان‌شناختی معتبر بررسی شود.", "availability": "نیازمند منبع تخصصیِ افزوده‌شونده"},
@@ -1017,7 +1017,7 @@ def research_markdown(query: str, mode: Literal["topic", "literal"]) -> str:
     """Create a portable, complete registry of lexical evidence for offline review."""
     result = analyze(query, len(CORPUS), False, mode)
     lines = [
-        "# دفتر کامل شواهد ذهن‌یار",
+        "# دفتر کامل شواهد قرآن‌پژوهه",
         "",
         f"- پرسش: {result['query']}",
         f"- حالت: {result['mode']['label']}",
@@ -1063,7 +1063,7 @@ def research_markdown(query: str, mode: Literal["topic", "literal"]) -> str:
 
 
 app = FastAPI(
-    title="ذهن‌یار | پژوهش موضوعی قرآن",
+    title="قرآن‌پژوهه | پژوهش موضوعی قرآن",
     version="1.2.0",
     description="بازیابی شفاف واژگانی و پیوندهای موضوعی در متن قرآن، با نمایش شواهد، سیاق و مسیر بازیابی.",
 )
