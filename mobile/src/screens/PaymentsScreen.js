@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Share, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import * as Sharing from 'expo-sharing';
+import Share from 'react-native-share';
 import { colors, fonts, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { Button, Card, Pill, PressableScale, ScrollScreen, SectionTitle, Text } from '../components/ui';
@@ -29,13 +29,6 @@ function discountLabel(value, lang, t) {
   return `${t('payments.discount')} ${number}${sign}`;
 }
 
-function asciiDigits(value) {
-  return String(value).replace(/[\u06f0-\u06f9\u0660-\u0669]/g, (digit) => {
-    const code = digit.charCodeAt(0);
-    return String(code >= 0x06f0 ? code - 0x06f0 : code - 0x0660);
-  });
-}
-
 function visibleBankLabel(value, lang) {
   return lang === 'fa' && /[A-Za-z]/.test(value) ? '—' : value;
 }
@@ -47,7 +40,7 @@ export default function PaymentsScreen({ navigation }) {
   const [sending, setSending] = useState(false);
   const [panel, setPanel] = useState(null);
   const [selected, setSelected] = useState(PACKAGES[0].sku);
-  const [phone, setPhone] = useState('');
+  const [transferDate, setTransferDate] = useState('');
   const [trackingCode, setTrackingCode] = useState('');
   const [voucherCode, setVoucherCode] = useState('');
   const [receipt, setReceipt] = useState(null);
@@ -78,8 +71,7 @@ export default function PaymentsScreen({ navigation }) {
   };
 
   const send = async () => {
-    const normalizedPhone = asciiDigits(phone).replace(/[\s()+-]/g, '');
-    if (!/^\d{10,15}$/.test(normalizedPhone)) return Alert.alert(t('payments.noPhone'));
+    if (!transferDate.trim()) return Alert.alert(t('payments.noTransferDate'));
     if (trackingCode.trim().length < 4) return Alert.alert(t('payments.noTracking'));
     if (!receipt) return Alert.alert(t('payments.noReceipt'));
     setSending(true);
@@ -91,21 +83,23 @@ export default function PaymentsScreen({ navigation }) {
           `${t('payments.installId')}: ${installId}`,
           `${t('payments.selected')}: ${t(`payments.${activePackage.label}`)}`,
           `${t('payments.amountLabel')}: ${amount(activePackage.priceToman, lang, t)}`,
-          `${t('payments.phone')}: ${normalizedPhone}`,
+          `${t('payments.transferDate')}: ${transferDate.trim()}`,
           `${t('payments.tracking')}: ${trackingCode.trim()}`,
         ].join('\n');
-        const shared = await Share.share({ message: orderText });
-        if (shared?.action === Share.dismissedAction) return;
-        if (!(await Sharing.isAvailableAsync())) throw new Error('SHARE_NOT_AVAILABLE');
-        await Sharing.shareAsync(receipt.uri, {
-          mimeType: receipt.mimeType || 'image/jpeg',
-          dialogTitle: t('payments.shareReceiptTitle'),
+        const shared = await Share.open({
+          url: receipt.uri,
+          type: receipt.mimeType || 'image/jpeg',
+          filename: receipt.fileName || 'visayar-receipt.jpg',
+          title: t('payments.shareReceiptTitle'),
+          message: orderText,
+          failOnCancel: false,
         });
+        if (shared?.dismissedAction) return;
         setRequest({ id: `manual:${installId}`, status: 'pending', manual: true, credits: activePackage.credits });
         Alert.alert(t('payments.manualSentTitle'), t('payments.manualSentBody'));
         return;
       }
-      const result = await submitReceipt({ sku: selected, phone: normalizedPhone, trackingCode: trackingCode.trim(), receipt });
+      const result = await submitReceipt({ sku: selected, transferDate: transferDate.trim(), trackingCode: trackingCode.trim(), receipt });
       setRequest({ id: result.requestId, status: 'pending', credits: result.credits });
       Alert.alert(t('payments.requestSent'));
       await refresh();
@@ -230,8 +224,9 @@ export default function PaymentsScreen({ navigation }) {
                 </View>
               </View>
               <View style={styles.form}>
-                <Text variant="small" color={colors.ink70}>{t('payments.selected')}: {t(`payments.${activePackage.label}`)} · {amount(activePackage.priceToman, lang, t)}</Text>
-                <TextInput value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder={t('payments.phone')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text }]} />
+                <Text variant="small" color={colors.ink70}>{t('payments.selected')}: {t(`payments.${activePackage.label}`)}</Text>
+                <Text variant="small" color={colors.ink70}>{t('payments.amountLabel')}: {amount(activePackage.priceToman, lang, t)}</Text>
+                <TextInput value={transferDate} onChangeText={setTransferDate} placeholder={t('payments.transferDatePlaceholder')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text }]} />
                 <TextInput value={trackingCode} onChangeText={setTrackingCode} autoCapitalize="none" placeholder={t('payments.tracking')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text }]} />
                 <Button label={receipt ? t('payments.receipt') : t('payments.pickReceipt')} variant="outline" icon="image-outline" onPress={chooseReceipt} />
                 <Button label={t('payments.submit')} icon="share-outline" loading={sending} disabled={!canPay} onPress={send} />

@@ -94,12 +94,13 @@ export async function loadPaymentPanel() {
   }
 }
 
-export async function submitReceipt({ sku, phone, trackingCode, receipt }) {
+export async function submitReceipt({ sku, transferDate, trackingCode, receipt }) {
   const installId = await getInstallId();
   const body = new FormData();
   body.append('install_id', installId);
   body.append('sku', sku);
-  body.append('phone', phone);
+  body.append('phone', '');
+  body.append('transfer_date', transferDate || '');
   body.append('tracking_code', trackingCode);
   if (receipt.file) body.append('receipt', receipt.file, receipt.fileName || 'receipt.jpg');
   else body.append('receipt', { uri: receipt.uri, name: receipt.fileName || 'receipt.jpg', type: receipt.mimeType || 'image/jpeg' });

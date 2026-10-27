@@ -47,7 +47,7 @@ def test_manual_receipt_admin_approval_grants_credits_once(monkeypatch, tmp_path
     configure(monkeypatch, tmp_path)
     response = client.post(
         "/api/payments/requests",
-        data={"install_id": INSTALL, "sku": "assessment_3", "phone": "۰۹۱۲۳۴۵۶۷۸۹", "tracking_code": "TRX-12345"},
+        data={"install_id": INSTALL, "sku": "assessment_3", "transfer_date": "۱۴۰۵/۰۸/۰۵", "tracking_code": "TRX-12345"},
         files={"receipt": ("receipt.png", b"fake-png", "image/png")},
     )
     assert response.status_code == 200, response.text
@@ -56,7 +56,10 @@ def test_manual_receipt_admin_approval_grants_credits_once(monkeypatch, tmp_path
     assert client.get("/api/admin/payments").status_code == 401
     login = client.post("/api/admin/auth/login", json={"username": "owner", "password": ADMIN_PASSWORD})
     assert login.status_code == 200
-    assert client.get("/api/admin/payments").json()["items"][0]["id"] == request_id
+    item = client.get("/api/admin/payments").json()["items"][0]
+    assert item["id"] == request_id
+    assert item["transferDate"] == "1405/08/05"
+    assert item["phone"] == ""
     assert client.get(f"/api/admin/payments/{request_id}/receipt").status_code == 200
     unauthenticated = TestClient(app)
     assert unauthenticated.post(f"/api/admin/payments/{request_id}/approve").status_code == 401
@@ -68,6 +71,15 @@ def test_manual_receipt_admin_approval_grants_credits_once(monkeypatch, tmp_path
     assert client.post(f"/api/payments/consume/{INSTALL}").json()["consumed"] == "free"
     assert client.post(f"/api/payments/consume/{INSTALL}").json()["consumed"] == "paid"
     assert client.get(f"/api/payments/requests/{request_id}?install_id={INSTALL}").json()["status"] == "approved"
+    declined_response = client.post(
+        "/api/payments/requests",
+        data={"install_id": INSTALL, "sku": "assessment_1", "transfer_date": "2026-10-27", "tracking_code": "TRX-REJECT"},
+        files={"receipt": ("receipt.png", b"fake-png", "image/png")},
+    )
+    declined_id = declined_response.json()["requestId"]
+    declined = client.post(f"/api/admin/payments/{declined_id}/reject", json={"reason": "رسید با مبلغ سفارش تطبیق ندارد"})
+    assert declined.json() == {"status": "rejected", "reason": "رسید با مبلغ سفارش تطبیق ندارد"}
+    assert client.get(f"/api/payments/requests/{declined_id}?install_id={INSTALL}").json()["rejectionReason"] == "رسید با مبلغ سفارش تطبیق ندارد"
     assert client.get("/admin/payments").status_code == 200
     assert "پنل مدیریت ویزایار" in client.get("/admin/payments").text
     assert client.post("/api/admin/auth/logout").status_code == 200

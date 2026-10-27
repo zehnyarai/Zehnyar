@@ -37,6 +37,7 @@ jest.mock('expo-haptics', () => ({
 }));
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
+jest.mock('react-native-share', () => ({ __esModule: true, default: { open: jest.fn() } }));
 
 const navigation = {
   navigate: jest.fn(),

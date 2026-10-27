@@ -45,6 +45,12 @@ class PaymentCardUpdate(BaseModel):
     number: str = Field(min_length=16, max_length=32)
     holder: str = Field(min_length=2, max_length=120)
     bank: str = Field(min_length=2, max_length=80)
+
+
+class PaymentReject(BaseModel):
+    reason: str = Field(min_length=3, max_length=500)
+
+
 PACKAGES = {
     "assessment_1": {"credits": 1, "priceToman": 600_000, "labelFa": "یک ارزیابی", "labelEn": "1 assessment", "discountPercent": 0},
     "assessment_3": {"credits": 3, "priceToman": 1_500_000, "labelFa": "سه ارزیابی", "labelEn": "3 assessments", "discountPercent": 17},
@@ -80,7 +86,9 @@ def _db() -> sqlite3.Connection:
             price_toman INTEGER NOT NULL,
             phone TEXT NOT NULL,
             tracking_code TEXT NOT NULL,
+            transfer_date TEXT NOT NULL DEFAULT '',
             receipt_filename TEXT NOT NULL,
+            rejection_reason TEXT NOT NULL DEFAULT '',
             status TEXT NOT NULL DEFAULT 'pending',
             created_at TEXT NOT NULL,
             reviewed_at TEXT,
@@ -100,6 +108,11 @@ def _db() -> sqlite3.Connection:
             updated_at TEXT NOT NULL
         );
     """)
+    columns = {row["name"] for row in db.execute("PRAGMA table_info(payment_requests)")}
+    if "transfer_date" not in columns:
+        db.execute("ALTER TABLE payment_requests ADD COLUMN transfer_date TEXT NOT NULL DEFAULT ''")
+    if "rejection_reason" not in columns:
+        db.execute("ALTER TABLE payment_requests ADD COLUMN rejection_reason TEXT NOT NULL DEFAULT ''")
     return db
 
 
@@ -396,6 +409,7 @@ def _request_dict(row: sqlite3.Row) -> dict:
         "id": row["id"], "installId": row["install_id"], "sku": row["sku"],
         "credits": row["credits"], "priceToman": row["price_toman"],
         "phone": row["phone"], "trackingCode": row["tracking_code"],
+        "transferDate": row["transfer_date"], "rejectionReason": row["rejection_reason"],
         "status": row["status"], "createdAt": row["created_at"],
         "reviewedAt": row["reviewed_at"],
     }
@@ -460,8 +474,9 @@ def consume_credit(install_id: str):
 async def submit_payment_request(
     install_id: str = Form(...),
     sku: str = Form(...),
-    phone: str = Form(...),
+    phone: str = Form(""),
     tracking_code: str = Form(...),
+    transfer_date: str = Form(""),
     receipt: UploadFile = File(...),
 ):
     config = payment_config()
@@ -473,8 +488,11 @@ async def submit_payment_request(
         raise HTTPException(422, "Unknown package")
     digit_translation = str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")
     clean_phone = re.sub(r"[\s()+-]", "", phone.translate(digit_translation))
-    if not re.fullmatch(r"\d{10,15}", clean_phone):
+    if clean_phone and not re.fullmatch(r"\d{10,15}", clean_phone):
         raise HTTPException(422, "Enter a valid mobile number")
+    clean_date = re.sub(r"\s+", "", transfer_date.translate(digit_translation))
+    if clean_date and not re.fullmatch(r"\d{4}[/-]\d{1,2}[/-]\d{1,2}", clean_date):
+        raise HTTPException(422, "Enter the transfer date")
     clean_tracking = re.sub(r"\s+", "", tracking_code)
     if not re.fullmatch(r"[\w\-]{4,80}", clean_tracking, flags=re.UNICODE):
         raise HTTPException(422, "Enter a valid bank transfer reference")
@@ -493,9 +511,9 @@ async def submit_payment_request(
     try:
         _ensure_customer(db, install_id)
         db.execute(
-            "INSERT INTO payment_requests(id,install_id,sku,credits,price_toman,phone,tracking_code,receipt_filename,status,created_at) VALUES(?,?,?,?,?,?,?,?,?,?)",
+            "INSERT INTO payment_requests(id,install_id,sku,credits,price_toman,phone,tracking_code,transfer_date,receipt_filename,status,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
             (request_id, install_id, sku, package["credits"], package["priceToman"], clean_phone,
-             clean_tracking, filename, "pending", _now()),
+             clean_tracking, clean_date, filename, "pending", _now()),
         )
         db.commit()
         return {"requestId": request_id, "status": "pending", "credits": package["credits"], "priceToman": package["priceToman"]}
@@ -572,14 +590,20 @@ def admin_approve(request_id: str, request: Request):
 
 
 @ADMIN.post("/{request_id}/reject")
-def admin_reject(request_id: str, request: Request):
+def admin_reject(request_id: str, payload: PaymentReject, request: Request):
     _admin_guard(request)
+    reason = payload.reason.strip()
+    if len(reason) < 3:
+        raise HTTPException(422, "Enter a reason for rejecting the receipt")
     db = _db()
     try:
-        cur = db.execute("UPDATE payment_requests SET status='rejected',reviewed_at=? WHERE id=? AND status='pending'", (_now(), request_id))
+        cur = db.execute(
+            "UPDATE payment_requests SET status='rejected',rejection_reason=?,reviewed_at=? WHERE id=? AND status='pending'",
+            (reason, _now(), request_id),
+        )
         if cur.rowcount == 0:
             raise HTTPException(404, "Pending payment request not found")
         db.commit()
-        return {"status": "rejected"}
+        return {"status": "rejected", "reason": reason}
     finally:
         db.close()
