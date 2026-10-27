@@ -182,6 +182,20 @@ def build():
         add_runs(p, " ".join(buf))
         i = j
 
+    # footer: centered page number
+    footer_p = sec.footer.paragraphs[0]
+    set_rtl(footer_p)
+    footer_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = footer_p.add_run()
+    style_run(run, size=9)
+    fld = OxmlElement("w:fldSimple")
+    fld.set(qn("w:instr"), "PAGE")
+    r = OxmlElement("w:r")
+    t = OxmlElement("w:t")
+    r.append(t)
+    fld.append(r)
+    footer_p._p.append(fld)
+
     doc.save(OUT)
     print("wrote", OUT)
 
