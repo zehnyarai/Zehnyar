@@ -11,6 +11,7 @@ import sys
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.table import WD_ALIGN_VERTICAL
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
@@ -19,6 +20,42 @@ OUT = sys.argv[2]
 FONT = "Vazirmatn"
 ACCENT = RGBColor(0x0B, 0x3D, 0x38)
 INLINE = re.compile(r"(\*\*.+?\*\*|(?<![\*\w])\*(?!\s).+?(?<!\s)\*(?![\*\w]))")
+
+
+TBLPR_ORDER = ("w:tblStyle", "w:tblpPr", "w:tblOverlap", "w:bidiVisual",
+               "w:tblStyleRowBandSize", "w:tblStyleColBandSize", "w:tblW", "w:jc",
+               "w:tblCellSpacing", "w:tblInd", "w:tblBorders", "w:shd",
+               "w:tblLayout", "w:tblCellMar", "w:tblLook")
+
+
+def _after(tag):
+    """Successor tags for schema-correct insertion into w:tblPr."""
+    return TBLPR_ORDER[TBLPR_ORDER.index(tag) + 1:]
+
+
+def rtl_table(table, widths_cm):
+    """Make a Word table flow right-to-left (first column at the right)."""
+    tblPr = table._tbl.tblPr
+    bidi = OxmlElement("w:bidiVisual")
+    tblPr.insert_element_before(bidi, *_after("w:bidiVisual"))
+    jc = OxmlElement("w:jc")
+    jc.set(qn("w:val"), "right")
+    tblPr.insert_element_before(jc, *_after("w:jc"))
+    layout = OxmlElement("w:tblLayout")
+    layout.set(qn("w:type"), "fixed")
+    tblPr.insert_element_before(layout, *_after("w:tblLayout"))
+    table.autofit = False
+    tblW = tblPr.find(qn("w:tblW"))
+    if tblW is None:
+        tblW = OxmlElement("w:tblW")
+        tblPr.insert_element_before(tblW, *_after("w:tblW"))
+    tblW.set(qn("w:type"), "dxa")
+    tblW.set(qn("w:w"), str(int(sum(widths_cm) * 567)))
+    for idx, w in enumerate(widths_cm):
+        table.columns[idx].width = Cm(w)
+    for row in table.rows:
+        for idx, w in enumerate(widths_cm):
+            row.cells[idx].width = Cm(w)
 
 
 def set_rtl(p):
@@ -115,6 +152,27 @@ def build():
                     p = cells[k].paragraphs[0]
                     set_rtl(p); p.alignment = WD_ALIGN_PARAGRAPH.RIGHT
                     add_runs(p, txt, size=9)
+            # column widths (usable width = 17.0 cm for A4 with 2.0 cm margins)
+            ncol = len(head)
+            if ncol == 4:
+                widths = [2.7, 4.7, 6.8, 2.8]
+            elif ncol == 3:
+                widths = [3.4, 5.8, 7.8]
+            else:
+                widths = [17.0 / ncol] * ncol
+            rtl_table(table, widths)
+            # vertical merge of blank leading cells (group labels such as «متنی»)
+            merged_prev = False
+            for ri in range(1, len(table.rows)):
+                first = table.cell(ri, 0).text.strip()
+                if not first and ri > 1:
+                    table.cell(ri - 1, 0).merge(table.cell(ri, 0))
+                    merged_prev = True
+                else:
+                    merged_prev = False
+            for row in table.rows:
+                for c in row.cells:
+                    c.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
             doc.add_paragraph()
             i = j
             continue

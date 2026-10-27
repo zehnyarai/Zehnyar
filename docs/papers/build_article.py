@@ -53,11 +53,29 @@ def convert(md):
             while j < len(lines) and lines[j].strip().startswith("|"):
                 rows.append([c.strip() for c in lines[j].strip().strip("|").split("|")])
                 j += 1
+            # merge blank leading cells so group labels span their rows
+            spans, skip, k = {}, set(), 0
+            while k < len(rows):
+                if rows[k] and rows[k][0]:
+                    n = 1
+                    while k + n < len(rows) and (not rows[k + n] or not rows[k + n][0]):
+                        n += 1
+                    spans[k] = n
+                    skip.update(range(k + 1, k + n))
+                    k += n
+                else:
+                    k += 1
             t = ["<table><thead><tr>"]
             t += ["<th>%s</th>" % inline(c) for c in head]
             t.append("</tr></thead><tbody>")
-            for r in rows:
-                t.append("<tr>" + "".join("<td>%s</td>" % inline(c) for c in r) + "</tr>")
+            for ri, r in enumerate(rows):
+                if ri in skip:
+                    r = r[1:]
+                cells = ["<td>%s</td>" % inline(c) for c in r]
+                if ri in spans and spans[ri] > 1:
+                    cells[0] = '<td rowspan="%d" class="grp">%s</td>' % (
+                        spans[ri], inline(r[0]))
+                t.append("<tr>" + "".join(cells) + "</tr>")
             t.append("</tbody></table>")
             out.append("".join(t))
             i = j
@@ -166,6 +184,7 @@ def main():
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
 <title>%s</title>
 %s
 </head>
@@ -183,6 +202,16 @@ def main():
 </html>
 """ % (re.sub("<[^>]+>", "", title), style_block, title, subtitle, KIND_LINE,
        "\n".join(toc_html), body)
+
+    # table overrides — must come after the inherited stylesheet
+    doc = doc.replace("</head>", """<style>
+/* tables: right-to-left grid, right-aligned cells */
+table{direction:rtl;table-layout:auto}
+th,td{text-align:right}
+th{text-align:right}
+td.grp{font-weight:600;background:#f6f9f8;vertical-align:middle;text-align:right}
+</style>
+</head>""", 1)
 
     # English abstract in LTR box
     idx = doc.find(">Abstract</h2>")
