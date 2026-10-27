@@ -99,9 +99,7 @@ jobs:
       - name: Prebuild Android project
         working-directory: mobile
         env:
-          VISAYAR_PAYMENT_CARD_NUMBER: ${{ secrets.VISAYAR_PAYMENT_CARD_NUMBER }}
-          VISAYAR_PAYMENT_CARD_HOLDER: ${{ secrets.VISAYAR_PAYMENT_CARD_HOLDER }}
-          VISAYAR_PAYMENT_BANK_NAME: ${{ secrets.VISAYAR_PAYMENT_BANK_NAME }}
+          VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
         run: npx expo prebuild -p android --clean --no-install
 
       - name: Configure release signing
@@ -140,13 +138,11 @@ jobs:
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-          VISAYAR_PAYMENT_CARD_NUMBER: ${{ secrets.VISAYAR_PAYMENT_CARD_NUMBER }}
-          VISAYAR_PAYMENT_CARD_HOLDER: ${{ secrets.VISAYAR_PAYMENT_CARD_HOLDER }}
-          VISAYAR_PAYMENT_BANK_NAME: ${{ secrets.VISAYAR_PAYMENT_BANK_NAME }}
+          VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
         run: |
           set -euo pipefail
-          if [ "${#VISAYAR_PAYMENT_CARD_NUMBER}" -ne 16 ] || [ -z "$VISAYAR_PAYMENT_CARD_HOLDER" ] || [ -z "$VISAYAR_PAYMENT_BANK_NAME" ]; then
-            echo "Public release skipped: add valid payment-card settings as repository actions secrets first."
+          if [[ ! "$VISAYAR_API_BASE_URL" =~ ^https://[^/]+([/].*)?$ ]]; then
+            echo "Public release skipped: set VISAYAR_API_BASE_URL to the deployed HTTPS backend first."
             exit 0
           fi
           TAG="v${RELEASE_VERSION}"

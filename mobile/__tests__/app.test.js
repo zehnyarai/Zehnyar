@@ -37,7 +37,6 @@ jest.mock('expo-haptics', () => ({
 }));
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
-jest.mock('react-native-share', () => ({ __esModule: true, default: { open: jest.fn() } }));
 
 const navigation = {
   navigate: jest.fn(),
@@ -117,7 +116,9 @@ describe('Visayar app', () => {
     expect(text).toContain('اعتبار ارزیابی');
     expect(text).toContain('۶۰۰٬۰۰۰ تومان');
     expect(text).toContain('دوازده ارزیابی');
-    expect(text).toContain('پرداخت هنوز در این نسخه فعال نیست');
+    expect(text).toContain('پرداخت آنلاین هنوز راه‌اندازی نشده است');
+    expect(text).not.toContain('کد فعال‌سازی');
+    expect(text).not.toContain('پیام‌رسان');
   });
 
   it('walks through all eight wizard steps', () => {

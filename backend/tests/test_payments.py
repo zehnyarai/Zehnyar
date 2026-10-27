@@ -53,6 +53,9 @@ def test_manual_receipt_admin_approval_grants_credits_once(monkeypatch, tmp_path
     assert response.status_code == 200, response.text
     request_id = response.json()["requestId"]
     assert response.json()["priceToman"] == 1_500_000
+    stored_receipts = list((tmp_path / "receipts").glob("*"))
+    assert len(stored_receipts) == 1
+    assert b"fake-png" not in stored_receipts[0].read_bytes()
     assert client.get("/api/admin/payments").status_code == 401
     login = client.post("/api/admin/auth/login", json={"username": "owner", "password": ADMIN_PASSWORD})
     assert login.status_code == 200
@@ -60,7 +63,9 @@ def test_manual_receipt_admin_approval_grants_credits_once(monkeypatch, tmp_path
     assert item["id"] == request_id
     assert item["transferDate"] == "1405/08/05"
     assert item["phone"] == ""
-    assert client.get(f"/api/admin/payments/{request_id}/receipt").status_code == 200
+    receipt_response = client.get(f"/api/admin/payments/{request_id}/receipt")
+    assert receipt_response.status_code == 200
+    assert receipt_response.content == b"fake-png"
     unauthenticated = TestClient(app)
     assert unauthenticated.post(f"/api/admin/payments/{request_id}/approve").status_code == 401
     approved = client.post(f"/api/admin/payments/{request_id}/approve")

@@ -5,6 +5,7 @@ credentials are provisioned via environment; managed secrets are encrypted at re
 """
 from __future__ import annotations
 
+import base64
 import hashlib
 import hmac
 import os
@@ -19,7 +20,6 @@ from typing import Optional
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, File, Form, HTTPException, Request, Response, UploadFile
-from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/api/payments", tags=["payments"])
@@ -158,10 +158,23 @@ def _verify_password(password: str, encoded: str) -> bool:
         return False
 
 
+def _admin_password_is_configured() -> bool:
+    encoded = os.getenv("VISAYAR_ADMIN_PASSWORD_HASH", "")
+    plain = os.getenv("VISAYAR_ADMIN_PASSWORD", "")
+    return _password_hash_is_valid(encoded) or len(plain) >= 14
+
+
+def _verify_admin_password(password: str) -> bool:
+    encoded = os.getenv("VISAYAR_ADMIN_PASSWORD_HASH", "")
+    if _password_hash_is_valid(encoded):
+        return _verify_password(password, encoded)
+    expected = os.getenv("VISAYAR_ADMIN_PASSWORD", "")
+    return len(expected) >= 14 and secrets.compare_digest(password, expected)
+
+
 def _admin_auth_configured() -> bool:
     username = os.getenv("VISAYAR_ADMIN_USERNAME", "").strip()
-    encoded = os.getenv("VISAYAR_ADMIN_PASSWORD_HASH", "")
-    return bool(username and _password_hash_is_valid(encoded))
+    return bool(username and _admin_password_is_configured())
 
 
 def _client_key(request: Request) -> str:
@@ -224,13 +237,19 @@ def _require_session(request: Request) -> str:
 
 
 def _fernet():
-    key = os.getenv("VISAYAR_ENCRYPTION_KEY", "").strip()
-    if not key:
+    secret = os.getenv("VISAYAR_ENCRYPTION_KEY", "").strip()
+    if not secret:
         return None
     try:
         from cryptography.fernet import Fernet
-        return Fernet(key.encode("ascii"))
-    except (ImportError, ValueError, UnicodeEncodeError):
+        try:
+            return Fernet(secret.encode("ascii"))
+        except (ValueError, UnicodeEncodeError):
+            if len(secret) < 32:
+                return None
+            derived = base64.urlsafe_b64encode(hashlib.sha256(secret.encode("utf-8")).digest())
+            return Fernet(derived)
+    except ImportError:
         return None
 
 
@@ -297,12 +316,11 @@ def _ensure_customer(db: sqlite3.Connection, install_id: str) -> None:
 def admin_login(payload: AdminLogin, request: Request, response: Response):
     _check_same_origin(request)
     username = os.getenv("VISAYAR_ADMIN_USERNAME", "").strip()
-    password_hash = os.getenv("VISAYAR_ADMIN_PASSWORD_HASH", "")
-    if not username or not _password_hash_is_valid(password_hash):
+    if not _admin_auth_configured():
         raise HTTPException(503, "Username/password admin login is not configured")
     if not _login_allowed(request):
         raise HTTPException(429, "Too many login attempts; try again later")
-    if not secrets.compare_digest(payload.username, username) or not _verify_password(payload.password, password_hash):
+    if not secrets.compare_digest(payload.username, username) or not _verify_admin_password(payload.password):
         _record_login_failure(request)
         raise HTTPException(401, "Invalid username or password")
 
@@ -422,7 +440,7 @@ def payment_config():
     card_number = re.sub(r"\D", "", raw_card.translate(digits))
     holder = _stored_or_environment("payment_card_holder", "PAYMENT_CARD_HOLDER")
     bank = _stored_or_environment("payment_bank_name", "PAYMENT_BANK_NAME")
-    enabled = len(card_number) == 16 and bool(holder) and bool(bank) and _admin_auth_configured()
+    enabled = len(card_number) == 16 and bool(holder) and bool(bank) and _admin_auth_configured() and _fernet() is not None
     return {
         "enabled": enabled,
         "freeAssessments": 2,
@@ -504,9 +522,12 @@ async def submit_payment_request(
         raise HTTPException(413, "Receipt image must be between 1 byte and 5 MB")
     request_id = str(uuid.uuid4())
     filename = f"{request_id}{ext}"
+    fernet = _fernet()
+    if fernet is None:
+        raise HTTPException(503, "Receipt encryption is not configured")
     receipt_dir = _root() / "receipts"
     receipt_dir.mkdir(parents=True, exist_ok=True)
-    (receipt_dir / filename).write_bytes(content)
+    (receipt_dir / filename).write_bytes(fernet.encrypt(content))
     db = _db()
     try:
         _ensure_customer(db, install_id)
@@ -562,7 +583,17 @@ def admin_receipt(request_id: str, request: Request):
         receipt_path = _root() / "receipts" / row["receipt_filename"]
         if not receipt_path.is_file():
             raise HTTPException(404, "Receipt file not found")
-        return FileResponse(receipt_path)
+        fernet = _fernet()
+        if fernet is None:
+            raise HTTPException(503, "Receipt encryption is not configured")
+        try:
+            content = fernet.decrypt(receipt_path.read_bytes())
+        except Exception:
+            raise HTTPException(500, "Receipt could not be decrypted")
+        media_type = ALLOWED_RECEIPT_TYPES.get("image/" + receipt_path.suffix.lstrip("."), "application/octet-stream")
+        if receipt_path.suffix.lower() == ".jpg":
+            media_type = "image/jpeg"
+        return Response(content, media_type=media_type, headers={"Cache-Control": "no-store"})
     finally:
         db.close()
 

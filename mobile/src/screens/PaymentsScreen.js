@@ -3,12 +3,11 @@ import { ActivityIndicator, Alert, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import Share from 'react-native-share';
 import { colors, fonts, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { Button, Card, Pill, PressableScale, ScrollScreen, SectionTitle, Text } from '../components/ui';
 import { groupThousands, toPersianDigits } from '../core/format';
-import { checkRequest, getApiBase, getInstallId, loadPaymentPanel, redeemOfflineVoucher, submitReceipt } from '../core/paymentApi';
+import { checkRequest, getApiBase, loadPaymentPanel, submitReceipt } from '../core/paymentApi';
 
 const PACKAGES = [
   { sku: 'assessment_1', credits: 1, priceToman: 600000, discountPercent: 0, label: 'single' },
@@ -42,7 +41,6 @@ export default function PaymentsScreen({ navigation }) {
   const [selected, setSelected] = useState(PACKAGES[0].sku);
   const [transferDate, setTransferDate] = useState('');
   const [trackingCode, setTrackingCode] = useState('');
-  const [voucherCode, setVoucherCode] = useState('');
   const [receipt, setReceipt] = useState(null);
   const [request, setRequest] = useState(null);
   const [balance, setBalance] = useState(null);
@@ -76,29 +74,6 @@ export default function PaymentsScreen({ navigation }) {
     if (!receipt) return Alert.alert(t('payments.noReceipt'));
     setSending(true);
     try {
-      if (!getApiBase()) {
-        const installId = await getInstallId();
-        const orderText = [
-          t('payments.manualOrderTitle'),
-          `${t('payments.installId')}: ${installId}`,
-          `${t('payments.selected')}: ${t(`payments.${activePackage.label}`)}`,
-          `${t('payments.amountLabel')}: ${amount(activePackage.priceToman, lang, t)}`,
-          `${t('payments.transferDate')}: ${transferDate.trim()}`,
-          `${t('payments.tracking')}: ${trackingCode.trim()}`,
-        ].join('\n');
-        const shared = await Share.open({
-          url: receipt.uri,
-          type: receipt.mimeType || 'image/jpeg',
-          filename: receipt.fileName || 'visayar-receipt.jpg',
-          title: t('payments.shareReceiptTitle'),
-          message: orderText,
-          failOnCancel: false,
-        });
-        if (shared?.dismissedAction) return;
-        setRequest({ id: `manual:${installId}`, status: 'pending', manual: true, credits: activePackage.credits });
-        Alert.alert(t('payments.manualSentTitle'), t('payments.manualSentBody'));
-        return;
-      }
       const result = await submitReceipt({ sku: selected, transferDate: transferDate.trim(), trackingCode: trackingCode.trim(), receipt });
       setRequest({ id: result.requestId, status: 'pending', credits: result.credits });
       Alert.alert(t('payments.requestSent'));
@@ -112,25 +87,7 @@ export default function PaymentsScreen({ navigation }) {
     }
   };
 
-  const activateVoucher = async () => {
-    if (!voucherCode.trim()) return Alert.alert(t('payments.enterVoucher'));
-    try {
-      const result = await redeemOfflineVoucher(voucherCode);
-      setVoucherCode('');
-      await refresh();
-      Alert.alert(t('payments.voucherSuccessTitle'), `${lang === 'fa' ? toPersianDigits(String(result.creditsAdded)) : result.creditsAdded} ${t('payments.voucherSuccessBody')}`);
-    } catch (error) {
-      const message = error.message === 'VOUCHER_FOR_ANOTHER_INSTALL'
-        ? t('payments.voucherWrongDevice')
-        : error.message === 'VOUCHER_ALREADY_USED'
-          ? t('payments.voucherUsed')
-          : t('payments.voucherInvalid');
-      Alert.alert(t('common.dismiss'), message);
-    }
-  };
-
   const poll = async () => {
-    if (request?.manual) return Alert.alert(t('payments.statusTitle'), t('payments.manualStatus'));
     if (!request?.id) return refresh();
     try {
       const result = await checkRequest(request.id);
@@ -143,6 +100,27 @@ export default function PaymentsScreen({ navigation }) {
   };
 
   const activePackage = PACKAGES.find((item) => item.sku === selected) || PACKAGES[0];
+  const onlineMode = !!getApiBase();
+
+  useEffect(() => {
+    if (!onlineMode || !request?.id || request.status !== 'pending') return undefined;
+    let active = true;
+    const refreshPending = async () => {
+      try {
+        const result = await checkRequest(request.id);
+        if (!active) return;
+        setRequest(result.request);
+        setBalance(result.balance);
+        if (result.request.status === 'approved') Alert.alert(t('payments.approved'));
+      } catch (error) {
+        // Keep the pending state; the next poll or manual refresh can retry.
+      }
+    };
+    const timer = setInterval(refreshPending, 8000);
+    refreshPending();
+    return () => { active = false; clearInterval(timer); };
+  }, [onlineMode, request?.id, request?.status, t]);
+
   const card = panel?.card;
   const canPay = !!panel?.enabled && !!card;
 
@@ -229,7 +207,7 @@ export default function PaymentsScreen({ navigation }) {
                 <TextInput value={transferDate} onChangeText={setTransferDate} placeholder={t('payments.transferDatePlaceholder')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text }]} />
                 <TextInput value={trackingCode} onChangeText={setTrackingCode} autoCapitalize="none" placeholder={t('payments.tracking')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text }]} />
                 <Button label={receipt ? t('payments.receipt') : t('payments.pickReceipt')} variant="outline" icon="image-outline" onPress={chooseReceipt} />
-                <Button label={t('payments.submit')} icon="share-outline" loading={sending} disabled={!canPay} onPress={send} />
+                <Button label={t('payments.submit')} icon="cloud-upload-outline" loading={sending} disabled={!canPay} onPress={send} />
               </View>
               <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('payments.secureNote')}</Text>
             </>
@@ -237,20 +215,6 @@ export default function PaymentsScreen({ navigation }) {
           <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('payments.privacy')}</Text>
         </Card>
 
-        <Card>
-          <SectionTitle title={t('payments.voucherTitle')} subtitle={t('payments.voucherHint')} />
-          <TextInput
-            value={voucherCode}
-            onChangeText={setVoucherCode}
-            autoCapitalize="none"
-            autoCorrect={false}
-            multiline
-            placeholder={t('payments.voucherPlaceholder')}
-            placeholderTextColor={colors.ink35}
-            style={[styles.input, styles.voucherInput, { textAlign: dir.text }]}
-          />
-          <Button label={t('payments.voucherActivate')} icon="key-outline" onPress={activateVoucher} disabled={!voucherCode.trim()} style={{ marginTop: spacing.sm }} />
-        </Card>
 
         {request ? (
           <Card>
@@ -259,6 +223,9 @@ export default function PaymentsScreen({ navigation }) {
               <Pill label={t(`payments.${request.status === 'approved' ? 'approved' : request.status === 'rejected' ? 'rejected' : 'pending'}`)} tone={request.status === 'approved' ? 'success' : request.status === 'rejected' ? 'danger' : 'warn'} />
               {lang === 'en' ? <Text variant="micro" color={colors.ink50} style={{ flex: 1, textAlign: dir.text }}>{request.id}</Text> : null}
             </View>
+            {request.status === 'rejected' && request.rejectionReason ? (
+              <Text variant="small" color={colors.ink70} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{request.rejectionReason}</Text>
+            ) : null}
             <Button label={t('payments.refresh')} variant="outline" size="sm" icon="refresh-outline" onPress={poll} style={{ marginTop: spacing.sm }} />
           </Card>
         ) : null}
@@ -283,6 +250,5 @@ const styles = {
   cardDetails: { backgroundColor: colors.canvas, borderRadius: radius.lg, padding: spacing.md, marginTop: spacing.md, borderWidth: 1, borderColor: colors.border },
   form: { marginTop: spacing.md, gap: spacing.sm },
   input: { minHeight: 48, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 12, color: colors.ink, backgroundColor: colors.surface, fontFamily: fonts.regular },
-  voucherInput: { minHeight: 92, paddingVertical: 12, textAlignVertical: 'top' },
   statusLine: { alignItems: 'center', gap: 8, marginTop: spacing.sm },
 };

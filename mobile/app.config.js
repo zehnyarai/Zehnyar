@@ -1,19 +1,10 @@
 const expo = require('./app.json').expo;
-
-const onlyAsciiDigits = (value) => String(value || '').replace(/[^0-9]/g, '');
-const rawCardNumber = onlyAsciiDigits(process.env.VISAYAR_PAYMENT_CARD_NUMBER);
-const paymentCard = rawCardNumber.length === 16
-  ? {
-      number: rawCardNumber,
-      holder: String(process.env.VISAYAR_PAYMENT_CARD_HOLDER || '').trim(),
-      bank: String(process.env.VISAYAR_PAYMENT_BANK_NAME || '').trim(),
-    }
-  : { number: '', holder: '', bank: '' };
+const apiBaseUrl = String(process.env.VISAYAR_API_BASE_URL || expo.extra.apiBaseUrl || '').trim().replace(/\/$/, '');
 
 module.exports = {
   ...expo,
   extra: {
     ...expo.extra,
-    paymentCard,
+    apiBaseUrl,
   },
 };

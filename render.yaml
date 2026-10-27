@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: visayar-api
+    runtime: python
+    plan: starter
+    region: frankfurt
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    disk:
+      name: visayar-payments
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.13
+      - key: PAYMENTS_DATA_DIR
+        value: /var/data
+      - key: VISAYAR_ADMIN_USERNAME
+        sync: false
+      - key: VISAYAR_ADMIN_PASSWORD
+        sync: false
+      - key: VISAYAR_ENCRYPTION_KEY
+        generateValue: true
