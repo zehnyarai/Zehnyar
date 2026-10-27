@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: zehnyar-research-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    autoDeploy: true
+    disk:
+      name: zehnyar-moderation-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: ZEHNYAR_DB_PATH
+        value: /var/data/verse-proposals.sqlite3
+      - key: ZEHNYAR_ADMIN_TOKEN
+        sync: false

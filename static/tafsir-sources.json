@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "notice": "متن‌های تفسیری بدون ویرایش در پروندهٔ آیه نمایش داده می‌شوند. هر نمایش باید همراه نام اثر، نسخه و پیوند منبع باشد.",
+  "sources": [
+    {
+      "id": "fa_qe_persian_mokhtasar",
+      "title": "ترجمهٔ فارسی المختصر فی تفسیر القرآن الکریم",
+      "author": "Persian Translation of Al-Mukhtasar in Interpreting the Noble Quran",
+      "language": "fa",
+      "file": "static/tafsir/persian-mokhtasar-quranenc-1.0.0.json",
+      "version": "1.0.0",
+      "source": "QuranEnc.com",
+      "sourceUrl": "https://quranenc.com/en/browse/persian_mokhtasar",
+      "permissionUrl": "https://github.com/IslamHouse-API/multilingual-quran-hadith-islamic-content-database-api-hub",
+      "upstreamCompressedSha256": "e352302c9008cf740251dabfe581e7003c27451a9ce82a15d7cf8388e8e803f7",
+      "upstreamPackage": "https://github.com/m-alhamry/Quran-text-assets/tree/main/data/persian_mokhtasar",
+      "attribution": "QuranEnc.com; https://quranenc.com/en/browse/persian_mokhtasar; version 1.0.0"
+    },
+    {
+      "id": "ar_qe_arabic_moyassar",
+      "title": "التفسير الميسر",
+      "author": "Arabic Language - At-Tafsir Al-Muyassar",
+      "language": "ar",
+      "file": "static/tafsir/arabic-moyassar-quranenc-1.0.0.json",
+      "version": "1.0.0",
+      "source": "QuranEnc.com",
+      "sourceUrl": "https://quranenc.com/en/browse/arabic_moyassar",
+      "permissionUrl": "https://github.com/IslamHouse-API/multilingual-quran-hadith-islamic-content-database-api-hub",
+      "upstreamCompressedSha256": "3d110990721d30c07276c0e89494dcaece7828a16ee7d27a12caa67eb5e2a4b4",
+      "upstreamPackage": "https://github.com/m-alhamry/Quran-text-assets/tree/main/data/arabic_moyassar",
+      "attribution": "QuranEnc.com; https://quranenc.com/en/browse/arabic_moyassar; version 1.0.0"
+    }
+  ]
+}

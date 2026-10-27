@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.Zehnyar" parent="android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#18AAA9</item>
+        <item name="android:statusBarColor">#075B7A</item>
+        <item name="android:navigationBarColor">#F4FBFF</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>
