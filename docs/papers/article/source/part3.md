@@ -36,7 +36,7 @@
 
 یک اصل مسلم در این راستا آن است که چنانچه روش پیشنهادی تنها به نقد دیگران بیاید و در برابر موضع خود ساکت بماند، خود مصداق گزینش است. از این‌رو شناخت موضع رقیب یک ضرورت دیگر است.
 
-اگر رقیب **نص‌گرا** باشد، وفاداری او به متن بیشتر است؛ مگر اینکه سیاق را جزء متن نشمرد و وساطت تفسیر را پنهان کند؛ و پنهان‌شدن وساطت بدترین حالت است، زیرا آن را از نقد بیرونی جدا می‌سازد. چنانچه رقیب **عقل‌گرا** باشد، گرایش او به استدلال و انسجام‌خواهی است؛ به همین سبب آیات ناسازگار با عقل را به متشابه یا تاریخ‌مند تأویل می‌برد. یک رقیب **قرآن‌بسنده** با آنکه تکیه و اعتماد به خود متن قرآن دارد و گزینش درون‌قرآنی را حذف نمی‌کند، اما ممکن است آن را جابه‌جا کند. رقیب با رویکرد **تاریخی ـ انتقادی** هم به بافت توجه دارد؛ با این حال ممکن است متن در تاریخ منحصر شود و گرایش به گزینش منبع هم داشته باشد. فرد با رویکرد **هرمنوتیکی** هم به دنبال پذیرش عمق معنا و نقش پیش‌فرض‌های مفسر است (Gadamer)؛ اما این آسیب را هم دارد که به ورطهٔ نسبی‌گرایی بیفتد، زیرا اگر هر خوانش معتبر باشد، نقد گزینش‌گری بی‌معنا می‌شود و در نبود معیار، آن‌که صدای بلندتری دارد تفسیر غالب را تعیین می‌کند. تفکیک هِرش (Hirsch) میان «معنا» و «دلالت» نشان می‌دهد می‌توان تکثر دلالت‌ها را پذیرفت بی‌آنکه معنای متن به‌کلی سیال شود.
+رقیب **نص‌گرا** به متن وفادار است، مگر آنکه سیاق را جزء متن نشمرد و وساطت تفسیر را پنهان کند؛ و پنهان‌شدن وساطت بدترین حالت است، زیرا آن را از نقد بیرونی جدا می‌سازد. رقیب **عقل‌گرا** انسجام‌خواه است و آیات ناسازگار با عقل را به متشابه یا تاریخ‌مند تأویل می‌برد. یک رقیب **قرآن‌بسنده** با آنکه تکیه و اعتماد به خود متن قرآن دارد و گزینش درون‌قرآنی را حذف نمی‌کند، اما ممکن است آن را جابه‌جا کند. رقیب با رویکرد **تاریخی ـ انتقادی** هم به بافت توجه دارد؛ با این حال ممکن است متن در تاریخ منحصر شود و گرایش به گزینش منبع هم داشته باشد. فرد با رویکرد **هرمنوتیکی** هم به دنبال پذیرش عمق معنا و نقش پیش‌فرض‌های مفسر است (Gadamer)؛ اما این آسیب را هم دارد که به ورطهٔ نسبی‌گرایی بیفتد، زیرا اگر هر خوانش معتبر باشد، نقد گزینش‌گری بی‌معنا می‌شود و در نبود معیار، آن‌که صدای بلندتری دارد تفسیر غالب را تعیین می‌کند. تفکیک هِرش (Hirsch) میان «معنا» و «دلالت» نشان می‌دهد می‌توان تکثر دلالت‌ها را پذیرفت بی‌آنکه معنای متن به‌کلی سیال شود.
 
 در نهایت هیچ‌یک از این رقبا به‌خودی خود از گزینش‌گری مصون نیستند؛ و نمی‌توان به صرف انتخاب مکتب درست از مسئله رَست؛ خبر خوب آنکه می‌توان بدون حل اختلافات کلامی، در سطح انضباط استناد به توافق رسید.
 
@@ -48,7 +48,7 @@
 
 **یک.** حجیت متن بر ظهور استوار است و ظهور، رابطه‌ای سه‌جزئی میان لفظ، قرینه و مخاطب آشنا به عرف است. تقطیع، جزء دوم را حذف می‌کند و آنچه باقی می‌ماند لفظ بی‌حجیت است. بنابراین استناد گزینشی، خطای تفسیری نیست؛ نقصان در شرایط صدق استناد است، و تفاوتش با تفسیر نادرست، تفاوت نوع است نه درجه.
 
-**دو.** مسئله، برخلاف تصور رایج، اختصاص به مذهب، جریان یا دورهٔ تاریخی ندارد و در هر دو سوی منازعات دینی به یک اندازه ممکن است؛ این نتیجه، بحث را از «نقد دیگری» به «انضباط روند و رویه» منتقل می‌کند و می‌تواند مبنای توافقی فراگیر باشد.
+**دو.** مسئله، برخلاف تصور رایج، اختصاص به مذهب، جریان یا دورهٔ تاریخی ندارد و در هر دو سوی منازعات دینی به یک اندازه ممکن است؛ این نتیجه، بحث را از «نقد دیگری» به «انضباط روند و رویه» منتقل می‌کند و می‌تواند مبنای توافقی فراگیر باشد. شاهدِ تجربیِ این دعوی، تاریخ کلام اسلامی است: اشعری آیاتِ اختیار و مسئولیت را نمی‌بیند و معتزلی آیاتِ حاکمیت مطلق خداوند را (رحیم‌پور ازغدی، ۱۳۹۲).
 
 **سه.** از مبنای نظری بحث، قاعدهٔ وابستگی دلالت به‌عنوان قاعده‌ای صوری، درجه‌بندی‌پذیر و بی‌نتیجه‌شدنی با آوردن قرینه استخراج شد. همین سه ویژگی، آن قاعده را از توصیهٔ اخلاقی و معیار ایدئولوژیک متمایز می‌کند.
 
@@ -71,6 +71,8 @@
 *ج) هیچ شمارهٔ صفحه، جلد یا سالی حدس زده نشده است؛ هرجا این اطلاعات با نسخهٔ در دسترس راستی‌آزمایی نشده، به همان «موضع» بسنده شده تا ارجاعِ نادرست جانشینِ ارجاعِ دقیق نشود.*
 
 *د) کتاب‌های لاتین (گادامر، هرش، کانمن) با سالِ نخستین انتشار و بی‌شمارهٔ صفحه ارجاع داده شده‌اند؛ ادعای متن در سطحِ دعوای کانونیِ همان کتاب است و برای پرهیز از تحمیلِ شمارهٔ صفحهٔ چاپِ نامعیّن، صفحه ذکر نشده است.*
+
+*هـ) برای **گزارش‌های خبری و سخنرانی‌ها** (مانند رحیم‌پور ازغدی، ۱۳۹۲) که صفحه‌بندی چاپی ندارند، «موضع» همان کد خبر و تاریخ انتشار در پایگاه است و در فهرست منابع کامل آمده است.*
 
 **الف) متن اصلی و مجموعه‌های حدیثی**
 
@@ -130,20 +132,21 @@
 ۴۲. مطهری، مرتضی، *سیری در نهج‌البلاغه*، تهران: صدرا.
 ۴۳. مجتهد شبستری، محمد، *هرمنوتیک، کتاب و سنت*، تهران: طرح نو.
 ۴۴. ابوزید، نصر حامد، *مفهوم النص: دراسة فی علوم القرآن*، بیروت: المرکز الثقافی العربی.
+۴۵. رحیم‌پور ازغدی، حسن (۱۳۹۲). «نگاه سکولاریستی و گزینشی به آیات؛ دو رویکرد ابزاری در رجوع به قرآن»، گزارش سخنرانی در همایش «جامعه قرآنی، بصیرت؛ رسالت‌ها و آسیب‌ها» (به همت خبرگزاری ایکنا، ۲۲ اردیبهشت ۱۳۹۲)، همشهری آنلاین، کد خبر ۲۱۴۳۰۵، ۲۵ اردیبهشت ۱۳۹۲. نشانی: https://www.hamshahrionline.ir/news/214305
 
 **و) منابع لاتین**
 
-۴۵. Gadamer, Hans-Georg (1960), *Truth and Method*, trans. J. Weinsheimer & D. Marshall, London: Continuum.
-۴۶. Goldziher, Ignaz (1967–1971), *Muslim Studies*, trans. C. R. Barber & S. M. Stern, London: Allen & Unwin.
-۴۷. Hart, William, Albarracín, Dolores, Eagly, Alice H., Brechan, Inge, Lindberg, Matthew J., & Merrill, Lisa (2009). "Feeling Validated Versus Being Correct: A Meta-Analysis of Selective Exposure to Information", *Psychological Bulletin*, 135(4), 555–588. DOI: 10.1037/a0015701
-۴۸. Hirsch, E. D. (1967), *Validity in Interpretation*, New Haven: Yale University Press.
-۴۹. Kahneman, Daniel (2011), *Thinking, Fast and Slow*, New York: Farrar, Straus and Giroux.
-۵۰. Kunda, Ziva (1990). "The Case for Motivated Reasoning", *Psychological Bulletin*, 108(3), 480–498. DOI: 10.1037/0033-2909.108.3.480
-۵۱. Mercier, Hugo, & Sperber, Dan (2011). "Why Do Humans Reason? Arguments for an Argumentative Theory", *Behavioral and Brain Sciences*, 34(2), 57–74. DOI: 10.1017/S0140525X10000968
-۵۲. Motzki, Harald (1991). "The Muṣannaf of ʿAbd al-Razzāq al-Sanʿānī as a Source of Authentic Aḥādīth of the First Century A.H.", *Journal of Near Eastern Studies*, 50(1), 1–21.
-۵۳. Nickerson, Raymond S. (1998). "Confirmation Bias: A Ubiquitous Phenomenon in Many Guises", *Review of General Psychology*, 2(2), 175–220.
-۵۴. Nöldeke, Theodor & Schwally, Friedrich (1860–1938), *Geschichte des Qorāns*, Leipzig: Dieterich'sche Verlagsbuchhandlung.
-۵۵. Wason, Peter C. (1960). "On the Failure to Eliminate Hypotheses in a Conceptual Task", *Quarterly Journal of Experimental Psychology*, 12(3), 129–140.
+۴۶. Gadamer, Hans-Georg (1960), *Truth and Method*, trans. J. Weinsheimer & D. Marshall, London: Continuum.
+۴۷. Goldziher, Ignaz (1967–1971), *Muslim Studies*, trans. C. R. Barber & S. M. Stern, London: Allen & Unwin.
+۴۸. Hart, William, Albarracín, Dolores, Eagly, Alice H., Brechan, Inge, Lindberg, Matthew J., & Merrill, Lisa (2009). "Feeling Validated Versus Being Correct: A Meta-Analysis of Selective Exposure to Information", *Psychological Bulletin*, 135(4), 555–588. DOI: 10.1037/a0015701
+۴۹. Hirsch, E. D. (1967), *Validity in Interpretation*, New Haven: Yale University Press.
+۵۰. Kahneman, Daniel (2011), *Thinking, Fast and Slow*, New York: Farrar, Straus and Giroux.
+۵۱. Kunda, Ziva (1990). "The Case for Motivated Reasoning", *Psychological Bulletin*, 108(3), 480–498. DOI: 10.1037/0033-2909.108.3.480
+۵۲. Mercier, Hugo, & Sperber, Dan (2011). "Why Do Humans Reason? Arguments for an Argumentative Theory", *Behavioral and Brain Sciences*, 34(2), 57–74. DOI: 10.1017/S0140525X10000968
+۵۳. Motzki, Harald (1991). "The Muṣannaf of ʿAbd al-Razzāq al-Sanʿānī as a Source of Authentic Aḥādīth of the First Century A.H.", *Journal of Near Eastern Studies*, 50(1), 1–21.
+۵۴. Nickerson, Raymond S. (1998). "Confirmation Bias: A Ubiquitous Phenomenon in Many Guises", *Review of General Psychology*, 2(2), 175–220.
+۵۵. Nöldeke, Theodor & Schwally, Friedrich (1860–1938), *Geschichte des Qorāns*, Leipzig: Dieterich'sche Verlagsbuchhandlung.
+۵۶. Wason, Peter C. (1960). "On the Failure to Eliminate Hypotheses in a Conceptual Task", *Quarterly Journal of Experimental Psychology*, 12(3), 129–140.
 
 ---
 
