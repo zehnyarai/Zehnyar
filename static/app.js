@@ -624,11 +624,13 @@ function validateVerseProposal(verse, claim, witness) {
 }
 
 function proposalForm(verse, kind) {
-  const labels = { notes: "نکته", messages: "پیام", principles: "اصل زندگی" };
+  const labels = { notes: "نکته", messages: "پیام", principles: "اصل زندگی", research: "موضوع پژوهشی" };
   const label = labels[kind];
   const accepted = state.verseProposals.filter((item) => item.verseId === verse.id && item.kind === kind);
   const saved = accepted.map((item, index) => `<article><b>${label} پیشنهادیِ کاربر ${faNumber(index + 1)}</b><p>${escapeHTML(item.claim)}</p><small>شاهد: «${escapeHTML(item.witness)}» · ${item.storage === "server" ? "تأیید و منتشرشده" : "ذخیرۀ محلیِ این مرورگر"}</small>${item.storage === "local" ? `<button type="button" data-delete-proposal="${escapeHTML(item.id)}">حذفِ محلی</button>` : ""}</article>`).join("");
-  return `<section class="proposal-workspace"><h4>پیشنهادِ پژوهشگر: ${label}</h4><p>پیشنهاد پس از بررسیِ شاهد ثبت و تا تأییدِ مدیر منتشر نمی‌شود؛ پیش‌فیلتر، تأییدِ علمی را تضمین نمی‌کند.</p>${saved ? `<div class="user-proposal-list">${saved}</div>` : ""}<form data-proposal-form data-proposal-kind="${kind}" data-proposal-verse-id="${escapeHTML(verse.id)}"><label>صورت‌بندی<textarea name="claim" maxlength="1600" required></textarea></label><label>شاهدِ دقیق از همین آیه<input name="witness" maxlength="600" required></label><button type="submit">ارسال برای بازبینی</button><output class="proposal-status" aria-live="polite"></output></form></section>`;
+  const claimLabel = kind === "research" ? "موضوع یا پرسش پژوهشی" : "صورت‌بندی";
+  const witnessLabel = kind === "research" ? "واژه یا عبارت دقیق از متن/ترجمهٔ همین آیه" : "شاهدِ دقیق از همین آیه";
+  return `<section class="proposal-workspace"><h4>پیشنهادِ پژوهشگر: ${label}</h4><p>پیشنهاد پس از بررسیِ شاهد ثبت و تا تأییدِ مدیر منتشر نمی‌شود؛ پیش‌فیلتر، تأییدِ علمی را تضمین نمی‌کند.</p>${saved ? `<div class="user-proposal-list">${saved}</div>` : ""}<form data-proposal-form data-proposal-kind="${kind}" data-proposal-verse-id="${escapeHTML(verse.id)}"><label>${claimLabel}<textarea name="claim" maxlength="1600" required></textarea></label><label>${witnessLabel}<input name="witness" maxlength="600" required></label><button type="submit">ارسال برای بازبینی</button><output class="proposal-status" aria-live="polite"></output></form></section>`;
 }
 
 async function submitVerseProposal(form) {
@@ -648,7 +650,13 @@ async function submitVerseProposal(form) {
     status.dataset.status = "accepted";
     form.reset();
   } catch (error) {
-    status.textContent = error.message || "سرور در دسترس نیست؛ پیشنهاد ثبت نشد.";
+    if (error instanceof TypeError) {
+      state.verseProposals.unshift({ id: `local-${globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`}`, verseId: verse.id, kind: form.dataset.proposalKind, claim: claim.trim(), witness: witness.trim(), storage: "local" });
+      persistVerseProposals();
+      renderDetailPanel();
+      return;
+    }
+    status.textContent = error.message || "ثبتِ پیشنهاد ناموفق بود.";
     status.dataset.status = "rejected";
   }
 }
@@ -662,7 +670,7 @@ function deleteVerseProposal(id) {
 function renderAdminProposals(items) {
   const host = $("#admin-proposals");
   if (!items.length) { host.innerHTML = '<p class="empty-state">پیشنهادی برای بازبینی نیست.</p>'; return; }
-  const labels = { notes: "نکته", messages: "پیام", principles: "اصل زندگی" };
+  const labels = { notes: "نکته", messages: "پیام", principles: "اصل زندگی", research: "موضوع پژوهشی" };
   host.innerHTML = items.map((item) => `<article class="admin-proposal" data-admin-proposal-id="${escapeHTML(item.id)}"><header><b>${escapeHTML(item.verse_id)} · ${labels[item.kind] || escapeHTML(item.kind)}</b><small>${escapeHTML(item.status)} · ${escapeHTML(item.submitted_at || "")}</small></header><label>متن<textarea name="claim" maxlength="1600">${escapeHTML(item.claim)}</textarea></label><label>شاهد از همان آیه<input name="witness" maxlength="600" value="${escapeHTML(item.witness)}" /></label><label>وضعیت<select name="status"><option value="pending" ${item.status === "pending" ? "selected" : ""}>در انتظار</option><option value="approved" ${item.status === "approved" ? "selected" : ""}>تأیید و انتشار</option><option value="rejected" ${item.status === "rejected" ? "selected" : ""}>رد</option></select></label><div class="admin-actions"><button type="button" data-admin-save>ذخیرهٔ اصلاح</button><button type="button" class="danger-button" data-admin-delete>حذف</button></div></article>`).join("");
 }
 
@@ -881,6 +889,34 @@ function tafsirCatalogCards() {
   return `<section class="tafsir-catalog"><p class="eyebrow">فهرستِ مقایسه‌ایِ درخواستی</p><h3>${escapeHTML(requested.title)}</h3><p class="reading-notice">فهرست، وضعیت واقعی هر متن را نشان می‌دهد؛ متنِ بدون انتساب یا نسخه به آیه نسبت داده نمی‌شود.</p><div class="tafsir-catalog-grid">${requested.items.map((item) => `<article class="tafsir-catalog-card"><h4>${escapeHTML(item.title)}</h4><p>${escapeHTML(item.author)}</p><small>${escapeHTML(item.language)} · ${escapeHTML(item.era || "")}</small><b>${item.status === "available" ? "متن در برنامه موجود است" : item.status === "needs-permission" ? "نیازمند اجازهٔ بازنشر" : "نیازمند نسخهٔ محقق و بازبینی‌شده"}</b><span>${item.status === "available" ? "متن آیه‌به‌آیه در پروندهٔ تفاسیر همین آیه قابل مشاهده است." : "متن این اثر هنوز در برنامه وارد نشده است."}</span><em>${escapeHTML(item.basis)}</em></article>`).join("")}</div></section>`;
 }
 
+const MODERN_RESEARCH_LENSES = [
+  { terms: ["عدل", "قسط", "ميزان", "حكم", "حق"], title: "عدالت، حقوق و داوری", question: "مفهومِ شاهد را با معیارهای معاصرِ انصاف و رویهٔ عادلانه مقایسه کنید؛ مرز میان معنای تاریخیِ آیه و چارچوب حقوقی امروز را صریح نگه دارید." },
+  { terms: ["مال", "ربو", "انفق", "تجر", "كيل", "وزن"], title: "اقتصاد و توزیع منابع", question: "زبانِ مال، مبادله یا بخشش در این آیه چه مسئله‌ای را طرح می‌کند و با کدام داده‌های اقتصادیِ امروز می‌توان آن را فقط به‌عنوان پرسش مقایسه‌ای سنجید؟" },
+  { terms: ["ارض", "ماء", "مطر", "نبت", "بحر", "سماء", "زرع"], title: "محیط زیست و منابع طبیعی", question: "عنصر طبیعیِ یادشده در بافت آیه چه نقشی دارد؟ آن را با یک مسئلهٔ محیط‌زیستی امروز مقایسه کنید، بی‌آنکه از آیه ادعای علمیِ پیش‌بینی‌گر بسازید." },
+  { terms: ["علم", "عقل", "نظر", "بصر", "سمع", "نبأ", "خبر"], title: "دانش، شواهد و سواد اطلاعاتی", question: "آیه چه نسبتی میان دانستن، مشاهده یا دریافت خبر برقرار می‌کند؟ این پرسش را با معیارهای امروزِ ارزیابی شاهد و اطلاعات مقایسه کنید." },
+  { terms: ["قول", "شهد", "كتب", "نبأ", "خبر"], title: "گفتار عمومی و مسئولیت رسانه‌ای", question: "صورتِ گفتار، گواهی یا خبر در آیه چه پیامدی دارد؟ آن را با اخلاق ارتباطات امروز بسنجید، اما حکمی دربارهٔ رسانهٔ جدید را بی‌واسطه به آیه نسبت ندهید." },
+  { terms: ["نفس", "قلب", "خوف", "حزن", "امن", "طمأن"], title: "تجربهٔ انسانی و سلامت روان", question: "واژگانِ تجربهٔ درونی در آیه چه چیزی را واقعاً توصیف می‌کنند؟ آن‌ها را با مطالعات روان‌شناختیِ امروز در سطح پرسش مقایسه کنید، نه به‌عنوان تشخیص یا درمان." },
+  { terms: ["ناس", "قوم", "أهل", "والد", "زوج", "يتيم", "ضعف"], title: "جامعه، خانواده و گروه‌های آسیب‌پذیر", question: "چه گروه‌ها یا رابطه‌هایی در آیه نام برده می‌شوند و نقش آن‌ها در استدلال چیست؟ با پژوهش اجتماعی امروز مقایسه کنید، بدون تعمیمِ بی‌سیاق." },
+];
+
+function detailPanelResearch(verse) {
+  const annotation = reviewedStudyFor(verse) || {};
+  const tokens = [...new Set(verseTokens(verse).filter((token) => token.key.length >= 3).map((token) => JSON.stringify(token)))].map((item) => JSON.parse(item)).slice(0, 4);
+  const lexical = tokens.map((token) => {
+    const matches = state.corpus.filter((record) => record.arabicNormalized.split(" ").includes(token.key));
+    const refs = matches.slice(0, 5).map((record) => record.reference).join("، ");
+    return `<li><b>پرسش پیکره‌ای دربارهٔ «${escapeHTML(token.raw)}»</b><p>صورتِ دقیقِ این واژه در پیکره در ${faNumber(matches.length)} آیه دیده می‌شود. آیا با مقایسهٔ سیاقِ مواضع ${escapeHTML(refs || verse.reference)} می‌توان کارکردهای متفاوتش را از هم تفکیک کرد؟ شمارش، ریشه‌یابی صرفی نیست.</p><small>شاهد: متن عربی ${escapeHTML(verse.reference)}؛ جست‌وجوی صورت دقیق در پیکرهٔ محلی.</small></li>`;
+  }).join("");
+  const thematicItems = (annotation.thematic || []).slice(0, 3).map((item) => `<li><b>مقایسهٔ موضوعی با ${escapeHTML(item.reference || "موضع مرتبط")}</b><p>${escapeHTML(item.relation || "پیوند پیشنهادی در پروندهٔ تحریری")}</p><small>پرسش پژوهشی: این پیوند بر اشتراک واژه، سیاق یا تفسیر استوار است؟ دو موضع را جداگانه بخوانید و نوع شاهد را مشخص کنید.</small></li>`).join("");
+  const contextItems = (annotation.context || []).slice(0, 2).map((item) => `<li><b>خوانش سیاقی با ${escapeHTML(item.reference || "آیات پیرامون")}</b><p>${escapeHTML(item.relation || "پیوند سیاقیِ ثبت‌شده")}</p><small>پرسش پژوهشی: تغییر مخاطب، موضوع یا ساختار گفتار در این بازه چه اثری بر خوانش آیه می‌گذارد؟</small></li>`).join("");
+  const sources = tafsirEntries(verse);
+  const sourceQuestion = sources.length >= 2 ? `<li><b>پژوهش تطبیقی در خوانش مفسران</b><p>${sources.map((entry) => escapeHTML(entry.source.title)).join(" و ")} را در شرح همین آیه کنار هم بگذارید. کدام واژه یا گزاره را برجسته می‌کنند و کجا اختلاف روش دارند؟</p><small>${sources.map((entry) => `${escapeHTML(entry.source.title)}، نسخه ${escapeHTML(entry.source.version)}`).join("؛ ")}</small></li>` : "";
+  const keys = new Set(tokens.map((token) => token.key));
+  const modern = MODERN_RESEARCH_LENSES.filter((lens) => lens.terms.some((term) => [...keys].some((key) => key.includes(term)))).slice(0, 2).map((lens) => `<li><b>زاویهٔ معاصر: ${escapeHTML(lens.title)}</b><p>${escapeHTML(lens.question)}</p><small>پیوند پیشنهادی فقط از واژهٔ «${escapeHTML(tokens.find((token) => lens.terms.some((term) => token.key.includes(term)))?.raw || "متن آیه")}» آغاز می‌شود؛ این مقایسه ادعای کاربرد قطعی یا پیش‌بینی علمی نیست.</small></li>`).join("");
+  const items = [lexical, thematicItems, contextItems, sourceQuestion, modern].filter(Boolean).join("");
+  return `<section class="detail-panel research-panel"><p class="eyebrow">کارگاه پرسش‌سازی</p><h3>پژوهش در آیهٔ ${escapeHTML(verse.reference)}</h3><p class="reading-notice">این‌ها سرنخ و طرحِ اولیهٔ پژوهش بر اساس واژهٔ آیه، سیاقِ ثبت‌شده و متن‌های منبع‌دارند؛ پاسخ یا نتیجهٔ قطعی نیستند. برای زاویهٔ معاصر، ابتدا معنای آیه در بافت خودش و سپس حدود قیاس امروز را روشن کنید.</p><ol class="research-question-list">${items || `<li><b>پرسش متن‌محور</b><p>واژه‌های محوریِ همین آیه را در متن عربی، ترجمه، آیات مجاور و شرح‌های منبع‌دار ردیابی کنید؛ هر نتیجه را به شاهد مشخص پیوند دهید.</p></li>`}</ol></section>`;
+}
+
 function detailPanelTafsir(verse) {
   const entries = tafsirEntries(verse);
   const catalogue = tafsirCatalogCards();
@@ -1011,7 +1047,7 @@ function detailPanelNotebook(verse) {
 }
 
 function fieldNotePanel(verse, field) {
-  const labels = { notes: "نکات مهم آیه", foundations: "اصول زندگی و مبانی", framework: "چارچوب معنایی", messages: "پیام‌های آیه", context: "سیاق آیات", thematic: "تفسیر موضوعی", network: "نظم شبکه‌ای", quran: "نسبت با قرآن", tafsir: "تفاسیر منبع‌دار" };
+  const labels = { notes: "نکات مهم آیه", foundations: "اصول زندگی و مبانی", framework: "چارچوب معنایی", messages: "پیام‌های آیه", context: "سیاق آیات", thematic: "تفسیر موضوعی", network: "نظم شبکه‌ای", quran: "نسبت با قرآن", tafsir: "تفاسیر منبع‌دار", research: "پژوهش در آیه" };
   const key = `${verse.id}:${field}`;
   const inputId = `field-note-${field}`;
   return `<section class="field-note-panel"><label for="${inputId}"><b>یادداشت من</b><span>یادداشت شخصی برای بخش «${escapeHTML(labels[field] || field)}»</span></label><textarea id="${inputId}" class="note-area" data-field-note="${escapeHTML(field)}" data-verse-id="${escapeHTML(verse.id)}" maxlength="3000" placeholder="پرسش، برداشت شخصی یا ارجاعی که می‌خواهید برای این بخش نگه دارید…">${escapeHTML(state.fieldNotes[key] || "")}</textarea><small class="field-note-status" aria-live="polite">ذخیرهٔ خودکار فقط در همین دستگاه</small></section>`;
@@ -1030,9 +1066,11 @@ function renderDetailPanel() {
     network: detailPanelNetwork,
     quran: detailPanelQuran,
     tafsir: detailPanelTafsir,
+    research: detailPanelResearch,
   };
   const panel = (panels[state.detailTab] || detailPanelNotes)(verse);
-  $("#detail-panels").innerHTML = `${panel}${fieldNotePanel(verse, state.detailTab)}`;
+  const researchSubmission = state.detailTab === "research" ? `<section class="detail-panel research-submission"><h3>برداشت یا پیشنهاد پژوهش من</h3><p>موضوع را همراه شاهدی از همین آیه بفرستید؛ پیشنهاد تا بازبینی مدیر منتشر نمی‌شود.</p>${proposalForm(verse, "research")}</section>` : "";
+  $("#detail-panels").innerHTML = `${panel}${fieldNotePanel(verse, state.detailTab)}${researchSubmission}`;
 }
 
 function saveNote() {

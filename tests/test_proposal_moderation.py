@@ -1,4 +1,5 @@
 import os
+import sqlite3
 import tempfile
 import unittest
 from pathlib import Path
@@ -64,6 +65,34 @@ class ProposalModerationTests(unittest.TestCase):
         with self.assertRaises(HTTPException) as unavailable:
             main.admin_verse_proposals(authorization=None)
         self.assertEqual(unavailable.exception.status_code, 503)
+
+    def test_research_proposals_are_supported_and_existing_database_is_migrated(self):
+        with sqlite3.connect(self.db_path) as connection:
+            connection.execute("""CREATE TABLE verse_proposals (
+                id TEXT PRIMARY KEY, verse_id TEXT NOT NULL,
+                kind TEXT NOT NULL CHECK(kind IN ('notes','messages','principles')),
+                claim TEXT NOT NULL, witness TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','approved','rejected')),
+                submitted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )""")
+            connection.execute(
+                "INSERT INTO verse_proposals (id, verse_id, kind, claim, witness) VALUES (?, ?, ?, ?, ?)",
+                ("legacy-1", "1:1", "notes", "یادداشت قدیمی", "الله"),
+            )
+        with main.proposal_connection():
+            pass
+        created = main.submit_verse_proposal(main.VerseProposalCreate(
+            verse_id="1:1", kind="research",
+            claim="پژوهش واژه الرحمن در این آیه و نسبت آن با رحمت",
+            witness="الرَّحْمَٰنِ",
+        ))
+        self.assertEqual(created["status"], "pending")
+        with main.proposal_connection() as connection:
+            schema = connection.execute("SELECT sql FROM sqlite_master WHERE name='verse_proposals'").fetchone()["sql"]
+            rows = connection.execute("SELECT id, kind FROM verse_proposals ORDER BY id").fetchall()
+        self.assertIn("research", schema)
+        self.assertCountEqual([(row["id"], row["kind"]) for row in rows], [("legacy-1", "notes"), (created["id"], "research")])
 
     def test_proposals_need_an_exact_verse_witness_and_relevant_word_overlap(self):
         with self.assertRaises(HTTPException) as invalid:

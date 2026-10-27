@@ -111,6 +111,9 @@ class CuratedAnnotationTests(unittest.TestCase):
         self.assertIn("FIELD_NOTES_KEY", app)
         self.assertIn("loadDeferredTafsir", app)
         self.assertIn("data-load-tafsir", app)
+        self.assertIn('data-detail-tab="research"', html)
+        self.assertIn('proposalForm(verse, "research")', app)
+        self.assertIn("MODERN_RESEARCH_LENSES", app)
         for host in ("quran.inoor.ir", "noorlib.ir", "noormags.ir", "ensani.ir"):
             self.assertIn(host, html)
 

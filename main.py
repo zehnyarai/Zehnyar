@@ -457,7 +457,7 @@ class AnalyzeRequest(BaseModel):
 
 class VerseProposalCreate(BaseModel):
     verse_id: str = Field(..., pattern=r"^\d{1,3}:\d{1,3}$")
-    kind: Literal["notes", "messages", "principles"]
+    kind: Literal["notes", "messages", "principles", "research"]
     claim: str = Field(..., min_length=18, max_length=1600)
     witness: str = Field(..., min_length=1, max_length=600)
 
@@ -1170,18 +1170,26 @@ def proposal_connection():
     connection = sqlite3.connect(db_path, timeout=10)
     connection.row_factory = sqlite3.Row
     try:
-        connection.execute(
-            """CREATE TABLE IF NOT EXISTS verse_proposals (
-                id TEXT PRIMARY KEY,
-                verse_id TEXT NOT NULL,
-                kind TEXT NOT NULL CHECK(kind IN ('notes','messages','principles')),
-                claim TEXT NOT NULL,
-                witness TEXT NOT NULL,
-                status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','approved','rejected')),
-                submitted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-            )"""
-        )
+        create_sql = """CREATE TABLE IF NOT EXISTS verse_proposals (
+            id TEXT PRIMARY KEY,
+            verse_id TEXT NOT NULL,
+            kind TEXT NOT NULL CHECK(kind IN ('notes','messages','principles','research')),
+            claim TEXT NOT NULL,
+            witness TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','approved','rejected')),
+            submitted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )"""
+        connection.execute(create_sql)
+        schema = connection.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='verse_proposals'").fetchone()
+        if schema and "'research'" not in schema["sql"]:
+            connection.execute("ALTER TABLE verse_proposals RENAME TO verse_proposals_legacy")
+            connection.execute(create_sql)
+            connection.execute(
+                "INSERT INTO verse_proposals (id, verse_id, kind, claim, witness, status, submitted_at, updated_at) "
+                "SELECT id, verse_id, kind, claim, witness, status, submitted_at, updated_at FROM verse_proposals_legacy"
+            )
+            connection.execute("DROP TABLE verse_proposals_legacy")
         yield connection
         connection.commit()
     except Exception:
