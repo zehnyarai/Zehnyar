@@ -30,7 +30,7 @@ function offlinePaymentConfig() {
   const number = String(source.number || '').replace(/\D/g, '');
   const holder = String(source.holder || '').trim();
   const bank = String(source.bank || '').trim();
-  const enabled = number.length === 16 && !!holder && !!bank;
+  const enabled = number.length === 16 && !!bank;
   return { enabled, offlineMode: true, freeAssessments: 2, card: enabled ? { number, holder, bank } : null };
 }
 

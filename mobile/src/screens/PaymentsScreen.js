@@ -29,6 +29,7 @@ function discountLabel(value, lang, t) {
 }
 
 function visibleBankLabel(value, lang) {
+  if (value.trim() === 'سامان' && lang === 'en') return 'Saman Bank';
   return lang === 'fa' && /[A-Za-z]/.test(value) ? '—' : value;
 }
 
@@ -122,7 +123,9 @@ export default function PaymentsScreen({ navigation }) {
   }, [onlineMode, request?.id, request?.status, t]);
 
   const card = panel?.card;
-  const canPay = !!panel?.enabled && !!card;
+  const canShowCard = !!panel?.enabled && !!card;
+  const onlinePaymentAvailable = onlineMode && !panel?.offlineMode && canShowCard;
+  const staticCardAvailable = !!panel?.offlineMode && canShowCard;
 
   return (
     <ScrollScreen contentStyle={{ paddingBottom: 36 }}>
@@ -177,8 +180,8 @@ export default function PaymentsScreen({ navigation }) {
         </Card>
 
         <Card>
-          <SectionTitle title={t('payments.transferTitle')} subtitle={t('payments.transferHint')} />
-          {!canPay ? (
+          <SectionTitle title={t('payments.transferTitle')} subtitle={t(onlinePaymentAvailable ? 'payments.transferHint' : 'payments.staticTransferHint')} />
+          {!canShowCard ? (
             <View style={styles.notice}>
               <Ionicons name="information-circle-outline" size={22} color={colors.warn} />
               <Text variant="small" color={colors.ink70} style={{ flex: 1, textAlign: dir.text }}>{t('payments.cardMissing')}</Text>
@@ -190,10 +193,12 @@ export default function PaymentsScreen({ navigation }) {
                   <Text variant="micro" color={colors.ink50}>{t('payments.bank')}</Text>
                   <Text variant="small" color={colors.ink}>{visibleBankLabel(card.bank, lang)}</Text>
                 </View>
-                <View style={{ flexDirection: dir.row, justifyContent: 'space-between', marginTop: 8 }}>
-                  <Text variant="micro" color={colors.ink50}>{t('payments.cardHolder')}</Text>
-                  <Text variant="small" color={colors.ink}>{visibleBankLabel(card.holder, lang)}</Text>
-                </View>
+                {card.holder ? (
+                  <View style={{ flexDirection: dir.row, justifyContent: 'space-between', marginTop: 8 }}>
+                    <Text variant="micro" color={colors.ink50}>{t('payments.cardHolder')}</Text>
+                    <Text variant="small" color={colors.ink}>{visibleBankLabel(card.holder, lang)}</Text>
+                  </View>
+                ) : null}
                 <View style={{ marginTop: 8 }}>
                   <Text variant="micro" color={colors.ink50} style={{ textAlign: dir.text }}>{t('payments.cardNumber')}</Text>
                   <Text selectable variant="h3" style={{ textAlign: 'center', color: colors.teal800, letterSpacing: 1.5, marginTop: 4 }}>
@@ -201,18 +206,29 @@ export default function PaymentsScreen({ navigation }) {
                   </Text>
                 </View>
               </View>
-              <View style={styles.form}>
-                <Text variant="small" color={colors.ink70}>{t('payments.selected')}: {t(`payments.${activePackage.label}`)}</Text>
-                <Text variant="small" color={colors.ink70}>{t('payments.amountLabel')}: {amount(activePackage.priceToman, lang, t)}</Text>
-                <TextInput value={transferDate} onChangeText={setTransferDate} placeholder={t('payments.transferDatePlaceholder')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text }]} />
-                <TextInput value={trackingCode} onChangeText={setTrackingCode} autoCapitalize="none" placeholder={t('payments.tracking')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text }]} />
-                <Button label={receipt ? t('payments.receipt') : t('payments.pickReceipt')} variant="outline" icon="image-outline" onPress={chooseReceipt} />
-                <Button label={t('payments.submit')} icon="cloud-upload-outline" loading={sending} disabled={!canPay} onPress={send} />
-              </View>
-              <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('payments.secureNote')}</Text>
+              {onlinePaymentAvailable ? (
+                <>
+                  <View style={styles.form}>
+                    <Text variant="small" color={colors.ink70}>{t('payments.selected')}: {t(`payments.${activePackage.label}`)}</Text>
+                    <Text variant="small" color={colors.ink70}>{t('payments.amountLabel')}: {amount(activePackage.priceToman, lang, t)}</Text>
+                    <TextInput value={transferDate} onChangeText={setTransferDate} placeholder={t('payments.transferDatePlaceholder')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text }]} />
+                    <TextInput value={trackingCode} onChangeText={setTrackingCode} autoCapitalize="none" placeholder={t('payments.tracking')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text }]} />
+                    <Button label={receipt ? t('payments.receipt') : t('payments.pickReceipt')} variant="outline" icon="image-outline" onPress={chooseReceipt} />
+                    <Button label={t('payments.submit')} icon="cloud-upload-outline" loading={sending} disabled={!onlinePaymentAvailable} onPress={send} />
+                  </View>
+                  <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('payments.secureNote')}</Text>
+                </>
+              ) : (
+                <View style={[styles.notice, { marginTop: spacing.sm }]}>
+                  <Ionicons name="information-circle-outline" size={22} color={colors.warn} />
+                  <Text variant="small" color={colors.ink70} style={{ flex: 1, textAlign: dir.text }}>{t(staticCardAvailable ? 'payments.staticCardNote' : 'payments.cardMissing')}</Text>
+                </View>
+              )}
             </>
           )}
-          <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('payments.privacy')}</Text>
+          {canShowCard ? (
+            <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t(onlinePaymentAvailable ? 'payments.privacy' : 'payments.staticCardPrivacy')}</Text>
+          ) : null}
         </Card>
 
 

@@ -100,6 +100,9 @@ jobs:
         working-directory: mobile
         env:
           VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
+          VISAYAR_PAYMENT_CARD_NUMBER: ${{ secrets.VISAYAR_PAYMENT_CARD_NUMBER }}
+          VISAYAR_PAYMENT_CARD_HOLDER: ${{ secrets.VISAYAR_PAYMENT_CARD_HOLDER }}
+          VISAYAR_PAYMENT_BANK_NAME: ${{ secrets.VISAYAR_PAYMENT_BANK_NAME }}
         run: npx expo prebuild -p android --clean --no-install
 
       - name: Configure release signing
