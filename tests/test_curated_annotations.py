@@ -90,6 +90,14 @@ class CuratedAnnotationTests(unittest.TestCase):
             for n in range(1, count + 1):
                 self.assertEqual(data["verses"][f"{surah}:{n}"]["status"], "پیش‌نویس تحریری؛ نیازمند بازبینی تخصصی")
 
+    def test_fatiha_editorial_batch_has_four_cited_items_in_each_requested_field(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(1, 8):
+            entry = data[f"1:{ayah}"]
+            for field in ("notes", "principles", "messages"):
+                self.assertGreaterEqual(len(entry[field]), 4, f"1:{ayah} needs four {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+
     def test_user_suggestions_remain_under_verse_notes_messages_and_principles(self):
         app = (ROOT / "static/app.js").read_text(encoding="utf-8")
         for kind in ("notes", "messages", "principles"):

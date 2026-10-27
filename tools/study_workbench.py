@@ -20,6 +20,9 @@ SECTIONS = ("notes", "messages", "principles", "framework", "thematic", "context
 SOURCE_FILES = {
     "fa_qe_persian_mokhtasar": STATIC / "tafsir/persian-mokhtasar-quranenc-1.0.0.json",
     "ar_qe_arabic_moyassar": STATIC / "tafsir/arabic-moyassar-quranenc-1.0.0.json",
+    "ar_tabari_qurancom": STATIC / "tafsir/arabic-tabari-quran-com-api-1.1.json",
+    "ar_qurtubi_qurancom": STATIC / "tafsir/arabic-qurtubi-quran-com-api-1.1.json",
+    "fa_mizan_furqan": STATIC / "tafsir/persian-mizan-furqan-2026.json",
 }
 
 
@@ -53,6 +56,9 @@ def prepare(start: str, count: int) -> dict:
         source_texts = {}
         for source_id, payload in tafsirs.items():
             record = payload.get("verses", {}).get(str(surah), {}).get(str(ayah))
+            if record is None and payload.get("ayahMapping"):
+                content_id = payload["ayahMapping"].get(str(surah), {}).get(str(ayah))
+                record = payload.get("contents", {}).get(str(content_id))
             if record:
                 source_texts[source_id] = record.get("text", "")
         annotation = {
@@ -91,8 +97,23 @@ def validate_batch(batch: dict) -> list[str]:
         seen.add(key)
         a = item.get("annotation", {})
         for section in SECTIONS:
-            if not a.get(section):
+            values = a.get(section)
+            if not values:
                 errors.append(f"{key}: {section} is empty")
+                continue
+            if section in ("notes", "principles", "messages"):
+                if not isinstance(values, list) or len(values) < 4:
+                    errors.append(f"{key}: {section} needs at least four distinct, evidence-backed items")
+                    continue
+                seen_text = set()
+                for index, value in enumerate(values, 1):
+                    if not isinstance(value, dict) or not str(value.get("text", "")).strip() or not str(value.get("evidence", "")).strip():
+                        errors.append(f"{key}: {section}[{index}] needs text and an explicit evidence citation")
+                        continue
+                    normalized_text = " ".join(str(value["text"]).split()).casefold()
+                    if normalized_text in seen_text:
+                        errors.append(f"{key}: {section}[{index}] duplicates an earlier item")
+                    seen_text.add(normalized_text)
         framework = a.get("framework", {})
         for model in MODELS:
             for field in ("input", "operation", "meaning", "limit"):
