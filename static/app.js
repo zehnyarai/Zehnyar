@@ -883,6 +883,22 @@ function sourceEvidenceNotice(verse) {
   return entries.length ? `<p class="source-availability">برای این آیه ${faNumber(entries.length)} متن تفسیریِ منبع‌دار موجود است؛ هنگام نتیجه‌گیری، آن‌ها را در تب «تفاسیر منبع‌دار» با انتساب کامل مقایسه کنید.</p>` : "";
 }
 
+function tenMajorTafsirLinks(verse) {
+  const collection = state.tafsirCatalog.find((item) => item.id === "ten-major-tafsirs");
+  if (!collection?.items?.length) return "";
+  const groups = [
+    { title: "پنج تفسیر شیعهٔ امامیه", items: collection.items.filter((item) => item.tradition === "شیعهٔ امامیه") },
+    { title: "پنج تفسیر اهل‌سنت", items: collection.items.filter((item) => item.tradition === "اهل‌سنت") },
+  ];
+  return `<section class="tafsir-catalog"><p class="eyebrow">متون کامل در منبع اصلی</p><h3>ده تفسیر جامع منتخب؛ پیوندِ مطالعه برای آیهٔ ${faNumber(verse.surah)}:${faNumber(verse.ayah)}</h3><p class="reading-notice">این پیوندها متنِ میزبانی‌شده را در کتابخانه باز می‌کنند و متن را در قرآن‌پژوهه بازنشر نمی‌کنند. لینک‌های آیه‌محور فقط برای آثاری است که مقصدِ آن آیه بررسی شده؛ در سایر موارد، صفحهٔ آغاز کتاب باز می‌شود و باید از فهرست یا جست‌وجوی کتابخانه استفاده کرد. پیوند به‌تنهایی مجوزِ بازنشر یا استفادهٔ تجاری نیست.</p>${groups.map((group) => `<div class="tafsir-catalog-collection"><h4>${escapeHTML(group.title)}</h4><div class="tafsir-catalog-grid">${group.items.map((item) => {
+    const template = String(item.verseUrlTemplate || "");
+    const verseUrl = template.replaceAll("{surah}", encodeURIComponent(String(verse.surah))).replaceAll("{ayah}", encodeURIComponent(String(verse.ayah)));
+    const safeVerseUrl = /^https?:\/\//i.test(verseUrl) ? verseUrl : "";
+    const libraryUrl = /^https?:\/\//i.test(String(item.libraryUrl || "")) ? item.libraryUrl : "";
+    return `<article class="tafsir-catalog-card"><h4>${escapeHTML(item.title)}</h4><p>${escapeHTML(item.author)}</p><small>${escapeHTML(item.tradition)} · ${escapeHTML(item.language)} · ${escapeHTML(item.era || "")}</small><span class="catalog-method">${escapeHTML(item.method || "")}</span><b>پیوند بیرونی؛ متن داخل اپ نیست</b>${safeVerseUrl ? `<a class="catalog-source-link" href="${escapeHTML(safeVerseUrl)}" target="_blank" rel="noopener noreferrer">مطالعهٔ آیهٔ ${faNumber(verse.surah)}:${faNumber(verse.ayah)} ↗</a>` : ""}${libraryUrl ? `<a class="catalog-source-link" href="${escapeHTML(libraryUrl)}" target="_blank" rel="noopener noreferrer">مطالعهٔ متن در کتابخانهٔ مدرسهٔ فقاهت ↗</a>` : ""}</article>`;
+  }).join("")}</div></div>`).join("")}</section>`;
+}
+
 function tafsirCatalogCards() {
   const requested = state.tafsirCatalog.find((collection) => collection.id === "requested-comparative");
   if (!requested?.items?.length) return "";
@@ -921,6 +937,7 @@ function detailPanelResearch(verse) {
 function detailPanelTafsir(verse) {
   const entries = tafsirEntries(verse);
   const catalogue = tafsirCatalogCards();
+  const major = tenMajorTafsirLinks(verse);
   const extended = state.tafsirRegistry.filter((source) => source.preload === false).map((source) => {
     const loaded = state.tafsirSources.some((item) => item.id === source.id);
     const loading = state.tafsirLoading === source.id;
@@ -929,7 +946,7 @@ function detailPanelTafsir(verse) {
   const loadingNotice = state.tafsirLoading ? `<p class="source-availability" role="status">در حال دریافت و آماده‌سازی متن انتخاب‌شده؛ به‌دلیل حجم منابع، هر بار یک تفسیر تکمیلی بارگیری می‌شود.</p>` : "";
   const errorNotice = state.tafsirLoadFailed ? `<p class="study-unavailable">بارگیری کامل نشد؛ اتصال را بررسی و دوباره روی «نمایش متن کامل» بزنید.</p>` : "";
   const body = entries.map(({ source, text, footnotes }) => `<article class="source-card" lang="${escapeHTML(source.language)}" dir="rtl"><div class="source-card-head"><div><h4>${escapeHTML(source.title)}</h4><p>${escapeHTML(source.author)}</p></div><a href="${escapeHTML(source.sourceUrl)}" target="_blank" rel="noreferrer">نسخه و منبع ↗</a></div><p class="source-citation">${escapeHTML(tafsirCitation(source))}${source.license ? ` · ${escapeHTML(source.license)}` : ""}</p><div class="source-text">${escapeHTML(text)}</div>${footnotes ? `<div class="source-footnotes"><b>پانویسِ منبع</b>${escapeHTML(footnotes)}</div>` : ""}</article>`).join("");
-  return `<section class="detail-panel tafsir-panel"><p class="eyebrow">تفاسیرِ منبع‌دارِ آیه</p><h3>متنِ کامل، انتساب، نسخه و پیوندِ دقیق</h3><p class="reading-notice">متن‌ها بدون خلاصه‌سازی یا بازنویسی نمایش داده می‌شوند. منابع عربی و فارسی دیدگاه‌های متفاوت دارند؛ نقلِ یک مفسر را با نظر دیگران یکی نگیرید. برای حفظ سرعت و حافظهٔ گوشی، متن‌های تکمیلی جداگانه و به‌درخواست شما بارگیری می‌شوند.</p>${loadingNotice}${errorNotice}<div class="tafsir-choices"><h4>تفاسیر تکمیلی: طبری، قرطبی و المیزان</h4>${extended}</div>${body || `<p class="study-unavailable">برای این آیه متن تفسیری از منابع بارگیری‌شده در دسترس نیست.</p>`}${catalogue}</section>`;
+  return `<section class="detail-panel tafsir-panel"><p class="eyebrow">تفاسیرِ منبع‌دارِ آیه</p><h3>متنِ کامل، انتساب، نسخه و پیوندِ دقیق</h3><p class="reading-notice">متن‌ها بدون خلاصه‌سازی یا بازنویسی نمایش داده می‌شوند. منابع عربی و فارسی دیدگاه‌های متفاوت دارند؛ نقلِ یک مفسر را با نظر دیگران یکی نگیرید. برای حفظ سرعت و حافظهٔ گوشی، متن‌های تکمیلی جداگانه و به‌درخواست شما بارگیری می‌شوند.</p>${loadingNotice}${errorNotice}<div class="tafsir-choices"><h4>تفاسیر تکمیلی: طبری، قرطبی و المیزان</h4>${extended}</div>${body || `<p class="study-unavailable">برای این آیه متن تفسیری از منابع بارگیری‌شده در دسترس نیست.</p>`}${major}${catalogue}</section>`;
 }
 
 function detailPanelNotes(verse) {
