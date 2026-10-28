@@ -15,7 +15,6 @@ on:
       - 'v*'
 
 permissions:
-  actions: read
   contents: write
 
 concurrency:
@@ -79,29 +78,18 @@ jobs:
         working-directory: mobile
         run: npm ci --no-audit --no-fund
 
-      - name: Restore prior release signing key
-        uses: actions/download-artifact@v4
-        with:
-          name: zehnyar-release-keystore
-          path: previous-keystore
-          run-id: 40639940668
-          github-token: ${{ github.token }}
-        continue-on-error: true
-
       - name: Configure stable release keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          if [ -s previous-keystore/zehnyar-release.keystore ]; then
-            cp previous-keystore/zehnyar-release.keystore "$ANDROID_KEYSTORE_PATH"
-            echo "Restored the signing key used by the previously installed release."
-          elif [ -n "$KEYSTORE_BASE64" ]; then
-            printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$ANDROID_KEYSTORE_PATH"
-            echo "Using the signing key stored in repository secrets."
-          else
-            echo "No stable Android signing key is available; refusing to create a new key." >&2
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "ANDROID_KEYSTORE_BASE64 is required; refusing to create a new signing key." >&2
             exit 1
           fi
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$ANDROID_KEYSTORE_PATH"
+          keytool -list -storetype PKCS12 -keystore "$ANDROID_KEYSTORE_PATH" \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
+          echo "Stable release signing key validated; key data hidden."
 
       - name: Validate payment configuration without exposing card data
         working-directory: mobile
