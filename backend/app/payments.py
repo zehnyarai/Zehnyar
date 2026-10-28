@@ -202,6 +202,10 @@ def _check_same_origin(request: Request) -> None:
 def _session_user(request: Request) -> Optional[str]:
     token = request.cookies.get(ADMIN_COOKIE)
     if not token:
+        authorization = request.headers.get("authorization", "")
+        if authorization.lower().startswith("bearer "):
+            token = authorization[7:].strip()
+    if not token:
         return None
     digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
     db = _db()
@@ -345,6 +349,34 @@ def admin_login(payload: AdminLogin, request: Request, response: Response):
     return {"authenticated": True, "username": username}
 
 
+@AUTH.post("/mobile-login")
+def admin_mobile_login(payload: AdminLogin, request: Request):
+    """Issue a short-lived bearer session for the native admin app."""
+    _check_same_origin(request)
+    username = os.getenv("VISAYAR_ADMIN_USERNAME", "").strip()
+    if not _admin_auth_configured():
+        raise HTTPException(503, "Username/password admin login is not configured")
+    if not _login_allowed(request):
+        raise HTTPException(429, "Too many login attempts; try again later")
+    if not secrets.compare_digest(payload.username, username) or not _verify_admin_password(payload.password):
+        _record_login_failure(request)
+        raise HTTPException(401, "Invalid username or password")
+
+    token = secrets.token_urlsafe(48)
+    expires_at = int(time.time()) + SESSION_TTL_SECONDS
+    db = _db()
+    try:
+        db.execute("DELETE FROM admin_sessions WHERE expires_at<=?", (int(time.time()),))
+        db.execute(
+            "INSERT INTO admin_sessions(token_hash,username,expires_at,created_at) VALUES(?,?,?,?)",
+            (hashlib.sha256(token.encode("utf-8")).hexdigest(), username, expires_at, _now()),
+        )
+        db.commit()
+    finally:
+        db.close()
+    return {"authenticated": True, "username": username, "accessToken": token, "expiresAt": expires_at}
+
+
 @AUTH.get("/me")
 def admin_me(request: Request):
     username = _session_user(request)
@@ -357,6 +389,10 @@ def admin_me(request: Request):
 def admin_logout(request: Request, response: Response):
     _check_same_origin(request)
     token = request.cookies.get(ADMIN_COOKIE)
+    if not token:
+        authorization = request.headers.get("authorization", "")
+        if authorization.lower().startswith("bearer "):
+            token = authorization[7:].strip()
     if token:
         db = _db()
         try:
@@ -464,9 +500,18 @@ def credits(install_id: str):
 
 
 @router.post("/consume/{install_id}")
-def consume_credit(install_id: str):
-    """Consume a free assessment first, then an approved paid credit."""
+def consume_credit(install_id: str, request: Request):
+    """Consume a free or paid credit; authenticated admins are exempt."""
     install_id = _install_id(install_id)
+    if _session_user(request):
+        db = _db()
+        try:
+            _ensure_customer(db, install_id)
+            db.commit()
+            row = db.execute("SELECT free_used,credits FROM customers WHERE install_id=?", (install_id,)).fetchone()
+            return {"consumed": "admin", "freeRemaining": max(0, 2-row["free_used"]), "paidCredits": row["credits"]}
+        finally:
+            db.close()
     db = _db()
     try:
         db.execute("BEGIN IMMEDIATE")
@@ -497,9 +542,10 @@ async def submit_payment_request(
     transfer_date: str = Form(""),
     receipt: UploadFile = File(...),
 ):
-    config = payment_config()
-    if not config["enabled"]:
-        raise HTTPException(503, "Manual payment is not configured")
+    if not _admin_auth_configured():
+        raise HTTPException(503, "Manual payment review is not configured")
+    if _fernet() is None:
+        raise HTTPException(503, "Receipt encryption is not configured")
     install_id = _install_id(install_id)
     package = PACKAGES.get(sku)
     if not package:

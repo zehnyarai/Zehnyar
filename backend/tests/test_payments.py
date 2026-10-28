@@ -90,6 +90,49 @@ def test_manual_receipt_admin_approval_grants_credits_once(monkeypatch, tmp_path
     assert client.post("/api/admin/auth/logout").status_code == 200
 
 
+def test_mobile_admin_session_bypasses_assessment_quotas_without_spending_credits(monkeypatch, tmp_path):
+    configure(monkeypatch, tmp_path)
+    mobile = TestClient(app)
+    login = mobile.post("/api/admin/auth/mobile-login", json={"username": "owner", "password": ADMIN_PASSWORD})
+    assert login.status_code == 200
+    body = login.json()
+    assert body["authenticated"] is True
+    assert body["username"] == "owner"
+    assert body["expiresAt"] > 0
+    token = body["accessToken"]
+    assert not mobile.cookies
+    auth = {"Authorization": f"Bearer {token}"}
+    assert mobile.get("/api/admin/auth/me", headers=auth).json() == {"authenticated": True, "username": "owner"}
+    assert mobile.get("/api/admin/payments", headers=auth).status_code == 200
+    for _ in range(5):
+        result = mobile.post(f"/api/payments/consume/{INSTALL}", headers=auth)
+        assert result.status_code == 200
+        assert result.json()["consumed"] == "admin"
+    assert mobile.get(f"/api/payments/credits/{INSTALL}").json() == {"freeRemaining": 2, "paidCredits": 0}
+    regular = TestClient(app)
+    assert regular.post(f"/api/payments/consume/{INSTALL}").json()["consumed"] == "free"
+    assert regular.post(f"/api/payments/consume/{INSTALL}").json()["consumed"] == "free"
+    assert regular.post(f"/api/payments/consume/{INSTALL}").status_code == 402
+    assert mobile.post("/api/admin/auth/logout", headers=auth).status_code == 200
+    assert mobile.get("/api/admin/auth/me", headers=auth).status_code == 401
+
+
+def test_receipt_submission_needs_review_security_but_not_server_card_configuration(monkeypatch, tmp_path):
+    configure(monkeypatch, tmp_path)
+    monkeypatch.delenv("PAYMENT_CARD_NUMBER", raising=False)
+    monkeypatch.delenv("PAYMENT_CARD_HOLDER", raising=False)
+    monkeypatch.delenv("PAYMENT_BANK_NAME", raising=False)
+    assert client.get("/api/payments/config").json()["enabled"] is False
+    response = client.post(
+        "/api/payments/requests",
+        data={"install_id": INSTALL, "sku": "assessment_1", "transfer_date": "1405/08/05", "tracking_code": "TRX-CARDLESS"},
+        files={"receipt": ("receipt.png", b"fake-png", "image/png")},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["status"] == "pending"
+    assert client.get(f"/api/payments/credits/{INSTALL}").json()["paidCredits"] == 0
+
+
 def test_payment_is_disabled_without_owner_configuration(monkeypatch):
     for key in ("PAYMENT_CARD_NUMBER", "PAYMENT_CARD_HOLDER", "PAYMENT_BANK_NAME", "VISAYAR_ADMIN_USERNAME", "VISAYAR_ADMIN_PASSWORD_HASH"):
         monkeypatch.delenv(key, raising=False)

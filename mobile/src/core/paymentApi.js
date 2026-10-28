@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import * as Crypto from 'expo-crypto';
+import * as SecureStore from 'expo-secure-store';
 import paymentCardFallback from './paymentCard.generated';
 import { verifyOfflineVoucher } from './offlineVouchers';
 
@@ -9,6 +10,7 @@ const LOCAL_FREE_KEY = 'visayar.free.assessments.used.v1';
 const SERVER_FREE_SYNCED_KEY = 'visayar.free.assessments.server-synced.v1';
 const LAST_REQUEST_KEY = 'visayar.payment.request.v1';
 const OFFLINE_PAID_STATE_KEY = 'visayar.offline-paid-state.v1';
+const ADMIN_TOKEN_KEY = 'visayar.admin.session.v1';
 
 export async function getInstallId() {
   let id = await AsyncStorage.getItem(INSTALL_KEY);
@@ -75,35 +77,106 @@ async function api(path, options = {}) {
   return data;
 }
 
+async function readAdminToken() {
+  try { return await SecureStore.getItemAsync(ADMIN_TOKEN_KEY); } catch (error) { return null; }
+}
+
+async function clearAdminToken() {
+  try { await SecureStore.deleteItemAsync(ADMIN_TOKEN_KEY); } catch (error) { /* unsupported platforms have no secure storage */ }
+}
+
+async function adminApi(path, options = {}) {
+  const token = await readAdminToken();
+  if (!token) {
+    const error = new Error('ADMIN_LOGIN_REQUIRED');
+    error.status = 401;
+    throw error;
+  }
+  const headers = { ...(options.headers || {}), Authorization: `Bearer ${token}` };
+  return api(path, { ...options, headers });
+}
+
+export async function getAdminSession() {
+  try {
+    const result = await adminApi('/api/admin/auth/me');
+    return { authenticated: true, username: result.username };
+  } catch (error) {
+    if (error.status === 401) await clearAdminToken();
+    return { authenticated: false };
+  }
+}
+
+export async function adminLogin(username, password) {
+  const result = await api('/api/admin/auth/mobile-login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password }),
+  });
+  await SecureStore.setItemAsync(ADMIN_TOKEN_KEY, result.accessToken);
+  return { authenticated: true, username: result.username };
+}
+
+export async function adminLogout() {
+  try {
+    await adminApi('/api/admin/auth/logout', { method: 'POST' });
+  } finally {
+    await clearAdminToken();
+  }
+}
+
+export async function adminListPayments(status = 'pending') {
+  return adminApi(`/api/admin/payments?status=${encodeURIComponent(status)}`);
+}
+
+export async function adminReviewPayment(requestId, decision, reason = '') {
+  const path = `/api/admin/payments/${encodeURIComponent(requestId)}/${decision}`;
+  const options = decision === 'reject'
+    ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason }) }
+    : { method: 'POST' };
+  return adminApi(path, options);
+}
+
+export async function getAdminToken() {
+  return readAdminToken();
+}
+
 export async function loadPaymentPanel() {
   const [installId, requestId, local] = await Promise.all([
     getInstallId(),
     AsyncStorage.getItem(LAST_REQUEST_KEY),
     localBalance(),
   ]);
-  const config = getOfflinePaymentConfig();
-  // The requested product mode is static card display. Use the embedded card
-  // immediately, regardless of an unrelated or unavailable API configuration.
-  if (config.enabled || !getApiBase()) {
-    return { installId, requestId: null, config, balance: local, request: null };
+  const offlineConfig = getOfflinePaymentConfig();
+  if (!getApiBase()) {
+    return { installId, requestId: null, config: { ...offlineConfig, canSubmitReceipt: false }, balance: local, request: null };
   }
   try {
-    const serverConfig = await api('/api/payments/config');
-    const serverBalance = await api(`/api/payments/credits/${installId}`);
-    const request = requestId && !requestId.startsWith('manual:')
-      ? await api(`/api/payments/requests/${requestId}?install_id=${installId}`)
+    const [serverConfig, serverBalance] = await Promise.all([
+      api('/api/payments/config'),
+      api(`/api/payments/credits/${installId}`),
+    ]);
+    const request = requestId
+      ? await api(`/api/payments/requests/${requestId}?install_id=${installId}`).catch(() => null)
       : null;
     const serverCardNumber = String(serverConfig.card?.number || '').replace(/\D/g, '');
     const hasUsableServerCard = serverConfig.enabled && serverCardNumber.length === 16 && !!String(serverConfig.card?.bank || '').trim();
     return {
       installId,
       requestId,
-      config: hasUsableServerCard ? serverConfig : config,
+      config: offlineConfig.enabled
+        ? { ...offlineConfig, canSubmitReceipt: true }
+        : { ...serverConfig, enabled: hasUsableServerCard, canSubmitReceipt: true },
       balance: { ...serverBalance, paidCredits: serverBalance.paidCredits + local.paidCredits },
       request,
     };
   } catch (error) {
-    return { installId, requestId, config, balance: local, request: null };
+    return {
+      installId,
+      requestId,
+      config: { ...offlineConfig, canSubmitReceipt: true },
+      balance: local,
+      request: null,
+    };
   }
 }
 
@@ -157,6 +230,10 @@ export async function hasAssessmentAccess() {
   const installId = await getInstallId();
   const used = Number(await AsyncStorage.getItem(LOCAL_FREE_KEY) || 0);
   const local = await readOfflinePaidState();
+  if (await readAdminToken()) {
+    const session = await getAdminSession();
+    if (session.authenticated) return true;
+  }
   try {
     const balance = await api(`/api/payments/credits/${installId}`);
     const remainingFree = Math.min(balance.freeRemaining, Math.max(0, 2 - used));
@@ -170,6 +247,19 @@ export async function consumeAssessmentCredit() {
   const installId = await getInstallId();
   let used = Number(await AsyncStorage.getItem(LOCAL_FREE_KEY) || 0);
   let synced = Number(await AsyncStorage.getItem(SERVER_FREE_SYNCED_KEY) || 0);
+  const adminToken = await readAdminToken();
+  if (adminToken) {
+    try {
+      const result = await api(`/api/payments/consume/${installId}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      if (result.consumed === 'admin') return result;
+    } catch (error) {
+      if (error.status === 401) await clearAdminToken();
+      else return null;
+    }
+  }
   if (!getApiBase()) return consumeLocalCredit(used);
   try {
     while (synced < used && synced < 2) {

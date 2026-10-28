@@ -48,7 +48,7 @@ export default function PaymentsScreen({ navigation }) {
 
   const refresh = useCallback(async () => {
     const fallback = getOfflinePaymentConfig();
-    setPanel(fallback.enabled ? fallback : null);
+    setPanel(fallback.enabled ? { ...fallback, canSubmitReceipt: !!getApiBase() } : null);
     setBalance(fallback.enabled ? { freeRemaining: 2, paidCredits: 0 } : null);
     setLoading(!fallback.enabled);
     try {
@@ -57,7 +57,7 @@ export default function PaymentsScreen({ navigation }) {
       setBalance(result.balance);
       setRequest(result.request);
     } catch (error) {
-      setPanel(fallback.enabled ? fallback : null);
+      setPanel(fallback.enabled ? { ...fallback, canSubmitReceipt: !!getApiBase() } : null);
       setRequest(null);
     } finally {
       setLoading(false);
@@ -133,7 +133,7 @@ export default function PaymentsScreen({ navigation }) {
 
   const card = panel?.card;
   const canShowCard = !!panel?.enabled && !!card;
-  const onlinePaymentAvailable = onlineMode && !panel?.offlineMode && canShowCard;
+  const onlinePaymentAvailable = onlineMode && !!panel?.canSubmitReceipt;
   const staticCardAvailable = !!panel?.offlineMode && canShowCard;
 
   return (
