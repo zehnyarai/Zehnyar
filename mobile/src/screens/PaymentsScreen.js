@@ -7,7 +7,7 @@ import { colors, fonts, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { Button, Card, Pill, PressableScale, ScrollScreen, SectionTitle, Text } from '../components/ui';
 import { groupThousands, toPersianDigits } from '../core/format';
-import { checkRequest, getApiBase, loadPaymentPanel, submitReceipt } from '../core/paymentApi';
+import { checkRequest, getApiBase, getOfflinePaymentConfig, loadPaymentPanel, submitReceipt } from '../core/paymentApi';
 
 const PACKAGES = [
   { sku: 'assessment_1', credits: 1, priceToman: 600000, discountPercent: 0, label: 'single' },
@@ -47,12 +47,21 @@ export default function PaymentsScreen({ navigation }) {
   const [balance, setBalance] = useState(null);
 
   const refresh = useCallback(async () => {
-    setLoading(true);
-    const result = await loadPaymentPanel();
-    setPanel(result.config);
-    setBalance(result.balance);
-    setRequest(result.request);
-    setLoading(false);
+    const fallback = getOfflinePaymentConfig();
+    setPanel(fallback.enabled ? fallback : null);
+    setBalance(fallback.enabled ? { freeRemaining: 2, paidCredits: 0 } : null);
+    setLoading(!fallback.enabled);
+    try {
+      const result = await loadPaymentPanel();
+      setPanel(result.config);
+      setBalance(result.balance);
+      setRequest(result.request);
+    } catch (error) {
+      setPanel(fallback.enabled ? fallback : null);
+      setRequest(null);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
@@ -180,8 +189,13 @@ export default function PaymentsScreen({ navigation }) {
         </Card>
 
         <Card>
-          <SectionTitle title={t('payments.transferTitle')} subtitle={t(onlinePaymentAvailable ? 'payments.transferHint' : 'payments.staticTransferHint')} />
-          {!canShowCard ? (
+          <SectionTitle
+            title={t('payments.transferTitle')}
+            subtitle={canShowCard ? t(onlinePaymentAvailable ? 'payments.transferHint' : 'payments.staticTransferHint') : undefined}
+          />
+          {loading && !panel ? (
+            <ActivityIndicator color={colors.teal700} style={{ marginTop: spacing.md }} />
+          ) : !canShowCard ? (
             <View style={styles.notice}>
               <Ionicons name="information-circle-outline" size={22} color={colors.warn} />
               <Text variant="small" color={colors.ink70} style={{ flex: 1, textAlign: dir.text }}>{t('payments.cardMissing')}</Text>

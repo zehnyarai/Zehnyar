@@ -123,6 +123,14 @@ jobs:
           console.log('Static card configuration validated; value hidden.');
           NODE
 
+      - name: Embed a static card fallback for Android runtime
+        working-directory: mobile
+        env:
+          VISAYAR_PAYMENT_CARD_NUMBER: ${{ secrets.VISAYAR_PAYMENT_CARD_NUMBER }}
+          VISAYAR_PAYMENT_CARD_HOLDER: ${{ secrets.VISAYAR_PAYMENT_CARD_HOLDER }}
+          VISAYAR_PAYMENT_BANK_NAME: ${{ secrets.VISAYAR_PAYMENT_BANK_NAME }}
+        run: node ../tools/write_mobile_payment_card.js
+
       - name: Prebuild Android project
         working-directory: mobile
         env:
@@ -140,6 +148,14 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew assembleRelease --no-daemon
+
+      - name: Verify card is embedded in the Android JS bundle
+        env:
+          VISAYAR_PAYMENT_CARD_NUMBER: ${{ secrets.VISAYAR_PAYMENT_CARD_NUMBER }}
+        run: node tools/check_mobile_payment_bundle.js
+
+      - name: Remove generated card source from the workspace
+        run: git show HEAD:mobile/src/core/paymentCard.generated.js > mobile/src/core/paymentCard.generated.js
 
       - name: Scan release APK with ClamAV
         run: |

@@ -116,7 +116,7 @@ describe('Visayar app', () => {
     expect(text).toContain('اعتبار ارزیابی');
     expect(text).toContain('۶۰۰٬۰۰۰ تومان');
     expect(text).toContain('دوازده ارزیابی');
-    expect(text).toContain('اطلاعات کارت برای این نسخه تنظیم نشده است');
+    expect(text).not.toContain('اطلاعات کارت برای این نسخه تنظیم نشده است');
     expect(text).not.toContain('کد فعال‌سازی');
     expect(text).not.toContain('پیام‌رسان');
   });

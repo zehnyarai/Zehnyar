@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import * as Crypto from 'expo-crypto';
+import paymentCardFallback from './paymentCard.generated';
 import { verifyOfflineVoucher } from './offlineVouchers';
 
 const INSTALL_KEY = 'visayar.install.id';
@@ -18,15 +19,23 @@ export async function getInstallId() {
   return id;
 }
 
+function appExtra() {
+  return Constants.expoConfig?.extra
+    || Constants.manifest2?.extra?.expoClient?.extra
+    || Constants.manifest?.extra
+    || {};
+}
+
 export function getApiBase() {
-  const configured = Constants.expoConfig?.extra?.apiBaseUrl || '';
+  const configured = appExtra().apiBaseUrl || '';
   if (configured) return configured.replace(/\/$/, '');
   if (typeof window !== 'undefined' && window.location?.origin) return window.location.origin;
   return '';
 }
 
-function offlinePaymentConfig() {
-  const source = Constants.expoConfig?.extra?.paymentCard || {};
+export function getOfflinePaymentConfig() {
+  const candidates = [appExtra().paymentCard, paymentCardFallback];
+  const source = candidates.find((candidate) => String(candidate?.number || '').replace(/\D/g, '').length === 16) || {};
   const number = String(source.number || '').replace(/\D/g, '');
   const holder = String(source.holder || '').trim();
   const bank = String(source.bank || '').trim();
@@ -72,8 +81,10 @@ export async function loadPaymentPanel() {
     AsyncStorage.getItem(LAST_REQUEST_KEY),
     localBalance(),
   ]);
-  const config = offlinePaymentConfig();
-  if (!getApiBase()) {
+  const config = getOfflinePaymentConfig();
+  // The requested product mode is static card display. Use the embedded card
+  // immediately, regardless of an unrelated or unavailable API configuration.
+  if (config.enabled || !getApiBase()) {
     return { installId, requestId: null, config, balance: local, request: null };
   }
   try {
