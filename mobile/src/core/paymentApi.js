@@ -82,10 +82,12 @@ export async function loadPaymentPanel() {
     const request = requestId && !requestId.startsWith('manual:')
       ? await api(`/api/payments/requests/${requestId}?install_id=${installId}`)
       : null;
+    const serverCardNumber = String(serverConfig.card?.number || '').replace(/\D/g, '');
+    const hasUsableServerCard = serverConfig.enabled && serverCardNumber.length === 16 && !!String(serverConfig.card?.bank || '').trim();
     return {
       installId,
       requestId,
-      config: serverConfig.enabled ? serverConfig : config,
+      config: hasUsableServerCard ? serverConfig : config,
       balance: { ...serverBalance, paidCredits: serverBalance.paidCredits + local.paidCredits },
       request,
     };

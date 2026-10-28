@@ -107,11 +107,11 @@ jobs:
           node <<'NODE'
           const config = require('./app.config.js');
           const card = config.extra.paymentCard || {};
-          if (!config.extra.apiBaseUrl && (!card.number || card.number.length !== 16)) {
+          if (!card.number || card.number.length !== 16) {
             console.error('No valid static card secret is configured. Add VISAYAR_PAYMENT_CARD_NUMBER in Actions secrets.');
             process.exit(1);
           }
-          console.log(config.extra.apiBaseUrl ? 'Online payment configuration detected.' : 'Static card configuration validated; value hidden.');
+          console.log('Static card configuration validated; value hidden.');
           NODE
 
       - name: Prebuild Android project

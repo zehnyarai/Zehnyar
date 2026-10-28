@@ -22,7 +22,7 @@
     },
     "android": {
       "package": "ai.visayar.app",
-      "versionCode": 27,
+      "versionCode": 28,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/adaptive-icon.png",
         "backgroundColor": "#000000"
