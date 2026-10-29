@@ -2,12 +2,12 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { colors, fonts, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { Button, Card, Pill, PressableScale, ScrollScreen, SectionTitle, Text } from '../components/ui';
 import { groupThousands, toPersianDigits } from '../core/format';
-import { checkRequest, loadPaymentPanel, submitReceipt } from '../core/paymentApi';
+import { checkRequest, getApiBase, getOfflinePaymentConfig, loadPaymentPanel, submitReceipt } from '../core/paymentApi';
 
 const PACKAGES = [
   { sku: 'assessment_1', credits: 1, priceToman: 600000, discountPercent: 0, label: 'single' },
@@ -25,17 +25,11 @@ function amount(value, lang, t) {
 function discountLabel(value, lang, t) {
   const number = lang === 'fa' ? toPersianDigits(String(value)) : String(value);
   const sign = lang === 'fa' ? String.fromCharCode(0x066a) : '%';
-  return `${t('payments.save')} ${number}${sign}`;
-}
-
-function asciiDigits(value) {
-  return String(value).replace(/[\u06f0-\u06f9\u0660-\u0669]/g, (digit) => {
-    const code = digit.charCodeAt(0);
-    return String(code >= 0x06f0 ? code - 0x06f0 : code - 0x0660);
-  });
+  return `${t('payments.discount')} ${number}${sign}`;
 }
 
 function visibleBankLabel(value, lang) {
+  if (value.trim() === 'سامان' && lang === 'en') return 'Saman Bank';
   return lang === 'fa' && /[A-Za-z]/.test(value) ? '—' : value;
 }
 
@@ -46,43 +40,59 @@ export default function PaymentsScreen({ navigation }) {
   const [sending, setSending] = useState(false);
   const [panel, setPanel] = useState(null);
   const [selected, setSelected] = useState(PACKAGES[0].sku);
-  const [phone, setPhone] = useState('');
+  const [transferDate, setTransferDate] = useState('');
   const [trackingCode, setTrackingCode] = useState('');
+  const [phone, setPhone] = useState('');
   const [receipt, setReceipt] = useState(null);
   const [request, setRequest] = useState(null);
   const [balance, setBalance] = useState(null);
 
   const refresh = useCallback(async () => {
-    setLoading(true);
-    const result = await loadPaymentPanel();
-    setPanel(result.config);
-    setBalance(result.balance);
-    setRequest(result.request);
-    setLoading(false);
+    const fallback = getOfflinePaymentConfig();
+    setPanel(fallback.enabled ? { ...fallback, canSubmitReceipt: !!getApiBase() } : null);
+    setBalance(fallback.enabled ? { freeRemaining: 2, paidCredits: 0 } : null);
+    setLoading(!fallback.enabled);
+    try {
+      const result = await loadPaymentPanel();
+      setPanel(result.config);
+      setBalance(result.balance);
+      setRequest(result.request);
+    } catch (error) {
+      setPanel(fallback.enabled ? { ...fallback, canSubmitReceipt: !!getApiBase() } : null);
+      setRequest(null);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { refresh(); }, [refresh]);
 
   const chooseReceipt = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert(t('payments.receipt'), t('payments.receiptPermission'));
-      return;
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['image/jpeg', 'image/png', 'image/webp'],
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      const asset = !result.canceled ? result.assets?.[0] : null;
+      if (!asset) return;
+      if (asset.size && asset.size > 5 * 1024 * 1024) {
+        Alert.alert(t('payments.receipt'), t('payments.receiptTooLarge'));
+        return;
+      }
+      setReceipt({ ...asset, fileName: asset.name || 'receipt.jpg', mimeType: asset.mimeType || 'image/jpeg' });
+    } catch (error) {
+      Alert.alert(t('payments.receipt'), t('payments.receiptSelectError'));
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'], allowsEditing: true, quality: 0.75, exif: false,
-    });
-    if (!result.canceled && result.assets?.[0]) setReceipt(result.assets[0]);
   };
 
   const send = async () => {
-    const normalizedPhone = asciiDigits(phone).replace(/[\s()+-]/g, '');
-    if (!/^\d{10,15}$/.test(normalizedPhone)) return Alert.alert(t('payments.noPhone'));
+    if (!transferDate.trim()) return Alert.alert(t('payments.noTransferDate'));
     if (trackingCode.trim().length < 4) return Alert.alert(t('payments.noTracking'));
     if (!receipt) return Alert.alert(t('payments.noReceipt'));
     setSending(true);
     try {
-      const result = await submitReceipt({ sku: selected, phone: normalizedPhone, trackingCode: trackingCode.trim(), receipt });
+      const result = await submitReceipt({ sku: selected, transferDate: transferDate.trim(), trackingCode: trackingCode.trim(), phone: phone.trim(), receipt });
       setRequest({ id: result.requestId, status: 'pending', credits: result.credits });
       Alert.alert(t('payments.requestSent'));
       await refresh();
@@ -108,8 +118,30 @@ export default function PaymentsScreen({ navigation }) {
   };
 
   const activePackage = PACKAGES.find((item) => item.sku === selected) || PACKAGES[0];
+  const onlineMode = !!getApiBase();
+
+  useEffect(() => {
+    if (!onlineMode || !request?.id || request.status !== 'pending') return undefined;
+    let active = true;
+    const refreshPending = async () => {
+      try {
+        const result = await checkRequest(request.id);
+        if (!active) return;
+        setRequest(result.request);
+        setBalance(result.balance);
+        if (result.request.status === 'approved') Alert.alert(t('payments.approved'));
+      } catch (error) {
+        // Keep the pending state; the next poll or manual refresh can retry.
+      }
+    };
+    const timer = setInterval(refreshPending, 8000);
+    refreshPending();
+    return () => { active = false; clearInterval(timer); };
+  }, [onlineMode, request?.id, request?.status, t]);
+
   const card = panel?.card;
-  const canPay = !!panel?.enabled && !!card;
+  const canShowCard = !!panel?.enabled && !!card;
+  const receiptUploadAvailable = onlineMode && !!panel?.canSubmitReceipt;
 
   return (
     <ScrollScreen contentStyle={{ paddingBottom: 36 }}>
@@ -149,8 +181,7 @@ export default function PaymentsScreen({ navigation }) {
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: dir.row, alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                         <Text variant="bodyStrong" style={{ color: colors.ink }}>{t(`payments.${item.label}`)}</Text>
-                        {item.discountPercent >= 25 ? <Pill label={discountLabel(item.discountPercent, lang, t)} tone="sky" /> : null}
-                        {item.sku === 'assessment_12' ? <Pill label={t('payments.bestValue')} tone="gold" /> : null}
+                        {item.discountPercent > 0 ? <Pill label={discountLabel(item.discountPercent, lang, t)} tone="sky" /> : null}
                       </View>
                       <Text variant="micro" color={colors.ink50} style={{ marginTop: 3, textAlign: dir.text }}>
                         {amount(Math.round(item.priceToman / item.credits), lang, t)} {t('payments.perAssessment')}
@@ -165,8 +196,13 @@ export default function PaymentsScreen({ navigation }) {
         </Card>
 
         <Card>
-          <SectionTitle title={t('payments.transferTitle')} subtitle={t('payments.transferHint')} />
-          {!canPay ? (
+          <SectionTitle
+            title={t('payments.transferTitle')}
+            subtitle={canShowCard ? t(receiptUploadAvailable ? 'payments.transferHint' : 'payments.staticTransferHint') : undefined}
+          />
+          {loading && !panel ? (
+            <ActivityIndicator color={colors.teal700} style={{ marginTop: spacing.md }} />
+          ) : !canShowCard ? (
             <View style={styles.notice}>
               <Ionicons name="information-circle-outline" size={22} color={colors.warn} />
               <Text variant="small" color={colors.ink70} style={{ flex: 1, textAlign: dir.text }}>{t('payments.cardMissing')}</Text>
@@ -178,10 +214,12 @@ export default function PaymentsScreen({ navigation }) {
                   <Text variant="micro" color={colors.ink50}>{t('payments.bank')}</Text>
                   <Text variant="small" color={colors.ink}>{visibleBankLabel(card.bank, lang)}</Text>
                 </View>
-                <View style={{ flexDirection: dir.row, justifyContent: 'space-between', marginTop: 8 }}>
-                  <Text variant="micro" color={colors.ink50}>{t('payments.cardHolder')}</Text>
-                  <Text variant="small" color={colors.ink}>{visibleBankLabel(card.holder, lang)}</Text>
-                </View>
+                {card.holder ? (
+                  <View style={{ flexDirection: dir.row, justifyContent: 'space-between', marginTop: 8 }}>
+                    <Text variant="micro" color={colors.ink50}>{t('payments.cardHolder')}</Text>
+                    <Text variant="small" color={colors.ink}>{visibleBankLabel(card.holder, lang)}</Text>
+                  </View>
+                ) : null}
                 <View style={{ marginTop: 8 }}>
                   <Text variant="micro" color={colors.ink50} style={{ textAlign: dir.text }}>{t('payments.cardNumber')}</Text>
                   <Text selectable variant="h3" style={{ textAlign: 'center', color: colors.teal800, letterSpacing: 1.5, marginTop: 4 }}>
@@ -189,17 +227,33 @@ export default function PaymentsScreen({ navigation }) {
                   </Text>
                 </View>
               </View>
-              <View style={styles.form}>
-                <Text variant="small" color={colors.ink70}>{t('payments.selected')}: {t(`payments.${activePackage.label}`)} · {amount(activePackage.priceToman, lang, t)}</Text>
-                <TextInput value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder={t('payments.phone')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text }]} />
-                <TextInput value={trackingCode} onChangeText={setTrackingCode} autoCapitalize="none" placeholder={t('payments.tracking')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text }]} />
-                <Button label={receipt ? t('payments.receipt') : t('payments.pickReceipt')} variant="outline" icon="image-outline" onPress={chooseReceipt} />
-                <Button label={t('payments.submit')} icon="cloud-upload-outline" loading={sending} disabled={!canPay} onPress={send} />
-              </View>
-              <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('payments.secureNote')}</Text>
+              <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('payments.cardTransferInstructions')}</Text>
             </>
           )}
-          <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('payments.privacy')}</Text>
+          {canShowCard ? (
+            <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t(receiptUploadAvailable ? 'payments.privacy' : 'payments.staticCardPrivacy')}</Text>
+          ) : null}
+        </Card>
+
+        <Card>
+          <SectionTitle title={t('payments.uploadReceiptTitle')} subtitle={t('payments.uploadReceiptSubtitle')} />
+          <View style={styles.form}>
+            <Text variant="small" color={colors.ink70} style={{ textAlign: dir.text }}>{t('payments.selected')}: {t(`payments.${activePackage.label}`)}</Text>
+            <Text variant="small" color={colors.ink70} style={{ textAlign: dir.text }}>{t('payments.amountLabel')}: {amount(activePackage.priceToman, lang, t)}</Text>
+            <TextInput value={phone} onChangeText={setPhone} keyboardType="phone-pad" autoComplete="tel" placeholder={t('payments.phoneOptional')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text }]} />
+            <TextInput value={transferDate} onChangeText={setTransferDate} placeholder={t('payments.transferDatePlaceholder')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text }]} />
+            <TextInput value={trackingCode} onChangeText={setTrackingCode} autoCapitalize="none" placeholder={t('payments.tracking')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text }]} />
+            <Button label={receipt ? t('payments.receiptSelected') : t('payments.pickReceipt')} variant="outline" icon="document-attach-outline" onPress={chooseReceipt} />
+            <Button label={t('payments.uploadReceiptTitle')} icon="cloud-upload-outline" loading={sending} disabled={!receiptUploadAvailable || sending} onPress={send} />
+          </View>
+          {!receiptUploadAvailable ? (
+            <View style={[styles.notice, { marginTop: spacing.sm }]}>
+              <Ionicons name="information-circle-outline" size={22} color={colors.warn} />
+              <Text variant="small" color={colors.ink70} style={{ flex: 1, textAlign: dir.text }}>{t('payments.uploadNeedsServer')}</Text>
+            </View>
+          ) : (
+            <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('payments.privacy')}</Text>
+          )}
         </Card>
 
         {request ? (
@@ -209,6 +263,9 @@ export default function PaymentsScreen({ navigation }) {
               <Pill label={t(`payments.${request.status === 'approved' ? 'approved' : request.status === 'rejected' ? 'rejected' : 'pending'}`)} tone={request.status === 'approved' ? 'success' : request.status === 'rejected' ? 'danger' : 'warn'} />
               {lang === 'en' ? <Text variant="micro" color={colors.ink50} style={{ flex: 1, textAlign: dir.text }}>{request.id}</Text> : null}
             </View>
+            {request.status === 'rejected' && request.rejectionReason ? (
+              <Text variant="small" color={colors.ink70} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{request.rejectionReason}</Text>
+            ) : null}
             <Button label={t('payments.refresh')} variant="outline" size="sm" icon="refresh-outline" onPress={poll} style={{ marginTop: spacing.sm }} />
           </Card>
         ) : null}

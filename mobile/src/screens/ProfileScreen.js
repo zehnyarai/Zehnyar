@@ -77,6 +77,10 @@ export default function ProfileScreen({ navigation }) {
           <Button label={t('payments.packages')} icon="card-outline" onPress={() => navigation.navigate('Payments')} style={{ marginTop: spacing.sm }} />
         </Card>
         <Card>
+          <SectionTitle title={t('admin.entryTitle')} subtitle={t('admin.entrySubtitle')} />
+          <Button label={t('admin.entryButton')} icon="shield-checkmark-outline" variant="outline" onPress={() => navigation.navigate('Admin')} style={{ marginTop: spacing.sm }} />
+        </Card>
+        <Card>
           <SectionTitle title={t('profile.dataTitle')} />
           <View style={{ marginTop: spacing.xs }}>
             <KeyValue label={t('profile.dataVersion')} value={meta.version} />
