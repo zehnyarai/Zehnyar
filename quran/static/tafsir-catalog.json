@@ -1,0 +1,303 @@
+{
+  "version": 2,
+  "notice": "فهرستِ آثار با متنِ تفسیری فرق دارد. فقط اثری که برای آن فایلِ آیه‌به‌آیه، نسخه، انتساب و مجوز/شرایط استفادهٔ قابل بررسی ثبت شده باشد، متنش در برنامه نمایش داده می‌شود.",
+  "collections": [
+    {
+      "id": "current-cited",
+      "title": "متن‌های تفسیریِ فعالِ آیه‌به‌آیه",
+      "status": "available",
+      "items": [
+        {
+          "id": "fa_qe_persian_mokhtasar",
+          "title": "ترجمهٔ فارسی المختصر فی تفسیر القرآن الکریم",
+          "author": "Persian Translation of Al-Mukhtasar in Interpreting the Noble Quran",
+          "language": "fa",
+          "status": "available",
+          "basis": "QuranEnc، نسخهٔ 1.0.0؛ متن کامل آیه‌به‌آیه در برنامه موجود است."
+        },
+        {
+          "id": "ar_qe_arabic_moyassar",
+          "title": "التفسير الميسر",
+          "author": "Arabic Language - At-Tafsir Al-Muyassar",
+          "language": "ar",
+          "status": "available",
+          "basis": "QuranEnc، نسخهٔ 1.0.0؛ متن کامل آیه‌به‌آیه در برنامه موجود است."
+        },
+        {
+          "id": "ar_tabari_qurancom",
+          "title": "جامع البيان عن تأويل آي القرآن (تفسیر طبری)",
+          "author": "محمد بن جریر الطبری",
+          "language": "ar",
+          "status": "available",
+          "basis": "متن آیه‌به‌آیه در برنامه موجود است؛ نسخهٔ 1.1، انتساب و شرایط منبع در پرونده ثبت شده است."
+        },
+        {
+          "id": "ar_qurtubi_qurancom",
+          "title": "الجامع لأحكام القرآن (تفسیر قرطبی)",
+          "author": "محمد بن احمد القرطبی",
+          "language": "ar",
+          "status": "available",
+          "basis": "متن آیه‌به‌آیه در برنامه موجود است؛ نسخهٔ 1.1، انتساب و شرایط منبع در پرونده ثبت شده است."
+        },
+        {
+          "id": "fa_mizan_furqan",
+          "title": "تفسیر المیزان (ترجمهٔ فارسی)",
+          "author": "علامه سید محمدحسین طباطبایی؛ ترجمهٔ فارسیِ بستهٔ Furqan Apps",
+          "language": "fa",
+          "status": "available",
+          "basis": "متن آیه‌به‌آیه در برنامه موجود است؛ نسخهٔ 2026.0، انتساب و شرایط منبع در پرونده ثبت شده است."
+        },
+        {
+          "id": "tabari",
+          "title": "جامع البيان عن تأويل آي القرآن (تفسیر طبری)",
+          "author": "محمد بن جریر الطبری",
+          "language": "ar",
+          "status": "available",
+          "basis": "متن کامل آیه‌به‌آیه در برنامه موجود است؛ نسخهٔ 1.1 و انتساب ثبت شده است."
+        },
+        {
+          "id": "qurtubi",
+          "title": "الجامع لأحكام القرآن (تفسیر قرطبی)",
+          "author": "محمد بن احمد القرطبی",
+          "language": "ar",
+          "status": "available",
+          "basis": "متن کامل آیه‌به‌آیه در برنامه موجود است؛ نسخهٔ 1.1 و انتساب ثبت شده است."
+        },
+        {
+          "id": "mizan",
+          "title": "تفسیر المیزان (ترجمهٔ فارسی)",
+          "author": "علامه سید محمدحسین طباطبایی",
+          "language": "fa",
+          "status": "available",
+          "basis": "متن کامل آیه‌به‌آیه در برنامه موجود است؛ نسخهٔ 2026.0 و انتساب ثبت شده است."
+        }
+      ]
+    },
+    {
+      "id": "requested-comparative",
+      "title": "تفاسیر درخواستی برای مطالعهٔ مقایسه‌ای",
+      "status": "catalogued-not-imported",
+      "items": [
+        {
+          "id": "tabari",
+          "title": "جامع البيان عن تأويل آي القرآن (تفسیر طبری)",
+          "author": "محمد بن جریر طبری",
+          "language": "ar",
+          "era": "کلاسیک",
+          "status": "available",
+          "basis": "متن کامل آیه‌به‌آیه در برنامه موجود است؛ نسخهٔ 1.1 و انتساب ثبت شده است."
+        },
+        {
+          "id": "zamakhshari",
+          "title": "الكشاف عن حقائق غوامض التنزيل (تفسیر زمخشری)",
+          "author": "جارالله محمود زمخشری",
+          "language": "ar",
+          "era": "کلاسیک",
+          "status": "needs-reviewed-edition",
+          "basis": "اصل اثر کلاسیک است؛ دیجیتالی‌بودنِ یک نسخه به‌تنهایی مجوز بازنشر و انتسابِ دقیق آن نسخه نیست."
+        },
+        {
+          "id": "qurtubi",
+          "title": "الجامع لأحكام القرآن (تفسیر قرطبی)",
+          "author": "محمد بن احمد قرطبی",
+          "language": "ar",
+          "era": "کلاسیک",
+          "status": "available",
+          "basis": "متن کامل آیه‌به‌آیه در برنامه موجود است؛ نسخهٔ 1.1 و انتساب ثبت شده است."
+        },
+        {
+          "id": "mizan",
+          "title": "الميزان في تفسير القرآن",
+          "author": "علامه سید محمدحسین طباطبایی",
+          "language": "ar/fa",
+          "era": "معاصر",
+          "status": "available",
+          "basis": "متن کامل آیه‌به‌آیه در برنامه موجود است؛ نسخهٔ 2026.0 و انتساب ثبت شده است."
+        },
+        {
+          "id": "min-huda",
+          "title": "من هدى القرآن",
+          "author": "سید محمدتقی مدرسی",
+          "language": "ar",
+          "era": "معاصر",
+          "status": "needs-permission",
+          "basis": "برای ورود متن دیجیتال، اجازهٔ صریحِ دارندهٔ حقوق و مشخصاتِ نسخه لازم است."
+        },
+        {
+          "id": "min-wahy",
+          "title": "من وحي القرآن",
+          "author": "سید محمدحسین فضل‌الله",
+          "language": "ar",
+          "era": "معاصر",
+          "status": "needs-permission",
+          "basis": "برای ورود متن دیجیتال، اجازهٔ صریحِ دارندهٔ حقوق و مشخصاتِ نسخه لازم است."
+        },
+        {
+          "id": "al-kashif",
+          "title": "التفسير الكاشف",
+          "author": "محمدجواد مغنیه",
+          "language": "ar",
+          "era": "معاصر",
+          "status": "needs-permission",
+          "basis": "برای ورود متن دیجیتال، اجازهٔ صریحِ دارندهٔ حقوق و مشخصاتِ نسخه لازم است."
+        },
+        {
+          "id": "razi",
+          "title": "مفاتيح الغيب / التفسير الكبير",
+          "author": "فخرالدین رازی",
+          "language": "ar",
+          "era": "کلاسیک",
+          "status": "needs-reviewed-edition",
+          "basis": "اصل اثر کلاسیک است؛ برای نمایش دیجیتال باید نسخهٔ محقق، انتساب و شرایط استفادهٔ همان نسخه ثبت شود."
+        },
+        {
+          "id": "nemouneh",
+          "title": "تفسیر نمونه",
+          "author": "ناصر مکارم شیرازی و همکاران",
+          "language": "fa",
+          "era": "معاصر",
+          "status": "needs-permission",
+          "basis": "برای ورود متن یا ترجمهٔ دیجیتال، اجازهٔ صریحِ دارندهٔ حقوق و مشخصاتِ نسخه لازم است."
+        },
+        {
+          "id": "tasnim",
+          "title": "تفسیر تسنیم",
+          "author": "عبدالله جوادی آملی",
+          "language": "fa",
+          "era": "معاصر",
+          "status": "needs-permission",
+          "basis": "برای ورود متن یا ترجمهٔ دیجیتال، اجازهٔ صریحِ دارندهٔ حقوق و مشخصاتِ نسخه لازم است."
+        }
+      ]
+    },
+    {
+      "id": "ten-major-tafsirs",
+      "title": "ده تفسیر جامع منتخب؛ پنج امامیه و پنج اهل‌سنت",
+      "status": "reference-only-library-links",
+      "items": [
+        {
+          "id": "shia-tibyan",
+          "title": "التبيان في تفسير القرآن",
+          "author": "الشيخ الطوسي",
+          "language": "ar",
+          "tradition": "شیعهٔ امامیه",
+          "era": "کلاسیک",
+          "method": "تفسیر جامعِ ترتیبی؛ پیوند آیه‌محور از GreatTafsirs و متن کامل کتاب در کتابخانهٔ فقاهت.",
+          "status": "reference-only-library-link",
+          "sourceUrl": "https://quran-tafsir.net/mobdii/sura6-aya108.html",
+          "verseUrlTemplate": "https://www.greattafsirs.com/AyahTafsir.aspx?LanguageID=1&FromMainTafsir=1&SoraNo={surah}&AyahNo={ayah}",
+          "directVerseLink": true,
+          "libraryUrl": "https://lib.eshia.ir/86469/1/1"
+        },
+        {
+          "id": "shia-majma",
+          "title": "مجمع البيان في تفسير القرآن",
+          "author": "الشيخ الطبرسي",
+          "language": "ar",
+          "tradition": "شیعهٔ امامیه",
+          "era": "کلاسیک",
+          "method": "تفسیر جامعِ ترتیبی؛ پیوند آیه‌محور از GreatTafsirs و متن کامل کتاب در کتابخانهٔ فقاهت.",
+          "status": "reference-only-library-link",
+          "sourceUrl": "https://www.greattafsirs.com/Tafsir_Library.aspx?FromMainTafsir=1&MadhabNo=4&TafsirNo=3&SoraNo={surah}&AyahNo={ayah}&LanguageID=1",
+          "verseUrlTemplate": "https://www.greattafsirs.com/Tafsir_Library.aspx?FromMainTafsir=1&MadhabNo=4&TafsirNo=3&SoraNo={surah}&AyahNo={ayah}&LanguageID=1",
+          "directVerseLink": true,
+          "libraryUrl": "https://lib.eshia.ir/12023/1/1"
+        },
+        {
+          "id": "shia-mizan",
+          "title": "الميزان في تفسير القرآن",
+          "author": "علامه سیدمحمدحسین طباطبایی",
+          "language": "fa",
+          "tradition": "شیعهٔ امامیه",
+          "era": "معاصر",
+          "method": "متن پیوندیِ کتابخانه، ترجمهٔ فارسیِ المیزان است؛ برای مطالعهٔ عربی نیز صفحهٔ منبع را بررسی کنید.",
+          "status": "reference-only-library-link",
+          "libraryUrl": "https://lib.eshia.ir/50081/1/5"
+        },
+        {
+          "id": "shia-safi",
+          "title": "التفسير الصافي",
+          "author": "الفيض الكاشاني",
+          "language": "ar",
+          "tradition": "شیعهٔ امامیه",
+          "era": "کلاسیک",
+          "method": "متن عربیِ نسخهٔ ط الهادي در کتابخانهٔ مدرسهٔ فقاهت.",
+          "status": "reference-only-library-link",
+          "libraryUrl": "https://lib.eshia.ir/12012/1/1"
+        },
+        {
+          "id": "shia-nemouneh",
+          "title": "تفسیر نمونه",
+          "author": "ناصر مکارم شیرازی و همکاران",
+          "language": "fa",
+          "tradition": "شیعهٔ امامیه",
+          "era": "معاصر",
+          "method": "متن فارسیِ کتاب؛ فهرست کتابخانه ۲۷ جلد را ثبت می‌کند.",
+          "status": "reference-only-library-link",
+          "libraryUrl": "https://lib.eshia.ir/27575/1/5"
+        },
+        {
+          "id": "sunni-tabari",
+          "title": "جامع البيان عن تأويل آي القرآن (تفسیر طبری)",
+          "author": "محمد بن جریر الطبری",
+          "language": "ar",
+          "tradition": "اهل‌سنت",
+          "era": "کلاسیک",
+          "method": "نسخهٔ ط هجر در کتابخانه؛ ۲۶ جزء طبق شناسنامه.",
+          "status": "reference-only-library-link",
+          "libraryUrl": "https://lib.efatwa.ir/46982/1/1",
+          "verseUrlTemplate": "https://www.greattafsirs.com/Tafsir_Library.aspx?FromMainTafsir=1&MadhabNo=1&TafsirNo=1&SoraNo={surah}&AyahNo={ayah}&LanguageID=1",
+          "directVerseLink": true
+        },
+        {
+          "id": "sunni-ibn-kathir",
+          "title": "تفسير القرآن العظيم (تفسیر ابن‌کثیر)",
+          "author": "إسماعيل بن عمر ابن كثير",
+          "language": "ar",
+          "tradition": "اهل‌سنت",
+          "era": "کلاسیک",
+          "method": "نسخهٔ تحقیق سامي سلامة، ط دار طيبة؛ ۸ جزء طبق شناسنامه.",
+          "status": "reference-only-library-link",
+          "libraryUrl": "https://lib.efatwa.ir/41718/1/3",
+          "verseUrlTemplate": "https://www.greattafsirs.com/Tafsir_Library.aspx?FromMainTafsir=1&MadhabNo=1&TafsirNo=7&SoraNo={surah}&AyahNo={ayah}&LanguageID=1",
+          "directVerseLink": true
+        },
+        {
+          "id": "sunni-baghawi",
+          "title": "معالم التنزيل (تفسیر بغوی)",
+          "author": "الحسين بن مسعود البغوي",
+          "language": "ar",
+          "tradition": "اهل‌سنت",
+          "era": "کلاسیک",
+          "method": "نسخهٔ ط دار طيبة؛ ۸ جزء طبق شناسنامه.",
+          "status": "reference-only-library-link",
+          "libraryUrl": "https://lib.efatwa.ir/46991/1/3",
+          "verseUrlTemplate": "https://www.greattafsirs.com/Tafsir_Library.aspx?FromMainTafsir=1&MadhabNo=2&TafsirNo=13&SoraNo={surah}&AyahNo={ayah}&LanguageID=1",
+          "directVerseLink": true
+        },
+        {
+          "id": "sunni-saadi",
+          "title": "تيسير الكريم الرحمن (تفسیر سعدی)",
+          "author": "عبد الرحمن السعدي",
+          "language": "ar",
+          "tradition": "اهل‌سنت",
+          "era": "معاصر",
+          "method": "نسخهٔ محقَّقِ عبد الرحمن اللويحق، ط مؤسسة الرسالة.",
+          "status": "reference-only-library-link",
+          "libraryUrl": "https://lib.efatwa.ir/46985/1/3"
+        },
+        {
+          "id": "sunni-muyassar",
+          "title": "التفسير الميسر",
+          "author": "مجموعة من المؤلفين",
+          "language": "ar",
+          "tradition": "اهل‌سنت",
+          "era": "معاصر",
+          "method": "متن کامل آیه‌به‌آیه در کتابخانهٔ مدرسهٔ فقاهت.",
+          "status": "reference-only-library-link",
+          "libraryUrl": "https://lib.efatwa.ir/41683/1/1"
+        }
+      ]
+    }
+  ]
+}

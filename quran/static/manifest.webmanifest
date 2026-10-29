@@ -1,0 +1,29 @@
+{
+  "id": "./",
+  "name": "قرآن‌پژوهه | پژوهش مفهومی در قرآن",
+  "short_name": "قرآن‌پژوهه",
+  "description": "پژوهش موضوعی، مطالعهٔ آیات در سیاق و مقایسهٔ تفاسیر منبع‌دار",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#075b7a",
+  "background_color": "#f4fbff",
+  "categories": ["education", "reference", "books"],
+  "icons": [
+    {
+      "src": "static/icons/zehnyar-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "static/icons/zehnyar-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

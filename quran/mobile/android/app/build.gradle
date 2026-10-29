@@ -1,0 +1,51 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'ai.zehnyar.mobile'
+    compileSdk 35
+
+    defaultConfig {
+        // A distinct package ID avoids signature collisions with earlier
+        // experimental Zehnyar builds already installed on a device.
+        applicationId 'ai.zehnyar.reader'
+        // Android 5.0+; the APK contains no ABI-specific native code, so one
+        // package works on 32-bit and 64-bit Android devices, including Android 13.
+        minSdk 21
+        targetSdk 35
+        versionCode 17
+        versionName '1.14.0'
+    }
+}
+
+def sourceStatic = file('../../../static')
+def generatedAssets = file("$buildDir/generated/zehnyar-assets")
+
+tasks.register('syncZehnyarAssets', Sync) {
+    from(sourceStatic) {
+        into('static')
+    }
+    from(file('../../../static/index.html')) {
+        rename { 'index.html' }
+    }
+    from(file('../../../static/manifest.webmanifest')) {
+        rename { 'manifest.webmanifest' }
+    }
+    from(file('../../../static/sw.js')) {
+        rename { 'sw.js' }
+    }
+    into(generatedAssets)
+}
+
+afterEvaluate {
+    android.sourceSets.main.assets.srcDir(generatedAssets)
+}
+
+tasks.named('preBuild').configure {
+    dependsOn(tasks.named('syncZehnyarAssets'))
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.11.0'
+}
