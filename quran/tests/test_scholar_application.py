@@ -17,6 +17,7 @@ def ids():
 
 BATCH_ONE = {f"1:{i}" for i in range(1, 8)} | {f"2:{i}" for i in range(1, 44)}
 BATCH_TWO = {f"2:{i}" for i in range(44, 94)}
+BATCH_THREE = {f"2:{i}" for i in range(94, 144)}
 
 
 def test_batches_have_fifty_verses_each():
@@ -29,7 +30,8 @@ def test_batches_have_fifty_verses_each():
 def test_batch_ranges_are_exactly_as_declared():
     assert BATCH_ONE <= set(APP["verses"])
     assert BATCH_TWO <= set(APP["verses"])
-    assert set(APP["verses"]) == BATCH_ONE | BATCH_TWO
+    assert BATCH_THREE <= set(APP["verses"])
+    assert set(APP["verses"]) == BATCH_ONE | BATCH_TWO | BATCH_THREE
 
 
 def test_every_entry_is_complete_and_cited():
