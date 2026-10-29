@@ -1,0 +1,61 @@
+--- a/static/app.js
++++ b/static/app.js
+@@ -775,11 +775,7 @@
+ 
+ function verseCard(verse) {
+   const primaryEvidence = verse.evidence.slice(0, 2).map((item) => `${item.label} · ${item.source}`).join("، ");
+-  const tabs = [["notes", "نکات"], ["messages", "پیام‌ها"], ["principles", "اصول زندگی"], ["framework", "چارچوب معنایی"], ["thematic", "تفسیر موضوعی"], ["context", "سیاق آیات"], ["network", "نظم شبکه‌ای"]];
+-  const expanded = state.inlineStudy.verseId === verse.id;
+   return `<article class="verse-card" data-verse-id="${escapeHTML(verse.id)}">
+-    <div class="verse-inline-tabs" role="tablist" aria-label="مطالعهٔ سریعِ ${escapeHTML(verse.reference)}">${tabs.map(([id, label]) => `<button type="button" data-inline-tab="${id}" data-inline-verse-id="${escapeHTML(verse.id)}" class="${expanded && state.inlineStudy.tab === id ? "active" : ""}" role="tab">${label}</button>`).join("")}</div>
+-    ${expanded ? inlineStudyContent(verse, state.inlineStudy.tab) : ""}
+     <button class="verse-open" type="button" data-open-verse="${escapeHTML(verse.id)}">
+       <span class="verse-head"><span class="verse-reference">${escapeHTML(verse.reference)} · ${escapeHTML(verse.revelation)}</span><span class="verse-type ${verse.type}">${typeLabel(verse.type)}</span></span>
+       <span class="verse-arabic" lang="ar" dir="rtl">${escapeHTML(verse.arabic)}</span>
+@@ -880,7 +876,7 @@
+ 
+ function sourceEvidenceNotice(verse) {
+   const entries = tafsirEntries(verse);
+-  return entries.length ? `<p class="source-availability">برای این آیه ${faNumber(entries.length)} متن تفسیریِ منبع‌دار موجود است؛ هنگام نتیجه‌گیری، آن‌ها را در تب «تفاسیر منبع‌دار» با انتساب کامل مقایسه کنید.</p>` : "";
++  return entries.length ? `<p class="source-availability">برای این آیه ${faNumber(entries.length)} متن تفسیریِ منبع‌دار موجود است؛ هنگام نتیجه‌گیری، آن‌ها را در تب «منابع تفسیری آیه» با انتساب کامل مقایسه کنید.</p>` : "";
+ }
+ 
+ function tenMajorTafsirLinks(verse) {
+@@ -946,24 +942,13 @@
+   const loadingNotice = state.tafsirLoading ? `<p class="source-availability" role="status">در حال دریافت و آماده‌سازی متن انتخاب‌شده؛ به‌دلیل حجم منابع، هر بار یک تفسیر تکمیلی بارگیری می‌شود.</p>` : "";
+   const errorNotice = state.tafsirLoadFailed ? `<p class="study-unavailable">بارگیری کامل نشد؛ اتصال را بررسی و دوباره روی «نمایش متن کامل» بزنید.</p>` : "";
+   const body = entries.map(({ source, text, footnotes }) => `<article class="source-card" lang="${escapeHTML(source.language)}" dir="rtl"><div class="source-card-head"><div><h4>${escapeHTML(source.title)}</h4><p>${escapeHTML(source.author)}</p></div><a href="${escapeHTML(source.sourceUrl)}" target="_blank" rel="noreferrer">نسخه و منبع ↗</a></div><p class="source-citation">${escapeHTML(tafsirCitation(source))}${source.license ? ` · ${escapeHTML(source.license)}` : ""}</p><div class="source-text">${escapeHTML(text)}</div>${footnotes ? `<div class="source-footnotes"><b>پانویسِ منبع</b>${escapeHTML(footnotes)}</div>` : ""}</article>`).join("");
+-  return `<section class="detail-panel tafsir-panel"><p class="eyebrow">تفاسیرِ منبع‌دارِ آیه</p><h3>متنِ کامل، انتساب، نسخه و پیوندِ دقیق</h3><p class="reading-notice">متن‌ها بدون خلاصه‌سازی یا بازنویسی نمایش داده می‌شوند. منابع عربی و فارسی دیدگاه‌های متفاوت دارند؛ نقلِ یک مفسر را با نظر دیگران یکی نگیرید. برای حفظ سرعت و حافظهٔ گوشی، متن‌های تکمیلی جداگانه و به‌درخواست شما بارگیری می‌شوند.</p>${loadingNotice}${errorNotice}<div class="tafsir-choices"><h4>تفاسیر تکمیلی: طبری، قرطبی و المیزان</h4>${extended}</div>${body || `<p class="study-unavailable">برای این آیه متن تفسیری از منابع بارگیری‌شده در دسترس نیست.</p>`}${major}${catalogue}</section>`;
++  return `<section class="detail-panel tafsir-panel"><p class="eyebrow">منابع تفسیریِ آیه</p><h3>متنِ کامل، انتساب، نسخه و پیوندِ دقیق</h3><p class="reading-notice">متن‌ها بدون خلاصه‌سازی یا بازنویسی نمایش داده می‌شوند. منابع عربی و فارسی دیدگاه‌های متفاوت دارند؛ نقلِ یک مفسر را با نظر دیگران یکی نگیرید. برای حفظ سرعت و حافظهٔ گوشی، متن‌های تکمیلی جداگانه و به‌درخواست شما بارگیری می‌شوند.</p>${loadingNotice}${errorNotice}<div class="tafsir-choices"><h4>تفاسیر تکمیلی: طبری، قرطبی و المیزان</h4>${extended}</div>${body || `<p class="study-unavailable">برای این آیه متن تفسیری از منابع بارگیری‌شده در دسترس نیست.</p>`}${major}${catalogue}</section>`;
+ }
+ 
+ function detailPanelNotes(verse) {
+-  const distributions = evidenceDistribution(verse);
+-  const sourceEntries = tafsirEntries(verse);
+-  const lexicalRange = distributions.map((item) => item.count ? `${item.label}: ${faNumber(item.count)} آیه / ${faNumber(item.surahs)} سوره` : `${item.label}: مسیر غیرواژگانی`).join("؛ ");
+   return `<section class="detail-panel"><p class="eyebrow">نکات آیه ـ دادهٔ قابل بازبینی</p><h3>متن، نکته‌های قابل پیگیری و شاهدِ منبع‌دار</h3>
+     <p class="reading-notice">«صورتِ بازیابی» با «معنای نهایی» یکی نیست. نخست نکته‌های متن‌محور و نقلِ آیه را ببینید؛ سپس دادهٔ دقیقِ بازیابی و مرزِ استنتاج را کنترل کنید.</p>
+-    ${inlineStudyBody(verse, "notes")}
+-    <ul class="study-list">
+-      <li><b>شناسهٔ متن</b>${escapeHTML(verse.reference)} · ${escapeHTML(verse.revelation)} · آیهٔ ${faNumber(verse.ayah)} از سورهٔ ${faNumber(verse.surah)}.</li>
+-      <li><b>واژه/مسیر شاهد</b>${escapeHTML(verse.evidence.map((item) => `${item.label} (${item.source})`).join("، "))}</li>
+-      <li><b>دامنهٔ مشاهده‌پذیر</b>${escapeHTML(lexicalRange || "برای این مسیر، آمار واژگانیِ مستقلی ثبت نشده است.")}</li>
+-      <li><b>شرحِ منبع‌دار</b>${sourceEntries.length ? `${faNumber(sourceEntries.length)} متن تفسیریِ قابل استناد برای همین آیه آماده است؛ در تب «تفاسیر منبع‌دار» متنِ کامل، نسخه و پیوند را ببینید.` : "متن تفسیری در این نشست بارگیری نشده است."}</li>
+-      <li><b>سطح ارتباط</b>${escapeHTML(typeLabel(verse.type))}. ${verse.type === "related" ? "این پیوند برای مقایسه است و هم‌معنایی قطعی یا مقصد سوره را ثابت نمی‌کند." : "تطابق در متن عربی یا عبارت انتخاب‌شده ثبت شده است."}</li>
+-      <li><b>کنترل خوانش</b>فاعل/مفعول یا مخاطب، نفی و اثبات، قیدها و نسبتِ جمله با پیش و پس را از خودِ متن جداگانه ثبت کنید.</li>
+-    </ul></section>`;
++    ${inlineStudyBody(verse, "notes")}</section>`;
+ }
+ 
+ function detailPanelFoundations(verse) {
+--- a/static/index.html
++++ b/static/index.html
+@@ -128,7 +128,7 @@
+           <button data-detail-tab="thematic" type="button" role="tab" aria-selected="false">تفسیر موضوعی</button>
+           <button data-detail-tab="network" type="button" role="tab" aria-selected="false">نظم شبکه‌ای</button>
+           <button data-detail-tab="quran" type="button" role="tab" aria-selected="false">نسبت با قرآن</button>
+-          <button data-detail-tab="tafsir" type="button" role="tab" aria-selected="false">تفاسیر منبع‌دار</button>
++          <button data-detail-tab="tafsir" type="button" role="tab" aria-selected="false">منابع تفسیری آیه</button>
+           <button data-detail-tab="research" type="button" role="tab" aria-selected="false">پژوهش در آیه</button>
+         </div>
+         <div id="detail-panels" class="detail-panels"></div>
