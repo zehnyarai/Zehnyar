@@ -148,3 +148,17 @@ h1, h2, h3, p { margin-top: 0; } h1 { max-width: 740px; margin: 21px auto 15px; 
 .admin-proposal { padding: 13px; border: 1px solid #cfe2e6; border-radius: 12px; background: #f8fcfc; }
 .admin-proposal > header { display: flex; justify-content: space-between; gap: 10px; color: #285f70; }
 .admin-proposal > header small { color: #718996; }
+
+/* لایهٔ پژوهشیِ هر آیه: چهار ستونِ خوانش کهن، پژوهش معاصر، نقد و پرسش */
+.scholar-layer { margin-top: 18px; padding: 18px; border: 1px solid #cdE3E6; border-right: 4px solid #46a8a3; border-radius: 14px; background: linear-gradient(160deg, #f6fcfb, #f7f9ff); }
+.scholar-layer .eyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 10px; color: #1f6076; font-size: 11px; font-weight: 800; letter-spacing: .02em; }
+.scholar-badge { padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+.scholar-badge.reviewed { color: #0d5f52; background: #d9f2ea; }
+.scholar-badge.draft { color: #725a13; background: #fbf1d4; }
+.scholar-list { display: grid; gap: 9px; padding: 0; margin: 0; list-style: none; }
+.scholar-list li { padding: 11px 12px; border: 1px solid #e2edf1; border-radius: 11px; background: #fff; font-size: 11px; line-height: 2; }
+.scholar-list li b { display: block; margin-bottom: 3px; color: #175f6b; font-size: 10.5px; }
+.scholar-list li span { color: #3f5c6b; }
+.scholar-list li small { display: block; margin-top: 5px; color: #6c8593; font-size: 10px; }
+.scholar-list li em { color: #35697a; font-style: normal; font-weight: 700; }
+.scholar-note { margin: 11px 0 0; color: #6b8592; font-size: 10px; line-height: 1.9; }

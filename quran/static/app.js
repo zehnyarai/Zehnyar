@@ -6,6 +6,9 @@ const TOPIC_CATALOG_URL = "static/topic-catalog.json";
 const TAFSIR_SOURCES_URL = "static/tafsir-sources.json";
 const TAFSIR_CATALOG_URL = "static/tafsir-catalog.json";
 const VERSE_STUDIES_URL = "static/verse-study-annotations.json";
+const SCHOLAR_BANK_URL = "static/scholar-bank.json";
+const SCHOLAR_LAYER_URL = "static/verse-scholar-layer.json";
+const SCHOLAR_PILOT_URL = "static/scholar-pilot.json";
 const NOTEBOOK_KEY = "zehnyar-verse-notebook-v2";
 const FIELD_NOTES_KEY = "quran-pazhuheh-field-notes-v1";
 const VERSE_PROPOSALS_KEY = "quran-pazhuheh-verse-proposals-v1";
@@ -15,6 +18,10 @@ const PAGE_SIZE = 12;
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
 const state = {
+  scholarAnchorById: null,
+  scholarLayer: null,
+  scholarPilot: null,
+  scholarPilotData: null,
   screen: "search",
   corpus: [],
   recordById: new Map(),
@@ -186,6 +193,26 @@ function recordFromTuple(tuple) {
   };
 }
 
+async function loadScholarLayer() {
+  try {
+    const [bankResponse, layerResponse, pilotResponse] = await Promise.all([
+      fetch(SCHOLAR_BANK_URL), fetch(SCHOLAR_LAYER_URL), fetch(SCHOLAR_PILOT_URL),
+    ]);
+    if (!bankResponse.ok || !layerResponse.ok) return;
+    const bank = await bankResponse.json();
+    const layer = await layerResponse.json();
+    state.scholarAnchorById = new Map((bank.anchors || []).map((anchor) => [anchor.id, anchor]));
+    state.scholarLayer = layer.anchors || {};
+    state.scholarPilot = new Set(layer.pilot || []);
+    if (pilotResponse.ok) {
+      state.scholarPilotData = (await pilotResponse.json()).verses || {};
+    }
+  } catch (error) {
+    // لایهٔ پژوهشی اختیاری است؛ نبودِ آن نباید مطالعهٔ آیه را متوقف کند.
+    state.scholarAnchorById = null;
+  }
+}
+
 async function loadData() {
   const [corpusResponse, lexiconResponse, storyResponse, storyDossiersResponse, catalogResponse, tafsirRegistryResponse, tafsirCatalogResponse, studiesResponse] = await Promise.all([
     fetch(CORPUS_URL), fetch(LEXICON_URL), fetch(STORY_INDEX_URL), fetch(STORY_DOSSIERS_URL), fetch(TOPIC_CATALOG_URL), fetch(TAFSIR_SOURCES_URL), fetch(TAFSIR_CATALOG_URL), fetch(VERSE_STUDIES_URL),
@@ -211,6 +238,7 @@ async function loadData() {
   state.corpus = corpus.verses.map(recordFromTuple);
   state.recordById = new Map(state.corpus.map((record) => [record.id, record]));
   $("#result-corpus").textContent = `${faNumber(state.corpus.length)} آیه`;
+  await loadScholarLayer();
   await refreshPublicProposals();
   renderStarters();
 }
@@ -1051,6 +1079,71 @@ function fieldNotePanel(verse, field) {
   return `<section class="field-note-panel"><label for="${inputId}"><b>یادداشت من</b><span>یادداشت شخصی برای بخش «${escapeHTML(labels[field] || field)}»</span></label><textarea id="${inputId}" class="note-area" data-field-note="${escapeHTML(field)}" data-verse-id="${escapeHTML(verse.id)}" maxlength="3000" placeholder="پرسش، برداشت شخصی یا ارجاعی که می‌خواهید برای این بخش نگه دارید…">${escapeHTML(state.fieldNotes[key] || "")}</textarea><small class="field-note-status" aria-live="polite">ذخیرهٔ خودکار فقط در همین دستگاه</small></section>`;
 }
 
+const SCHOLAR_SLICES = {
+  notes: ["finding", "witness"],
+  messages: ["finding", "classical"],
+  principles: ["critique", "classical"],
+  foundations: ["witness", "modern"],
+  framework: ["modern", "critique"],
+  context: ["witness", "classical"],
+  network: ["modern", "question"],
+  quran: ["finding", "modern"],
+  tafsir: ["classical", "critique"],
+  research: ["question", "critique", "modern"],
+};
+
+const SCHOLAR_LABEL = {
+  finding: "یافته",
+  witness: "شاهدِ متنی",
+  classical: "خوانش کهن",
+  modern: "پژوهش معاصر",
+  critique: "خوانش انتقادی و مرزِ استنباط",
+  question: "پرسش پژوهشیِ تازه",
+};
+
+function scholarCite(text) {
+  return escapeHTML(text).replace(/\*([^*]+)\*/g, "<em>$1</em>");
+}
+
+function scholarBlock(verse, field) {
+  if (!state.scholarAnchorById) return "";
+  const pilot = state.scholarPilotData ? state.scholarPilotData[verse.id] : null;
+  const ids = (state.scholarLayer && state.scholarLayer[verse.id]) || [];
+  const anchors = ids.map((id) => state.scholarAnchorById.get(id)).filter(Boolean);
+  if (!pilot && !anchors.length) return "";
+
+  const rows = [];
+  if (pilot) {
+    for (const key of SCHOLAR_SLICES[field] || ["finding"]) {
+      if (pilot[key]) {
+        rows.push(`<li><b>${SCHOLAR_LABEL[key]}</b><span>${scholarCite(pilot[key])}</span></li>`);
+      }
+    }
+    if (["context", "tafsir", "notes"].includes(field) && pilot.witness) {
+      // شاهدِ متنی در این سه بخش تکرار نمی‌شود اگر پیش‌تر آمده باشد
+    }
+  } else {
+    const wantCritique = ["principles", "research", "framework", "tafsir"].includes(field);
+    const wantQuestion = ["research", "network"].includes(field);
+    anchors.slice(0, 3).forEach((anchor) => {
+      const kind = anchor.kind === "کهن" ? "خوانش کهن" : "پژوهش معاصر";
+      rows.push(`<li><b>${kind} · ${escapeHTML(anchor.field)}</b><span>${scholarCite(anchor.claim)}</span><small>${scholarCite(anchor.cite)}</small></li>`);
+      if (wantCritique) {
+        rows.push(`<li><b>${SCHOLAR_LABEL.critique}</b><span>${scholarCite(anchor.limit)}</span></li>`);
+      }
+      if (wantQuestion) {
+        rows.push(`<li><b>${SCHOLAR_LABEL.question}</b><span>${scholarCite(anchor.question)}</span></li>`);
+      }
+    });
+  }
+
+  const badge = pilot ? "بازبینی‌شده" : "پیش‌نویسِ تحلیلی";
+  const note = pilot
+    ? "این بخش با خوانشِ اختصاصیِ همین آیه نوشته شده و هر بندش شاهد یا منبع دارد."
+    : "این بندها از بانکِ منابعِ کهن و پژوهش‌های داوری‌شده برگرفته شده‌اند و برای همین آیه انتخاب شده‌اند؛ ابزارِ سنجشِ خوانش‌اند، نه تفسیرِ نهایی.";
+  return `<section class="scholar-layer"><p class="eyebrow">لایهٔ پژوهشی <span class="scholar-badge ${pilot ? "reviewed" : "draft"}">${badge}</span></p><ul class="scholar-list">${rows.join("")}</ul><p class="scholar-note">${note}</p></section>`;
+}
+
 function renderDetailPanel() {
   const verse = state.selected;
   if (!verse) return;
@@ -1068,7 +1161,7 @@ function renderDetailPanel() {
   };
   const panel = (panels[state.detailTab] || detailPanelNotes)(verse);
   const researchSubmission = state.detailTab === "research" ? `<section class="detail-panel research-submission"><h3>برداشت یا پیشنهاد پژوهش من</h3><p>موضوع را همراه شاهدی از همین آیه بفرستید؛ پیشنهاد تا بازبینی مدیر منتشر نمی‌شود.</p>${proposalForm(verse, "research")}</section>` : "";
-  $("#detail-panels").innerHTML = `${panel}${fieldNotePanel(verse, state.detailTab)}${researchSubmission}`;
+  $("#detail-panels").innerHTML = `${panel}${scholarBlock(verse, state.detailTab)}${fieldNotePanel(verse, state.detailTab)}${researchSubmission}`;
 }
 
 function saveNote() {
