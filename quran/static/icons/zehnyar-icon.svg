@@ -1,8 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#075b7a"/><stop offset="1" stop-color="#18aaa9"/></linearGradient></defs>
-  <rect width="512" height="512" rx="116" fill="url(#g)"/>
-  <circle cx="256" cy="256" r="145" fill="none" stroke="#c7f8f4" stroke-width="18" opacity=".8"/>
-  <circle cx="256" cy="256" r="42" fill="#fff"/>
-  <circle cx="256" cy="126" r="25" fill="#baf1ef"/><circle cx="369" cy="321" r="25" fill="#baf1ef"/><circle cx="143" cy="321" r="25" fill="#baf1ef"/>
-  <path d="M256 168v46M221 276l-56 32M291 276l56 32" stroke="#e7ffff" stroke-width="17" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">نشان قرآن‌پژوهه: کتابِ گشوده و نورِ پژوهش</title>
+  <defs>
+    <radialGradient id="background" cx="50%" cy="48%" r="78%">
+      <stop offset="0" stop-color="#126477"/>
+      <stop offset="1" stop-color="#043e52"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#background)"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M256 91C178 91 118 139 82 226c81 16 138 72 161 137 8 25 12 45 13 62" stroke="#c9fff1" stroke-width="8"/>
+    <path d="M256 91c78 0 138 48 174 135-81 16-138 72-161 137-8 25-12 45-13 62" stroke="#c9fff1" stroke-width="8"/>
+    <path d="M256 106c-75 0-124 45-152 110 67 19 115 70 136 126 9 21 14 39 16 57" stroke="#1bd3c4" stroke-width="6"/>
+    <path d="M256 106c75 0 124 45 152 110-67 19-115 70-136 126-9 21-14 39-16 57" stroke="#1bd3c4" stroke-width="6"/>
+    <path d="M256 267c-26-43-70-82-119-105M256 273c-37-39-87-64-134-86M256 295c-45-43-96-70-150-90" stroke="#d7fff5" stroke-width="5"/>
+    <path d="M256 267c26-43 70-82 119-105M256 273c37-39 87-64 134-86M256 295c45-43 96-70 150-90" stroke="#d7fff5" stroke-width="5"/>
+    <path d="M256 277v20" stroke="#d7fff5" stroke-width="4"/>
+  </g>
+  <circle cx="256" cy="267" r="10" fill="#fff4cf"/>
 </svg>

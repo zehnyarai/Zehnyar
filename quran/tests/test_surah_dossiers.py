@@ -146,3 +146,31 @@ def test_surah_page_exposes_the_requested_fields_and_offline_data_is_cached():
         assert label in html or label in app
     assert 'appPath("/static/surah-dossiers.json")' in service_worker
     assert "build_surah_dossiers.py" in (ROOT / "tools" / "build_surah_dossiers.py").read_text(encoding="utf-8")
+
+
+def test_selected_brand_icon_is_consistent_across_web_and_android():
+    import struct
+    import xml.etree.ElementTree as ET
+
+    manifest = json.loads((STATIC / "manifest.webmanifest").read_text(encoding="utf-8"))
+    icons = {icon["sizes"]: icon for icon in manifest["icons"]}
+    assert icons["192x192"]["src"] == "static/icons/zehnyar-192.png"
+    assert icons["512x512"]["src"] == "static/icons/zehnyar-512.png"
+    assert all("maskable" in icon["purpose"] for icon in icons.values())
+    for size, path in ((192, STATIC / "icons" / "zehnyar-192.png"), (512, STATIC / "icons" / "zehnyar-512.png")):
+        data = path.read_bytes()
+        assert data.startswith(b"\x89PNG\r\n\x1a\n")
+        assert struct.unpack(">II", data[16:24]) == (size, size)
+
+    android_icon = ROOT / "mobile" / "android" / "app" / "src" / "main" / "res" / "drawable-nodpi" / "ic_zehnyar.png"
+    assert android_icon.is_file()
+    assert struct.unpack(">II", android_icon.read_bytes()[16:24]) == (512, 512)
+    android_manifest = ET.parse(ROOT / "mobile" / "android" / "app" / "src" / "main" / "AndroidManifest.xml").getroot()
+    application = android_manifest.find("application")
+    assert application is not None and application.attrib["{http://schemas.android.com/apk/res/android}icon"] == "@drawable/ic_zehnyar"
+    assert not (ROOT / "mobile" / "android" / "app" / "src" / "main" / "res" / "drawable" / "ic_zehnyar.xml").exists()
+
+    svg = ET.parse(STATIC / "icons" / "zehnyar-icon.svg").getroot()
+    assert svg.attrib["viewBox"] == "0 0 512 512"
+    assert 'static/icons/zehnyar-192.png' in (STATIC / "index.html").read_text(encoding="utf-8")
+    assert "zehnyar-shell-v76" in (STATIC / "sw.js").read_text(encoding="utf-8")
