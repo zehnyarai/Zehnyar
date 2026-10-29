@@ -52,6 +52,32 @@ def test_each_verse_mixes_classical_and_modern_scholarship():
         assert any("ق،" not in cite for cite in cites), f"{vid}: ارجاعِ معاصر ندارد"
 
 
+def test_classical_and_modern_fields_are_independently_sourced():
+    """هر آیه باید دست‌کم دو خوانشِ کهن و دو پژوهشِ معاصر با ارجاع داشته باشد."""
+    for vid, entry in entries():
+        assert len(entry["classical"]) >= 2, f"{vid}: خوانش کهن کم است"
+        assert len(entry["modern"]) >= 2, f"{vid}: پژوهش معاصر کم است"
+        for item in entry["classical"]:
+            assert "ق،" in item["cite"] or "Izutsu" in item["cite"], f"{vid}: خوانش کهن ارجاعِ کهن ندارد"
+        for item in entry["modern"]:
+            assert any(token in item["cite"] for token in ("ق،", "، ۱۳", "، ۱۴", ", 19", ", 20")), (
+                f"{vid}: ارجاعِ معاصر مشخص نیست"
+            )
+
+
+def test_no_foreign_script_leaks_into_persian_text():
+    import re
+
+    pattern = re.compile(r"[A-Za-zÀ-ÿ]+")
+    allowed = {"Izutsu", "Neuwirth", "Hirsch", "Gadamer", "Kahneman", "Nickerson", "Hart", "Motzki", "Nöldeke"}
+    for vid, entry in entries():
+        for field in FIELDS:
+            for item in entry[field]:
+                prose = re.sub(r"«[^»]*»", "", item["text"])  # واژهٔ خارجیِ نقل‌شده مجاز است
+                leaks = set(pattern.findall(prose)) - allowed
+                assert not leaks, f"{vid}:{field} واژهٔ غیرفارسی در متن: {leaks}"
+
+
 def test_critical_reading_is_substantive():
     for vid, entry in entries():
         assert len(entry["critical"]) >= 3, f"{vid}: خوانش انتقادی کم‌تر از سه بند است"
