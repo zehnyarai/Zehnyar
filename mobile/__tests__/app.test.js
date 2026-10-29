@@ -12,6 +12,7 @@ import ExploreScreen from '../src/screens/ExploreScreen';
 import AdvisorScreen from '../src/screens/AdvisorScreen';
 import ProfileScreen from '../src/screens/ProfileScreen';
 import PaymentsScreen from '../src/screens/PaymentsScreen';
+import AdminScreen from '../src/screens/AdminScreen';
 import WizardScreen from '../src/screens/WizardScreen';
 import ResultsScreen from '../src/screens/ResultsScreen';
 import CountryDetailScreen from '../src/screens/CountryDetailScreen';
@@ -121,6 +122,17 @@ describe('Visayar app', () => {
     expect(text).not.toContain('اطلاعات کارت برای این نسخه تنظیم نشده است');
     expect(text).not.toContain('کد فعال‌سازی');
     expect(text).not.toContain('پیام‌رسان');
+  });
+
+  it('includes an offline-safe admin panel preview inside the app', () => {
+    const tree = renderWithProviders(<AdminScreen navigation={navigation} />);
+    const previewButton = tree.root.findAllByType(Button).find((button) => button.props.label === 'دیدن پیش‌نمایش پنل');
+    expect(previewButton).toBeTruthy();
+    act(() => previewButton.props.onPress());
+    const text = JSON.stringify(tree.toJSON());
+    expect(text).toContain('این پیش‌نمایش فقط داده‌های ساختگی دارد');
+    expect(text).toContain('دیدن نمونه رسید');
+    expect(text).not.toContain('تأیید و افزودن اعتبار');
   });
 
   it('walks through all eight wizard steps', () => {
