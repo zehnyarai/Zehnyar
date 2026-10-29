@@ -1030,7 +1030,9 @@ function dossierCoverage() {
   const batches = (state.verseDossierMeta && state.verseDossierMeta.batches) || [];
   const current = batches[batches.length - 1];
   const scope = current ? ` · آخرین بسته: ${escapeHTML(current.range)}` : "";
-  return `<p class="dossier-progress"><b>پیشرفتِ پرونده</b> ${faNumber(written)} آیه از ${faNumber(total)} آیه خوانشِ تحریریِ شش‌فیلدی دارند؛ بقیه با لنگرهای پژوهشی و برچسبِ پیش‌نویس نمایش داده می‌شوند${scope}.</p>`;
+  const fresh = Object.values(state.verseDossiers || {}).filter((entry) => (entry.notes || []).length >= 5 && (entry.modern || []).length >= 5 && (entry.research || []).length >= 4).length;
+  const standard = fresh ? ` از این میان، ${faNumber(fresh)} آیه در استانداردِ تازه (۵ نکته، ۵ مطالعهٔ معاصر، ۴–۵ پرسش) نوشته شده‌اند` : "";
+  return `<p class="dossier-progress"><b>پیشرفتِ پرونده</b> ${faNumber(written)} آیه از ${faNumber(total)} آیه خوانشِ تحریریِ شش‌فیلدی دارند؛${standard} بقیه با لنگرهای پژوهشی و برچسبِ پیش‌نویس نمایش داده می‌شوند${scope}.</p>`;
 }
 
 function dossierMethodNote() {

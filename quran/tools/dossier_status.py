@@ -34,6 +34,20 @@ def corpus_ids(records) -> list[str]:
     return ids
 
 
+STANDARD = {"notes": 5, "modern": 5, "research": 4}
+
+
+def standard_ready(entry) -> bool:
+    """آیا آیه در استانداردِ تازه (۵ نکته، ۵ مطالعهٔ معاصر، ۴–۵ پرسش) نوشته شده است؟"""
+    return all(len(entry.get(field) or []) >= need for field, need in STANDARD.items())
+
+
+def report_standard(dossier) -> str:
+    verses = dossier.get("verses", {})
+    ready = [vid for vid, entry in verses.items() if standard_ready(entry)]
+    return f"آیه‌های استانداردِ تازه: {len(ready)} از {len(verses)}" + (f" (تا {ready[-1]})" if ready else "")
+
+
 def span(first: str, last: str) -> int:
     """تعدادِ آیه در بازهٔ بسته."""
     fs, fa = map(int, first.split(":"))
@@ -104,6 +118,7 @@ def main() -> int:
         print(f"هشدار: آیهٔ ناموجود در پیکره: {sorted(unknown)}")
 
     broken = {vid: audit(entry) for vid, entry in dossier["verses"].items() if audit(entry)}
+    print(report_standard(dossier))
     print("سلامتِ داده:", "سالم" if not broken else f"{len(broken)} مدخلِ نیازمندِ اصلاح")
     for vid, problems in broken.items():
         print(f"  · {vid}: {'؛ '.join(problems)}")
