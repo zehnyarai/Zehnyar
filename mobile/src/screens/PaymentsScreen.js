@@ -256,6 +256,7 @@ export default function PaymentsScreen({ navigation }) {
           )}
         </Card>
 
+
         {request ? (
           <Card>
             <SectionTitle title={t('payments.statusTitle')} />
