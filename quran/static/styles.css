@@ -206,3 +206,5 @@ h1, h2, h3, p { margin-top: 0; } h1 { max-width: 740px; margin: 21px auto 15px; 
 .dossier-empty { padding: 10px 12px; color: #607d8b; border-radius: 10px; background: #f6fbfb; font-size: 11px; line-height: 2; }
 .context-strip { margin-top: 12px; }
 @media (max-width: 700px) { .dossier-item span { font-size: 11px; } .more-tabs[open] { width: 100%; } }
+.dossier-progress { margin: 8px 0 0; padding: 8px 10px; color: #5b7a86; border-radius: 9px; background: #f4fafa; font-size: 9.5px; line-height: 1.95; }
+.dossier-progress b { color: #2b6a7f; }

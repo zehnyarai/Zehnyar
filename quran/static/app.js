@@ -1020,10 +1020,20 @@ function dossierItems(verse, field) {
   return `<ol class="dossier-list">${items.map((item, index) => `<li class="dossier-item"><b>${escapeHTML(meta.label)} ${faNumber(index + 1)}</b><span>${scholarCite(item.text)}</span><small>${scholarCite(item.cite || "")}</small></li>`).join("")}</ol>`;
 }
 
+function dossierCoverage() {
+  const written = Object.keys(state.verseDossiers || {}).length;
+  const total = (state.corpus && state.corpus.length) || 6236;
+  const batches = (state.verseDossierMeta && state.verseDossierMeta.batches) || [];
+  const current = batches[batches.length - 1];
+  const scope = current ? ` · آخرین بسته: ${escapeHTML(current.range)}` : "";
+  return `<p class="dossier-progress"><b>پیشرفتِ پرونده</b> ${faNumber(written)} آیه از ${faNumber(total)} آیه خوانشِ تحریریِ شش‌فیلدی دارند؛ بقیه با لنگرهای پژوهشی و برچسبِ پیش‌نویس نمایش داده می‌شوند${scope}.</p>`;
+}
+
 function dossierMethodNote() {
   const meta = state.verseDossierMeta;
-  if (!meta || !meta.method) return "";
-  return `<details class="dossier-method"><summary>روشِ این خوانش و قاعدهٔ ارجاع</summary><p>${escapeHTML(meta.method)}</p></details>`;
+  const progress = dossierCoverage();
+  if (!meta || !meta.method) return progress;
+  return `<details class="dossier-method"><summary>روشِ این خوانش و قاعدهٔ ارجاع</summary><p>${escapeHTML(meta.method)}</p>${progress}</details>`;
 }
 
 function detailPanelDossier(verse, field) {
@@ -1045,7 +1055,7 @@ function detailPanelModern(verse) {
   if (curated) return curated;
   const anchors = dossierAnchors(verse, "معاصر");
   const items = anchors.map((anchor) => `<li class="dossier-item"><b>${escapeHTML(anchor.field)}</b><span>${scholarCite(anchor.claim)}</span><small>${scholarCite(anchor.cite)}</small></li>`).join("");
-  return `<section class="detail-panel dossier-panel"><p class="eyebrow">مطالعات قرآنی و تفسیریِ معاصر</p><h3>مسیرِ پژوهشِ امروز برای این آیه</h3><p class="reading-notice draft-study-notice">برای این آیه هنوز خوانشِ تحریریِ معاصر نوشته نشده است. به‌جای متنِ ساختگی، پژوهش‌های معاصرِ هم‌موضوع و مرزِ استنباطشان نشان داده می‌شود؛ این بندها جانشینِ خوانشِ همین آیه نیستند.</p>${items ? `<ol class="dossier-list">${items}</ol>` : `<p class="dossier-empty">در بانکِ پژوهش، لنگرِ معاصری برای این آیه ثبت نشده است؛ نوشتنِ خوانشِ معاصر باید از پیکره و منابعِ داوری‌شده آغاز شود.</p>`}</section>`;
+  return `<section class="detail-panel dossier-panel"><p class="eyebrow">مطالعات قرآنی و تفسیریِ معاصر</p><h3>مسیرِ پژوهشِ امروز برای این آیه</h3><p class="reading-notice draft-study-notice">برای این آیه هنوز خوانشِ تحریریِ معاصر نوشته نشده است. به‌جای متنِ ساختگی، پژوهش‌های معاصرِ هم‌موضوع و مرزِ استنباطشان نشان داده می‌شود؛ این بندها جانشینِ خوانشِ همین آیه نیستند.</p>${items ? `<ol class="dossier-list">${items}</ol>` : `<p class="dossier-empty">در بانکِ پژوهش، لنگرِ معاصری برای این آیه ثبت نشده است؛ نوشتنِ خوانشِ معاصر باید از پیکره و منابعِ داوری‌شده آغاز شود.</p>`}${dossierCoverage()}</section>`;
 }
 
 function detailPanelCritical(verse) {
@@ -1053,7 +1063,7 @@ function detailPanelCritical(verse) {
   if (curated) return curated;
   const anchors = [...dossierAnchors(verse, "معاصر"), ...dossierAnchors(verse, "کهن")].slice(0, 3);
   const items = anchors.map((anchor) => `<li class="dossier-item"><b>${escapeHTML(anchor.field)} · ${escapeHTML(anchor.kind)}</b><span>${scholarCite(anchor.limit)}</span><small>${scholarCite(anchor.cite)} · پرسشِ باز: ${scholarCite(anchor.question)}</small></li>`).join("");
-  return `<section class="detail-panel dossier-panel"><p class="eyebrow">خوانش انتقادی · سنجشِ پیش‌فرض و مرز</p><h3>چه چیزی را می‌توان نقد کرد و چه چیزی را نه</h3><p class="reading-notice draft-study-notice">برای این آیه خوانشِ انتقادیِ تحریری نوشته نشده است. آنچه می‌بینید مرزِ استنباطِ لنگرهای پژوهشی است، نه نقدِ نهایی؛ خوانشِ انتقادی پیش از هر چیز پیش‌فرض‌ها و تبارِ تطبیق‌ها را می‌سنجد.</p>${items ? `<ol class="dossier-list">${items}</ol>` : `<p class="dossier-empty">لنگرِ پژوهشیِ ثبت‌شده‌ای برای سنجشِ انتقادیِ این آیه در بانک نیست.</p>`}</section>`;
+  return `<section class="detail-panel dossier-panel"><p class="eyebrow">خوانش انتقادی · سنجشِ پیش‌فرض و مرز</p><h3>چه چیزی را می‌توان نقد کرد و چه چیزی را نه</h3><p class="reading-notice draft-study-notice">برای این آیه خوانشِ انتقادیِ تحریری نوشته نشده است. آنچه می‌بینید مرزِ استنباطِ لنگرهای پژوهشی است، نه نقدِ نهایی؛ خوانشِ انتقادی پیش از هر چیز پیش‌فرض‌ها و تبارِ تطبیق‌ها را می‌سنجد.</p>${items ? `<ol class="dossier-list">${items}</ol>` : `<p class="dossier-empty">لنگرِ پژوهشیِ ثبت‌شده‌ای برای سنجشِ انتقادیِ این آیه در بانک نیست.</p>`}${dossierCoverage()}</section>`;
 }
 
 function detailPanelNotes(verse) {
