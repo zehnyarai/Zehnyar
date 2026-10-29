@@ -9,6 +9,7 @@ const VERSE_STUDIES_URL = "static/verse-study-annotations.json";
 const SCHOLAR_BANK_URL = "static/scholar-bank.json";
 const SCHOLAR_LAYER_URL = "static/verse-scholar-layer.json";
 const SCHOLAR_PILOT_URL = "static/scholar-pilot.json";
+const SCHOLAR_APPLICATION_URL = "static/scholar-application.json";
 const NOTEBOOK_KEY = "zehnyar-verse-notebook-v2";
 const FIELD_NOTES_KEY = "quran-pazhuheh-field-notes-v1";
 const VERSE_PROPOSALS_KEY = "quran-pazhuheh-verse-proposals-v1";
@@ -22,6 +23,8 @@ const state = {
   scholarLayer: null,
   scholarPilot: null,
   scholarPilotData: null,
+  scholarApplication: null,
+  scholarApplicationMeta: null,
   screen: "search",
   corpus: [],
   recordById: new Map(),
@@ -195,8 +198,8 @@ function recordFromTuple(tuple) {
 
 async function loadScholarLayer() {
   try {
-    const [bankResponse, layerResponse, pilotResponse] = await Promise.all([
-      fetch(SCHOLAR_BANK_URL), fetch(SCHOLAR_LAYER_URL), fetch(SCHOLAR_PILOT_URL),
+    const [bankResponse, layerResponse, pilotResponse, applicationResponse] = await Promise.all([
+      fetch(SCHOLAR_BANK_URL), fetch(SCHOLAR_LAYER_URL), fetch(SCHOLAR_PILOT_URL), fetch(SCHOLAR_APPLICATION_URL),
     ]);
     if (!bankResponse.ok || !layerResponse.ok) return;
     const bank = await bankResponse.json();
@@ -206,6 +209,14 @@ async function loadScholarLayer() {
     state.scholarPilot = new Set(layer.pilot || []);
     if (pilotResponse.ok) {
       state.scholarPilotData = (await pilotResponse.json()).verses || {};
+    }
+    if (applicationResponse.ok) {
+      const application = await applicationResponse.json();
+      state.scholarApplication = application.verses || {};
+      state.scholarApplicationMeta = {
+        batches: application.batches || [],
+        method: application.method || null,
+      };
     }
   } catch (error) {
     // لایهٔ پژوهشی اختیاری است؛ نبودِ آن نباید مطالعهٔ آیه را متوقف کند.
@@ -1073,7 +1084,7 @@ function detailPanelNotebook(verse) {
 }
 
 function fieldNotePanel(verse, field) {
-  const labels = { notes: "نکات مهم آیه", foundations: "اصول زندگی و مبانی", framework: "چارچوب معنایی", messages: "پیام‌های آیه", context: "سیاق آیات", thematic: "تفسیر موضوعی", network: "نظم شبکه‌ای", quran: "نسبت با قرآن", tafsir: "منابع تفسیری آیه", research: "پژوهش در آیه" };
+  const labels = { notes: "نکات مهم آیه", foundations: "اصول زندگی و مبانی", framework: "چارچوب معنایی", messages: "پیام‌های آیه", context: "سیاق آیات", thematic: "تفسیر موضوعی", network: "نظم شبکه‌ای", quran: "نسبت با قرآن", tafsir: "منابع تفسیری آیه", research: "پژوهش در آیه", application: "کاربست امروز" };
   const key = `${verse.id}:${field}`;
   const inputId = `field-note-${field}`;
   return `<section class="field-note-panel"><label for="${inputId}"><b>یادداشت من</b><span>یادداشت شخصی برای بخش «${escapeHTML(labels[field] || field)}»</span></label><textarea id="${inputId}" class="note-area" data-field-note="${escapeHTML(field)}" data-verse-id="${escapeHTML(verse.id)}" maxlength="3000" placeholder="پرسش، برداشت شخصی یا ارجاعی که می‌خواهید برای این بخش نگه دارید…">${escapeHTML(state.fieldNotes[key] || "")}</textarea><small class="field-note-status" aria-live="polite">ذخیرهٔ خودکار فقط در همین دستگاه</small></section>`;
@@ -1090,6 +1101,7 @@ const SCHOLAR_SLICES = {
   quran: ["finding", "modern"],
   tafsir: ["classical", "critique"],
   research: ["question", "critique", "modern"],
+  application: [],
 };
 
 const SCHOLAR_LABEL = {
@@ -1144,6 +1156,46 @@ function scholarBlock(verse, field) {
   return `<section class="scholar-layer"><p class="eyebrow">لایهٔ پژوهشی <span class="scholar-badge ${pilot ? "reviewed" : "draft"}">${badge}</span></p><ul class="scholar-list">${rows.join("")}</ul><p class="scholar-note">${note}</p></section>`;
 }
 
+function applicationPanel(verse) {
+  const meta = state.scholarApplicationMeta;
+  const entry = state.scholarApplication ? state.scholarApplication[verse.id] : null;
+  const batch = meta && meta.batches.length ? meta.batches[0] : null;
+  const head = `<p class="eyebrow">کاربست امروز · استنباط، نه متن</p><h3>از متن به میدان، با مرزِ روشن</h3>
+    <p class="reading-notice">هر کاربست، یک استنباط است و باید سه چیز را نشان دهد: شاهدِ متنی، منبع، و جایی که کاربست نباید به آنجا برود. کاربستِ بی‌شاهد، شعار است.</p>`;
+
+  if (entry) {
+    return `<section class="detail-panel application-panel">${head}
+      <div class="apply-batch"><span class="apply-badge">${batch ? escapeHTML(batch.status) : "بازبینی‌شده"}</span><span>${batch ? escapeHTML(batch.title) + " · " + escapeHTML(batch.range) : ""}</span></div>
+      <article class="apply-card">
+        <p class="apply-field">میدانِ کاربست: ${escapeHTML(entry.field)}</p>
+        <p class="apply-text">${scholarCite(entry.text)}</p>
+        <ul class="apply-meta">
+          <li><b>شاهدِ متنی</b><span>${scholarCite(entry.basis)}</span></li>
+          <li><b>منبع</b><span>${scholarCite(entry.cite)}</span></li>
+        </ul>
+        <p class="apply-guard"><b>مرزِ سوءاستفاده</b>${scholarCite(entry.guard)}</p>
+      </article>
+      ${entry.anchors && entry.anchors.length ? `<div class="apply-anchors">${entry.anchors.map((id) => {
+        const anchor = state.scholarAnchorById ? state.scholarAnchorById.get(id) : null;
+        return anchor ? `<span title="${escapeHTML(anchor.limit)}">${escapeHTML(anchor.kind)} · ${escapeHTML(anchor.field)}</span>` : "";
+      }).join("")}</div>` : ""}
+      <p class="scholar-note">این کاربست در «${batch ? escapeHTML(batch.title) : "بستهٔ بازبینی‌شده"}» نوشته شده؛ برای آیه‌های دیگر، همین ساختار را با سه دروازهٔ پایین بسازید.</p>
+      ${methodBlock(meta)}
+    </section>`;
+  }
+
+  return `<section class="detail-panel application-panel">${head}
+    <p class="apply-empty">برای این آیه هنوز کاربستِ دست‌نویس نوشته نشده است. به‌جای تولیدِ خودکارِ کاربست (که به تحمیل می‌انجامد)، سه دروازهٔ زیر را کامل کنید تا استنباط‌تان قابلِ بازبینی باشد.</p>
+    ${methodBlock(meta)}
+  </section>`;
+}
+
+function methodBlock(meta) {
+  const method = meta && meta.method;
+  if (!method) return "";
+  return `<div class="apply-method"><p class="eyebrow">${escapeHTML(method.title)}</p><ol>${method.steps.map((step) => `<li>${scholarCite(step)}</li>`).join("")}</ol><p class="apply-rule">${scholarCite(method.rule)}</p><p class="scholar-note">${scholarCite(method.cite)}</p></div>`;
+}
+
 function renderDetailPanel() {
   const verse = state.selected;
   if (!verse) return;
@@ -1158,6 +1210,7 @@ function renderDetailPanel() {
     quran: detailPanelQuran,
     tafsir: detailPanelTafsir,
     research: detailPanelResearch,
+    application: applicationPanel,
   };
   const panel = (panels[state.detailTab] || detailPanelNotes)(verse);
   const researchSubmission = state.detailTab === "research" ? `<section class="detail-panel research-submission"><h3>برداشت یا پیشنهاد پژوهش من</h3><p>موضوع را همراه شاهدی از همین آیه بفرستید؛ پیشنهاد تا بازبینی مدیر منتشر نمی‌شود.</p>${proposalForm(verse, "research")}</section>` : "";
