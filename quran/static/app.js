@@ -10,6 +10,7 @@ const SCHOLAR_BANK_URL = "static/scholar-bank.json";
 const SCHOLAR_LAYER_URL = "static/verse-scholar-layer.json";
 const SCHOLAR_PILOT_URL = "static/scholar-pilot.json";
 const SCHOLAR_APPLICATION_URL = "static/scholar-application.json";
+const VERSE_DOSSIER_URL = "static/verse-dossiers.json";
 const NOTEBOOK_KEY = "zehnyar-verse-notebook-v2";
 const FIELD_NOTES_KEY = "quran-pazhuheh-field-notes-v1";
 const VERSE_PROPOSALS_KEY = "quran-pazhuheh-verse-proposals-v1";
@@ -25,6 +26,8 @@ const state = {
   scholarPilotData: null,
   scholarApplication: null,
   scholarApplicationMeta: null,
+  verseDossiers: null,
+  verseDossierMeta: null,
   screen: "search",
   corpus: [],
   recordById: new Map(),
@@ -198,8 +201,8 @@ function recordFromTuple(tuple) {
 
 async function loadScholarLayer() {
   try {
-    const [bankResponse, layerResponse, pilotResponse, applicationResponse] = await Promise.all([
-      fetch(SCHOLAR_BANK_URL), fetch(SCHOLAR_LAYER_URL), fetch(SCHOLAR_PILOT_URL), fetch(SCHOLAR_APPLICATION_URL),
+    const [bankResponse, layerResponse, pilotResponse, applicationResponse, dossierResponse] = await Promise.all([
+      fetch(SCHOLAR_BANK_URL), fetch(SCHOLAR_LAYER_URL), fetch(SCHOLAR_PILOT_URL), fetch(SCHOLAR_APPLICATION_URL), fetch(VERSE_DOSSIER_URL),
     ]);
     if (!bankResponse.ok || !layerResponse.ok) return;
     const bank = await bankResponse.json();
@@ -216,6 +219,15 @@ async function loadScholarLayer() {
       state.scholarApplicationMeta = {
         batches: application.batches || [],
         method: application.method || null,
+      };
+    }
+    if (dossierResponse.ok) {
+      const dossier = await dossierResponse.json();
+      state.verseDossiers = dossier.verses || {};
+      state.verseDossierMeta = {
+        batches: dossier.batches || [],
+        method: dossier.editorialMethod || "",
+        notice: dossier.notice || "",
       };
     }
   } catch (error) {
@@ -816,7 +828,7 @@ function verseCard(verse) {
   const primaryEvidence = verse.evidence.slice(0, 2).map((item) => `${item.label} · ${item.source}`).join("، ");
   return `<article class="verse-card" data-verse-id="${escapeHTML(verse.id)}">
     <button class="verse-open" type="button" data-open-verse="${escapeHTML(verse.id)}">
-      <span class="verse-head"><span class="verse-reference">${escapeHTML(verse.reference)} · ${escapeHTML(verse.revelation)}</span><span class="verse-type ${verse.type}">${typeLabel(verse.type)}</span></span>
+      <span class="verse-head"><span class="verse-reference">${escapeHTML(verse.reference)}</span></span>
       <span class="verse-arabic" lang="ar" dir="rtl">${escapeHTML(verse.arabic)}</span>
       <span class="verse-persian">${escapeHTML(verse.persian)}</span>
       <span class="verse-match"><b>مسیر ورود:</b> ${escapeHTML(primaryEvidence)} <i class="open-cue" aria-hidden="true">←</i></span>
@@ -951,6 +963,8 @@ const MODERN_RESEARCH_LENSES = [
 ];
 
 function detailPanelResearch(verse) {
+  const dossier = detailPanelDossier(verse, "research");
+  if (dossier) return dossier;
   const annotation = reviewedStudyFor(verse) || {};
   const curated = (annotation.research || []).map((item) => `<li><b>موضوع پژوهشی: ${escapeHTML(item.title)}</b><p>${escapeHTML(item.question)}</p><small>پایهٔ پیشنهادی: ${escapeHTML(item.evidence)}</small></li>`).join("");
   const tokens = [...new Set(verseTokens(verse).filter((token) => token.key.length >= 3).map((token) => JSON.stringify(token)))].map((item) => JSON.parse(item)).slice(0, 4);
@@ -984,7 +998,66 @@ function detailPanelTafsir(verse) {
   return `<section class="detail-panel tafsir-panel"><p class="eyebrow">منابع تفسیریِ آیه</p><h3>متنِ کامل، انتساب، نسخه و پیوندِ دقیق</h3><p class="reading-notice">متن‌ها بدون خلاصه‌سازی یا بازنویسی نمایش داده می‌شوند. منابع عربی و فارسی دیدگاه‌های متفاوت دارند؛ نقلِ یک مفسر را با نظر دیگران یکی نگیرید. برای حفظ سرعت و حافظهٔ گوشی، متن‌های تکمیلی جداگانه و به‌درخواست شما بارگیری می‌شوند.</p>${loadingNotice}${errorNotice}<div class="tafsir-choices"><h4>تفاسیر تکمیلی: طبری، قرطبی و المیزان</h4>${extended}</div>${body || `<p class="study-unavailable">برای این آیه متن تفسیری از منابع بارگیری‌شده در دسترس نیست.</p>`}${major}${catalogue}</section>`;
 }
 
+const DOSSIER_FIELDS = {
+  notes: { label: "نکته", title: "نکات مهم آیه", eyebrow: "نکات آیه · خوانشِ تحریری" },
+  context: { label: "قرینهٔ سیاقی", title: "سیاق و جایگاه", eyebrow: "سیاق · درونِ سوره و مصحف" },
+  classical: { label: "خوانش کهن", title: "خوانش‌های کهن", eyebrow: "تفسیرِ کهن · گزارش و استدلال" },
+  modern: { label: "پژوهش معاصر", title: "مطالعات معاصر", eyebrow: "مطالعات قرآنی و تفسیریِ معاصر" },
+  critical: { label: "پرسش انتقادی", title: "خوانش انتقادی", eyebrow: "خوانش انتقادی · سنجشِ پیش‌فرض و مرز" },
+  research: { label: "پرسش پژوهشی", title: "پژوهش در آیه", eyebrow: "پرسش‌های پژوهشیِ تازه" },
+};
+
+function dossierFor(verse) {
+  return (state.verseDossiers && state.verseDossiers[verse.id]) || null;
+}
+
+function dossierItems(verse, field) {
+  const dossier = dossierFor(verse);
+  const items = dossier && Array.isArray(dossier[field]) ? dossier[field] : [];
+  if (!items.length) return "";
+  const meta = DOSSIER_FIELDS[field] || { label: "بند" };
+  return `<ol class="dossier-list">${items.map((item, index) => `<li class="dossier-item"><b>${escapeHTML(meta.label)} ${faNumber(index + 1)}</b><span>${scholarCite(item.text)}</span><small>${scholarCite(item.cite || "")}</small></li>`).join("")}</ol>`;
+}
+
+function dossierMethodNote() {
+  const meta = state.verseDossierMeta;
+  if (!meta || !meta.method) return "";
+  return `<details class="dossier-method"><summary>روشِ این خوانش و قاعدهٔ ارجاع</summary><p>${escapeHTML(meta.method)}</p></details>`;
+}
+
+function detailPanelDossier(verse, field) {
+  const meta = DOSSIER_FIELDS[field];
+  const items = dossierItems(verse, field);
+  if (!items) return "";
+  const dossier = dossierFor(verse);
+  return `<section class="detail-panel dossier-panel"><p class="eyebrow">${escapeHTML(meta.eyebrow)}</p><h3>${escapeHTML((dossier && dossier.title) || meta.title)}</h3>${items}${dossierMethodNote()}</section>`;
+}
+
+function dossierAnchors(verse, kind) {
+  if (!state.scholarAnchorById) return [];
+  const ids = (state.scholarLayer && state.scholarLayer[verse.id]) || [];
+  return ids.map((id) => state.scholarAnchorById.get(id)).filter((anchor) => anchor && anchor.kind === kind);
+}
+
+function detailPanelModern(verse) {
+  const curated = detailPanelDossier(verse, "modern");
+  if (curated) return curated;
+  const anchors = dossierAnchors(verse, "معاصر");
+  const items = anchors.map((anchor) => `<li class="dossier-item"><b>${escapeHTML(anchor.field)}</b><span>${scholarCite(anchor.claim)}</span><small>${scholarCite(anchor.cite)}</small></li>`).join("");
+  return `<section class="detail-panel dossier-panel"><p class="eyebrow">مطالعات قرآنی و تفسیریِ معاصر</p><h3>مسیرِ پژوهشِ امروز برای این آیه</h3><p class="reading-notice draft-study-notice">برای این آیه هنوز خوانشِ تحریریِ معاصر نوشته نشده است. به‌جای متنِ ساختگی، پژوهش‌های معاصرِ هم‌موضوع و مرزِ استنباطشان نشان داده می‌شود؛ این بندها جانشینِ خوانشِ همین آیه نیستند.</p>${items ? `<ol class="dossier-list">${items}</ol>` : `<p class="dossier-empty">در بانکِ پژوهش، لنگرِ معاصری برای این آیه ثبت نشده است؛ نوشتنِ خوانشِ معاصر باید از پیکره و منابعِ داوری‌شده آغاز شود.</p>`}</section>`;
+}
+
+function detailPanelCritical(verse) {
+  const curated = detailPanelDossier(verse, "critical");
+  if (curated) return curated;
+  const anchors = [...dossierAnchors(verse, "معاصر"), ...dossierAnchors(verse, "کهن")].slice(0, 3);
+  const items = anchors.map((anchor) => `<li class="dossier-item"><b>${escapeHTML(anchor.field)} · ${escapeHTML(anchor.kind)}</b><span>${scholarCite(anchor.limit)}</span><small>${scholarCite(anchor.cite)} · پرسشِ باز: ${scholarCite(anchor.question)}</small></li>`).join("");
+  return `<section class="detail-panel dossier-panel"><p class="eyebrow">خوانش انتقادی · سنجشِ پیش‌فرض و مرز</p><h3>چه چیزی را می‌توان نقد کرد و چه چیزی را نه</h3><p class="reading-notice draft-study-notice">برای این آیه خوانشِ انتقادیِ تحریری نوشته نشده است. آنچه می‌بینید مرزِ استنباطِ لنگرهای پژوهشی است، نه نقدِ نهایی؛ خوانشِ انتقادی پیش از هر چیز پیش‌فرض‌ها و تبارِ تطبیق‌ها را می‌سنجد.</p>${items ? `<ol class="dossier-list">${items}</ol>` : `<p class="dossier-empty">لنگرِ پژوهشیِ ثبت‌شده‌ای برای سنجشِ انتقادیِ این آیه در بانک نیست.</p>`}</section>`;
+}
+
 function detailPanelNotes(verse) {
+  const curated = detailPanelDossier(verse, "notes");
+  if (curated) return curated;
   return `<section class="detail-panel"><p class="eyebrow">نکات آیه ـ دادهٔ قابل بازبینی</p><h3>متن، نکته‌های قابل پیگیری و شاهدِ منبع‌دار</h3>
     <p class="reading-notice">«صورتِ بازیابی» با «معنای نهایی» یکی نیست. نخست نکته‌های متن‌محور و نقلِ آیه را ببینید؛ سپس دادهٔ دقیقِ بازیابی و مرزِ استنتاج را کنترل کنید.</p>
     ${inlineStudyBody(verse, "notes")}
@@ -1062,6 +1135,12 @@ function detailPanelNetwork(verse) {
 }
 
 function detailPanelContext(verse) {
+  const dossier = detailPanelDossier(verse, "context");
+  if (dossier) {
+    const window = getContext(verse);
+    const strip = window.length ? `<section class="detail-panel context-strip"><p class="eyebrow">همسایگیِ متن</p><h3>آیه در پنجرهٔ پیش و پس</h3><div class="context-grid">${window.map((item) => `<article class="context-verse ${item.id === verse.id ? "current" : ""}"><b>${escapeHTML(item.reference)}${item.id === verse.id ? " · آیهٔ پژوهش" : ""}</b><p class="context-arabic" lang="ar" dir="rtl">${escapeHTML(item.arabic)}</p><p>${escapeHTML(item.persian)}</p></article>`).join("")}</div></section>` : "";
+    return dossier + strip;
+  }
   const curated = reviewedStudyField(verse, "context");
   if (curated) return `<section class="detail-panel"><p class="eyebrow">سیاق آیات</p><h3>پیش، خود و پسِ آیه در خوانش تحریری</h3>${curated}<div class="context-grid">${getContext(verse).map((item) => `<article class="context-verse ${item.id === verse.id ? "current" : ""}"><b>${escapeHTML(item.reference)}</b><p class="context-arabic" lang="ar" dir="rtl">${escapeHTML(item.arabic)}</p><p>${escapeHTML(item.persian)}</p></article>`).join("")}</div></section>`;
   const context = getContext(verse);
@@ -1084,7 +1163,7 @@ function detailPanelNotebook(verse) {
 }
 
 function fieldNotePanel(verse, field) {
-  const labels = { notes: "نکات مهم آیه", foundations: "اصول زندگی و مبانی", framework: "چارچوب معنایی", messages: "پیام‌های آیه", context: "سیاق آیات", thematic: "تفسیر موضوعی", network: "نظم شبکه‌ای", quran: "نسبت با قرآن", tafsir: "منابع تفسیری آیه", research: "پژوهش در آیه", application: "کاربست امروز" };
+  const labels = { notes: "نکات مهم آیه", foundations: "اصول زندگی و مبانی", framework: "چارچوب معنایی", messages: "پیام‌های آیه", context: "سیاق و جایگاه", thematic: "تفسیر موضوعی", network: "نظم شبکه‌ای", quran: "نسبت با قرآن", tafsir: "منابع تفسیری آیه", modern: "مطالعات معاصر", critical: "خوانش انتقادی", research: "پژوهش در آیه", application: "کاربست امروز" };
   const key = `${verse.id}:${field}`;
   const inputId = `field-note-${field}`;
   return `<section class="field-note-panel"><label for="${inputId}"><b>یادداشت من</b><span>یادداشت شخصی برای بخش «${escapeHTML(labels[field] || field)}»</span></label><textarea id="${inputId}" class="note-area" data-field-note="${escapeHTML(field)}" data-verse-id="${escapeHTML(verse.id)}" maxlength="3000" placeholder="پرسش، برداشت شخصی یا ارجاعی که می‌خواهید برای این بخش نگه دارید…">${escapeHTML(state.fieldNotes[key] || "")}</textarea><small class="field-note-status" aria-live="polite">ذخیرهٔ خودکار فقط در همین دستگاه</small></section>`;
@@ -1101,6 +1180,8 @@ const SCHOLAR_SLICES = {
   quran: ["finding", "modern"],
   tafsir: ["classical", "critique"],
   research: ["question", "critique", "modern"],
+  modern: [],
+  critical: [],
   application: [],
 };
 
@@ -1230,12 +1311,15 @@ function renderDetailPanel() {
     network: detailPanelNetwork,
     quran: detailPanelQuran,
     tafsir: detailPanelTafsir,
+    modern: detailPanelModern,
+    critical: detailPanelCritical,
     research: detailPanelResearch,
     application: applicationPanel,
   };
   const panel = (panels[state.detailTab] || detailPanelNotes)(verse);
   const researchSubmission = state.detailTab === "research" ? `<section class="detail-panel research-submission"><h3>برداشت یا پیشنهاد پژوهش من</h3><p>موضوع را همراه شاهدی از همین آیه بفرستید؛ پیشنهاد تا بازبینی مدیر منتشر نمی‌شود.</p>${proposalForm(verse, "research")}</section>` : "";
-  $("#detail-panels").innerHTML = `${panel}${scholarBlock(verse, state.detailTab)}${fieldNotePanel(verse, state.detailTab)}${researchSubmission}`;
+  const scholar = ["modern", "critical"].includes(state.detailTab) ? "" : scholarBlock(verse, state.detailTab);
+  $("#detail-panels").innerHTML = `${panel}${scholar}${fieldNotePanel(verse, state.detailTab)}${researchSubmission}`;
 }
 
 function saveNote() {

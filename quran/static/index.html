@@ -32,7 +32,7 @@
           <div class="search-workbench">
             <p class="eyebrow">جست‌وجو در متن قرآن</p>
             <h1 id="search-title">از واژه تا <em>آیهٔ قرآن</em></h1>
-            <p class="lede">هر فیلد یک مسیر مستقلِ جست‌وجو دارد. یک یا چند فیلد را پر کنید تا آیاتِ متن و آیاتِ موضوعیِ مرتبط، با دلیلِ ورودشان، فهرست شوند.</p>
+            <p class="lede">یک یا چند مسیر را پر کنید تا آیه‌ها با دلیلِ ورودشان فهرست شوند. تحلیلِ هر آیه — از خوانش کهن تا خوانش انتقادی و کاربست امروز — فقط در پروندهٔ همان آیه باز می‌شود.</p>
 
             <form id="concept-form" class="research-form" novalidate>
               <div class="search-field"><label for="keyword-query"><b>کلیدواژه</b><small>جست‌وجوی دقیق در متن</small></label><input id="keyword-query" maxlength="120" autocomplete="off" placeholder="مثل: حق، میزان" /></div>
@@ -101,7 +101,7 @@
 
         <div class="results-toolbar simple-results-toolbar">
           <p id="result-progress" aria-live="polite"></p>
-          <span>روی هر عنوانِ بالای آیه بزنید: مطالعهٔ سریع، متن آیه، شاهدِ تفسیریِ منبع‌دار و کلیدهای لفظیِ همان آیه را نشان می‌دهد.</span>
+          <span>هر کارت فقط متن، ترجمه و مسیرِ ورود را نشان می‌دهد؛ تحلیل‌ها، خوانش انتقادی و کاربست امروز تنها در پروندهٔ همان آیه باز می‌شوند.</span>
         </div>
         <div id="verse-list" class="verse-list" aria-live="polite"></div>
         <button id="load-more" class="load-more" type="button" hidden>نمایش آیه‌های بعدی</button>
@@ -121,16 +121,23 @@
 
         <div class="study-tabs" role="tablist" aria-label="پروندهٔ پژوهش آیه">
           <button class="active" data-detail-tab="notes" type="button" role="tab" aria-selected="true">نکات مهم آیه</button>
-          <button data-detail-tab="application" type="button" role="tab" aria-selected="false">کاربست امروز</button>
-          <button data-detail-tab="foundations" type="button" role="tab" aria-selected="false">اصول زندگی و مبانی</button>
-          <button data-detail-tab="framework" type="button" role="tab" aria-selected="false">چارچوب معنایی</button>
-          <button data-detail-tab="messages" type="button" role="tab" aria-selected="false">پیام‌های آیه</button>
-          <button data-detail-tab="context" type="button" role="tab" aria-selected="false">سیاق آیات</button>
-          <button data-detail-tab="thematic" type="button" role="tab" aria-selected="false">تفسیر موضوعی</button>
-          <button data-detail-tab="network" type="button" role="tab" aria-selected="false">نظم شبکه‌ای</button>
-          <button data-detail-tab="quran" type="button" role="tab" aria-selected="false">نسبت با قرآن</button>
+          <button data-detail-tab="context" type="button" role="tab" aria-selected="false">سیاق و جایگاه</button>
           <button data-detail-tab="tafsir" type="button" role="tab" aria-selected="false">منابع تفسیری آیه</button>
+          <button data-detail-tab="modern" type="button" role="tab" aria-selected="false">مطالعات معاصر</button>
+          <button data-detail-tab="critical" type="button" role="tab" aria-selected="false">خوانش انتقادی</button>
+          <button data-detail-tab="application" type="button" role="tab" aria-selected="false">کاربست امروز</button>
           <button data-detail-tab="research" type="button" role="tab" aria-selected="false">پژوهش در آیه</button>
+          <details class="more-tabs">
+            <summary>فیلدهای تکمیلی</summary>
+            <div class="more-tabs-inner">
+              <button data-detail-tab="foundations" type="button" role="tab" aria-selected="false">اصول زندگی و مبانی</button>
+              <button data-detail-tab="framework" type="button" role="tab" aria-selected="false">چارچوب معنایی</button>
+              <button data-detail-tab="messages" type="button" role="tab" aria-selected="false">پیام‌های آیه</button>
+              <button data-detail-tab="thematic" type="button" role="tab" aria-selected="false">تفسیر موضوعی</button>
+              <button data-detail-tab="network" type="button" role="tab" aria-selected="false">نظم شبکه‌ای</button>
+              <button data-detail-tab="quran" type="button" role="tab" aria-selected="false">نسبت با قرآن</button>
+            </div>
+          </details>
         </div>
         <div id="detail-panels" class="detail-panels"></div>
       </section>

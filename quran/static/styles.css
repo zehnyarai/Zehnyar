@@ -182,3 +182,27 @@ h1, h2, h3, p { margin-top: 0; } h1 { max-width: 740px; margin: 21px auto 15px; 
 .apply-method .eyebrow { margin: 0 0 8px; color: #1f6076; font-size: 11px; font-weight: 800; }
 .apply-method ol { display: grid; gap: 8px; margin: 0; padding-inline-start: 20px; color: #45606e; font-size: 11px; line-height: 1.95; }
 .apply-rule { margin: 11px 0 0; padding: 9px 11px; border-right: 3px solid #46a8a3; border-radius: 4px; background: #eefaf8; color: #2f5f66; font-size: 10.5px; line-height: 1.95; }
+
+/* پروندهٔ آیه: فیلدهای تحریری، مطالعات معاصر و خوانش انتقادی */
+.more-tabs { flex: 0 0 auto; }
+.more-tabs > summary { padding: 7px 10px; color: #5d7a89; border: 1px dashed #cfe3e5; border-radius: 9px; background: rgba(255,255,255,.5); font-size: 10px; font-weight: 700; cursor: pointer; list-style: none; }
+.more-tabs > summary::-webkit-details-marker { display: none; }
+.more-tabs[open] { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+.more-tabs-inner { display: flex; flex-wrap: wrap; gap: 7px; }
+.more-tabs-inner button { flex: 0 0 auto; padding: 6px 9px; color: #5d7a89; border: 1px solid #dbe9ea; border-radius: 8px; background: #fbfefe; font-size: 10px; font-weight: 700; }
+.more-tabs-inner button.active { color: #fff; border-color: var(--teal); background: var(--teal); }
+.dossier-panel { border-right: 3px solid #cfe0e2; }
+.dossier-panel .eyebrow { color: #8a6a2f; letter-spacing: 0; }
+.dossier-panel h3 { margin: 0 0 6px; font-size: 17px; }
+.dossier-list { display: grid; gap: 9px; margin: 14px 0 0; padding: 0; list-style: none; }
+.dossier-item { padding: 11px 12px; border: 1px solid #e3edef; border-right: 3px solid #7bbcba; border-radius: 0 12px 12px 0; background: #fff; }
+.dossier-item b { display: block; margin-bottom: 3px; color: #1d6278; font-size: 10px; }
+.dossier-item span { display: block; color: #456b7a; font-size: 11.5px; line-height: 2.05; }
+.dossier-item small { display: block; margin-top: 6px; color: #7d919b; font-size: 9px; line-height: 1.9; }
+.dossier-item small em { color: #5c7a86; font-style: normal; border-bottom: 1px dotted #b9ccd0; }
+.dossier-method { margin-top: 14px; padding: 9px 11px; color: #5e7b8b; border: 1px dashed #cfe3e5; border-radius: 10px; background: #f8fcfc; font-size: 10px; }
+.dossier-method summary { color: #2c687e; font-weight: 800; cursor: pointer; }
+.dossier-method p { margin: 6px 0 0; line-height: 2; }
+.dossier-empty { padding: 10px 12px; color: #607d8b; border-radius: 10px; background: #f6fbfb; font-size: 11px; line-height: 2; }
+.context-strip { margin-top: 12px; }
+@media (max-width: 700px) { .dossier-item span { font-size: 11px; } .more-tabs[open] { width: 100%; } }
