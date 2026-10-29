@@ -9,11 +9,13 @@ on:
         default: ''
   push:
     branches:
-      - 'arena/7d04dbdc-zehnyar'
+      - 'arena/96fa3fb8-zehnyar'
+      - 'main'
     tags:
       - 'v*'
 
 permissions:
+  actions: read
   contents: write
 
 concurrency:
@@ -77,26 +79,73 @@ jobs:
         working-directory: mobile
         run: npm ci --no-audit --no-fund
 
-      - name: Restore or create the release keystore
+      - name: Restore previous release signing key
+        uses: actions/download-artifact@v4
+        with:
+          name: zehnyar-release-keystore
+          path: previous-keystore
+          run-id: 40639940668
+          github-token: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Configure stable release keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          if [ -n "$KEYSTORE_BASE64" ]; then
+          if [ -s previous-keystore/zehnyar-release.keystore ]; then
+            cp previous-keystore/zehnyar-release.keystore "$ANDROID_KEYSTORE_PATH"
+            echo "Restored the signing key used by the previous installable release."
+          elif [ -n "$KEYSTORE_BASE64" ]; then
             printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$ANDROID_KEYSTORE_PATH"
-            echo "Using the keystore stored in repository secrets."
+            keytool -list -keystore "$ANDROID_KEYSTORE_PATH" \
+              -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
+            echo "Stable release signing key validated; key data hidden."
           else
-            keytool -genkeypair -v -storetype PKCS12 \
-              -keystore "$ANDROID_KEYSTORE_PATH" \
-              -alias "$ANDROID_KEY_ALIAS" \
-              -keyalg RSA -keysize 2048 -validity 10950 \
-              -storepass "$ANDROID_KEYSTORE_PASSWORD" \
-              -keypass "$ANDROID_KEY_PASSWORD" \
-              -dname "CN=Visayar, OU=Mobile, O=Visayar, L=Amsterdam, C=NL"
-            echo "Generated an ephemeral keystore. Store the uploaded keystore artifact in repository secrets to keep a stable signing key."
+            echo "No stable Android signing key is available; refusing to create a new key." >&2
+            exit 1
           fi
+
+      - name: Validate payment configuration without exposing card data
+        working-directory: mobile
+        env:
+          VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
+          VISAYAR_PAYMENT_CARD_NUMBER: ${{ secrets.VISAYAR_PAYMENT_CARD_NUMBER }}
+          VISAYAR_PAYMENT_CARD_HOLDER: ${{ secrets.VISAYAR_PAYMENT_CARD_HOLDER }}
+          VISAYAR_PAYMENT_BANK_NAME: ${{ secrets.VISAYAR_PAYMENT_BANK_NAME }}
+        run: |
+          node <<'NODE'
+          const config = require('./app.config.js');
+          const card = config.extra.paymentCard || {};
+          const rawCard = String(process.env.VISAYAR_PAYMENT_CARD_NUMBER || '').replace(/\D/g, '');
+          const apiBase = String(process.env.VISAYAR_API_BASE_URL || '').trim();
+          const secureApi = /^https:\/\/[^/]+(?:\/.*)?$/.test(apiBase);
+          if (rawCard && (!card.number || card.number.length !== 16)) {
+            console.error('The configured static card secret is invalid.');
+            process.exit(1);
+          }
+          if (!secureApi && (!card.number || card.number.length !== 16)) {
+            console.error('Configure a secure HTTPS API URL, or add a valid card secret for offline mode.');
+            process.exit(1);
+          }
+          console.log(secureApi ? 'Secure API configuration validated; card may be fetched from the server.' : 'Static card configuration validated; value hidden.');
+          NODE
+
+      - name: Embed an optional static card fallback for Android runtime
+        working-directory: mobile
+        env:
+          VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
+          VISAYAR_PAYMENT_CARD_NUMBER: ${{ secrets.VISAYAR_PAYMENT_CARD_NUMBER }}
+          VISAYAR_PAYMENT_CARD_HOLDER: ${{ secrets.VISAYAR_PAYMENT_CARD_HOLDER }}
+          VISAYAR_PAYMENT_BANK_NAME: ${{ secrets.VISAYAR_PAYMENT_BANK_NAME }}
+        run: node ../tools/write_mobile_payment_card.js
 
       - name: Prebuild Android project
         working-directory: mobile
+        env:
+          VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
+          VISAYAR_PAYMENT_CARD_NUMBER: ${{ secrets.VISAYAR_PAYMENT_CARD_NUMBER }}
+          VISAYAR_PAYMENT_CARD_HOLDER: ${{ secrets.VISAYAR_PAYMENT_CARD_HOLDER }}
+          VISAYAR_PAYMENT_BANK_NAME: ${{ secrets.VISAYAR_PAYMENT_BANK_NAME }}
         run: npx expo prebuild -p android --clean --no-install
 
       - name: Configure release signing
@@ -108,13 +157,35 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleRelease --no-daemon
 
+      - name: Verify card fallback or server-backed payments in the Android JS bundle
+        env:
+          VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
+          VISAYAR_PAYMENT_CARD_NUMBER: ${{ secrets.VISAYAR_PAYMENT_CARD_NUMBER }}
+        run: node tools/check_mobile_payment_bundle.js
+
+      - name: Remove generated card source from the workspace
+        run: git show HEAD:mobile/src/core/paymentCard.generated.js > mobile/src/core/paymentCard.generated.js
+
+      - name: Scan release APK with ClamAV
+        run: |
+          set -euo pipefail
+          APK=mobile/android/app/build/outputs/apk/release/app-release.apk
+          sudo apt-get update
+          sudo apt-get install -y clamav clamav-freshclam
+          sudo systemctl stop clamav-freshclam 2>/dev/null || true
+          sudo freshclam --stdout
+          clamscan --infected --no-summary "$APK"
+          APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -x "$APKSIGNER"
+          "$APKSIGNER" verify --verbose "$APK"
+          echo "ClamAV scan and Android APK signature verification passed."
+
       - name: Collect artifacts
         run: |
           set -euo pipefail
           mkdir -p release
           cp mobile/android/app/build/outputs/apk/release/app-release.apk \
              "release/Visayar-${RELEASE_VERSION}-universal.apk"
-          cp "$ANDROID_KEYSTORE_PATH" release/zehnyar-release.keystore
           ( cd release && sha256sum "Visayar-${RELEASE_VERSION}-universal.apk" > SHA256SUMS.txt )
           cat release/SHA256SUMS.txt
 
@@ -122,21 +193,21 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zehnyar-release-apk
-          path: release/Visayar-*-universal.apk
-          retention-days: 90
-
-      - name: Upload keystore artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: zehnyar-release-keystore
-          path: release/zehnyar-release.keystore
+          path: |
+            release/Visayar-*-universal.apk
+            release/SHA256SUMS.txt
           retention-days: 90
 
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
         run: |
           set -euo pipefail
+          if [[ ! "$VISAYAR_API_BASE_URL" =~ ^https://[^/]+([/].*)?$ ]]; then
+            echo "Public release skipped: set VISAYAR_API_BASE_URL to the deployed HTTPS backend first."
+            exit 0
+          fi
           TAG="v${RELEASE_VERSION}"
           APK="release/Visayar-${RELEASE_VERSION}-universal.apk"
           if gh release view "$TAG" >/dev/null 2>&1; then

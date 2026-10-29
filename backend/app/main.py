@@ -7,6 +7,7 @@ endpoints exist for web clients, partners and auditability.
 
 from __future__ import annotations
 
+import json
 import os
 import time
 from typing import List, Optional
@@ -17,7 +18,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
-from .payments import ADMIN as payments_admin_router, router as payments_router
+from .payments import (
+    ADMIN as payments_admin_router,
+    AUTH as admin_auth_router,
+    SETTINGS as admin_settings_router,
+    get_gemini_api_key,
+    router as payments_router,
+)
 
 from .engine.engine import (
     Profile,
@@ -49,6 +56,8 @@ app.add_middleware(
 )
 app.include_router(payments_router)
 app.include_router(payments_admin_router)
+app.include_router(admin_auth_router)
+app.include_router(admin_settings_router)
 
 _cache: dict = {}
 
@@ -307,34 +316,45 @@ def advisor_endpoint(request: AdvisorRequest):
             })
     narrative_fa = None
     narrative_en = None
-    key = os.environ.get("GROQ_API_KEY")
-    if key and top:
-        cached = _cache.get("advisor")
-        if cached and time.time() - cached[0] < 3600:
-            narrative_fa, narrative_en = cached[1], cached[2]
-        else:
-            try:
-                prompt = (
-                    "You are a licensed immigration analyst. Write a 90-word assessment in Persian and the same in English. "
-                    f"Profile: age {request.profile.age}, education {request.profile.educationId}, "
-                    f"work years {request.profile.work.totalYears}, goal {request.profile.goal}. "
-                    f"Best route: {top['visaNameEn']} in {top['nameEn']} with estimated chance {top['chance']}%. "
-                    "Be factual, never promise an outcome, and mention that figures must be verified on the official portal."
+    gemini_key = get_gemini_api_key()
+    groq_key = os.environ.get("GROQ_API_KEY")
+    if top and (gemini_key or groq_key):
+        prompt = (
+            "You are an immigration information assistant, not a lawyer. Return only valid JSON with keys "
+            "narrativeFa and narrativeEn. Each value should be a concise, useful assessment in its language. "
+            "Do not promise an outcome; say that official requirements and fees must be verified. "
+            f"Profile: age {request.profile.age}, education {request.profile.educationId}, "
+            f"work years {request.profile.work.totalYears}, goal {request.profile.goal}. "
+            f"Best route: {top['visaNameEn']} in {top['nameEn']} with estimated chance {top['chance']}%."
+        )
+        try:
+            if gemini_key:
+                response = httpx.post(
+                    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+                    headers={"x-goog-api-key": gemini_key},
+                    json={"contents": [{"parts": [{"text": prompt}]}],
+                          "generationConfig": {"temperature": 0.2, "responseMimeType": "application/json"}},
+                    timeout=25.0,
                 )
+                response.raise_for_status()
+                generated = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+                content = json.loads(generated)
+                narrative_fa = str(content.get("narrativeFa", "")).strip() or None
+                narrative_en = str(content.get("narrativeEn", "")).strip() or None
+            elif groq_key:
                 response = httpx.post(
                     "https://api.groq.com/openai/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {key}"},
+                    headers={"Authorization": f"Bearer {groq_key}"},
                     json={"model": "llama-3.3-70b-versatile",
                           "messages": [{"role": "user", "content": prompt}], "temperature": 0.2},
                     timeout=20.0,
                 )
-                if response.status_code < 400:
-                    text = response.json()["choices"][0]["message"]["content"]
-                    narrative_en = text.strip()
-                    narrative_fa = None
-                    _cache["advisor"] = (time.time(), narrative_fa, narrative_en)
-            except Exception:
-                narrative_en = None
+                response.raise_for_status()
+                content = response.json()["choices"][0]["message"]["content"]
+                narrative_en = content.strip()
+        except Exception:
+            narrative_fa = None
+            narrative_en = None
     return {
         "summary": result["summary"],
         "recommendations": result["recommendations"],

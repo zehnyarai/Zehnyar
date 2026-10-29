@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>فیش‌های واریزی | ویزایار</title>
+<style>
+:root{font-family:Tahoma,Arial,sans-serif;color:#173f3a;background:#f1f9f7}*{box-sizing:border-box}body{margin:0;padding:24px 14px}.shell{max-width:760px;margin:auto}.hero{padding:24px;border-radius:20px;color:#fff;background:linear-gradient(125deg,#087d70,#73bad7);box-shadow:0 10px 30px #164d4118}h1{font-size:23px;margin:0 0 8px}.hero p{margin:0;line-height:1.9;opacity:.95}.panel{background:#fff;border:1px solid #d9eae6;border-radius:18px;padding:20px;margin-top:16px;box-shadow:0 8px 24px #0b6e6310}.field{display:flex;flex-direction:column;gap:7px;margin-bottom:15px}label{font-weight:700;font-size:14px}input,select,textarea{width:100%;font:inherit;border:1px solid #cbded9;border-radius:11px;padding:12px;background:#fff;color:#173d39}textarea{min-height:112px;resize:vertical;direction:ltr;text-align:left;overflow-wrap:anywhere}input[type=file]{direction:ltr}button{font:inherit;font-weight:700;border:0;border-radius:11px;padding:12px 17px;background:#087d70;color:#fff;cursor:pointer}button.secondary{background:#e7f4f1;color:#087d70}button.reject{background:#fff0ed;color:#ad3a31}.row{display:flex;gap:10px;flex-wrap:wrap}.notice{padding:12px;border-radius:11px;background:#eef8f5;color:#51716b;font-size:13px;line-height:1.9}.preview{display:block;width:100%;max-height:360px;object-fit:contain;border:1px solid #d9eae6;border-radius:12px;background:#f6faf9}.status{min-height:24px;margin-top:12px;font-size:14px}.error{color:#a5362d}.success{color:#087d70}.small{font-size:12px;color:#64807c;line-height:1.8}.hidden{display:none!important}@media(max-width:520px){body{padding:14px 10px}.panel{padding:15px}.hero{padding:19px}}
+</style>
+</head>
+<body>
+<main class="shell">
+<header class="hero"><h1>فیش‌های واریزی</h1><p>فیشی را که کاربر با پیام‌رسان فرستاده باز کنید؛ پس از بررسی، با یک دکمه تأیید یا با ذکر دلیل رد کنید.</p></header>
+<section class="panel">
+<div class="notice">متن سفارش را از پیام‌رسان کپی و اینجا بچسبانید تا مشخصات خودکار پر شود؛ سپس تصویر فیش را انتخاب کنید. پیش از تأیید، مبلغ، تاریخ و کد پیگیری را با گردش واقعی حساب تطبیق دهید. این پنل آفلاین است و صندوق مشترک ندارد.</div>
+<div class="field" style="margin-top:16px"><label for="order-text">متن سفارش ارسالی کاربر</label><textarea id="order-text" placeholder="متن همراه فیش را از پیام‌رسان بچسبانید"></textarea><div class="row"><button id="read-order" class="secondary">خواندن مشخصات سفارش</button></div></div>
+<div class="field"><label for="receipt-file">فایل تصویر فیش واریزی</label><input id="receipt-file" type="file" accept="image/*"><img id="receipt-preview" class="preview hidden" alt="پیش‌نمایش فیش"></div>
+<div class="field"><label for="install-id">شناسهٔ نصب از پیام سفارش</label><input id="install-id" autocomplete="off" placeholder="شناسهٔ نصب کاربر"></div>
+<div class="field"><label for="transfer-date">تاریخ واریز</label><input id="transfer-date" autocomplete="off" placeholder="نمونه: ۱۴۰۵/۰۸/۰۵"></div>
+<div class="field"><label for="tracking">کد پیگیری تراکنش</label><input id="tracking" autocomplete="off" placeholder="کد پیگیری"></div>
+<div class="field"><label for="credits">بستهٔ خریداری‌شده</label><select id="credits"><option value="1">یک ارزیابی — ۶۰۰٬۰۰۰ تومان</option><option value="3">سه ارزیابی — ۱٬۵۰۰٬۰۰۰ تومان</option><option value="6">شش ارزیابی — ۲٬۷۰۰٬۰۰۰ تومان</option><option value="12">دوازده ارزیابی — ۴٬۸۰۰٬۰۰۰ تومان</option></select></div>
+<div class="field"><label for="key-file">فایل کلید خصوصی مدیر</label><input id="key-file" type="file" accept=".txt,.key,text/plain"><span class="small">فایل متنی کلید فقط برای صدور کد است؛ آن را به کاربر ندهید.</span></div>
+<div class="row"><button id="approve">تأیید و ساخت کد اعتبار</button><button id="reject" class="reject">رد فیش با دلیل</button><button id="reset" class="secondary">فیش بعدی</button></div>
+<p id="status" class="status" role="status"></p>
+<div id="code-result" class="field hidden"><label for="code">کد متنی اعتبار؛ برای همان کاربر بفرستید</label><textarea id="code" readonly></textarea><div class="row"><button id="copy-code" class="secondary">کپی کد</button></div><p class="small">کاربر متن کد را در برنامه، بخش «فعال‌سازی اعتبار با کد» وارد می‌کند؛ کد فایل نصب نیست.</p></div>
+<div id="reject-result" class="field hidden"><label for="reject-message">پیام رد فیش؛ دلیل را برای کاربر بفرستید</label><textarea id="reject-message" readonly></textarea><div class="row"><button id="copy-reject" class="secondary">کپی پیام رد</button></div></div>
+</section>
+<section class="panel small">روش کار: کاربر بسته را انتخاب می‌کند و تصویر فیش را همراه مبلغ، تاریخ، کد پیگیری و شناسهٔ نصب با پیام‌رسان می‌فرستد. تصویر را اینجا باز کنید. پس از بررسی گردش حساب، فیش را تأیید و کد اعتبار را برای او بفرستید؛ اگر واریز پیدا نشد، با درج دلیل رد کنید.</section>
+</main>
+<script src="nacl-fast.min.js"></script>
+<script>
+const byId = (id) => document.getElementById(id);
+const statusNode = byId('status');
+const enc = new TextEncoder();
+let receiptUrl = '';
+
+function show(message, kind = 'success') {
+  statusNode.textContent = message;
+  statusNode.className = `status ${kind}`;
+}
+function base64url(bytes) {
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+}
+function makeId() {
+  if (globalThis.crypto?.randomUUID) return crypto.randomUUID();
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 15) | 64;
+  bytes[8] = (bytes[8] & 63) | 128;
+  const hex = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+}
+function orderDetails() {
+  const credits = Number(byId('credits').value);
+  const amounts = { 1: '۶۰۰٬۰۰۰', 3: '۱٬۵۰۰٬۰۰۰', 6: '۲٬۷۰۰٬۰۰۰', 12: '۴٬۸۰۰٬۰۰۰' };
+  return {
+    credits,
+    amount: amounts[credits],
+    installId: byId('install-id').value.trim().toLowerCase(),
+    transferDate: byId('transfer-date').value.trim(),
+    tracking: byId('tracking').value.trim(),
+  };
+}
+function readOrder() {
+  const lines = byId('order-text').value.split(/\r?\n/).map((line) => line.trim());
+  const valueFor = (labels) => {
+    const line = lines.find((entry) => labels.some((label) => entry.startsWith(`${label}:`)));
+    return line ? line.slice(line.indexOf(':') + 1).trim() : '';
+  };
+  const installId = valueFor(['شناسهٔ نصب', 'Installation ID']);
+  const transferDate = valueFor(['تاریخ واریز', 'Transfer date']);
+  const tracking = valueFor(['شناسهٔ پیگیری تراکنش', 'Transfer reference']);
+  const packageName = valueFor(['بسته انتخاب‌شده', 'Selected package']);
+  const rawAmount = valueFor(['مبلغ واریزی', 'Transfer amount']);
+  const asciiAmount = rawAmount.replace(/[۰-۹٠-٩]/g, (digit) => String('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩'.indexOf(digit) % 10));
+  const digits = asciiAmount.replace(/\D/g, '');
+  const creditsByAmount = { '600000': '1', '1500000': '3', '2700000': '6', '4800000': '12' };
+  const packageChoices = [
+    { value: '1', names: ['یک ارزیابی', '1 assessment'], amount: '600000' },
+    { value: '3', names: ['سه ارزیابی', '3 assessments'], amount: '1500000' },
+    { value: '6', names: ['شش ارزیابی', '6 assessments'], amount: '2700000' },
+    { value: '12', names: ['دوازده ارزیابی', '12 assessments'], amount: '4800000' },
+  ];
+  const chosen = packageChoices.find((item) => item.names.some((name) => packageName.includes(name)))
+    || packageChoices.find((item) => item.amount === digits || creditsByAmount[digits] === item.value);
+  if (installId) byId('install-id').value = installId;
+  if (transferDate) byId('transfer-date').value = transferDate;
+  if (tracking) byId('tracking').value = tracking;
+  if (chosen) byId('credits').value = chosen.value;
+  if (!installId && !transferDate && !tracking && !chosen) return show('مشخصات سفارش پیدا نشد؛ متن کامل را بچسبانید یا اطلاعات را دستی وارد کنید.', 'error');
+  show('مشخصات سفارش پر شد؛ مبلغ و تصویر فیش را پیش از تصمیم بررسی کنید.');
+}
+function validateReceipt(details, requireKey) {
+  if (!byId('receipt-file').files?.[0]) return 'ابتدا تصویر فیش را انتخاب کنید.';
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(details.installId)) return 'شناسهٔ نصب در پیام سفارش معتبر نیست.';
+  if (!details.transferDate) return 'تاریخ واریز را وارد کنید.';
+  if (details.tracking.length < 4) return 'کد پیگیری تراکنش را وارد کنید.';
+  if (requireKey && !byId('key-file').files?.[0]) return 'فایل کلید خصوصی مدیر را انتخاب کنید.';
+  return '';
+}
+function decodeSeed(value) {
+  const clean = value.replace(/-/g, '+').replace(/_/g, '/');
+  const binary = atob(clean + '='.repeat((4 - clean.length % 4) % 4));
+  return Uint8Array.from(binary, (character) => character.charCodeAt(0));
+}
+async function approveReceipt() {
+  byId('code-result').classList.add('hidden');
+  byId('reject-result').classList.add('hidden');
+  const details = orderDetails();
+  const error = validateReceipt(details, true);
+  if (error) return show(error, 'error');
+  const confirmation = `رسید را با گردش بانکی تطبیق داده‌اید؟\n\nمبلغ: ${details.amount} تومان\nتاریخ: ${details.transferDate}\nکد پیگیری: ${details.tracking}\nشناسهٔ نصب: ${details.installId}\n\nفقط پس از مشاهدهٔ واریز واقعی تأیید کنید.`;
+  if (!confirm(confirmation)) return;
+  try {
+    const keyFile = byId('key-file').files[0];
+    const raw = (await keyFile.text()).trim();
+    const seed = nacl.util?.decodeBase64(raw.replace(/-/g, '+').replace(/_/g, '/')) || decodeSeed(raw);
+    if (seed.length !== 32) throw new Error('کلید خصوصی معتبر نیست.');
+    const pair = nacl.sign.keyPair.fromSeed(seed);
+    const payload = { v: 1, id: makeId(), installId: details.installId, credits: details.credits, issuedAt: new Date().toISOString() };
+    const bytes = enc.encode(JSON.stringify(payload));
+    const signature = nacl.sign.detached(bytes, pair.secretKey);
+    const token = `${base64url(bytes)}.${base64url(signature)}`;
+    byId('code').value = token;
+    byId('code-result').classList.remove('hidden');
+    show('فیش تأیید شد و کد اعتبار ساخته شد؛ کد را برای همان کاربر بفرستید.');
+  } catch (error) {
+    show(error.message || 'ساخت کد انجام نشد.', 'error');
+  }
+}
+function rejectReceipt() {
+  byId('code-result').classList.add('hidden');
+  byId('reject-result').classList.add('hidden');
+  const details = orderDetails();
+  const error = validateReceipt(details, false);
+  if (error) return show(error, 'error');
+  const reason = (prompt('دلیل رد فیش را کوتاه و روشن بنویسید:') || '').trim();
+  if (reason.length < 3) return show('برای رد فیش، دلیل کوتاهی وارد کنید.', 'error');
+  byId('reject-message').value = `فیش واریزی شما بررسی شد اما تأیید نشد.\nدلیل: ${reason}\nتاریخ واریز: ${details.transferDate}\nکد پیگیری: ${details.tracking}\nلطفاً پس از رفع مورد، فیش را دوباره ارسال کنید.`;
+  byId('reject-result').classList.remove('hidden');
+  show('فیش رد شد؛ پیام دارای دلیل را برای کاربر بفرستید.');
+}
+function resetForm() {
+  if (receiptUrl) URL.revokeObjectURL(receiptUrl);
+  receiptUrl = '';
+  byId('receipt-file').value = '';
+  byId('order-text').value = '';
+  byId('install-id').value = '';
+  byId('transfer-date').value = '';
+  byId('tracking').value = '';
+  byId('credits').value = '1';
+  byId('code').value = '';
+  byId('reject-message').value = '';
+  byId('code-result').classList.add('hidden');
+  byId('reject-result').classList.add('hidden');
+  byId('receipt-preview').src = '';
+  byId('receipt-preview').classList.add('hidden');
+  show('برای فیش بعدی آماده است.');
+}
+async function copyText(id, successMessage) {
+  const field = byId(id);
+  try { await navigator.clipboard.writeText(field.value); }
+  catch { field.focus(); field.select(); document.execCommand('copy'); }
+  show(successMessage);
+}
+byId('receipt-file').addEventListener('change', () => {
+  if (receiptUrl) URL.revokeObjectURL(receiptUrl);
+  const file = byId('receipt-file').files?.[0];
+  const preview = byId('receipt-preview');
+  if (!file) { preview.classList.add('hidden'); return; }
+  if (!file.type.startsWith('image/')) {
+    byId('receipt-file').value = '';
+    preview.classList.add('hidden');
+    return show('فقط تصویر فیش را انتخاب کنید.', 'error');
+  }
+  receiptUrl = URL.createObjectURL(file);
+  preview.src = receiptUrl;
+  preview.classList.remove('hidden');
+  show('فیش آمادهٔ بررسی است.');
+});
+byId('read-order').onclick = readOrder;
+byId('approve').onclick = approveReceipt;
+byId('reject').onclick = rejectReceipt;
+byId('reset').onclick = resetForm;
+byId('copy-code').onclick = () => copyText('code', 'کد کپی شد؛ آن را برای کاربر بفرستید.');
+byId('copy-reject').onclick = () => copyText('reject-message', 'پیام رد فیش کپی شد.');
+window.addEventListener('beforeunload', () => {
+  byId('key-file').value = '';
+  byId('code').value = '';
+  if (receiptUrl) URL.revokeObjectURL(receiptUrl);
+});
+</script>
+</body>
+</html>
