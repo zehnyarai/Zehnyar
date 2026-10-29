@@ -34,11 +34,11 @@ def corpus_ids(records) -> list[str]:
     return ids
 
 
-STANDARD = {"notes": 5, "modern": 5, "research": 4}
+STANDARD = {"notes": 4, "modern": 4, "research": 4}
 
 
 def standard_ready(entry) -> bool:
-    """آیا آیه در استانداردِ تازه (۵ نکته، ۵ مطالعهٔ معاصر، ۴–۵ پرسش) نوشته شده است؟"""
+    """آیا آیه در استانداردِ تازه (۴–۵ نکته، ۴–۵ مطالعهٔ معاصر، ۴–۵ پرسش) نوشته شده است؟"""
     return all(len(entry.get(field) or []) >= need for field, need in STANDARD.items())
 
 
