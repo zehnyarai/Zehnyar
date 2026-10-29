@@ -19,7 +19,7 @@ services:
         value: /var/data
       - key: VISAYAR_ADMIN_USERNAME
         sync: false
-      - key: VISAYAR_ADMIN_PASSWORD
+      - key: VISAYAR_ADMIN_PASSWORD_HASH
         sync: false
       - key: VISAYAR_ENCRYPTION_KEY
         generateValue: true

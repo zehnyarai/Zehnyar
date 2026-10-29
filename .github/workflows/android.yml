@@ -116,16 +116,24 @@ jobs:
           node <<'NODE'
           const config = require('./app.config.js');
           const card = config.extra.paymentCard || {};
-          if (!card.number || card.number.length !== 16) {
-            console.error('No valid static card secret is configured. Add VISAYAR_PAYMENT_CARD_NUMBER in Actions secrets.');
+          const rawCard = String(process.env.VISAYAR_PAYMENT_CARD_NUMBER || '').replace(/\D/g, '');
+          const apiBase = String(process.env.VISAYAR_API_BASE_URL || '').trim();
+          const secureApi = /^https:\/\/[^/]+(?:\/.*)?$/.test(apiBase);
+          if (rawCard && (!card.number || card.number.length !== 16)) {
+            console.error('The configured static card secret is invalid.');
             process.exit(1);
           }
-          console.log('Static card configuration validated; value hidden.');
+          if (!secureApi && (!card.number || card.number.length !== 16)) {
+            console.error('Configure a secure HTTPS API URL, or add a valid card secret for offline mode.');
+            process.exit(1);
+          }
+          console.log(secureApi ? 'Secure API configuration validated; card may be fetched from the server.' : 'Static card configuration validated; value hidden.');
           NODE
 
-      - name: Embed a static card fallback for Android runtime
+      - name: Embed an optional static card fallback for Android runtime
         working-directory: mobile
         env:
+          VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
           VISAYAR_PAYMENT_CARD_NUMBER: ${{ secrets.VISAYAR_PAYMENT_CARD_NUMBER }}
           VISAYAR_PAYMENT_CARD_HOLDER: ${{ secrets.VISAYAR_PAYMENT_CARD_HOLDER }}
           VISAYAR_PAYMENT_BANK_NAME: ${{ secrets.VISAYAR_PAYMENT_BANK_NAME }}
@@ -149,8 +157,9 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleRelease --no-daemon
 
-      - name: Verify card is embedded in the Android JS bundle
+      - name: Verify card fallback or server-backed payments in the Android JS bundle
         env:
+          VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
           VISAYAR_PAYMENT_CARD_NUMBER: ${{ secrets.VISAYAR_PAYMENT_CARD_NUMBER }}
         run: node tools/check_mobile_payment_bundle.js
 

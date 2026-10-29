@@ -13,8 +13,14 @@ const digitMap = {
 const number = String(process.env.VISAYAR_PAYMENT_CARD_NUMBER || '')
   .replace(/[۰-۹٠-٩]/g, (character) => digitMap[character])
   .replace(/\D/g, '');
+const apiBaseUrl = String(process.env.VISAYAR_API_BASE_URL || '').trim();
+const hasSecureApi = /^https:\/\/[^/]+(?:\/.*)?$/.test(apiBaseUrl);
 if (number.length !== 16) {
-  console.error('Card bundle check requires a valid 16-digit secret.');
+  if (!number && hasSecureApi) {
+    console.log('Secure server mode configured; no card number is embedded in the Android bundle.');
+    process.exit(0);
+  }
+  console.error('Provide a valid card secret, or a secure HTTPS API URL for server mode.');
   process.exit(1);
 }
 

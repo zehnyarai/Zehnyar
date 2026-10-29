@@ -13,8 +13,10 @@ const digits = {
 const number = String(process.env.VISAYAR_PAYMENT_CARD_NUMBER || '')
   .replace(/[۰-۹٠-٩]/g, (character) => digits[character])
   .replace(/\D/g, '');
-if (number.length !== 16) {
-  console.error('A valid 16-digit card secret is required to generate the Android runtime fallback.');
+const apiBaseUrl = String(process.env.VISAYAR_API_BASE_URL || '').trim();
+const hasSecureApi = /^https:\/\/[^/]+(?:\/.*)?$/.test(apiBaseUrl);
+if (number.length !== 16 && (number.length > 0 || !hasSecureApi)) {
+  console.error('Provide a valid 16-digit card secret for offline mode, or a secure HTTPS API URL for server mode.');
   process.exit(1);
 }
 
