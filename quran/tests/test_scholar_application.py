@@ -15,26 +15,34 @@ def ids():
     return {f"{r[0]}:{r[1]}" for r in CORPUS if isinstance(r, list)}
 
 
-BATCH_ONE = {f"1:{i}" for i in range(1, 8)} | {f"2:{i}" for i in range(1, 44)}
-BATCH_TWO = {f"2:{i}" for i in range(44, 94)}
-BATCH_THREE = {f"2:{i}" for i in range(94, 144)}
-BATCH_FOUR = {f"2:{i}" for i in range(165, 177)}
+def seg_ids(segment):
+    surah, first = segment[0].split(":")
+    _, last = segment[1].split(":")
+    return {f"{surah}:{i}" for i in range(int(first), int(last) + 1)}
+
+
+def declared_ids():
+    ids = set()
+    for batch in APP["batches"]:
+        for segment in batch["segments"]:
+            ids |= seg_ids(segment)
+    return ids
 
 
 def test_batches_cover_every_entry_once():
     total = sum(batch["count"] for batch in APP["batches"])
     assert total == len(APP["verses"]), f"جمع بسته‌ها {total} ≠ مدخل‌ها {len(APP['verses'])}"
     assert all(batch["count"] > 0 and batch["status"].strip() for batch in APP["batches"])
-    assert [batch["count"] for batch in APP["batches"][:3]] == [50, 50, 50]
-    assert sum(batch["count"] for batch in APP["batches"][3:]) == 12
+    for batch in APP["batches"]:
+        covered = set()
+        for segment in batch["segments"]:
+            covered |= seg_ids(segment)
+        assert batch["count"] == len(covered), f"{batch['id']}: شمارش با بازه نمی‌خواند"
 
 
 def test_batch_ranges_are_exactly_as_declared():
-    assert BATCH_ONE <= set(APP["verses"])
-    assert BATCH_TWO <= set(APP["verses"])
-    assert BATCH_THREE <= set(APP["verses"])
-    assert BATCH_FOUR <= set(APP["verses"])
-    assert set(APP["verses"]) == BATCH_ONE | BATCH_TWO | BATCH_THREE | BATCH_FOUR
+    expected = declared_ids()
+    assert set(APP["verses"]) == expected, "بازهٔ بسته‌ها با مدخل‌ها نمی‌خواند"
 
 
 def iter_uses(v2=None):
