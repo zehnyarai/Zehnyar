@@ -1156,10 +1156,31 @@ function scholarBlock(verse, field) {
   return `<section class="scholar-layer"><p class="eyebrow">لایهٔ پژوهشی <span class="scholar-badge ${pilot ? "reviewed" : "draft"}">${badge}</span></p><ul class="scholar-list">${rows.join("")}</ul><p class="scholar-note">${note}</p></section>`;
 }
 
+function orderedApplicationIds() {
+  return Object.keys(state.scholarApplication || {}).sort((a, b) => {
+    const [s1, a1] = a.split(":").map(Number);
+    const [s2, a2] = b.split(":").map(Number);
+    return s1 - s2 || a1 - a2;
+  });
+}
+
+function batchForVerse(id) {
+  const meta = state.scholarApplicationMeta;
+  if (!meta || !meta.batches.length) return null;
+  const index = orderedApplicationIds().indexOf(id);
+  if (index < 0) return null;
+  let edge = 0;
+  for (const batch of meta.batches) {
+    edge += batch.count || 0;
+    if (index < edge) return batch;
+  }
+  return meta.batches[meta.batches.length - 1];
+}
+
 function applicationPanel(verse) {
   const meta = state.scholarApplicationMeta;
   const entry = state.scholarApplication ? state.scholarApplication[verse.id] : null;
-  const batch = meta && meta.batches.length ? meta.batches[0] : null;
+  const batch = entry ? batchForVerse(verse.id) : null;
   const head = `<p class="eyebrow">کاربست امروز · استنباط، نه متن</p><h3>از متن به میدان، با مرزِ روشن</h3>
     <p class="reading-notice">هر کاربست، یک استنباط است و باید سه چیز را نشان دهد: شاهدِ متنی، منبع، و جایی که کاربست نباید به آنجا برود. کاربستِ بی‌شاهد، شعار است.</p>`;
 

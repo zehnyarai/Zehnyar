@@ -15,14 +15,21 @@ def ids():
     return {f"{r[0]}:{r[1]}" for r in CORPUS if isinstance(r, list)}
 
 
-def test_batch_one_has_fifty_verses():
-    assert len(APP["verses"]) == 50, f"شمارش بسته: {len(APP['verses'])}"
-    assert APP["batches"][0]["count"] == 50
+BATCH_ONE = {f"1:{i}" for i in range(1, 8)} | {f"2:{i}" for i in range(1, 44)}
+BATCH_TWO = {f"2:{i}" for i in range(44, 94)}
 
 
-def test_batch_range_is_exactly_fatiha_and_baqara_start():
-    expected = {f"1:{i}" for i in range(1, 8)} | {f"2:{i}" for i in range(1, 44)}
-    assert set(APP["verses"]) == expected
+def test_batches_have_fifty_verses_each():
+    total = sum(batch["count"] for batch in APP["batches"])
+    assert total == len(APP["verses"]), f"جمع بسته‌ها {total} ≠ مدخل‌ها {len(APP['verses'])}"
+    assert all(batch["count"] == 50 for batch in APP["batches"])
+    assert len(APP["batches"]) * 50 == len(APP["verses"])
+
+
+def test_batch_ranges_are_exactly_as_declared():
+    assert BATCH_ONE <= set(APP["verses"])
+    assert BATCH_TWO <= set(APP["verses"])
+    assert set(APP["verses"]) == BATCH_ONE | BATCH_TWO
 
 
 def test_every_entry_is_complete_and_cited():
