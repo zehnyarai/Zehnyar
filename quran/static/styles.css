@@ -233,44 +233,50 @@ h1, h2, h3, p { margin-top: 0; } h1 { max-width: 740px; margin: 21px auto 15px; 
 .donation-copy-button:hover, .donation-copy-button:focus-visible { background: var(--teal); outline: 2px solid #a5d9d2; outline-offset: 2px; }
 .donation-status { min-height: 18px; margin: 0; color: #66818b; font-size: 9px; text-align: center; }
 
-/* چهار فیلدِ پروندهٔ سوره؛ هر نکته با شاهد و موضعِ قابل بازبینی */
-.surah-overview-grid, .surah-theme-grid, .surah-vocabulary-list, .surah-reflection-list { display: grid; gap: 10px; margin-top: 13px; }
-.surah-overview-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.surah-overview-point, .surah-theme-card, .surah-vocabulary-entry, .surah-reflection-card { min-width: 0; padding: 13px; border: 1px solid #dce9e8; border-radius: 12px; background: #fff; }
-.surah-overview-point header, .surah-theme-card header, .surah-reflection-card header { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
-.surah-overview-point header > b { color: var(--teal-dark); font-size: 11px; }
-.surah-overview-point > p { margin: 9px 0 5px; color: #456b7a; font-size: 12px; line-height: 2; }
-.surah-overview-point > small { display: block; color: #758c96; font-size: 9px; line-height: 1.9; }
-.surah-review-status { margin-inline-start: auto; padding: 2px 6px; border-radius: 999px; font-size: 8px; }
-.surah-review-status.reviewed { color: #27664f; background: #e7f5ed; }
-.surah-review-status.draft { color: #735d24; background: #fff6df; }
+/* چهار فیلدِ پروندهٔ سوره؛ نقلِ منبع، شاهد و ارجاع از هم جدا و قابل پیگیری‌اند */
+.surah-outline-list, .surah-theme-source-list, .surah-theme-grid, .surah-vocabulary-list, .surah-reflection-list { display: grid; gap: 9px; margin-top: 13px; }
+.surah-outline-unit, .surah-theme-source, .surah-vocabulary-entry, .surah-theme-card, .surah-reflection-card { min-width: 0; border: 1px solid #dce9e8; border-radius: 12px; background: #fff; }
+.surah-outline-unit > summary, .surah-theme-source > summary { display: flex; align-items: center; gap: 9px; padding: 12px 13px; color: #456d7d; cursor: pointer; list-style: none; }
+.surah-outline-unit > summary::-webkit-details-marker, .surah-theme-source > summary::-webkit-details-marker, .surah-vocabulary-entry > summary::-webkit-details-marker { display: none; }
+.surah-outline-unit > summary::after, .surah-theme-source > summary::after, .surah-vocabulary-entry > summary::after { content: "＋"; margin-inline-start: auto; color: var(--teal); font-weight: 900; }
+.surah-outline-unit[open] > summary::after, .surah-theme-source[open] > summary::after, .surah-vocabulary-entry[open] > summary::after { content: "−"; }
+.surah-range { flex: 0 0 auto; color: var(--teal-dark); font-size: 10px; font-weight: 900; }
+.surah-outline-unit > summary > span, .surah-theme-source > summary > span { flex: 1; min-width: 0; color: var(--deep); font-size: 11px; font-weight: 800; line-height: 1.9; }
+.surah-outline-unit > summary small, .surah-theme-source > summary small { color: #748b94; font-size: 9px; white-space: nowrap; }
+.surah-outline-body, .surah-theme-source-body, .surah-vocabulary-context { padding: 11px 13px 13px; border-top: 1px solid #e5eeee; background: #fbfefe; }
+.surah-outline-label, .surah-subsection-title { margin: 15px 0 7px; color: #2b697a; font-size: 11px; font-weight: 900; }
+.surah-heading-list { display: grid; gap: 5px; margin: 7px 0 12px; padding-inline-start: 24px; color: #587887; font-size: 10px; line-height: 1.9; }
+.surah-heading-list li { padding-inline-start: 3px; }
+.surah-source-excerpt { margin: 10px 0; padding: 11px 13px; color: #4b6875; border-inline-start: 3px solid #d8b667; border-radius: 0 9px 9px 0; background: #fffaf0; font-size: 11px; line-height: 2; white-space: pre-wrap; overflow-wrap: anywhere; }
+.excerpt-ellipsis { color: #9b7440; font-weight: 900; }
+.surah-attribution { display: block; margin: 8px 0; color: #778d94; font-size: 9px; line-height: 1.8; }
+.surah-theme-source-body > p { margin: 0 0 8px; color: #587887; font-size: 10px; line-height: 1.9; }
+.surah-theme-reference-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 5px; margin: 8px 0; padding: 0; list-style: none; }
+.surah-theme-reference-list li { min-width: 0; }
 .surah-theme-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .surah-theme-card { padding: 12px; }
-.surah-theme-card header { justify-content: space-between; }
-.surah-theme-card h4, .surah-reflection-card h4 { margin: 0; color: var(--deep); font-size: 12px; }
+.surah-theme-card header, .surah-reflection-card header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 7px; }
+.surah-theme-card h4, .surah-reflection-card h4 { margin: 0; color: var(--deep); font-size: 12px; line-height: 1.8; }
 .surah-theme-card header > span { color: #67828d; font-size: 9px; white-space: nowrap; }
-.surah-theme-witnesses { margin: 8px 0; color: #587888; font-size: 11px; line-height: 1.9; overflow-wrap: anywhere; }
+.surah-theme-witnesses { margin: 8px 0; color: #587888; font-size: 10px; line-height: 1.9; overflow-wrap: anywhere; }
 .surah-theme-witnesses b { color: #2a6678; }
 .surah-reference-list { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; color: #758b94; font-size: 9px; }
 .surah-reference-button { display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; color: #286d7d; border: 1px solid #d0e5e4; border-radius: 7px; background: #f7fcfb; font-size: 9px; font-weight: 800; white-space: nowrap; }
 .surah-reference-button:hover, .surah-reference-button:focus-visible { color: #fff; border-color: var(--teal); background: var(--teal); outline: 0; }
-.surah-vocabulary-entry { padding: 0; overflow: hidden; }
-.surah-vocabulary-entry > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 10px; padding: 11px 12px; color: #557684; cursor: pointer; list-style: none; }
-.surah-vocabulary-entry > summary::-webkit-details-marker { display: none; }
-.surah-vocabulary-entry > summary::after { content: "＋"; margin-inline-start: auto; color: var(--teal); font-weight: 900; }
-.surah-vocabulary-entry[open] > summary::after { content: "−"; }
-.surah-vocabulary-entry > summary b { color: #174e64; font-family: "Noto Naskh Arabic", "Amiri", serif; font-size: 19px; }
-.surah-vocabulary-entry > summary span { font-size: 9px; }
-.surah-vocabulary-context { padding: 11px 13px 13px; border-top: 1px solid #e5eeee; background: #fbfefe; }
-.surah-vocabulary-context p { margin: 0 0 5px; color: #587887; font-size: 11px; line-height: 2; }
+.surah-vocabulary-entry { overflow: hidden; }
+.surah-vocabulary-entry > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 11px 12px; color: #557684; cursor: pointer; list-style: none; }
+.surah-vocabulary-words { display: flex; flex-wrap: wrap; gap: 7px; }
+.surah-vocabulary-word { display: grid; gap: 2px; padding: 5px 8px; border-radius: 8px; background: #f0f8f6; }
+.surah-vocabulary-word > bdi { color: #174e64; font-family: "Noto Naskh Arabic", "Amiri", serif; font-size: 17px; font-weight: 800; }
+.surah-vocabulary-word small { color: #68818a; font-size: 8px; line-height: 1.7; }
+.surah-vocabulary-entry > summary > small { color: #718891; font-size: 9px; line-height: 1.7; }
+.surah-vocabulary-context p { margin: 0 0 7px; color: #587887; font-size: 10px; line-height: 1.9; overflow-wrap: anywhere; }
 .surah-vocabulary-context p b { display: block; color: #2d697a; }
-.surah-vocabulary-context > small { display: block; margin-bottom: 9px; color: #778d94; font-size: 9px; line-height: 1.8; }
-.surah-source-note { margin: 12px 0 0 !important; color: #738993 !important; font-size: 9px !important; }
+.surah-reflection-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .surah-reflection-card { padding: 14px; }
-.surah-reflection-card header { justify-content: space-between; align-items: flex-start; }
-.surah-reflection-card header > div { display: grid; gap: 4px; }
-.surah-reflection-card header small { color: #778c94; font-size: 9px; line-height: 1.8; }
-.surah-reflection-card blockquote { margin: 12px 0 8px; padding: 11px 13px; color: #4b6875; border-inline-start: 3px solid #d8b667; border-radius: 0 9px 9px 0; background: #fffaf0; font-size: 12px; line-height: 2; white-space: pre-wrap; }
-.surah-source-link { color: #31798a; font-size: 9px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
-@media (max-width: 760px) { .donation-card { grid-template-columns: 1fr; }.donation-transfer { width: 100%; min-width: 0; }.surah-overview-grid { grid-template-columns: 1fr; }.surah-theme-grid { grid-template-columns: 1fr; }.surah-review-status { margin-inline-start: 0; } }
-@media (max-width: 430px) { .donation-number { font-size: 16px; }.surah-overview-point, .surah-theme-card, .surah-reflection-card { padding: 11px; } }
+.surah-reflection-card header > div { display: grid; gap: 4px; min-width: 0; }
+.surah-reflection-card header small { color: #778c94; font-size: 9px; line-height: 1.8; overflow-wrap: anywhere; }
+.surah-research-note > p { margin: 12px 0 8px; color: #496c79; font-size: 11px; line-height: 2; }
+.surah-source-link { display: inline-block; margin-top: 4px; color: #31798a; font-size: 9px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 760px) { .donation-card { grid-template-columns: 1fr; }.donation-transfer { width: 100%; min-width: 0; }.surah-theme-grid, .surah-reflection-list { grid-template-columns: 1fr; }.surah-outline-unit > summary, .surah-theme-source > summary { align-items: flex-start; flex-wrap: wrap; }.surah-review-status { margin-inline-start: 0; } }
+@media (max-width: 430px) { .donation-number { font-size: 16px; }.surah-outline-body, .surah-theme-source-body, .surah-vocabulary-context, .surah-reflection-card { padding: 11px; }.surah-heading-list { padding-inline-start: 19px; } }
