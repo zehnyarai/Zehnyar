@@ -1,4 +1,4 @@
-const CACHE_NAME = "zehnyar-shell-v55";
+const CACHE_NAME = "zehnyar-shell-v56";
 // The PWA is served at /, while the Android wrapper serves the same files at
 // /assets/. Deriving paths from the registration scope keeps one worker valid
 // in both hosts.
