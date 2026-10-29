@@ -208,3 +208,15 @@ h1, h2, h3, p { margin-top: 0; } h1 { max-width: 740px; margin: 21px auto 15px; 
 @media (max-width: 700px) { .dossier-item span { font-size: 11px; } .more-tabs[open] { width: 100%; } }
 .dossier-progress { margin: 8px 0 0; padding: 8px 10px; color: #5b7a86; border-radius: 9px; background: #f4fafa; font-size: 9.5px; line-height: 1.95; }
 .dossier-progress b { color: #2b6a7f; }
+
+/* پروندهٔ آیه: چیدمانِ خلوت‌ترِ کاربست، پیشنهادِ کاربر و منابعِ کوتاه */
+.apply-grid { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+.apply-grid .apply-card { margin: 0; }
+.apply-cite { font-size: .8rem; opacity: .78; margin: .25rem 0 .4rem; }
+.apply-pending { font-size: .82rem; opacity: .72; margin-top: .5rem; }
+.field-proposal { margin-top: .6rem; border-top: 1px dashed rgba(128,128,128,.35); padding-top: .5rem; }
+.field-proposal > summary { cursor: pointer; font-weight: 600; font-size: .9rem; }
+.field-proposal-hint { font-size: .8rem; opacity: .78; margin: .4rem 0; }
+.field-proposal .proposal-workspace { border: 0; padding: 0; }
+.tafsir-shorts { margin-top: 1rem; }
+.tafsir-shorts > summary { cursor: pointer; font-size: .9rem; opacity: .85; }

@@ -786,7 +786,7 @@ function reviewedStudyField(verse, field) {
   const annotation = reviewedStudyFor(verse);
   if (!annotation || !annotation[field]) return "";
   const value = annotation[field];
-  const sourceLine = reviewedStudySources(annotation).map((source) => `<span>${escapeHTML(source.title)} · ${escapeHTML(source.author)} · نسخه ${escapeHTML(source.version)}</span>`).join("");
+  const sourceLine = reviewedStudySources(annotation).map((source) => `<span>${escapeHTML(source.title)} · ${escapeHTML(source.author)}</span>`).join("");
   if (field === "framework") {
     const cards = [["izutsu", "ایزوتسو: شبکهٔ واژگان و جهان‌بینی"], ["fillmore", "فیلمور: قاب و نقش‌های صحنه"], ["cognitive", "معناشناسی شناختی: طرح‌واره و نگاشت"]];
     return `<p class="reviewed-badge">تحلیلِ تحریریِ آیه · ${escapeHTML(annotation.status)}</p><div class="semantic-model-grid">${cards.map(([key,title]) => { const model=value[key]; return `<section class="semantic-model-card"><h4>${title}</h4><p><b>دادهٔ این آیه:</b> ${escapeHTML(model.input)}</p><p><b>عملیات مدل:</b> ${escapeHTML(model.operation)}</p><p><b>معنا/اثر ارتباطی:</b> ${escapeHTML(model.meaning)}</p><p><b>حدّ استنباط:</b> ${escapeHTML(model.limit)}</p></section>`; }).join("")}</div><div class="reviewed-sources">${sourceLine}</div>`;
@@ -994,9 +994,13 @@ function detailPanelTafsir(verse) {
   }).join("");
   const loadingNotice = state.tafsirLoading ? `<p class="source-availability" role="status">در حال دریافت و آماده‌سازی متن انتخاب‌شده؛ به‌دلیل حجم منابع، هر بار یک تفسیر تکمیلی بارگیری می‌شود.</p>` : "";
   const errorNotice = state.tafsirLoadFailed ? `<p class="study-unavailable">بارگیری کامل نشد؛ اتصال را بررسی و دوباره روی «نمایش متن کامل» بزنید.</p>` : "";
-  const body = entries.map(({ source, text, footnotes }) => `<article class="source-card" lang="${escapeHTML(source.language)}" dir="rtl"><div class="source-card-head"><div><h4>${escapeHTML(source.title)}</h4><p>${escapeHTML(source.author)}</p></div><a href="${escapeHTML(source.sourceUrl)}" target="_blank" rel="noreferrer">نسخه و منبع ↗</a></div><p class="source-citation">${escapeHTML(tafsirCitation(source))}${source.license ? ` · ${escapeHTML(source.license)}` : ""}</p><div class="source-text">${escapeHTML(text)}</div>${footnotes ? `<div class="source-footnotes"><b>پانویسِ منبع</b>${escapeHTML(footnotes)}</div>` : ""}</article>`).join("");
+  // دو منبعِ کوتاهِ پیش‌فرض برای همهٔ آیه‌ها یکسان بارگیری می‌شوند؛ به‌جای تکرارِ پرحجم،
+  // فقط در یک بخشِ بسته و با برچسبِ روشن نمایش داده می‌شوند.
+  const shorts = entries.filter((entry) => entry.source.preload !== false);
+  const shortBody = shorts.map(({ source, text, footnotes }) => `<article class="source-card" lang="${escapeHTML(source.language)}" dir="rtl"><div class="source-card-head"><div><h4>${escapeHTML(source.title)}</h4><p>${escapeHTML(source.author)}</p></div><a href="${escapeHTML(source.sourceUrl)}" target="_blank" rel="noreferrer">نسخه و منبع ↗</a></div><p class="source-citation">${escapeHTML(tafsirCitation(source))}${source.license ? ` · ${escapeHTML(source.license)}` : ""}</p><div class="source-text">${escapeHTML(text)}</div>${footnotes ? `<div class="source-footnotes"><b>پانویسِ منبع</b>${escapeHTML(footnotes)}</div>` : ""}</article>`).join("");
+  const shortBlock = shortBody ? `<details class="tafsir-shorts"><summary>متنِ کوتاهِ مرجع (المختصر و المیسر) — برای هر آیه تکرار نمی‌شود</summary><p class="reading-notice">این دو متن، ترجمه و تفسیرِ کوتاهِ مرجع‌اند و خوانشِ تحریریِ همین اپ شمرده نمی‌شوند؛ خوانشِ کهن و معاصرِ هر آیه در فیلدهای «خوانش‌های کهن» و «مطالعات معاصر» آمده است.</p>${shortBody}</details>` : "";
   const curated = detailPanelDossier(verse, "classical");
-  return `${curated}<section class="detail-panel tafsir-panel"><p class="eyebrow">منابع تفسیریِ آیه</p><h3>متنِ کامل، انتساب، نسخه و پیوندِ دقیق</h3><p class="reading-notice">متن‌ها بدون خلاصه‌سازی یا بازنویسی نمایش داده می‌شوند. منابع عربی و فارسی دیدگاه‌های متفاوت دارند؛ نقلِ یک مفسر را با نظر دیگران یکی نگیرید. برای حفظ سرعت و حافظهٔ گوشی، متن‌های تکمیلی جداگانه و به‌درخواست شما بارگیری می‌شوند.</p>${loadingNotice}${errorNotice}<div class="tafsir-choices"><h4>تفاسیر تکمیلی: طبری، قرطبی و المیزان</h4>${extended}</div>${body || `<p class="study-unavailable">برای این آیه متن تفسیری از منابع بارگیری‌شده در دسترس نیست.</p>`}${major}${catalogue}</section>`;
+  return `${curated}<section class="detail-panel tafsir-panel"><p class="eyebrow">منابع تفسیریِ آیه</p><h3>متنِ کامل، انتساب، نسخه و پیوندِ دقیق</h3><p class="reading-notice">متن‌ها بدون خلاصه‌سازی یا بازنویسی نمایش داده می‌شوند. منابع عربی و فارسی دیدگاه‌های متفاوت دارند؛ نقلِ یک مفسر را با نظر دیگران یکی نگیرید.</p>${loadingNotice}${errorNotice}<div class="tafsir-choices"><h4>تفاسیر تکمیلی: طبری، قرطبی و المیزان</h4>${extended}</div>${major}${catalogue}${shortBlock}</section>`;
 }
 
 const DOSSIER_FIELDS = {
@@ -1177,7 +1181,8 @@ function fieldNotePanel(verse, field) {
   const labels = { notes: "نکات مهم آیه", foundations: "اصول زندگی و مبانی", framework: "چارچوب معنایی", messages: "پیام‌های آیه", context: "سیاق و جایگاه", thematic: "تفسیر موضوعی", network: "نظم شبکه‌ای", quran: "نسبت با قرآن", tafsir: "منابع تفسیری آیه", modern: "مطالعات معاصر", critical: "خوانش انتقادی", research: "پژوهش در آیه", application: "کاربست امروز" };
   const key = `${verse.id}:${field}`;
   const inputId = `field-note-${field}`;
-  return `<section class="field-note-panel"><label for="${inputId}"><b>یادداشت من</b><span>یادداشت شخصی برای بخش «${escapeHTML(labels[field] || field)}»</span></label><textarea id="${inputId}" class="note-area" data-field-note="${escapeHTML(field)}" data-verse-id="${escapeHTML(verse.id)}" maxlength="3000" placeholder="پرسش، برداشت شخصی یا ارجاعی که می‌خواهید برای این بخش نگه دارید…">${escapeHTML(state.fieldNotes[key] || "")}</textarea><small class="field-note-status" aria-live="polite">ذخیرهٔ خودکار فقط در همین دستگاه</small></section>`;
+  const proposalKind = field === "research" ? "research" : field === "messages" ? "messages" : field === "foundations" ? "principles" : "notes";
+  return `<section class="field-note-panel"><label for="${inputId}"><b>یادداشت من</b><span>یادداشت شخصی برای بخش «${escapeHTML(labels[field] || field)}»</span></label><textarea id="${inputId}" class="note-area" data-field-note="${escapeHTML(field)}" data-verse-id="${escapeHTML(verse.id)}" maxlength="3000" placeholder="پرسش، برداشت شخصی یا ارجاعی که می‌خواهید برای این بخش نگه دارید…">${escapeHTML(state.fieldNotes[key] || "")}</textarea><small class="field-note-status" aria-live="polite">ذخیرهٔ خودکار فقط در همین دستگاه</small><details class="field-proposal"><summary>پیشنهاد من برای همین بخش</summary><p class="field-proposal-hint">پیشنهاد شما با شاهدِ همین آیه ثبت می‌شود و پس از بازبینی، مبنای به‌روزرسانیِ همین بخش قرار می‌گیرد.</p>${proposalForm(verse, proposalKind)}</details></section>`;
 }
 
 const SCHOLAR_SLICES = {
@@ -1272,33 +1277,23 @@ function batchForVerse(id) {
 function applicationPanel(verse) {
   const meta = state.scholarApplicationMeta;
   const entry = state.scholarApplication ? state.scholarApplication[verse.id] : null;
-  const batch = entry ? batchForVerse(verse.id) : null;
   const head = `<p class="eyebrow">کاربست امروز · استنباط، نه متن</p><h3>از متن به میدان، با مرزِ روشن</h3>
-    <p class="reading-notice">هر کاربست، یک استنباط است و باید سه چیز را نشان دهد: شاهدِ متنی، منبع، و جایی که کاربست نباید به آنجا برود. کاربستِ بی‌شاهد، شعار است.</p>`;
+    <p class="reading-notice">چهار کاربست برای هر آیه؛ هر کاربست با شاهدِ لفظی از همین آیه، استنباطِ روشن، منبعِ دقیق و مرزِ سوءاستفادهٔ اختصاصی. کاربستِ بی‌شاهد، شعار است.</p>`;
 
-  if (entry) {
-    return `<section class="detail-panel application-panel">${head}
-      <div class="apply-batch"><span class="apply-badge">${batch ? escapeHTML(batch.status) : "بازبینی‌شده"}</span><span>${batch ? escapeHTML(batch.title) + " · " + escapeHTML(batch.range) : ""}</span></div>
-      <article class="apply-card">
-        <p class="apply-field">میدانِ کاربست: ${escapeHTML(entry.field)}</p>
-        <p class="apply-text">${scholarCite(entry.text)}</p>
-        <ul class="apply-meta">
-          <li><b>شاهدِ متنی</b><span>${scholarCite(entry.basis)}</span></li>
-          <li><b>منبع</b><span>${scholarCite(entry.cite)}</span></li>
-        </ul>
-        <p class="apply-guard"><b>مرزِ سوءاستفاده</b>${scholarCite(entry.guard)}</p>
-      </article>
-      ${entry.anchors && entry.anchors.length ? `<div class="apply-anchors">${entry.anchors.map((id) => {
-        const anchor = state.scholarAnchorById ? state.scholarAnchorById.get(id) : null;
-        return anchor ? `<span title="${escapeHTML(anchor.limit)}">${escapeHTML(anchor.kind)} · ${escapeHTML(anchor.field)}</span>` : "";
-      }).join("")}</div>` : ""}
-      <p class="scholar-note">این کاربست در «${batch ? escapeHTML(batch.title) : "بستهٔ بازبینی‌شده"}» نوشته شده؛ برای آیه‌های دیگر، همین ساختار را با سه دروازهٔ پایین بسازید.</p>
-      ${methodBlock(meta)}
-    </section>`;
+  const uses = entry && Array.isArray(entry.uses) ? entry.uses.slice(0, 4) : (entry ? [entry] : []);
+  if (uses.length) {
+    const cards = uses.map((use, index) => `<article class="apply-card">
+        <p class="apply-field"><b>${faNumber(index + 1)}.</b> ${escapeHTML(use.field)}</p>
+        ${use.basis ? `<p class="apply-basis">شاهدِ متنی: «${escapeHTML(use.basis)}»</p>` : ""}
+        <p class="apply-text">${scholarCite(use.text)}</p>
+        <p class="apply-cite">${scholarCite(use.cite || "")}</p>
+        <p class="apply-guard"><b>مرزِ سوءاستفاده</b>${scholarCite(use.guard || "")}</p>
+      </article>`).join("");
+    const pending = uses.length < 4 ? `<p class="apply-pending">برای این آیه ${faNumber(4 - uses.length)} کاربستِ دیگر در بازبینی است.</p>` : "";
+    return `<section class="detail-panel application-panel">${head}<div class="apply-grid">${cards}</div>${pending}</section>`;
   }
-
   return `<section class="detail-panel application-panel">${head}
-    <p class="apply-empty">برای این آیه هنوز کاربستِ دست‌نویس نوشته نشده است. به‌جای تولیدِ خودکارِ کاربست (که به تحمیل می‌انجامد)، سه دروازهٔ زیر را کامل کنید تا استنباط‌تان قابلِ بازبینی باشد.</p>
+    <p class="apply-empty">برای این آیه هنوز چهار کاربستِ مستند نوشته نشده است. به‌جای تولیدِ خودکارِ کاربست (که به تحمیل می‌انجامد)، سه دروازهٔ زیر را کامل کنید تا استنباط‌تان قابلِ بازبینی باشد.</p>
     ${methodBlock(meta)}
   </section>`;
 }
@@ -1329,7 +1324,9 @@ function renderDetailPanel() {
   };
   const panel = (panels[state.detailTab] || detailPanelNotes)(verse);
   const researchSubmission = state.detailTab === "research" ? `<section class="detail-panel research-submission"><h3>برداشت یا پیشنهاد پژوهش من</h3><p>موضوع را همراه شاهدی از همین آیه بفرستید؛ پیشنهاد تا بازبینی مدیر منتشر نمی‌شود.</p>${proposalForm(verse, "research")}</section>` : "";
-  const scholar = ["modern", "critical"].includes(state.detailTab) ? "" : scholarBlock(verse, state.detailTab);
+  // لایهٔ پژوهشیِ عمومی فقط برای آیه‌های بدونِ پروندهٔ تحریری نمایش داده می‌شود؛
+  // برای آیه‌های دارای پرونده، همان بندهای اختصاصیِ هر فیلد کافی است و تکرار لازم نیست.
+  const scholar = (!dossierFor(verse) && !["modern", "critical"].includes(state.detailTab)) ? scholarBlock(verse, state.detailTab) : "";
   $("#detail-panels").innerHTML = `${panel}${scholar}${fieldNotePanel(verse, state.detailTab)}${researchSubmission}`;
 }
 
