@@ -102,3 +102,12 @@ def test_citations_do_not_claim_unverified_pagination():
             for item in entry[field]:
                 cite = item["cite"]
                 assert "*" in cite or any(ch.isdigit() for ch in cite), f"{vid}:{field} ارجاعِ بی‌مشخص"
+
+
+def test_baqarah_2_282_article_page_ranges_are_not_conflated():
+    citations = [item["cite"] for item in DOSSIER["verses"]["2:282"]["modern"]]
+    rezai = next(cite for cite in citations if "رضایی‌کرمانی" in cite)
+    tayeb = next(cite for cite in citations if "طیب‌حسینی" in cite)
+    assert "صص. ۸۱–۱۲۱" in rezai
+    assert "صص. ۱۱۳–۱۳۸" not in rezai
+    assert "صص. ۱۱۳–۱۳۸" in tayeb

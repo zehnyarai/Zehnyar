@@ -11,6 +11,7 @@ const SCHOLAR_LAYER_URL = "static/verse-scholar-layer.json";
 const SCHOLAR_PILOT_URL = "static/scholar-pilot.json";
 const SCHOLAR_APPLICATION_URL = "static/scholar-application.json";
 const VERSE_DOSSIER_URL = "static/verse-dossiers.json";
+const SURAH_DOSSIERS_URL = "static/surah-dossiers.json";
 const NOTEBOOK_KEY = "zehnyar-verse-notebook-v2";
 const FIELD_NOTES_KEY = "quran-pazhuheh-field-notes-v1";
 const VERSE_PROPOSALS_KEY = "quran-pazhuheh-verse-proposals-v1";
@@ -48,7 +49,8 @@ const state = {
   storyTab: "verses",
   libraryMode: null,
   selectedSurah: null,
-  surahTab: "notes",
+  surahDossiers: {},
+  surahTab: "overview",
   query: "",
   concept: null,
   terms: [],
@@ -237,10 +239,10 @@ async function loadScholarLayer() {
 }
 
 async function loadData() {
-  const [corpusResponse, lexiconResponse, storyResponse, storyDossiersResponse, catalogResponse, tafsirRegistryResponse, tafsirCatalogResponse, studiesResponse] = await Promise.all([
-    fetch(CORPUS_URL), fetch(LEXICON_URL), fetch(STORY_INDEX_URL), fetch(STORY_DOSSIERS_URL), fetch(TOPIC_CATALOG_URL), fetch(TAFSIR_SOURCES_URL), fetch(TAFSIR_CATALOG_URL), fetch(VERSE_STUDIES_URL),
+  const [corpusResponse, lexiconResponse, storyResponse, storyDossiersResponse, catalogResponse, tafsirRegistryResponse, tafsirCatalogResponse, studiesResponse, surahDossiersResponse] = await Promise.all([
+    fetch(CORPUS_URL), fetch(LEXICON_URL), fetch(STORY_INDEX_URL), fetch(STORY_DOSSIERS_URL), fetch(TOPIC_CATALOG_URL), fetch(TAFSIR_SOURCES_URL), fetch(TAFSIR_CATALOG_URL), fetch(VERSE_STUDIES_URL), fetch(SURAH_DOSSIERS_URL),
   ]);
-  if (!corpusResponse.ok || !lexiconResponse.ok || !storyResponse.ok || !storyDossiersResponse.ok || !catalogResponse.ok || !tafsirRegistryResponse.ok || !tafsirCatalogResponse.ok || !studiesResponse.ok) {
+  if (!corpusResponse.ok || !lexiconResponse.ok || !storyResponse.ok || !storyDossiersResponse.ok || !catalogResponse.ok || !tafsirRegistryResponse.ok || !tafsirCatalogResponse.ok || !studiesResponse.ok || !surahDossiersResponse.ok) {
     throw new Error("پیکرهٔ محلی یا فهرست پژوهش در دسترس نیست.");
   }
   const corpus = await corpusResponse.json();
@@ -255,6 +257,7 @@ async function loadData() {
   state.topicCategories = catalog.categories || [];
   state.stories = (await storyResponse.json()).stories || [];
   state.storyDossiers = (await storyDossiersResponse.json()).dossiers || {};
+  state.surahDossiers = (await surahDossiersResponse.json()).surahs || {};
   state.tafsirRegistry = tafsirRegistry.sources || [];
   const tafsirResults = await Promise.allSettled(state.tafsirRegistry.filter((source) => source.preload !== false).map(loadTafsirSource));
   state.tafsirSources = tafsirResults.filter((result) => result.status === "fulfilled").map((result) => result.value);
@@ -1358,21 +1361,12 @@ function surahRecords(surah) {
   return state.corpus.filter((record) => record.surah === surah);
 }
 
-function topicHitsForSurah(surah, layer) {
-  const records = surahRecords(surah);
-  return state.concepts.map((concept) => {
-    const terms = layer === "direct" ? concept.equivalents : concept.related;
-    const count = records.filter((record) => (terms || []).some(([term]) => record.arabicNormalized.includes(normalize(term)))).length;
-    return { title: concept.title, count };
-  }).filter((item) => item.count).sort((a, b) => b.count - a.count || a.title.localeCompare(b.title, "fa"));
-}
-
 function openLibrary(mode, shouldNavigate = true) {
   state.libraryMode = mode;
   const surahs = [...new Map(state.corpus.map((record) => [record.surah, record])).values()];
   if (mode === "surahs") {
     $("#library-title").textContent = "پژوهش در ۱۱۴ سوره";
-    $("#library-description").textContent = "هر سوره یک پروندهٔ مستقل دارد: نکات متن‌محور، پرسش‌های پیام، موضوعات صریحِ واژگانی و پیوندهای مرتبط. این برچسب‌ها جای تفسیر منبع‌دار را نمی‌گیرند.";
+    $("#library-description").textContent = "در پروندهٔ هر سوره چهار فیلدِ جدا می‌بینید: نمای متن‌محور، موضوعاتِ دارای شاهد واژگانی، واژه‌های کم‌تکرار در بافت آیه، و نقل‌های دقیقِ یک منبع تفسیری با ارجاع.";
     $("#library-list").innerHTML = surahs.map((surah) => `<button class="library-card" type="button" data-surah="${surah.surah}"><b>${faNumber(surah.surah)} · ${escapeHTML(surah.surahName)}</b><span>${escapeHTML(surah.revelation)} · ${faNumber(surahRecords(surah.surah).length)} آیه</span><i>←</i></button>`).join("");
   } else if (mode === "topics") {
     const byId = new Map(state.concepts.map((concept) => [concept.id, concept]));
@@ -1396,49 +1390,113 @@ function openSurah(surahNumber, shouldNavigate = true) {
   if (!records.length) return;
   const sample = records[0];
   state.selectedSurah = { number: sample.surah, name: sample.surahName, revelation: sample.revelation, verses: records.length };
-  state.surahTab = "notes";
+  state.surahTab = "overview";
   renderSurah();
   if (shouldNavigate) navigate("surah", String(surahNumber));
   else showScreen("surah", String(surahNumber));
 }
 
-function surahTopicList(items, empty) {
-  return items.length ? `<div class="topic-hit-list">${items.map((item) => `<span><b>${escapeHTML(item.title)}</b> · ${faNumber(item.count)} آیه</span>`).join("")}</div>` : `<p>${escapeHTML(empty)}</p>`;
+function surahReferenceLabel(reference) {
+  const [surahNumber, ayahNumber] = String(reference).split(":").map(Number);
+  return `${faNumber(surahNumber)}:${faNumber(ayahNumber)}`;
+}
+
+function surahVerseButton(reference, label = "") {
+  const referenceLabel = surahReferenceLabel(reference);
+  return `<button class="surah-reference-button" type="button" data-open-surah-verse="${escapeHTML(reference)}" aria-label="باز کردن آیهٔ ${escapeHTML(referenceLabel)}"><bdi dir="ltr">${escapeHTML(referenceLabel)}</bdi>${label ? `<span>${escapeHTML(label)}</span>` : ""}</button>`;
+}
+
+function renderSurahOverview(surah, dossier) {
+  const points = (dossier.overview || []).map((point) => {
+    const annotation = state.verseStudies[point.reference] || {};
+    const message = annotation.messages?.[point.messageIndex];
+    if (!message) return "";
+    const status = annotation.status === "reviewed-pilot" ? "نمونهٔ بازبینی‌شده" : "پیش‌نویس؛ نیازمند بازبینی تخصصی";
+    return `<article class="surah-overview-point"><header><b>${escapeHTML(point.stage)}</b>${surahVerseButton(point.reference)}<span class="surah-review-status ${annotation.status === "reviewed-pilot" ? "reviewed" : "draft"}">${status}</span></header><p>${escapeHTML(message.text)}</p><small>شاهد: ${escapeHTML(message.evidence)}</small></article>`;
+  }).filter(Boolean).join("");
+  return `<section class="detail-panel surah-overview-panel"><p class="eyebrow">نمای کلی سوره</p><h3>سه ایستگاه برای دیدن حرکت متن</h3><p class="reading-notice">این نمای کوتاه، یادداشتِ آغاز، میانه و پایان را کنار هم می‌گذارد؛ جایگزینِ خواندن همهٔ آیات یا داوریِ نهایی دربارهٔ مقصد سوره نیست.</p><div class="surah-overview-grid">${points || `<p class="study-unavailable">یادداشتِ منبع‌دار برای این سوره در دسترس نیست.</p>`}</div></section>`;
+}
+
+function renderSurahThemes(dossier) {
+  const themes = (dossier.themes || []).map((theme) => `<article class="surah-theme-card"><header><h4>${escapeHTML(theme.title)}</h4><span>${faNumber(theme.count)} آیه</span></header><p class="surah-theme-witnesses"><b>واژه‌های شاهد:</b> ${theme.witnesses.map(escapeHTML).join("، ")}</p><div class="surah-reference-list"><span>نمونهٔ مواضع:</span>${theme.references.map((reference) => surahVerseButton(reference)).join("")}</div></article>`).join("");
+  return `<section class="detail-panel surah-themes-panel"><p class="eyebrow">موضوعات محوری و کلیدی</p><h3>محورهای واژگانیِ دارای شاهد در سوره</h3><p class="reading-notice">این فهرست بر پایهٔ واژه‌های صریح و مواضعِ قابل بازبینی ساخته شده است؛ هم‌نشینیِ واژه‌ها به‌تنهایی تفسیر یا محور قطعیِ سوره را ثابت نمی‌کند.</p><div class="surah-theme-grid">${themes || `<p class="study-unavailable">برای این سوره موضوعِ واژگانیِ کافی ثبت نشده است.</p>`}</div></section>`;
+}
+
+function renderSurahVocabulary(surah, dossier) {
+  const entries = (dossier.vocabulary || []).map((item) => {
+    const record = state.recordById.get(item.reference);
+    if (!record) return "";
+    return `<details class="surah-vocabulary-entry"><summary><b lang="ar" dir="rtl">${escapeHTML(item.word)}</b><span>صورتِ واژه در پیکره: ${faNumber(item.frequency)} بار · ${escapeHTML(surahReferenceLabel(item.reference))}</span></summary><div class="surah-vocabulary-context"><p><b>ترجمهٔ همان آیه در بافت</b>${escapeHTML(record.persian)}</p><small>این برگردان، ترجمهٔ کل آیه است؛ معادلِ تک‌واژه‌ای یا حکمِ لغویِ قطعی نیست.</small>${surahVerseButton(item.reference, "بازکردن پروندهٔ آیه")}</div></details>`
+  }).filter(Boolean).join("");
+  return `<section class="detail-panel surah-vocabulary-panel"><p class="eyebrow">مفردات و لغات دشوار</p><h3>سه صورتِ کم‌تکرار برای بررسی در سیاق</h3><p class="reading-notice">واژه‌ها بر اساس بسامدِ صورتِ دقیق در متن انتخاب شده‌اند؛ کم‌تکراری لزوماً به معنای دشواری نیست. برای دیدنِ برگردانِ سیاقی، هر مدخل را باز کنید.</p><div class="surah-vocabulary-list">${entries || `<p class="study-unavailable">واژه‌ای برای نمایش در این فهرست نیست.</p>`}</div><p class="surah-source-note">متن عربی: Tanzil Uthmani · ترجمهٔ فارسیِ پیکره: QuranEnc، Ihsan Elahi Zaheer؛ انتساب کامل در پروندهٔ منابع برنامه.</p></section>`;
+}
+
+function renderSurahReflections(surah, dossier) {
+  const sourceId = dossier.reflections?.[0]?.sourceId;
+  const source = state.tafsirSources.find((item) => item.id === sourceId);
+  const quotes = (dossier.reflections || []).map((item) => {
+    const [surahNumber, ayahNumber] = item.reference.split(":").map(Number);
+    const entry = source?.verses?.[String(surahNumber)]?.[String(ayahNumber)];
+    if (!entry?.text) return `<article class="surah-reflection-card"><p class="study-unavailable">نقلِ منبع برای آیهٔ ${escapeHTML(surahReferenceLabel(item.reference))} در این نسخه بارگیری نشد.</p></article>`;
+    const sourceUrl = /^https?:\/\//i.test(String(source.sourceUrl || "")) ? source.sourceUrl : "";
+    return `<article class="surah-reflection-card"><header><div><h4>نقل تفسیری</h4><small>${escapeHTML(source.title)} · ${escapeHTML(source.source)} · نسخهٔ ${escapeHTML(source.version)} · ذیل ${escapeHTML(surahReferenceLabel(item.reference))}</small></div>${surahVerseButton(item.reference)}</header><blockquote lang="fa" dir="rtl">${escapeHTML(entry.text)}</blockquote>${sourceUrl ? `<a class="surah-source-link" href="${escapeHTML(sourceUrl)}" target="_blank" rel="noopener noreferrer">صفحهٔ منبع و نسخه ↗</a>` : ""}</article>`
+  }).join("");
+  return `<section class="detail-panel surah-reflections-panel"><p class="eyebrow">اقوال مهم و تأمل‌برانگیز</p><h3>دو نقلِ قابل پیگیری از یک منبع</h3><p class="reading-notice">دو نقلِ زیر عینِ متنِ ترجمهٔ فارسیِ المختصر فی تفسیر القرآن الکریم‌اند؛ گزیده‌ای از یک منبع‌اند، نه اجماعِ مفسران یا تفسیرِ نهاییِ سوره.</p><div class="surah-reflection-list">${quotes || `<p class="study-unavailable">نقلِ تفسیری برای این سوره در دسترس نیست.</p>`}</div></section>`;
 }
 
 function renderSurah() {
   const surah = state.selectedSurah;
   if (!surah) return;
-  const direct = topicHitsForSurah(surah.number, "direct");
-  const related = topicHitsForSurah(surah.number, "related");
+  const dossier = state.surahDossiers[String(surah.number)];
   $("#surah-reference").textContent = `سورهٔ ${faNumber(surah.number)} · ${surah.revelation} · ${faNumber(surah.verses)} آیه`;
   $("#surah-title").textContent = surah.name;
-  $("#surah-description").textContent = "این پروندهٔ نخستین، موضوع‌ها را فقط بر پایهٔ حضور واژه‌های عربیِ واژه‌نامه نشان می‌دهد. لایهٔ پیام و نکتهٔ تفسیری پس از ورود منابعِ چندگانه با ارجاع دقیق تکمیل می‌شود.";
-  $$("[data-surah-tab]").forEach((button) => button.classList.toggle("active", button.dataset.surahTab === state.surahTab));
+  $("#surah-description").textContent = dossier ? "پروندهٔ سوره چهار مسیرِ مستقل دارد: نمای متن‌محور، محورهای واژگانی، واژگانِ نیازمند بررسی و نقل‌های تفسیریِ مستند." : "دادهٔ پژوهشیِ این سوره در نسخهٔ محلی در دسترس نیست.";
+  $$("#surah-screen [data-surah-tab]").forEach((button) => {
+    const active = button.dataset.surahTab === state.surahTab;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+  });
+  $("#surah-panels").setAttribute("aria-labelledby", `surah-tab-${state.surahTab}`);
+  if (!dossier) {
+    $("#surah-panels").innerHTML = `<section class="detail-panel"><p class="study-unavailable">پروندهٔ سوره بارگیری نشد؛ لطفاً داده‌های آفلاین برنامه را به‌روز کنید.</p></section>`;
+    return;
+  }
   const panels = {
-    notes: `<section class="detail-panel"><p class="eyebrow">نکات سوره</p><h3>پروندهٔ متن‌محورِ سورهٔ ${escapeHTML(surah.name)}</h3><ul class="study-list"><li><b>شناسهٔ متن</b>${faNumber(surah.verses)} آیه و طبقه‌بندیِ ${escapeHTML(surah.revelation)} در فرادادهٔ پیکره ثبت شده است.</li><li><b>روش این پرونده</b>موضوع‌ها از تطابق واژه‌های عربیِ شفاف به‌دست می‌آیند؛ هنوز «نکتهٔ تفسیری» یا «مقصد سوره» به‌صورت بی‌منبع به سوره نسبت داده نشده است.</li></ul></section>`,
-    messages: `<section class="detail-panel"><p class="eyebrow">پیام‌های قابل بررسی</p><h3>پرسش‌های پژوهشگر برای خواندن سوره</h3><ul class="study-list"><li><b>پرسش ساختاری</b>آغاز، گره‌ها و پایان سوره چه نسبتی با یکدیگر دارند؟</li><li><b>پرسش واژگانی</b>واژه‌های پرتکرارِ زیر در چه نقش و سیاقی آمده‌اند؟</li><li><b>پرسش منبع</b>برای هر پیام پیشنهادی، کدام منبع تفسیریِ دارای ارجاع از آن پشتیبانی می‌کند؟</li></ul></section>`,
-    direct: `<section class="detail-panel"><p class="eyebrow">فهرست موضوعیِ صریح</p><h3>مفهوم‌هایی با شاهدِ واژگانیِ عربی در این سوره</h3>${surahTopicList(direct, "برای واژه‌نامهٔ فعلی، شاهد صریحی در این سوره ثبت نشده است.")}</section>`,
-    related: `<section class="detail-panel"><p class="eyebrow">موضوعات همسو و مرتبط</p><h3>پیوندهایی که باید در سیاق سنجیده شوند</h3><p class="reading-notice">این‌ها موضوعات غیرمستقیم‌اند؛ حضورشان ادعای هم‌معنایی، مقصد سوره یا نتیجهٔ تفسیری نیست.</p>${surahTopicList(related, "برای واژه‌نامهٔ فعلی، پیوند مرتبطی در این سوره ثبت نشده است.")}</section>`,
+    overview: renderSurahOverview(surah, dossier),
+    themes: renderSurahThemes(dossier),
+    vocabulary: renderSurahVocabulary(surah, dossier),
+    reflections: renderSurahReflections(surah, dossier),
   };
-  $("#surah-panels").innerHTML = panels[state.surahTab];
+  $("#surah-panels").innerHTML = panels[state.surahTab] || panels.overview;
 }
 
 function resultVerse(record, evidence, type = "exact") {
   return { ...record, evidence, type, score: 0 };
 }
 
-function openSurahVerses() {
-  const surah = state.selectedSurah;
-  if (!surah) return;
+function prepareSurahVerseResults(surah) {
   state.query = `سورهٔ ${surah.name}`;
   state.concept = null;
   state.terms = [];
   state.matches = surahRecords(surah.number).map((record) => resultVerse(record, [{ label: "آیهٔ این سوره", type: "exact", source: "پیکرهٔ قرآن", origin: "پروندهٔ سوره" }]));
   state.shown = PAGE_SIZE;
   state.filter = "all";
+  state.contextVerseId = state.matches[0]?.id || null;
   renderResults();
+}
+
+function openSurahVerses() {
+  if (!state.selectedSurah) return;
+  prepareSurahVerseResults(state.selectedSurah);
   navigate("results");
+}
+
+function openSurahReference(reference) {
+  const record = state.recordById.get(reference);
+  if (!record) return;
+  const surah = { number: record.surah, name: record.surahName };
+  prepareSurahVerseResults(surah);
+  openVerse(reference);
 }
 
 function storyPassageIds(story) {
@@ -1591,6 +1649,33 @@ function restoreFromHistory() {
   showScreen("search");
 }
 
+async function copyDonationCardNumber(event) {
+  const button = event.currentTarget;
+  const status = $("#donation-status");
+  const cardNumber = button.dataset.cardNumber || "6219861057113903";
+  try {
+    if (navigator.clipboard?.writeText && window.isSecureContext) {
+      await navigator.clipboard.writeText(cardNumber);
+    } else {
+      const temporary = document.createElement("textarea");
+      temporary.value = cardNumber;
+      temporary.setAttribute("readonly", "");
+      temporary.style.position = "fixed";
+      temporary.style.insetInlineStart = "-9999px";
+      document.body.appendChild(temporary);
+      temporary.select();
+      const copied = document.execCommand?.("copy");
+      temporary.remove();
+      if (!copied) throw new Error("Clipboard unavailable");
+    }
+    status.textContent = "شمارهٔ کارت کپی شد؛ واریز هر مبلغ کاملاً به انتخاب شماست.";
+  } catch {
+    status.textContent = "کپی خودکار انجام نشد؛ شماره را لمس طولانی و دستی کپی کنید.";
+  }
+}
+
+$("#copy-donation-card")?.addEventListener("click", copyDonationCardNumber);
+
 $("#concept-form").addEventListener("submit", (event) => {
   event.preventDefault();
   searchResearchFields();
@@ -1617,6 +1702,10 @@ $("#library-list").addEventListener("click", (event) => {
   if (story) openStory(story.dataset.story);
 });
 $("#surah-open-verses").addEventListener("click", openSurahVerses);
+$("#surah-panels").addEventListener("click", (event) => {
+  const referenceButton = event.target.closest("[data-open-surah-verse]");
+  if (referenceButton) openSurahReference(referenceButton.dataset.openSurahVerse);
+});
 $$("[data-surah-tab]").forEach((button) => button.addEventListener("click", () => {
   state.surahTab = button.dataset.surahTab;
   renderSurah();

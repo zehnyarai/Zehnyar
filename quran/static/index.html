@@ -61,6 +61,20 @@
             <button id="open-story-library" type="button">ورود به داستان‌های قرآن <span aria-hidden="true">←</span></button>
           </aside>
         </div>
+
+        <section class="donation-card" aria-labelledby="donation-title">
+          <div class="donation-copy">
+            <p class="eyebrow">حمایت داوطلبانه</p>
+            <h2 id="donation-title">اگر این برنامه برایتان سودمند است</h2>
+            <p>به انتخاب و میل خودتان، هر مبلغی که مایلید برای پشتیبانی از ادامهٔ کار و نگه‌داری این برنامه واریز کنید؛ هیچ مبلغ ثابتی تعیین نشده است.</p>
+          </div>
+          <div class="donation-transfer">
+            <span class="donation-label">شمارهٔ کارت</span>
+            <bdi id="donation-card-number" class="donation-number" dir="ltr">6219 8610 5711 3903</bdi>
+            <button id="copy-donation-card" class="donation-copy-button" type="button" data-card-number="6219861057113903">کپی شمارهٔ کارت</button>
+            <p id="donation-status" class="donation-status" role="status" aria-live="polite">واریز کاملاً اختیاری است.</p>
+          </div>
+        </section>
       </section>
 
       <section id="library-screen" class="screen library-screen" hidden aria-labelledby="library-title">
@@ -72,10 +86,13 @@
       <section id="surah-screen" class="screen surah-screen" hidden aria-labelledby="surah-title">
         <div class="screen-topbar"><button class="back-button" data-go="library" type="button">← کتابخانه</button><button id="surah-open-verses" class="save-button" type="button">خواندن آیه‌های سوره</button></div>
         <article class="detail-verse"><p id="surah-reference" class="detail-reference">—</p><h2 id="surah-title">—</h2><p id="surah-description" class="detail-persian"></p></article>
-        <div class="study-tabs" role="tablist" aria-label="پروندهٔ پژوهش سوره">
-          <button class="active" data-surah-tab="notes" type="button">نکات سوره</button><button data-surah-tab="messages" type="button">پیام‌های قابل بررسی</button><button data-surah-tab="direct" type="button">موضوعات صریح</button><button data-surah-tab="related" type="button">موضوعات مرتبط</button>
+        <div class="study-tabs surah-tabs" role="tablist" aria-label="فیلدهای پروندهٔ سوره">
+          <button class="active" id="surah-tab-overview" data-surah-tab="overview" type="button" role="tab" aria-selected="true" aria-controls="surah-panels">نمای کلی سوره</button>
+          <button id="surah-tab-themes" data-surah-tab="themes" type="button" role="tab" aria-selected="false" aria-controls="surah-panels">موضوعات محوری و کلیدی</button>
+          <button id="surah-tab-vocabulary" data-surah-tab="vocabulary" type="button" role="tab" aria-selected="false" aria-controls="surah-panels">مفردات و لغات دشوار</button>
+          <button id="surah-tab-reflections" data-surah-tab="reflections" type="button" role="tab" aria-selected="false" aria-controls="surah-panels">اقوال مهم و تأمل‌برانگیز</button>
         </div>
-        <div id="surah-panels" class="detail-panels"></div>
+        <div id="surah-panels" class="detail-panels" role="tabpanel" aria-labelledby="surah-tab-overview"></div>
       </section>
 
       <section id="story-screen" class="screen story-screen" hidden aria-labelledby="story-title">

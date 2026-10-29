@@ -222,3 +222,56 @@ h1, h2, h3, p { margin-top: 0; } h1 { max-width: 740px; margin: 21px auto 15px; 
 .tafsir-shorts > summary { cursor: pointer; font-size: .9rem; opacity: .85; }
 .standard-badge { display: inline-block; margin-inline-start: .55rem; padding: .12rem .5rem; border: 1px solid #d8c79a; border-radius: 999px; background: #fdf7e6; color: #7a5b16; font-size: .68rem; font-weight: 600; vertical-align: middle; }
 .apply-basis { margin: .3rem 0 .1rem; color: #6b5b3e; font-size: .82rem; }
+
+/* صفحهٔ نخست: حمایت مالیِ کاملاً داوطلبانه */
+.donation-card { margin-top: 28px; padding: clamp(18px, 3vw, 27px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(230px, auto); align-items: center; gap: 20px; border: 1px solid #c8dfd8; border-radius: 18px; background: linear-gradient(120deg, rgba(230,247,240,.9), rgba(255,255,255,.94)); box-shadow: 0 8px 24px rgba(11,73,90,.05); }
+.donation-copy h2 { margin: 3px 0 7px; color: var(--deep); font-size: clamp(18px, 2.3vw, 23px); }
+.donation-copy p:last-child { max-width: 610px; margin: 0; color: #587485; font-size: 11px; line-height: 2; }
+.donation-transfer { min-width: 225px; display: grid; justify-items: center; gap: 6px; padding: 14px; border: 1px solid #d4e7de; border-radius: 14px; background: rgba(255,255,255,.85); }
+.donation-label { color: #68838f; font-size: 10px; font-weight: 700; }
+.donation-number { display: inline-block; direction: ltr; unicode-bidi: isolate; color: #12465c; font-family: ui-monospace, "SFMono-Regular", Consolas, monospace; font-size: clamp(17px, 2vw, 21px); font-weight: 900; letter-spacing: .045em; white-space: nowrap; }
+.donation-copy-button { padding: 6px 11px; color: #fff; border: 0; border-radius: 8px; background: var(--teal-dark); font-size: 10px; font-weight: 800; }
+.donation-copy-button:hover, .donation-copy-button:focus-visible { background: var(--teal); outline: 2px solid #a5d9d2; outline-offset: 2px; }
+.donation-status { min-height: 18px; margin: 0; color: #66818b; font-size: 9px; text-align: center; }
+
+/* چهار فیلدِ پروندهٔ سوره؛ هر نکته با شاهد و موضعِ قابل بازبینی */
+.surah-overview-grid, .surah-theme-grid, .surah-vocabulary-list, .surah-reflection-list { display: grid; gap: 10px; margin-top: 13px; }
+.surah-overview-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.surah-overview-point, .surah-theme-card, .surah-vocabulary-entry, .surah-reflection-card { min-width: 0; padding: 13px; border: 1px solid #dce9e8; border-radius: 12px; background: #fff; }
+.surah-overview-point header, .surah-theme-card header, .surah-reflection-card header { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.surah-overview-point header > b { color: var(--teal-dark); font-size: 11px; }
+.surah-overview-point > p { margin: 9px 0 5px; color: #456b7a; font-size: 12px; line-height: 2; }
+.surah-overview-point > small { display: block; color: #758c96; font-size: 9px; line-height: 1.9; }
+.surah-review-status { margin-inline-start: auto; padding: 2px 6px; border-radius: 999px; font-size: 8px; }
+.surah-review-status.reviewed { color: #27664f; background: #e7f5ed; }
+.surah-review-status.draft { color: #735d24; background: #fff6df; }
+.surah-theme-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.surah-theme-card { padding: 12px; }
+.surah-theme-card header { justify-content: space-between; }
+.surah-theme-card h4, .surah-reflection-card h4 { margin: 0; color: var(--deep); font-size: 12px; }
+.surah-theme-card header > span { color: #67828d; font-size: 9px; white-space: nowrap; }
+.surah-theme-witnesses { margin: 8px 0; color: #587888; font-size: 11px; line-height: 1.9; overflow-wrap: anywhere; }
+.surah-theme-witnesses b { color: #2a6678; }
+.surah-reference-list { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; color: #758b94; font-size: 9px; }
+.surah-reference-button { display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; color: #286d7d; border: 1px solid #d0e5e4; border-radius: 7px; background: #f7fcfb; font-size: 9px; font-weight: 800; white-space: nowrap; }
+.surah-reference-button:hover, .surah-reference-button:focus-visible { color: #fff; border-color: var(--teal); background: var(--teal); outline: 0; }
+.surah-vocabulary-entry { padding: 0; overflow: hidden; }
+.surah-vocabulary-entry > summary { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 10px; padding: 11px 12px; color: #557684; cursor: pointer; list-style: none; }
+.surah-vocabulary-entry > summary::-webkit-details-marker { display: none; }
+.surah-vocabulary-entry > summary::after { content: "＋"; margin-inline-start: auto; color: var(--teal); font-weight: 900; }
+.surah-vocabulary-entry[open] > summary::after { content: "−"; }
+.surah-vocabulary-entry > summary b { color: #174e64; font-family: "Noto Naskh Arabic", "Amiri", serif; font-size: 19px; }
+.surah-vocabulary-entry > summary span { font-size: 9px; }
+.surah-vocabulary-context { padding: 11px 13px 13px; border-top: 1px solid #e5eeee; background: #fbfefe; }
+.surah-vocabulary-context p { margin: 0 0 5px; color: #587887; font-size: 11px; line-height: 2; }
+.surah-vocabulary-context p b { display: block; color: #2d697a; }
+.surah-vocabulary-context > small { display: block; margin-bottom: 9px; color: #778d94; font-size: 9px; line-height: 1.8; }
+.surah-source-note { margin: 12px 0 0 !important; color: #738993 !important; font-size: 9px !important; }
+.surah-reflection-card { padding: 14px; }
+.surah-reflection-card header { justify-content: space-between; align-items: flex-start; }
+.surah-reflection-card header > div { display: grid; gap: 4px; }
+.surah-reflection-card header small { color: #778c94; font-size: 9px; line-height: 1.8; }
+.surah-reflection-card blockquote { margin: 12px 0 8px; padding: 11px 13px; color: #4b6875; border-inline-start: 3px solid #d8b667; border-radius: 0 9px 9px 0; background: #fffaf0; font-size: 12px; line-height: 2; white-space: pre-wrap; }
+.surah-source-link { color: #31798a; font-size: 9px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 760px) { .donation-card { grid-template-columns: 1fr; }.donation-transfer { width: 100%; min-width: 0; }.surah-overview-grid { grid-template-columns: 1fr; }.surah-theme-grid { grid-template-columns: 1fr; }.surah-review-status { margin-inline-start: 0; } }
+@media (max-width: 430px) { .donation-number { font-size: 16px; }.surah-overview-point, .surah-theme-card, .surah-reflection-card { padding: 11px; } }
