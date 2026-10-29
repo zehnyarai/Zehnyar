@@ -220,3 +220,5 @@ h1, h2, h3, p { margin-top: 0; } h1 { max-width: 740px; margin: 21px auto 15px; 
 .field-proposal .proposal-workspace { border: 0; padding: 0; }
 .tafsir-shorts { margin-top: 1rem; }
 .tafsir-shorts > summary { cursor: pointer; font-size: .9rem; opacity: .85; }
+.standard-badge { display: inline-block; margin-inline-start: .55rem; padding: .12rem .5rem; border: 1px solid #d8c79a; border-radius: 999px; background: #fdf7e6; color: #7a5b16; font-size: .68rem; font-weight: 600; vertical-align: middle; }
+.apply-basis { margin: .3rem 0 .1rem; color: #6b5b3e; font-size: .82rem; }

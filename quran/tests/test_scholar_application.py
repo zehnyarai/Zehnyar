@@ -26,6 +26,7 @@ def test_batches_cover_every_entry_once():
     assert total == len(APP["verses"]), f"جمع بسته‌ها {total} ≠ مدخل‌ها {len(APP['verses'])}"
     assert all(batch["count"] > 0 and batch["status"].strip() for batch in APP["batches"])
     assert [batch["count"] for batch in APP["batches"][:3]] == [50, 50, 50]
+    assert sum(batch["count"] for batch in APP["batches"][3:]) == 12
 
 
 def test_batch_ranges_are_exactly_as_declared():

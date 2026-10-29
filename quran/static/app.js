@@ -1047,7 +1047,7 @@ function detailPanelDossier(verse, field) {
   const items = dossierItems(verse, field);
   if (!items) return "";
   const dossier = dossierFor(verse);
-  return `<section class="detail-panel dossier-panel"><p class="eyebrow">${escapeHTML(meta.eyebrow)}</p><h3>${escapeHTML((dossier && dossier.title) || meta.title)}</h3>${items}${dossierMethodNote()}</section>`;
+  return `<section class="detail-panel dossier-panel"><p class="eyebrow">${escapeHTML(meta.eyebrow)}</p><h3>${escapeHTML((dossier && dossier.title) || meta.title)}${dossier && dossier.standard === 2 ? `<span class="standard-badge">استانداردِ تازه · ۵ نکته · ۵ مطالعهٔ معاصر · ۴ کاربست</span>` : ""}</h3>${items}${dossierMethodNote()}</section>`;
 }
 
 function dossierAnchors(verse, kind) {
