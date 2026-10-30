@@ -10,11 +10,6 @@ import { getCountries } from '../core/data';
 import { adminListExperiences, adminListPayments, adminLogin, adminLogout, adminReviewExperience, adminReviewPayment, getAdminSession, getAdminToken, getApiBase } from '../core/paymentApi';
 
 const FILTERS = ['pending', 'approved', 'rejected', 'all'];
-const PREVIEW_ITEMS = [
-  { id: 'preview-pending', sku: 'assessment_3', credits: 3, priceToman: 1500000, status: 'pending', transferDate: '۱۴۰۵/۰۸/۰۷', createdAt: '2026-10-29T09:20:00Z', trackingCode: 'پیگیری آزمایشی ۱', phone: '۰۹۱۲۰۰۰۰۰۰۰' },
-  { id: 'preview-approved', sku: 'assessment_6', credits: 6, priceToman: 2700000, status: 'approved', transferDate: '۱۴۰۵/۰۸/۰۶', createdAt: '2026-10-28T12:30:00Z', trackingCode: 'پیگیری آزمایشی ۲', phone: '۰۹۱۲۰۰۰۰۰۰۱' },
-  { id: 'preview-rejected', sku: 'assessment_1', credits: 1, priceToman: 600000, status: 'rejected', transferDate: '۱۴۰۵/۰۸/۰۵', createdAt: '2026-10-27T15:10:00Z', trackingCode: 'پیگیری آزمایشی ۳', phone: '۰۹۱۲۰۰۰۰۰۰۲', rejectionReason: 'رسید آزمایشی با مبلغ سفارش هم‌خوانی ندارد' },
-];
 
 function amount(value, lang) {
   const formatted = Number(value || 0).toLocaleString(lang === 'fa' ? 'fa-IR' : 'en-US');
@@ -41,7 +36,6 @@ export default function AdminScreen({ navigation }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [session, setSession] = useState(null);
-  const [demoMode, setDemoMode] = useState(false);
   const [allItems, setAllItems] = useState([]);
   const [experienceItems, setExperienceItems] = useState([]);
   const [reportedExperiences, setReportedExperiences] = useState([]);
@@ -105,16 +99,7 @@ export default function AdminScreen({ navigation }) {
     });
   }, [allItems, filter, search]);
 
-  const enterPreview = () => {
-    setDemoMode(true);
-    setSession({ authenticated: true, preview: true });
-    setToken(null);
-    setAllItems(PREVIEW_ITEMS);
-    setExperienceItems([]);
-    setReportedExperiences([]);
-    setFilter('all');
-    setSearch('');
-  };
+
 
   const signIn = async () => {
     if (!getApiBase()) {
@@ -138,10 +123,7 @@ export default function AdminScreen({ navigation }) {
   };
 
   const signOut = async () => {
-    if (!demoMode) {
-      try { await adminLogout(); } catch (error) { /* local credentials are cleared regardless */ }
-    }
-    setDemoMode(false);
+    try { await adminLogout(); } catch (error) { /* local credentials are cleared regardless */ }
     setSession({ authenticated: false });
     setToken(null);
     setAllItems([]);
@@ -229,7 +211,6 @@ export default function AdminScreen({ navigation }) {
               <TextInput value={username} onChangeText={setUsername} autoCapitalize="none" autoCorrect={false} placeholder={t('admin.username')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text }]} />
               <TextInput value={password} onChangeText={setPassword} secureTextEntry autoCapitalize="none" placeholder={t('admin.password')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text }]} />
               <Button label={t('admin.login')} icon="lock-closed-outline" loading={loading} onPress={signIn} />
-              <Button label={t('admin.previewButton')} variant="outline" icon="eye-outline" onPress={enterPreview} />
             </View>
             {!getApiBase() ? <Text variant="micro" color={colors.warn} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('admin.serverNotConfigured')}</Text> : null}
           </Card>
@@ -253,11 +234,10 @@ export default function AdminScreen({ navigation }) {
                 ))}
               </View>
               <View style={[styles.actions, { flexDirection: dir.row }]}>
-                {!demoMode ? <Button label={t('admin.refresh')} variant="outline" size="sm" icon="refresh-outline" loading={loading} onPress={refresh} /> : null}
-                {!demoMode && getApiBase() ? <Button label={t('admin.openFullPanel')} variant="outline" size="sm" icon="open-outline" onPress={() => Linking.openURL(`${getApiBase()}/admin/payments`).catch(() => Alert.alert(t('common.dismiss'), t('admin.openPanelError')))} /> : null}
+                <Button label={t('admin.refresh')} variant="outline" size="sm" icon="refresh-outline" loading={loading} onPress={refresh} />
+                {getApiBase() ? <Button label={t('admin.openFullPanel')} variant="outline" size="sm" icon="open-outline" onPress={() => Linking.openURL(`${getApiBase()}/admin/payments`).catch(() => Alert.alert(t('common.dismiss'), t('admin.openPanelError')))} /> : null}
               </View>
             </Card>
-            {demoMode ? <Card><Text variant="small" color={colors.warn} style={{ textAlign: dir.text }}>{t('admin.previewNotice')}</Text></Card> : null}
 
             <Card>
               <SectionTitle title={t('admin.queueTitle')} subtitle={`${lang === 'fa' ? toPersianDigits(String(visibleItems.length)) : visibleItems.length} ${t('admin.requests')}`} />
@@ -273,18 +253,10 @@ export default function AdminScreen({ navigation }) {
               </View>
             </Card>
 
-            {imageRequest && (receiptUrl || demoMode) ? (
+            {imageRequest && receiptUrl ? (
               <Card>
-                <SectionTitle title={t(demoMode ? 'admin.sampleReceipt' : 'admin.receiptPreview')} />
-                {demoMode ? (
-                  <View style={styles.sampleReceipt}>
-                    <Ionicons name="receipt-outline" size={44} color={colors.teal700} />
-                    <Text variant="bodyStrong" color={colors.ink}>{t('admin.sampleReceipt')}</Text>
-                    <Text variant="micro" color={colors.ink50}>{t('admin.previewNotice')}</Text>
-                  </View>
-                ) : (
-                  <Image source={{ uri: receiptUrl, headers: { Authorization: `Bearer ${token}` } }} resizeMode="contain" style={styles.receiptImage} />
-                )}
+                <SectionTitle title={t('admin.receiptPreview')} />
+                <Image source={{ uri: receiptUrl, headers: { Authorization: `Bearer ${token}` } }} resizeMode="contain" style={styles.receiptImage} />
                 <Button label={t('admin.closeReceipt')} variant="outline" size="sm" onPress={() => setImageRequest(null)} style={{ marginTop: spacing.sm }} />
               </Card>
             ) : null}
@@ -304,8 +276,8 @@ export default function AdminScreen({ navigation }) {
                 <Text variant="micro" color={colors.ink50} style={{ marginTop: 4, textAlign: dir.text }}>{t('admin.tracking')}: {item.trackingCode}</Text>
                 {item.status === 'rejected' && item.rejectionReason ? <Text variant="micro" color={colors.danger} style={{ marginTop: 6, textAlign: dir.text }}>{t('admin.rejectionReason')}: {item.rejectionReason}</Text> : null}
                 <View style={[styles.actions, { flexDirection: dir.row }]}>
-                  <Button label={t(demoMode ? 'admin.viewSampleReceipt' : 'admin.viewReceipt')} variant="outline" size="sm" icon="image-outline" onPress={() => setImageRequest(item.id)} />
-                  {item.status === 'pending' && !demoMode ? <>
+                  <Button label={t('admin.viewReceipt')} variant="outline" size="sm" icon="image-outline" onPress={() => setImageRequest(item.id)} />
+                  {item.status === 'pending' ? <>
                     <Button label={t('admin.approve')} size="sm" icon="checkmark-circle-outline" loading={busyId === item.id} onPress={() => approve(item)} />
                     <Button label={t('admin.reject')} variant="outline" size="sm" icon="close-circle-outline" loading={busyId === item.id} onPress={() => beginReject(item)} />
                   </> : null}
@@ -320,7 +292,7 @@ export default function AdminScreen({ navigation }) {
             <Card>
               <View style={{ flexDirection: dir.row, alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm }}>
                 <SectionTitle title={t('admin.experienceQueue')} subtitle={`${experienceItems.length} ${t('admin.experiencePending')}`} />
-                {!demoMode ? <Button label={t('admin.refresh')} variant="outline" size="sm" icon="refresh-outline" onPress={refresh} loading={loading} /> : null}
+                <Button label={t('admin.refresh')} variant="outline" size="sm" icon="refresh-outline" onPress={refresh} loading={loading} />
               </View>
             </Card>
             {experienceItems.map((item) => (
@@ -331,10 +303,10 @@ export default function AdminScreen({ navigation }) {
                 </View>
                 <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.xs, textAlign: dir.text }}>{pick(countries.find((country) => country.code === item.destination)?.nameFa || item.destination, countries.find((country) => country.code === item.destination)?.nameEn || item.destination)} · {t(`experiences.stages.${item.stage}`)} · {dateLabel(item.created_at, lang)}</Text>
                 <Text variant="small" color={colors.ink70} style={{ marginTop: spacing.sm, textAlign: dir.text, lineHeight: 22 }}>{item.body}</Text>
-                {!demoMode ? <View style={[styles.actions, { flexDirection: dir.row }]}>
+                <View style={[styles.actions, { flexDirection: dir.row }]}>
                   <Button label={t('admin.publishExperience')} size="sm" icon="checkmark-circle-outline" loading={busyId === item.id} onPress={() => reviewExperience(item, 'approved')} />
                   <Button label={t('admin.rejectExperience')} variant="outline" size="sm" icon="close-circle-outline" loading={busyId === item.id} onPress={() => reviewExperience(item, 'rejected')} />
-                </View> : null}
+                </View>
               </Card>
             ))}
             {!experienceItems.length ? <Card><Text variant="small" color={colors.ink60} style={{ textAlign: dir.text }}>{t('admin.noExperiencePending')}</Text></Card> : null}
@@ -347,7 +319,7 @@ export default function AdminScreen({ navigation }) {
                 </View>
                 <Text variant="small" color={colors.ink70} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{item.body}</Text>
                 {item.report_reasons?.length ? <Text variant="micro" color={colors.danger} style={{ marginTop: spacing.xs, textAlign: dir.text }}>{`${t('admin.reportReasons')}: ${item.report_reasons.map((reason) => t(`experiences.reportReasons.${reason}`)).join(lang === 'fa' ? '، ' : ', ')}`}</Text> : null}
-                {!demoMode ? <Button label={t('admin.hideExperience')} variant="outline" size="sm" icon="eye-off-outline" loading={busyId === item.id} onPress={() => reviewExperience(item, 'hidden')} style={{ marginTop: spacing.sm }} /> : null}
+                <Button label={t('admin.hideExperience')} variant="outline" size="sm" icon="eye-off-outline" loading={busyId === item.id} onPress={() => reviewExperience(item, 'hidden')} style={{ marginTop: spacing.sm }} />
               </Card>
             ))}
           </>
@@ -383,7 +355,6 @@ const styles = {
   details: { gap: spacing.xs, marginTop: spacing.sm, flexWrap: 'wrap' },
   actions: { gap: spacing.xs, flexWrap: 'wrap', marginTop: spacing.md, justifyContent: 'flex-start' },
   receiptImage: { width: '100%', height: 320, marginTop: spacing.sm, backgroundColor: colors.canvas, borderRadius: radius.md },
-  sampleReceipt: { minHeight: 180, marginTop: spacing.sm, alignItems: 'center', justifyContent: 'center', gap: spacing.sm, borderRadius: radius.md, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.teal300, backgroundColor: colors.canvas, padding: spacing.md },
   modalBackdrop: { flex: 1, justifyContent: 'center', padding: spacing.md, backgroundColor: 'rgba(10,30,30,.55)' },
   modalCard: { width: '100%', maxWidth: 520, alignSelf: 'center' },
   reasonInput: { minHeight: 100, textAlignVertical: 'top', paddingTop: spacing.sm, marginTop: spacing.md },

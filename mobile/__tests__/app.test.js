@@ -124,15 +124,13 @@ describe('Visayar app', () => {
     expect(text).not.toContain('پیام‌رسان');
   });
 
-  it('includes an offline-safe admin panel preview inside the app', () => {
+  it('does not expose a mock admin panel preview or fabricated receipts', () => {
     const tree = renderWithProviders(<AdminScreen navigation={navigation} />);
-    const previewButton = tree.root.findAllByType(Button).find((button) => button.props.label === 'دیدن پیش‌نمایش پنل');
-    expect(previewButton).toBeTruthy();
-    act(() => previewButton.props.onPress());
     const text = JSON.stringify(tree.toJSON());
-    expect(text).toContain('این پیش‌نمایش فقط داده‌های ساختگی دارد');
-    expect(text).toContain('دیدن نمونه رسید');
-    expect(text).not.toContain('تأیید و افزودن اعتبار');
+    expect(text).not.toContain('دیدن پیش‌نمایش پنل');
+    expect(text).not.toContain('پیگیری آزمایشی');
+    expect(text).not.toContain('دیدن نمونه رسید');
+    expect(text).toContain('ورود امن');
   });
 
   it('walks through all eight wizard steps', () => {

@@ -316,7 +316,7 @@ export const dictionary = {
     admin: {
       entryTitle: 'بخش مدیران', entrySubtitle: 'ورود فقط با حساب امن مدیریتی', entryButton: 'ورود مدیر',
       title: 'مدیریت سامانه', subtitle: 'ورود امن و بررسی دستی رسیدهای پرداخت', loginTitle: 'ورود مدیر', secureNote: 'گذرواژه ذخیره نمی‌شود؛ پس از ورود فقط نشست امن روی دستگاه نگهداری می‌شود.',
-      username: 'نام کاربری', password: 'گذرواژه', login: 'ورود امن', logout: 'خروج', previewButton: 'دیدن پیش‌نمایش پنل', previewNotice: 'این پیش‌نمایش فقط داده‌های ساختگی دارد؛ رسید واقعی دریافت نمی‌کند و هیچ تأیید یا شارژ واقعی انجام نمی‌دهد.', serverNotConfigured: 'برای ورود واقعی و دیدن رسیدهای کاربران، اتصال امن به سرور لازم است.', viewSampleReceipt: 'دیدن نمونه رسید', sampleReceipt: 'نمونه رسید آزمایشی',
+      username: 'نام کاربری', password: 'گذرواژه', login: 'ورود امن', logout: 'خروج', serverNotConfigured: 'برای ورود واقعی و دیدن رسیدهای کاربران، اتصال امن به سرور لازم است.',
       loginFailed: 'نام کاربری یا گذرواژه درست نیست.', loginUnavailable: 'ورود مدیر انجام نشد؛ اتصال و تنظیمات سرور را بررسی کنید.',
       credentialsRequired: 'نام کاربری و گذرواژه را وارد کنید.', dashboardTitle: 'نمای کلی مدیریت', dashboardSubtitle: 'وضعیت درخواست‌های پرداخت', queueTitle: 'درخواست‌های پرداخت', requests: 'درخواست',
       refresh: 'به‌روزرسانی فهرست', openFullPanel: 'بازکردن پنل کامل', openPanelError: 'پنل کامل باز نشد؛ اتصال را بررسی کنید.', empty: 'درخواستی برای این بخش وجود ندارد.', noSearchResults: 'درخواستی با این عبارت پیدا نشد.', search: 'جست‌وجو در شناسهٔ پیگیری یا شمارهٔ همراه',
@@ -656,7 +656,7 @@ export const dictionary = {
     admin: {
       entryTitle: 'Administrator access', entrySubtitle: 'Sign in with a secure administrator account', entryButton: 'Administrator sign-in',
       title: 'Administration', subtitle: 'Secure access and manual payment receipt review', loginTitle: 'Administrator sign-in', secureNote: 'Your password is not saved; only a secure session is kept on this device.',
-      username: 'Username', password: 'Password', login: 'Sign in securely', logout: 'Sign out', previewButton: 'View panel preview', previewNotice: 'This preview contains only sample data. It cannot receive real receipts or approve payments or credits.', serverNotConfigured: 'A secure server connection is required for real sign-in and real user receipts.', viewSampleReceipt: 'View sample receipt', sampleReceipt: 'Sample receipt',
+      username: 'Username', password: 'Password', login: 'Sign in securely', logout: 'Sign out', serverNotConfigured: 'A secure server connection is required for real sign-in and real user receipts.',
       loginFailed: 'The username or password is incorrect.', loginUnavailable: 'Administrator sign-in failed. Check the connection and server configuration.',
       credentialsRequired: 'Enter your username and password.', dashboardTitle: 'Administration overview', dashboardSubtitle: 'Payment request status', queueTitle: 'Payment requests', requests: 'requests',
       refresh: 'Refresh list', openFullPanel: 'Open full admin panel', openPanelError: 'Could not open the full panel. Check the connection.', empty: 'There are no requests in this section.', noSearchResults: 'No requests match this search.', search: 'Search by transfer reference or mobile number',
