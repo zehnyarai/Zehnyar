@@ -13,14 +13,10 @@ const digitMap = {
 const number = String(process.env.VISAYAR_PAYMENT_CARD_NUMBER || '')
   .replace(/[۰-۹٠-٩]/g, (character) => digitMap[character])
   .replace(/\D/g, '');
-const apiBaseUrl = String(process.env.VISAYAR_API_BASE_URL || '').trim();
+const apiBaseUrl = String(process.env.VISAYAR_API_BASE_URL || '').trim().replace(/\/$/, '');
 const hasSecureApi = /^https:\/\/[^/]+(?:\/.*)?$/.test(apiBaseUrl);
-if (number.length !== 16) {
-  if (!number && hasSecureApi) {
-    console.log('Secure server mode configured; no card number is embedded in the Android bundle.');
-    process.exit(0);
-  }
-  console.error('Provide a valid card secret, or a secure HTTPS API URL for server mode.');
+if (apiBaseUrl && !hasSecureApi) {
+  console.error('VISAYAR_API_BASE_URL is not a valid HTTPS URL.');
   process.exit(1);
 }
 
@@ -35,8 +31,25 @@ function findBundles(directory) {
 
 const root = process.env.ANDROID_BUILD_DIR || path.join(__dirname, '..', 'mobile', 'android', 'app', 'build');
 const bundles = findBundles(root);
-if (!bundles.some((file) => fs.readFileSync(file).includes(number))) {
-  console.error('The built Android JavaScript bundle does not contain the configured card; refusing to publish the APK.');
+if (bundles.length === 0) {
+  console.error('No Android JavaScript bundle was found; refusing to publish the APK.');
   process.exit(1);
 }
-console.log('Configured card is present in the Android JavaScript bundle; value withheld.');
+
+const contents = bundles.map((file) => fs.readFileSync(file));
+if (hasSecureApi && !contents.some((bundle) => bundle.includes(apiBaseUrl))) {
+  console.error('The secure API URL was not embedded in the Android bundle; refusing to publish the APK.');
+  process.exit(1);
+}
+if (!hasSecureApi && number.length !== 16) {
+  console.error('Provide a secure HTTPS API URL, or a valid 16-digit card secret for offline mode.');
+  process.exit(1);
+}
+if (number.length === 16 && !contents.some((bundle) => bundle.includes(number))) {
+  console.error('The configured card is missing from the Android bundle; refusing to publish the APK.');
+  process.exit(1);
+}
+
+if (hasSecureApi) console.log('Configured secure API URL is present in the Android bundle; value withheld.');
+if (number.length === 16) console.log('Configured card is present in the Android bundle; value withheld.');
+else console.log('No static card was embedded; server-side card settings will be used.');
