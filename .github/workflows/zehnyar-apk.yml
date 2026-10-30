@@ -1,4 +1,4 @@
-name: Zehnyar Quran APK
+name: قرآن‌پژوهه Android APK
 
 on:
   workflow_dispatch:
@@ -53,14 +53,26 @@ jobs:
         with:
           gradle-version: "8.7"
 
+      - name: Verify Quran Pajoohe app identity
+        run: grep -Fq 'android:label="قرآن‌پژوهه"' quran/mobile/android/app/src/main/AndroidManifest.xml
+
       - name: Build installable debug APK
         run: gradle --no-daemon -p quran/mobile/android assembleDebug
 
-      - name: Upload APK artifact
+      - name: Name the Quran Pajoohe installer
+        run: |
+          set -euo pipefail
+          VERSION="$(sed -n "s/.*versionName '\\([^']*\\)'.*/\\1/p" quran/mobile/android/app/build.gradle | head -n1)"
+          test -n "$VERSION"
+          APK_PATH="quran/mobile/android/app/build/outputs/apk/debug/QuranPajoohe-${VERSION}.apk"
+          cp quran/mobile/android/app/build/outputs/apk/debug/app-debug.apk "$APK_PATH"
+          echo "QURAN_APK_PATH=$APK_PATH" >> "$GITHUB_ENV"
+
+      - name: Upload Quran Pajoohe APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: zehnyar-android-apk
-          path: quran/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          name: quran-pajoohe-android-apk
+          path: ${{ env.QURAN_APK_PATH }}
           if-no-files-found: error
 
       - name: Publish latest prerelease
@@ -72,4 +84,4 @@ jobs:
           name: "قرآن‌پژوهه برای اندروید — آخرین نسخه"
           prerelease: true
           generate_release_notes: true
-          files: quran/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          files: ${{ env.QURAN_APK_PATH }}

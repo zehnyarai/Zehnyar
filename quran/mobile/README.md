@@ -1,6 +1,6 @@
 # نسخهٔ موبایل قرآن‌پژوهه
 
-این پوشه یک پوستهٔ بومی Android/WebView برای قرآن‌پژوهه است. در زمان ساخت، رابط وب، پیکرهٔ آفلاین و چارچوب پژوهش به داخل APK کپی می‌شوند. نسخهٔ جاری ۱٫۱۸٫۰ است و نشانِ کتابِ گشوده با نقطهٔ نورِ پژوهش در وب و Android یکپارچه شده است. شناسهٔ نصب این نسخه `ai.zehnyar.reader` است تا با نمونه‌های آزمایشی قدیمی تداخل امضا نداشته باشد.
+این پوشه یک پوستهٔ بومی Android/WebView برای قرآن‌پژوهه است. در زمان ساخت، رابط وب، پیکرهٔ آفلاین و چارچوب پژوهش به داخل APK کپی می‌شوند. نسخهٔ جاری ۱٫۱۹٫۰ است و نشانِ کتابِ گشوده با نقطهٔ نورِ پژوهش در وب و Android یکپارچه شده است. شناسهٔ نصب این نسخه `ai.zehnyar.reader` است تا با نمونه‌های آزمایشی قدیمی تداخل امضا نداشته باشد.
 
 ## رفتار نسخهٔ Android
 
@@ -22,4 +22,4 @@ gradle -p mobile/android assembleDebug
 mobile/android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-برای ساخت آزمایشی، workflow **Zehnyar Quran APK** در `.github/workflows/zehnyar-apk.yml` را از تب Actions اجرا کنید و فایل `app-debug.apk` را از artifact `zehnyar-android-apk` بگیرید. انتشار در Releases جداگانه و پیش‌فرضاً خاموش است. APK دیباگ برای نصب شخصی مناسب است؛ برای Google Play باید کلید امضا و build انتشار مستقل ایجاد شود.
+برای ساخت آزمایشی، workflow **قرآن‌پژوهه Android APK** در `.github/workflows/zehnyar-apk.yml` را از تب Actions اجرا کنید و فایلِ نام‌گذاری‌شدهٔ `QuranPajoohe-1.19.0.apk` را از artifact `quran-pajoohe-android-apk` بگیرید. نام نمایشی هنگام نصب «قرآن‌پژوهه» است؛ انتشار در Releases جداگانه و پیش‌فرضاً خاموش است. APK دیباگ برای نصب شخصی مناسب است؛ برای Google Play باید کلید امضا و build انتشار مستقل ایجاد شود.
