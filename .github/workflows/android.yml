@@ -16,6 +16,7 @@ on:
     branches:
       - 'arena/4143af50-zehnyar'
       - 'arena/96fa3fb8-zehnyar'
+      - 'arena/5ee93ac8-zehnyar'
       - 'main'
     tags:
       - 'v*'
@@ -80,6 +81,8 @@ jobs:
           python3 tools/build_dataset.py
           node tools/sync_mobile_data.js
           node tools/check_i18n.js
+      - name: Block release when reference data is stale
+        run: python3 tools/check_dataset_freshness.py --fail-when-stale
 
       - name: Install dependencies
         working-directory: mobile

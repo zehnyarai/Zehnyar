@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { useAppState } from '../core/appState';
-import { allVisaTypes, countries, totals } from '../core/data';
+import { getAllVisaTypes, getCountries, getTotals } from '../core/data';
 import { num } from '../core/format';
 import { Card, Chip, Pill, ScrollScreen, SectionTitle, Text } from '../components/ui';
 import { CountryCard, FeaturedCountry } from '../components/cards';
@@ -16,6 +16,9 @@ export default function ExploreScreen({ navigation }) {
   const { result } = useAppState();
   const [query, setQuery] = useState('');
   const [type, setType] = useState(null);
+  const countries = getCountries();
+  const totals = getTotals();
+  const allVisaTypes = getAllVisaTypes();
 
   const list = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -27,13 +30,13 @@ export default function ExploreScreen({ navigation }) {
       const matchesType = !type || country.visas.some((visa) => visa.type === type);
       return matchesQuery && matchesType;
     });
-  }, [query, type]);
+  }, [countries, query, type]);
 
   const withResults = useMemo(() => {
     if (!result) return [];
     const map = new Map(result.countries.map((country) => [country.code, country]));
     return countries.map((country) => map.get(country.code) || country);
-  }, [result]);
+  }, [countries, result]);
 
   return (
     <ScrollScreen>
@@ -107,7 +110,7 @@ export default function ExploreScreen({ navigation }) {
 
       <View style={{ padding: spacing.md }}>
         <Text variant="micro" color={colors.ink35} style={{ textAlign: dir.text }}>
-          {lang === 'fa' ? 'همه مقصدها به درگاه رسمی و تاریخ استعلام پیوند دارند.' : 'Every destination links to its official portal and verification date.'}
+          {lang === 'fa' ? 'برای هر مسیر پیوند منبع دولتی درج شده است؛ تاریخ بازبینی ثبت‌شده مربوط به کل مجموعه‌داده است.' : 'Each route links to a government source; the recorded review date applies to the dataset as a whole.'}
         </Text>
       </View>
     </ScrollScreen>

@@ -1,6 +1,6 @@
 # Data coverage and source register
 
-Verification date for the whole dataset: **2026-10-25** (مهر ۱۴۰۵).
+Recorded dataset-wide review date: **2026-10-25** (مهر ۱۴۰۵). This is inherited metadata, not a claim that every individual route or value was independently re-verified on that date.
 
 ## 1. Countries and official authorities
 
@@ -69,14 +69,42 @@ a demand list per destination. Codes are indicative; the app shows them as
 identifiers so an applicant can confirm against the official NOC/ANZSCO editions
 before filing.
 
-## 5. Maintenance procedure
+## 5. Monthly human review and release controls
 
-1. Update the relevant figure in `tools/countries_a.py` or `tools/countries_b.py`.
-2. Set `verified: true` only when the number comes from the official fee list or
-   regulation for the current year.
-3. Run `python3 tools/build_dataset.py` — it validates rule kinds, currencies,
-   pass marks, duplicate ids and Persian copy purity.
-4. Run `node tools/sync_mobile_data.js`, `python3 tools/make_fixtures.py`,
-   `node tools/parity_check.js`, `node tools/check_i18n.js`.
-5. Update `LAST_VERIFIED` in `tools/dataset_lib.py` and the date shown in the app
-   dictionary (`home.verifiedValue`), then commit the regenerated dataset.
+The repository opens a monthly GitHub issue containing every country and route
+source (`.github/workflows/monthly-data-review.yml`). This is a reminder and
+checklist, not an automated source monitor: migration rules are never scraped,
+changed, or published without a human reviewer. The current `lastVerified` date
+is dataset-wide and inherited by country records; **it does not prove that each
+individual fee, criterion, or route was independently checked on that date**.
+Reviewers must link the exact official page/notice and record its publication or
+effective date in the review PR. Where a source is ambiguous or unavailable,
+leave the current value unchanged and document the uncertainty.
+
+For a completed review:
+
+1. Check all 15 country portals and all 58 route source links, including fees,
+   eligibility, points/thresholds, occupation lists, language rules, quotas,
+   funds and effective dates. Re-check estimates and their `verified` markers.
+2. Change only values confirmed to have changed. Add the official source, notice
+   date, effective date and reviewer evidence to the PR; do not infer or guess.
+3. Update `LAST_VERIFIED` in `tools/dataset_lib.py` only after the scheduled
+   scope has actually been reviewed. The builder propagates that date to the
+   dataset; it is not proof of per-fact verification.
+4. Run `python3 tools/build_dataset.py`, `node tools/sync_mobile_data.js`,
+   `python3 tools/check_dataset_freshness.py`, `python3 tools/make_fixtures.py`,
+   `node tools/parity_check.js`, `node tools/check_i18n.js`, and the backend and
+   mobile test suites. Obtain human approval before merge.
+5. Increment `meta.version` for each published dataset content change; keep
+   `schemaVersion` for client-contract changes. The API computes a content ETag
+   from the complete dataset; mobile clients revalidate on launch and cache the
+   latest valid dataset for offline use. A new APK is required once to install
+   this sync capability; later reviewed datasets can be delivered by the API
+   without an app reinstall.
+
+Dataset metadata advertises a 30-day review interval and becomes stale after
+45 days. The app shows the recorded review date dynamically in Persian or
+English and displays a monthly-review reminder when due, followed by a stronger
+stale warning. The Android release workflow blocks a release when stale; the
+freshness checker never changes the recorded date or data itself. The monthly
+issue is the routine to complete before the 45-day release gate.

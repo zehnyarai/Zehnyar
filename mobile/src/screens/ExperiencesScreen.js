@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
-import { countries } from '../core/data';
+import { getCountries } from '../core/data';
 import { deleteExperience, getApiBase, listExperiences, reportExperience, submitExperience } from '../core/paymentApi';
 import { Button, Card, Chip, Pill, PressableScale, ScrollScreen, SectionTitle, Text } from '../components/ui';
 
@@ -19,6 +19,7 @@ function whenLabel(value, lang) {
 
 export default function ExperiencesScreen() {
   const { t, lang, pick } = useI18n();
+  const countries = getCountries();
   const dir = useDirection();
   const [items, setItems] = useState([]);
   const [count, setCount] = useState(0);
@@ -32,7 +33,7 @@ export default function ExperiencesScreen() {
   const [stageFilter, setStageFilter] = useState('');
   const [form, setForm] = useState({ title: '', body: '', destination: '', visaRoute: '', stage: 'planning', displayName: '' });
 
-  const destination = useMemo(() => countries.find((item) => item.code === form.destination), [form.destination]);
+  const destination = useMemo(() => countries.find((item) => item.code === form.destination), [countries, form.destination]);
 
   const refresh = useCallback(async () => {
     setLoading(true);

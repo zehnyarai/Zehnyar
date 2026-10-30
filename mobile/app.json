@@ -3,7 +3,7 @@
     "name": "ویزایار",
     "slug": "visayar",
     "scheme": "visayar",
-    "version": "2.3.12",
+    "version": "2.3.13",
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",
     "userInterfaceStyle": "light",
@@ -22,7 +22,7 @@
     },
     "android": {
       "package": "ai.visayar.app",
-      "versionCode": 37,
+      "versionCode": 38,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/adaptive-icon.png",
         "backgroundColor": "#000000"
@@ -50,9 +50,7 @@
       ]
     ],
     "extra": {
-      "apiBaseUrl": "",
-      "datasetVersion": "2.0.0",
-      "verifiedAt": "2026-10-25"
+      "apiBaseUrl": ""
     },
     "experiments": {
       "baseUrl": "/app"

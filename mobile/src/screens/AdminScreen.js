@@ -6,7 +6,7 @@ import { colors, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { Button, Card, Pill, PressableScale, ScrollScreen, SectionTitle, Text } from '../components/ui';
 import { toPersianDigits } from '../core/format';
-import { countries } from '../core/data';
+import { getCountries } from '../core/data';
 import { adminListExperiences, adminListPayments, adminLogin, adminLogout, adminReviewExperience, adminReviewPayment, getAdminSession, getAdminToken, getApiBase } from '../core/paymentApi';
 
 const FILTERS = ['pending', 'approved', 'rejected', 'all'];
@@ -37,6 +37,7 @@ function statusTone(status) {
 export default function AdminScreen({ navigation }) {
   const { t, lang, pick } = useI18n();
   const dir = useDirection();
+  const countries = getCountries();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [session, setSession] = useState(null);

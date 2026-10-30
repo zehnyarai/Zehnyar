@@ -98,7 +98,7 @@ describe('Visayar app', () => {
     const tree = renderWithProviders(<HomeScreen navigation={navigation} />);
     const text = JSON.stringify(tree.toJSON());
     expect(text).toContain('ویزایار');
-    expect(text).toContain('آخرین استعلام رسمی');
+    expect(text).toContain('تاریخ بازبینی ثبت‌شدهٔ داده‌ها');
     expect(text).toContain('هدف شما چیست؟');
     expect(text).toContain('ادامه ارزیابی من');
   });

@@ -8,6 +8,10 @@ described declaratively here, so the two engines stay in lock-step.
 from __future__ import annotations
 
 LAST_VERIFIED = "2026-10-25"
+DATASET_VERSION = "2.0.1"
+DATA_SCHEMA_VERSION = 1
+REVIEW_INTERVAL_DAYS = 30
+STALE_AFTER_DAYS = 45
 
 # ---------------------------------------------------------------------------
 # Reference FX rates (1 unit -> USD), used only to normalise money inputs.

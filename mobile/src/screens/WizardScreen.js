@@ -7,7 +7,7 @@ import { colors, fonts, gradients, radius, spacing } from '../theme';
 import { localiseNumber, money } from '../core/format';
 import { useDirection, useI18n } from '../i18n';
 import { useAppState } from '../core/appState';
-import { educationLevels, languageTests, occupations, findOccupation } from '../core/data';
+import { findOccupation, getDataset } from '../core/data';
 import {
   Button, Card, Chip, Divider, Field, IconButton, MoneyField, OptionCard, Pill,
   PressableScale, ProgressBar, ScrollScreen, Sheet, Stepper, Text, ToggleRow,
@@ -27,6 +27,7 @@ export default function WizardScreen({ navigation }) {
   const [testSheet, setTestSheet] = useState(false);
   const [search, setSearch] = useState('');
   const [computing, setComputing] = useState(false);
+  const { educationLevels, languageTests, occupations } = getDataset();
 
   const stepKey = STEPS[step];
   const progress = ((step + 1) / STEPS.length) * 100;
@@ -45,7 +46,7 @@ export default function WizardScreen({ navigation }) {
     return occupations.filter((item) => item.titleFa.includes(search.trim())
       || item.titleEn.toLowerCase().includes(needle)
       || item.noc.includes(needle));
-  }, [search]);
+  }, [occupations, search]);
 
   const addLanguage = (testId) => {
     const test = languageTests.find((item) => item.id === testId);

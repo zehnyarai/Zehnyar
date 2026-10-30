@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { colors, fonts, gradients, radius, shadow, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { useAppState } from '../core/appState';
-import { countries, totals } from '../core/data';
+import { formatVerifiedDate, getCountries, getDatasetFreshness, getMeta, getTotals } from '../core/data';
 import { Button, Card, PressableScale, ScrollScreen, SectionTitle, Text, TrustBadge } from '../components/ui';
 import { FeaturedCountry, GoalTile } from '../components/cards';
 import { localiseNumber, percent } from '../core/format';
@@ -23,6 +23,14 @@ export default function HomeScreen({ navigation }) {
   const dir = useDirection();
   const { profile, updateProfile, hasAssessment, result, canStartAssessment } = useAppState();
   const [checkingAccess, setCheckingAccess] = useState(false);
+  const countries = getCountries();
+  const totals = getTotals();
+  const dataMeta = getMeta();
+  const verifiedDate = formatVerifiedDate(dataMeta.lastVerified, lang);
+  const freshness = getDatasetFreshness();
+  const freshnessMessage = freshness.status === 'stale' || freshness.status === 'invalid'
+    ? t('home.dataStale')
+    : freshness.status === 'review_due' ? t('home.dataReviewDue') : null;
 
   const draft = profile.languages.length > 0 || profile.work.totalYears > 0 || profile.investmentUsd > 0;
   const best = result ? result.countries[0] : null;
@@ -85,9 +93,14 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.glassBadge}>
             <Ionicons name="shield-checkmark" size={12} color={colors.goldSoft} />
             <Text variant="micro" style={{ color: colors.goldSoft }}>{t('home.verified')}</Text>
-            <Text variant="micro" style={{ color: colors.white, fontFamily: fonts.bold }}>{t('home.verifiedValue')}</Text>
+            <Text variant="micro" style={{ color: colors.white, fontFamily: fonts.bold }}>{verifiedDate}</Text>
           </View>
         </View>
+        {freshnessMessage ? (
+          <Text variant="micro" style={{ color: '#FFE0B2', marginTop: spacing.xs, textAlign: dir.text }}>
+            {freshnessMessage}
+          </Text>
+        ) : null}
 
         <View style={{ marginTop: spacing.lg, gap: spacing.xs }}>
           <Button
@@ -227,7 +240,7 @@ export default function HomeScreen({ navigation }) {
       </View>
 
       <View style={{ paddingHorizontal: spacing.md, marginTop: spacing.lg }}>
-        <TrustBadge label={t('home.trusted')} value={t('home.verifiedValue')} />
+        <TrustBadge label={t('home.trusted')} value={verifiedDate} />
         <Text variant="micro" color={colors.ink35} style={{ marginTop: spacing.sm, textAlign: dir.text }}>
           {t('results.disclaimer')}
         </Text>
