@@ -4,12 +4,16 @@ import json
 import os
 import re
 import sys
+from datetime import date
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import countries_a
 import countries_b
-from dataset_lib import EDUCATION_LEVELS, FX, LANGUAGE_TESTS, LAST_VERIFIED
+from dataset_lib import (
+    DATASET_VERSION, DATA_SCHEMA_VERSION, EDUCATION_LEVELS, FX, LANGUAGE_TESTS, LAST_VERIFIED,
+    REVIEW_INTERVAL_DAYS, STALE_AFTER_DAYS,
+)
 from occupations import OCCUPATIONS
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -66,13 +70,30 @@ def localise(node):
 
 def validate(dataset):
     errors = []
+    try:
+        last_verified = date.fromisoformat(dataset["meta"]["lastVerified"])
+        if last_verified > date.today():
+            errors.append("meta.lastVerified cannot be in the future")
+    except (KeyError, TypeError, ValueError):
+        errors.append("meta.lastVerified must be a valid ISO date (YYYY-MM-DD)")
     visa_ids = set()
     for country in dataset["countries"]:
         code = country["code"]
+        try:
+            country_verified = date.fromisoformat(country["official"]["lastVerified"])
+            if country_verified > date.today():
+                errors.append(f"{code}: official.lastVerified cannot be in the future")
+        except (KeyError, TypeError, ValueError):
+            errors.append(f"{code}: official.lastVerified must be a valid ISO date")
+        portal = country.get("official", {}).get("portal", "")
+        if not isinstance(portal, str) or not portal.startswith("https://"):
+            errors.append(f"{code}: official.portal must use HTTPS")
         if code not in FX and country["currency"] not in FX:
             errors.append(f"{code}: currency {country['currency']} missing from FX table")
         for visa in country["visas"]:
             vid = visa["id"]
+            if not isinstance(visa.get("officialUrl"), str) or not visa["officialUrl"].startswith("https://"):
+                errors.append(f"{vid}: officialUrl must use HTTPS")
             if vid in visa_ids:
                 errors.append(f"duplicate visa id {vid}")
             visa_ids.add(vid)
@@ -110,8 +131,11 @@ def main():
         "meta": {
             "nameFa": "ویزایار",
             "nameEn": "Visayar",
-            "version": "2.0.0",
+            "version": DATASET_VERSION,
+            "schemaVersion": DATA_SCHEMA_VERSION,
             "lastVerified": LAST_VERIFIED,
+            "reviewIntervalDays": REVIEW_INTERVAL_DAYS,
+            "staleAfterDays": STALE_AFTER_DAYS,
             "currencyNoteFa": "نرخ‌های ارز مرجع و تقریبی هستند و تنها برای مقایسه یکسان به کار می‌روند.",
             "currencyNoteEn": "Reference exchange rates are indicative and used only for normalisation.",
         },

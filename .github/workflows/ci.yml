@@ -18,6 +18,8 @@ jobs:
         run: pip install -r requirements-dev.txt
       - name: Rebuild dataset
         run: python3 tools/build_dataset.py
+      - name: Report dataset review status
+        run: python3 tools/check_dataset_freshness.py
       - name: Fail if the committed dataset is stale
         run: git diff --exit-code shared/dataset.json
       - name: Run tests

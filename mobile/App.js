@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, radius, shadow, spacing } from './src/theme';
 import { I18nProvider, useDirection, useI18n } from './src/i18n';
 import { AppStateProvider } from './src/core/appState';
+import { loadCachedDataset, syncDataset } from './src/core/data';
 import { Text } from './src/components/ui';
 
 import HomeScreen from './src/screens/HomeScreen';
@@ -128,14 +129,23 @@ export default function App() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (fontsLoaded) {
-      const timer = setTimeout(() => {
+    if (!fontsLoaded) return undefined;
+    let mounted = true;
+    let timer;
+    loadCachedDataset().finally(() => {
+      if (!mounted) return;
+      // Remote validation runs in the background; it must never hold the splash
+      // screen or prevent offline startup.
+      syncDataset();
+      timer = setTimeout(() => {
         SplashScreen.hideAsync().catch(() => {});
         setReady(true);
       }, 120);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
+    });
+    return () => {
+      mounted = false;
+      if (timer) clearTimeout(timer);
+    };
   }, [fontsLoaded]);
 
   if (!ready) return <View style={{ flex: 1, backgroundColor: colors.canvas }} />;

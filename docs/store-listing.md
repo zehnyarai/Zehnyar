@@ -21,7 +21,7 @@
 
 • شفافیت هزینه: هزینه‌های دولتی صدور ویزا با نشان «تأییدشده» یا «تقریبی»، محاسبه برای تعداد اعضای خانواده و تمکن مالی الزامی هر مسیر.
 
-• نشان منبع رسمی، تاریخ آخرین استعلام (مهر ۱۴۰۵) و لینک مستقیم درگاه دولتی هر کشور.
+• پیوند منابع رسمی هر مسیر و نمایش پویای تاریخ بازبینی داده‌ها؛ شرایط و هزینه‌ها را پیش از اقدام در درگاه دولتی بررسی کنید.
 
 • فهرست مدارک قابل علامت‌گذاری، برای اینکه هیچ سندی جا نماند.
 
@@ -64,7 +64,7 @@ What you get:
 
 • Cost transparency: government fees marked verified or indicative, calculated for your family size, alongside the mandatory settlement funds for each route.
 
-• An official-source badge, the verification date (October 2026) and a direct link to each country's government portal.
+• Official source links for visa routes and a dynamically displayed dataset review date. Always verify current eligibility and fees on the linked government portal.
 
 • A document checklist stored on your device so nothing is missed.
 

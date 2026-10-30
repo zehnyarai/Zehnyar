@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { money, num, percent, scorePair } from '../core/format';
+import { formatVerifiedDate } from '../core/data';
 import { Card, Chip, Pill, PressableScale, Text, TrustBadge, Button, Divider, KeyValue } from './ui';
 import { CriteriaBar, MiniBar, ScoreArc } from './charts';
 
@@ -65,7 +66,7 @@ export function CountryCard({ item, onPress, showChance = true }) {
         </View>
         {best ? (
           <View style={styles.cardFooter}>
-            <TrustBadge label={t('country.lastVerified')} value={lang === 'fa' ? 'مهر ۱۴۰۵' : 'Oct 2026'} />
+            <TrustBadge label={t('country.lastVerified')} value={formatVerifiedDate(item.lastVerified, lang)} />
             <Text variant="micro" color={colors.teal700} style={{ fontFamily: fonts.semibold }}>
               {t('results.roadmapTitle')}
             </Text>

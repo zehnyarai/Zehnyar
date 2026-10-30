@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { useAppState } from '../core/appState';
-import { totals, meta } from '../core/data';
+import { formatVerifiedDate, getDatasetFreshness, getMeta, getTotals } from '../core/data';
 import { Button, Card, Divider, KeyValue, Pill, PressableScale, ScrollScreen, SectionTitle, Text, TrustBadge } from '../components/ui';
 
 const appVersion = (Constants.expoConfig && Constants.expoConfig.version) || '2.1.0';
@@ -15,6 +15,13 @@ export default function ProfileScreen({ navigation }) {
   const { t, lang, pick, setLanguage } = useI18n();
   const dir = useDirection();
   const { resetAll, hasAssessment } = useAppState();
+  const totals = getTotals();
+  const meta = getMeta();
+  const verifiedDate = formatVerifiedDate(meta.lastVerified, lang);
+  const freshness = getDatasetFreshness();
+  const freshnessMessage = freshness.status === 'stale' || freshness.status === 'invalid'
+    ? t('home.dataStale')
+    : freshness.status === 'review_due' ? t('home.dataReviewDue') : null;
 
   const confirmReset = () => {
     Alert.alert(
@@ -84,12 +91,13 @@ export default function ProfileScreen({ navigation }) {
           <SectionTitle title={t('profile.dataTitle')} />
           <View style={{ marginTop: spacing.xs }}>
             <KeyValue label={t('profile.dataVersion')} value={meta.version} />
-            <KeyValue label={t('profile.verifiedAt')} value={lang === 'fa' ? 'مهر ۱۴۰۵ / اکتبر ۲۰۲۶' : 'October 2026'} tone={colors.success} />
+            <KeyValue label={t('profile.verifiedAt')} value={verifiedDate} tone={colors.success} />
             <KeyValue label={t('profile.coverage')} value={`${totals.countries} • ${totals.visas} • ${totals.occupations}`} />
             <KeyValue label={t('profile.developer')} value={appVersion} />
           </View>
+          {freshnessMessage ? <Text variant="micro" color={colors.warn} style={{ marginTop: spacing.xs, textAlign: dir.text }}>{freshnessMessage}</Text> : null}
           <View style={{ marginTop: spacing.sm }}>
-            <TrustBadge label={t('home.trusted')} value={t('home.verifiedValue')} />
+            <TrustBadge label={t('home.trusted')} value={verifiedDate} />
           </View>
         </Card>
 

@@ -7,15 +7,17 @@ endpoints exist for web clients, partners and auditability.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import time
+from datetime import date
 from typing import List, Optional
 
 import httpx
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, Response
 from pydantic import BaseModel, Field
 
 from .payments import (
@@ -39,13 +41,14 @@ from .engine.engine import (
 
 API_VERSION = "2.0.0"
 DISCLAIMER_FA = (
-    "این ارزیابی بر پایه قواعد اعلام‌شده مراجع رسمی در تاریخ آخرین استعلام محاسبه شده است و "
-    "تخمینی است، نه تصمیم حقوقی یا تضمین پذیرش. پیش از هر اقدام، شرایط را در درگاه رسمی کشور مقصد بررسی کنید."
+    "این ارزیابی تخمینی است و بر پایه داده‌های مرجع و تاریخ بازبینی ثبت‌شدهٔ مجموعه‌داده محاسبه می‌شود؛ "
+    "این تاریخ به‌تنهایی تأیید مستقل تک‌تک مسیرها و واقعیت‌ها را نشان نمی‌دهد. تصمیم حقوقی یا تضمین پذیرش نیست؛ "
+    "پیش از هر اقدام، شرایط را در درگاه رسمی کشور مقصد بررسی کنید."
 )
 DISCLAIMER_EN = (
-    "This assessment is computed from rules published by official authorities on the last verification date. "
-    "It is an estimate, not a legal decision or a guarantee of approval. Verify every requirement on the "
-    "destination country's official portal before applying."
+    "This estimate uses the reference dataset and its recorded review date; that date alone does not establish "
+    "independent verification of every route or fact. It is not a legal decision or a guarantee of approval. "
+    "Verify each requirement on the destination country's official portal before applying."
 )
 
 app = FastAPI(title="Visayar API", version=API_VERSION)
@@ -54,6 +57,7 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["ETag"],
 )
 app.include_router(payments_router)
 app.include_router(payments_admin_router)
@@ -82,6 +86,45 @@ class AdvisorRequest(BaseModel):
 PREVIEW_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "mobile", "web-preview")
 
 
+def _dataset_etag(dataset: dict) -> str:
+    canonical = json.dumps(dataset, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return '"' + hashlib.sha256(canonical).hexdigest() + '"'
+
+
+def _dataset_freshness(dataset: dict) -> dict:
+    meta = dataset.get("meta", {})
+    review_interval = meta.get("reviewIntervalDays", 30)
+    stale_after = meta.get("staleAfterDays", 45)
+    last_verified = meta.get("lastVerified")
+    dates = [("dataset", last_verified)] + [
+        (country.get("code", "unknown"), country.get("official", {}).get("lastVerified"))
+        for country in dataset.get("countries", [])
+    ]
+    ages = []
+    invalid = False
+    for _, raw in dates:
+        try:
+            age = (date.today() - date.fromisoformat(raw)).days
+            if age < 0:
+                invalid = True
+            ages.append(age)
+        except (TypeError, ValueError):
+            invalid = True
+    age_days = max(ages) if ages and not invalid else None
+    status = (
+        "invalid" if invalid else "stale" if age_days > stale_after
+        else "review_due" if age_days >= review_interval else "current"
+    )
+    return {
+        "lastVerified": last_verified,
+        "ageDays": age_days,
+        "reviewIntervalDays": review_interval,
+        "staleAfterDays": stale_after,
+        "recordsChecked": len(dates),
+        "status": status,
+    }
+
+
 def _preview_ready() -> bool:
     return os.path.isfile(os.path.join(PREVIEW_DIR, "index.html"))
 
@@ -94,6 +137,7 @@ def root(request: Request):
         "version": API_VERSION,
         "datasetVersion": dataset["meta"]["version"],
         "lastVerified": dataset["meta"]["lastVerified"],
+        "dataRevision": _dataset_etag(dataset).strip('"'),
         "docs": "/docs",
     }
     if _preview_ready():
@@ -134,6 +178,8 @@ def health():
         "status": "ok",
         "datasetVersion": dataset["meta"]["version"],
         "lastVerified": dataset["meta"]["lastVerified"],
+        "dataRevision": _dataset_etag(dataset).strip('"'),
+        "freshness": _dataset_freshness(dataset),
         "countries": len(dataset["countries"]),
         "visas": sum(len(c["visas"]) for c in dataset["countries"]),
         "occupations": len(dataset["occupations"]),
@@ -146,6 +192,8 @@ def meta():
     return {
         "version": dataset["meta"]["version"],
         "lastVerified": dataset["meta"]["lastVerified"],
+        "dataRevision": _dataset_etag(dataset).strip('"'),
+        "freshness": _dataset_freshness(dataset),
         "disclaimerFa": DISCLAIMER_FA,
         "disclaimerEn": DISCLAIMER_EN,
         "counts": {
@@ -165,9 +213,15 @@ def meta():
 
 
 @app.get("/api/dataset")
-def dataset_full():
-    """Full dataset for offline mobile sync."""
-    return load_dataset()
+def dataset_full(request: Request):
+    """Full dataset for offline mobile sync, with content-hash revalidation."""
+    dataset = load_dataset()
+    etag = _dataset_etag(dataset)
+    headers = {"ETag": etag, "Cache-Control": "no-cache"}
+    supplied = {item.strip() for item in request.headers.get("if-none-match", "").split(",") if item.strip()}
+    if etag in supplied or "*" in supplied:
+        return Response(status_code=304, headers=headers)
+    return JSONResponse(content=dataset, headers=headers)
 
 
 @app.get("/api/countries")

@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { dataset } from './data';
+import { getDataset, subscribeDataset } from './data';
 import engine from './engine';
 import { clearAll, loadProfile, saveProfile, saveResult } from './storage';
 import { consumeAssessmentCredit, hasAssessmentAccess } from './paymentApi';
@@ -10,7 +10,10 @@ export function AppStateProvider({ children, initialProfile, initialResult }) {
   const [profile, setProfileState] = useState(() => ({ ...engine.emptyProfile(), ...(initialProfile || {}) }));
   const [result, setResult] = useState(initialResult || null);
   const [hydrated, setHydrated] = useState(!!initialProfile);
+  const [dataRevision, setDataRevision] = useState(0);
   const saveTimer = useRef(null);
+
+  useEffect(() => subscribeDataset(() => setDataRevision((revision) => revision + 1)), []);
 
   useEffect(() => {
     if (initialProfile) return undefined;
@@ -51,7 +54,7 @@ export function AppStateProvider({ children, initialProfile, initialResult }) {
   const compute = useCallback(async (t) => {
     const allowance = await consumeAssessmentCredit();
     if (!allowance) return false;
-    const next = engine.assess(dataset, profile, t);
+    const next = engine.assess(getDataset(), profile, t);
     setResult(next);
     saveResult(next);
     return next;
@@ -75,7 +78,8 @@ export function AppStateProvider({ children, initialProfile, initialResult }) {
     resetAll,
     hydrated,
     hasAssessment: !!result,
-  }), [profile, setProfile, updateProfile, updateNested, result, compute, canStartAssessment, resetAll, hydrated]);
+    dataRevision,
+  }), [profile, setProfile, updateProfile, updateNested, result, compute, canStartAssessment, resetAll, hydrated, dataRevision]);
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 }

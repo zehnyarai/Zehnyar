@@ -1,0 +1,35 @@
+name: Monthly visa data review reminder
+
+on:
+  schedule:
+    - cron: '0 9 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  reminder:
+    name: Open monthly human-review checklist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Generate review checklist
+        run: python3 tools/monthly_data_review.py --month "$(date -u +%Y-%m)" --output "$RUNNER_TEMP/monthly-review.md"
+      - name: Create one review issue for the month
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          MONTH="$(date -u +%Y-%m)"
+          TITLE="Monthly visa data review — ${MONTH}"
+          EXISTING="$(gh issue list --state all --limit 100 --json title | jq --arg title "$TITLE" 'any(.[]; .title == $title)')"
+          if [ "$EXISTING" = "true" ]; then
+            echo "Monthly review issue already exists: ${TITLE}"
+          else
+            gh issue create --title "$TITLE" --body-file "$RUNNER_TEMP/monthly-review.md"
+          fi

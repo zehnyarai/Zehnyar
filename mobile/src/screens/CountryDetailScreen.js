@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { useAppState } from '../core/appState';
-import { dataset, findCountry } from '../core/data';
+import { formatVerifiedDate, getDataset, findCountry } from '../core/data';
 import engine from '../core/engine';
 import { loadChecklist, saveChecklist } from '../core/storage';
 import {
@@ -32,14 +32,15 @@ export default function CountryDetailScreen({ route, navigation }) {
   const { code } = route.params || {};
   const { t, lang, pick } = useI18n();
   const dir = useDirection();
-  const { result } = useAppState();
+  const currentDataset = getDataset();
+  const { result, dataRevision } = useAppState();
   const [tab, setTab] = useState('overview');
   const [familySize, setFamilySize] = useState(1);
   const [expandedVisa, setExpandedVisa] = useState(null);
   const [selectedVisaId, setSelectedVisaId] = useState(null);
   const [checked, setChecked] = useState([]);
 
-  const country = useMemo(() => findCountry(code), [code]);
+  const country = useMemo(() => findCountry(code), [code, dataRevision]);
   const assessed = useMemo(() => (result ? result.countries.find((item) => item.code === code) : null), [result, code]);
   const bestVisaId = assessed ? assessed.best.visaId : country && country.visas[0] ? country.visas[0].id : null;
 
@@ -63,7 +64,7 @@ export default function CountryDetailScreen({ route, navigation }) {
   }
 
   const selectedVisa = country.visas.find((visa) => visa.id === selectedVisaId) || country.visas[0];
-  const costs = engine.visaCosts(dataset, selectedVisa, familySize, 'USD');
+  const costs = engine.visaCosts(currentDataset, selectedVisa, familySize, 'USD');
   const scoredSelected = assessed ? assessed.visas.find((visa) => visa.visaId === selectedVisa.id) : null;
 
   const documents = [
@@ -140,7 +141,7 @@ export default function CountryDetailScreen({ route, navigation }) {
               <SectionTitle title={t('country.officialBadge')} />
               <View style={{ marginTop: spacing.xs }}>
                 <KeyValue label={t('country.authority')} value={pick(country.official.authorityFa, country.official.authorityEn)} />
-                <KeyValue label={t('country.lastVerified')} value={lang === 'fa' ? 'مهر ۱۴۰۵' : 'October 2026'} tone={colors.success} />
+                <KeyValue label={t('country.lastVerified')} value={formatVerifiedDate(country.official.lastVerified, lang)} tone={colors.success} />
                 <KeyValue label={t('country.prPath')} value={pick(country.prPathFa, country.prPathEn)} />
                 <KeyValue label={t('country.costOfLiving')} value={pick(country.costOfLivingFa, country.costOfLivingEn)} />
                 <KeyValue label={t('country.timezone')} value={pick(country.timezoneFa, country.timezoneEn)} />
@@ -212,7 +213,7 @@ export default function CountryDetailScreen({ route, navigation }) {
               </View>
             </Card>
 
-            <TrustBadge label={t('country.lastVerified')} value={lang === 'fa' ? 'مهر ۱۴۰۵' : 'Oct 2026'} />
+            <TrustBadge label={t('country.lastVerified')} value={formatVerifiedDate(country.official.lastVerified, lang)} />
             <Text variant="micro" color={colors.ink35} style={{ textAlign: dir.text }}>{t('results.disclaimer')}</Text>
           </>
         ) : null}
