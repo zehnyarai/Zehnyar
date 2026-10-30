@@ -19,12 +19,15 @@ def main() -> int:
             names = set(archive.namelist())
             if "AndroidManifest.xml" not in names or not any(Path(name).name.startswith("classes") and name.endswith(".dex") for name in names):
                 raise ValueError("APK is missing Android manifest or dex payload")
-            # The Gradle task already bundles the JS app; the workflow separately
-            # validates an empty payment fallback and the no-network Expo config.
+            js_bundles = [name for name in names if name.endswith((".bundle", ".hbc"))]
+            if not js_bundles:
+                raise ValueError("standalone APK is missing its embedded JavaScript bundle")
+            # The workflow separately validates an empty payment fallback and
+            # the no-network Expo config before generating the native project.
     except (OSError, zipfile.BadZipFile, ValueError) as error:
         print(f"TEST APK check failed: {error}")
         return 1
-    print(f"TEST APK structure and secret-free bundle check passed: {EXPECTED_PACKAGE}")
+    print(f"Standalone TEST APK structure and embedded JavaScript bundle check passed: {EXPECTED_PACKAGE}")
     return 0
 
 

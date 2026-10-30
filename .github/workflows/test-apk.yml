@@ -78,16 +78,39 @@ jobs:
         working-directory: mobile
         run: npx expo prebuild -p android --clean --no-install
 
-      - name: Build debug APK
+      - name: Configure test-only release signing
+        working-directory: mobile/android/app
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const file = 'build.gradle';
+          let gradle = fs.readFileSync(file, 'utf8');
+          const buildTypes = gradle.indexOf('buildTypes {');
+          if (buildTypes < 0) throw new Error('Android buildTypes block not found.');
+          const match = /\brelease\s*\{/g;
+          match.lastIndex = buildTypes;
+          const release = match.exec(gradle);
+          if (!release) throw new Error('Android release build type not found.');
+          const after = gradle.slice(release.index, release.index + 400);
+          if (!/signingConfig\s+signingConfigs\.debug/.test(after)) {
+            const token = release[0];
+            const at = release.index + token.length;
+            gradle = gradle.slice(0, at) + '\n            signingConfig signingConfigs.debug' + gradle.slice(at);
+          }
+          fs.writeFileSync(file, gradle);
+          console.log('Test-only release variant will use the standard debug signing key.');
+          NODE
+
+      - name: Build standalone test APK
         working-directory: mobile/android
         run: |
           chmod +x ./gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleRelease --no-daemon
 
       - name: Inspect test APK manifest
         run: |
           set -euo pipefail
-          APK=mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          APK=mobile/android/app/build/outputs/apk/release/app-release.apk
           test -s "$APK"
           AAPT="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name aapt | sort -V | tail -n 1)"
           test -x "$AAPT"
@@ -97,14 +120,14 @@ jobs:
       - name: Verify isolated package identity
         run: |
           set -euo pipefail
-          APK=mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          APK=mobile/android/app/build/outputs/apk/release/app-release.apk
           AAPT="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name aapt | sort -V | tail -n 1)"
           "$AAPT" dump badging "$APK" | grep -F "package: name='ai.visayar.app.test'"
 
       - name: Verify test APK has no network permission
         run: |
           set -euo pipefail
-          APK=mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          APK=mobile/android/app/build/outputs/apk/release/app-release.apk
           AAPT="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name aapt | sort -V | tail -n 1)"
           if "$AAPT" dump permissions "$APK" | grep -F 'android.permission.INTERNET'; then
             echo 'Network permission unexpectedly present in isolated test APK.' >&2
@@ -112,16 +135,16 @@ jobs:
           fi
           echo 'No Android Internet permission found.'
 
-      - name: Verify APK debug signature
+      - name: Verify APK test signature
         run: |
           set -euo pipefail
-          APK=mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          APK=mobile/android/app/build/outputs/apk/release/app-release.apk
           APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           test -x "$APKSIGNER"
           "$APKSIGNER" verify --verbose "$APK"
 
-      - name: Verify APK structure and JavaScript bundle
-        run: python3 tools/check_test_apk.py mobile/android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Verify standalone APK structure and JavaScript bundle
+        run: python3 tools/check_test_apk.py mobile/android/app/build/outputs/apk/release/app-release.apk
 
       - name: Scan test APK with updated ClamAV definitions
         run: |
@@ -130,13 +153,13 @@ jobs:
           sudo apt-get install -y clamav clamav-freshclam
           sudo systemctl stop clamav-freshclam 2>/dev/null || true
           sudo freshclam --stdout
-          clamscan --infected --no-summary mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          clamscan --infected --no-summary mobile/android/app/build/outputs/apk/release/app-release.apk
 
       - name: Prepare test APK and checksum
         run: |
           set -euo pipefail
           mkdir -p test-release
-          cp mobile/android/app/build/outputs/apk/debug/app-debug.apk test-release/Visayar-Test.apk
+          cp mobile/android/app/build/outputs/apk/release/app-release.apk test-release/Visayar-Test.apk
           ( cd test-release && sha256sum Visayar-Test.apk > SHA256SUMS.txt )
           cat test-release/SHA256SUMS.txt
 
