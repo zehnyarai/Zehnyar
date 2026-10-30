@@ -14,6 +14,7 @@ on:
         default: false
   push:
     branches:
+      - 'arena/4143af50-zehnyar'
       - 'arena/96fa3fb8-zehnyar'
       - 'main'
     tags:
@@ -124,6 +125,10 @@ jobs:
           const rawCard = String(process.env.VISAYAR_PAYMENT_CARD_NUMBER || '').replace(/\D/g, '');
           const apiBase = String(process.env.VISAYAR_API_BASE_URL || '').trim();
           const secureApi = /^https:\/\/[^/]+(?:\/.*)?$/.test(apiBase);
+          if (apiBase && !secureApi) {
+            console.error('VISAYAR_API_BASE_URL must be a valid HTTPS URL.');
+            process.exit(1);
+          }
           if (rawCard && (!card.number || card.number.length !== 16)) {
             console.error('The configured static card secret is invalid.');
             process.exit(1);
@@ -148,6 +153,7 @@ jobs:
         working-directory: mobile
         env:
           VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
+          EXPO_PUBLIC_VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
           VISAYAR_PAYMENT_CARD_NUMBER: ${{ secrets.VISAYAR_PAYMENT_CARD_NUMBER }}
           VISAYAR_PAYMENT_CARD_HOLDER: ${{ secrets.VISAYAR_PAYMENT_CARD_HOLDER }}
           VISAYAR_PAYMENT_BANK_NAME: ${{ secrets.VISAYAR_PAYMENT_BANK_NAME }}
@@ -158,6 +164,12 @@ jobs:
 
       - name: Build release APK
         working-directory: mobile/android
+        env:
+          VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
+          EXPO_PUBLIC_VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
+          VISAYAR_PAYMENT_CARD_NUMBER: ${{ secrets.VISAYAR_PAYMENT_CARD_NUMBER }}
+          VISAYAR_PAYMENT_CARD_HOLDER: ${{ secrets.VISAYAR_PAYMENT_CARD_HOLDER }}
+          VISAYAR_PAYMENT_BANK_NAME: ${{ secrets.VISAYAR_PAYMENT_BANK_NAME }}
         run: |
           chmod +x ./gradlew
           ./gradlew assembleRelease --no-daemon

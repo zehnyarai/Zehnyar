@@ -15,6 +15,10 @@ const number = String(process.env.VISAYAR_PAYMENT_CARD_NUMBER || '')
   .replace(/\D/g, '');
 const apiBaseUrl = String(process.env.VISAYAR_API_BASE_URL || '').trim();
 const hasSecureApi = /^https:\/\/[^/]+(?:\/.*)?$/.test(apiBaseUrl);
+if (apiBaseUrl && !hasSecureApi) {
+  console.error('VISAYAR_API_BASE_URL must be a valid HTTPS URL.');
+  process.exit(1);
+}
 if (number.length !== 16 && (number.length > 0 || !hasSecureApi)) {
   console.error('Provide a valid 16-digit card secret for offline mode, or a secure HTTPS API URL for server mode.');
   process.exit(1);
