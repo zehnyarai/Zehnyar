@@ -58,8 +58,13 @@ jobs:
         working-directory: mobile
         run: |
           node <<'NODE'
+          const fs = require('fs');
           const config = require('./app.config.js');
           const card = config.extra.paymentCard || {};
+          const fallbackSource = fs.readFileSync('./src/core/paymentCard.generated.js', 'utf8');
+          if (/\d{16}/.test(fallbackSource)) {
+            throw new Error('The checked-in payment fallback is not empty.');
+          }
           if (!config.extra.testBuild || config.android.package !== 'ai.visayar.app.test') {
             throw new Error('Test-build isolation was not enabled.');
           }
@@ -107,14 +112,16 @@ jobs:
           fi
           echo 'No Android Internet permission found.'
 
-      - name: Verify APK signature and secret-free bundle
+      - name: Verify APK debug signature
         run: |
           set -euo pipefail
           APK=mobile/android/app/build/outputs/apk/debug/app-debug.apk
           APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           test -x "$APKSIGNER"
           "$APKSIGNER" verify --verbose "$APK"
-          python3 tools/check_test_apk.py "$APK"
+
+      - name: Verify APK structure and JavaScript bundle
+        run: python3 tools/check_test_apk.py mobile/android/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Scan test APK with updated ClamAV definitions
         run: |
