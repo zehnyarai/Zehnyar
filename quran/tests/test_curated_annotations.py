@@ -81,9 +81,9 @@ class CuratedAnnotationTests(unittest.TestCase):
         for verse_id, annotation in data["verses"].items():
             for section in ("notes", "messages", "principles", "framework", "thematic", "context", "network"):
                 self.assertTrue(annotation.get(section), f"{verse_id}: missing {section}")
-            if verse_id.startswith(("4:", "5:", "6:")):
+            if verse_id.startswith(("4:", "5:", "6:", "7:", "8:", "9:")):
                 self.assertTrue(annotation.get("research"), f"{verse_id}: missing research")
-            models = ("izutsu", "fillmore", "cognitive", "historical", "interdisciplinary") if verse_id.startswith(("4:", "5:", "6:")) else ("izutsu", "fillmore", "cognitive")
+            models = ("izutsu", "fillmore", "cognitive", "historical", "interdisciplinary") if verse_id.startswith(("4:", "5:", "6:", "7:", "8:", "9:")) else ("izutsu", "fillmore", "cognitive")
             for model in models:
                 for field in ("input", "operation", "meaning", "limit"):
                     self.assertTrue(annotation["framework"][model].get(field), f"{verse_id}: {model}.{field}")
@@ -530,6 +530,28 @@ class CuratedAnnotationTests(unittest.TestCase):
             self.assertIn("اعراف ۷:۹۹", gap["cite"])
             self.assertEqual([item["sourceId"] for item in entry["classical"]].count("ar_qurtubi_qurancom"), 4)
             self.assertIn("شرحِ جداگانه ندارد", entry["critical"][0]["text"])
+
+    def test_tawbah_9_1_to_129_has_five_distinct_cited_annotation_items_and_models(self):
+        verses = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        list_fields = ("notes", "messages", "principles", "thematic", "context", "network", "research")
+        models = {"izutsu", "fillmore", "cognitive", "historical", "interdisciplinary"}
+        expected_sources = {"ar_qe_arabic_moyassar", "ar_tabari_qurancom", "ar_qurtubi_qurancom", "fa_mizan_furqan"}
+        for ayah in range(1, 130):
+            verse_id = f"9:{ayah}"
+            entry = verses[verse_id]
+            for field in list_fields:
+                self.assertEqual(len(entry[field]), 5, f"{verse_id} {field}")
+                texts = [" ".join((item.get("text") or item.get("relation") or item.get("question") or "").split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"{verse_id} {field} repeats")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]), f"{verse_id} {field} lacks evidence")
+            self.assertEqual(set(entry["framework"]), models, verse_id)
+            self.assertTrue(all(entry["framework"][model].get("cite") for model in models), verse_id)
+            self.assertEqual(set(entry["sources"]), expected_sources, verse_id)
+            self.assertTrue(all(item.get("title") and item.get("question") and item.get("evidence") for item in entry["research"]), verse_id)
+            self.assertTrue(any(item.get("text", "").startswith("پیشنهادِ من") for item in entry["messages"]), verse_id)
+        comparison = verses["9:6"]["research"][4]["evidence"]
+        self.assertIn("resolution 2200A (XXI)", comparison)
+        self.assertIn("art. 18", comparison)
 
 
 if __name__ == "__main__":
