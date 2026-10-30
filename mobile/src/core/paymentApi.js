@@ -30,6 +30,7 @@ function appExtra() {
 }
 
 export function getApiBase() {
+  if (appExtra().testBuild === true) return '';
   // Expo only inlines EXPO_PUBLIC_* values during Metro's release bundle step.
   // Read the public build-time variable directly so native builds do not depend
   // on the app-config manifest being available at runtime.
@@ -40,6 +41,9 @@ export function getApiBase() {
 }
 
 export function getOfflinePaymentConfig() {
+  if (appExtra().testBuild === true) {
+    return { enabled: false, offlineMode: true, testMode: true, freeAssessments: 2, card: null };
+  }
   const candidates = [appExtra().paymentCard, paymentCardFallback];
   const source = candidates.find((candidate) => String(candidate?.number || '').replace(/\D/g, '').length === 16) || {};
   const number = String(source.number || '').replace(/\D/g, '');

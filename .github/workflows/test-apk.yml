@@ -1,0 +1,122 @@
+name: Isolated Android test APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'arena/fe5d970d-zehnyar'
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-apk:
+    name: Build and scan no-network test APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      NODE_OPTIONS: --max-old-space-size=4096
+      VISAYAR_TEST_BUILD: '1'
+      VISAYAR_API_BASE_URL: ''
+      EXPO_PUBLIC_VISAYAR_API_BASE_URL: ''
+      VISAYAR_PAYMENT_CARD_NUMBER: ''
+      VISAYAR_PAYMENT_CARD_HOLDER: ''
+      VISAYAR_PAYMENT_BANK_NAME: ''
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build and validate shared data
+        run: |
+          python3 tools/build_dataset.py
+          node tools/sync_mobile_data.js
+          python3 tools/check_dataset_freshness.py --fail-when-stale
+          node tools/check_i18n.js
+
+      - name: Install app dependencies and run UI tests
+        working-directory: mobile
+        run: |
+          npm ci --no-audit --no-fund
+          npm test -- --runInBand --silent
+
+      - name: Verify test config has no API or payment account
+        working-directory: mobile
+        run: |
+          node <<'NODE'
+          const config = require('./app.config.js');
+          const card = config.extra.paymentCard || {};
+          if (!config.extra.testBuild || config.android.package !== 'ai.visayar.app.test') {
+            throw new Error('Test-build isolation was not enabled.');
+          }
+          if (config.extra.apiBaseUrl || String(card.number || '').replace(/\D/g, '')) {
+            throw new Error('Test builds must contain no API URL or payment account.');
+          }
+          console.log('Isolated test config validated; no API or payment values present.');
+          NODE
+
+      - name: Generate isolated Android project
+        working-directory: mobile
+        run: npx expo prebuild -p android --clean --no-install
+
+      - name: Build debug APK
+        working-directory: mobile/android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Verify package, permissions, signature, and bundle
+        run: |
+          set -euo pipefail
+          APK=mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          AAPT="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name aapt | sort -V | tail -n 1)"
+          APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -x "$AAPT"
+          test -x "$APKSIGNER"
+          "$AAPT" dump badging "$APK" | grep -F "package: name='ai.visayar.app.test'"
+          if "$AAPT" dump permissions "$APK" | grep -F 'android.permission.INTERNET'; then
+            echo 'Network permission unexpectedly present in isolated test APK.' >&2
+            exit 1
+          fi
+          "$APKSIGNER" verify --verbose "$APK"
+          python3 tools/check_test_apk.py "$APK"
+
+      - name: Scan test APK with updated ClamAV definitions
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y clamav clamav-freshclam
+          sudo systemctl stop clamav-freshclam 2>/dev/null || true
+          sudo freshclam --stdout
+          clamscan --infected --no-summary mobile/android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Prepare test APK and checksum
+        run: |
+          set -euo pipefail
+          mkdir -p test-release
+          cp mobile/android/app/build/outputs/apk/debug/app-debug.apk test-release/Visayar-Test.apk
+          ( cd test-release && sha256sum Visayar-Test.apk > SHA256SUMS.txt )
+          cat test-release/SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: visayar-isolated-test-apk
+          path: |
+            test-release/Visayar-Test.apk
+            test-release/SHA256SUMS.txt
+          retention-days: 14

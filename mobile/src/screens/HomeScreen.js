@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Image, ScrollView, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import { colors, fonts, gradients, radius, shadow, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
@@ -26,6 +27,7 @@ export default function HomeScreen({ navigation }) {
   const countries = getCountries();
   const totals = getTotals();
   const dataMeta = getMeta();
+  const testBuild = Constants.expoConfig?.extra?.testBuild === true;
   const verifiedDate = formatVerifiedDate(dataMeta.lastVerified, lang);
   const freshness = getDatasetFreshness();
   const freshnessMessage = freshness.status === 'stale' || freshness.status === 'invalid'
@@ -88,6 +90,13 @@ export default function HomeScreen({ navigation }) {
         <Text variant="small" style={{ color: 'rgba(255,255,255,0.82)', marginTop: spacing.xs, textAlign: dir.text }}>
           {t('home.heroSubtitle')}
         </Text>
+        {testBuild ? (
+          <View style={{ marginTop: spacing.sm, padding: spacing.sm, borderRadius: radius.md, backgroundColor: 'rgba(255,255,255,0.16)' }}>
+            <Text variant="micro" style={{ color: colors.goldSoft, textAlign: dir.text, fontFamily: fonts.bold }}>
+              {t('home.testBuildNotice')}
+            </Text>
+          </View>
+        ) : null}
 
         <View style={{ marginTop: spacing.md }}>
           <View style={styles.glassBadge}>

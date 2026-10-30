@@ -26,7 +26,7 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
-import { consumeAssessmentCredit, hasAssessmentAccess, loadPaymentPanel, submitReceipt } from '../src/core/paymentApi';
+import { consumeAssessmentCredit, getApiBase, getOfflinePaymentConfig, hasAssessmentAccess, loadPaymentPanel, submitReceipt } from '../src/core/paymentApi';
 
 const originalFetch = global.fetch;
 
@@ -36,12 +36,26 @@ describe('payment panel static card configuration', () => {
     global.fetch = jest.fn();
     SecureStore.getItemAsync.mockResolvedValue(null);
     Constants.expoConfig.extra.apiBaseUrl = '';
+    Constants.expoConfig.extra.testBuild = false;
     Constants.expoConfig.extra.paymentCard = { number: '1234567890123456', holder: '', bank: 'سامان' };
   });
 
   afterEach(() => {
     global.fetch = originalFetch;
     jest.restoreAllMocks();
+  });
+
+  it('test build ignores API/payment configuration and cannot upload receipts', async () => {
+    Constants.expoConfig.extra.testBuild = true;
+    Constants.expoConfig.extra.apiBaseUrl = 'https://payments.example';
+    Constants.expoConfig.extra.paymentCard = { number: '1234567890123456', holder: '', bank: 'سامان' };
+
+    expect(getApiBase()).toBe('');
+    expect(getOfflinePaymentConfig()).toEqual({ enabled: false, offlineMode: true, testMode: true, freeAssessments: 2, card: null });
+    const panel = await loadPaymentPanel();
+    expect(panel.config.enabled).toBe(false);
+    expect(panel.config.canSubmitReceipt).toBe(false);
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it('shows the embedded card without waiting for or overriding from the API', async () => {
