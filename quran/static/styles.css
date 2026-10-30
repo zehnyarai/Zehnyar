@@ -280,3 +280,10 @@ h1, h2, h3, p { margin-top: 0; } h1 { max-width: 740px; margin: 21px auto 15px; 
 .surah-source-link { display: inline-block; margin-top: 4px; color: #31798a; font-size: 9px; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 760px) { .donation-card { grid-template-columns: 1fr; }.donation-transfer { width: 100%; min-width: 0; }.surah-theme-grid, .surah-reflection-list { grid-template-columns: 1fr; }.surah-outline-unit > summary, .surah-theme-source > summary { align-items: flex-start; flex-wrap: wrap; }.surah-review-status { margin-inline-start: 0; } }
 @media (max-width: 430px) { .donation-number { font-size: 16px; }.surah-outline-body, .surah-theme-source-body, .surah-vocabulary-context, .surah-reflection-card { padding: 11px; }.surah-heading-list { padding-inline-start: 19px; } }
+
+.translation-disclosure { position: sticky; top: 72px; z-index: 9; width: min(100% - 32px, 1180px); min-height: 35px; margin: 0 auto; padding: 5px 10px; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 5px 12px; color: #547586; border: 1px solid rgba(198, 224, 225, .92); border-top: 0; border-radius: 0 0 10px 10px; background: rgba(248, 253, 253, .95); box-shadow: 0 4px 12px rgba(12, 74, 91, .045); backdrop-filter: blur(10px); font-size: 9px; line-height: 1.7; }
+.translation-disclosure a, .detail-translation-credit a { color: var(--teal-dark); font-weight: 800; text-decoration: underline; text-decoration-color: #b3d7d6; text-underline-offset: 3px; }
+.translation-disclosure a:hover, .detail-translation-credit a:hover { color: var(--teal); }
+.detail-translation-credit { margin: 6px 0 0; color: #8195a0; font-size: 9px; line-height: 1.8; }
+.detail-translation-credit span { color: #6f8995; }
+@media (max-width: 700px) { .translation-disclosure { top: 62px; width: min(100% - 28px, 1180px); padding: 5px 8px; gap: 4px 9px; font-size: 8px; }.detail-translation-credit { font-size: 8px; } }

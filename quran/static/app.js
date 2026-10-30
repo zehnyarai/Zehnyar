@@ -31,6 +31,7 @@ const state = {
   verseDossierMeta: null,
   screen: "search",
   corpus: [],
+  translationMeta: {},
   recordById: new Map(),
   lexicon: null,
   concepts: [],
@@ -74,6 +75,33 @@ function escapeHTML(value = "") {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function updateTranslationAttribution() {
+  const metadata = state.translationMeta || {};
+  const translator = metadata.translatorFa || "محمدمهدی فولادوند";
+  const source = String(metadata.source || "Tanzil Project").includes("Tanzil") ? "Tanzil" : String(metadata.source || "منبع ثبت‌شده");
+  const identifier = metadata.id || "fa.fooladvand";
+  const sourceUrl = metadata.sourceUrl === "https://tanzil.net/trans/fa.fooladvand"
+    ? metadata.sourceUrl
+    : "https://tanzil.net/trans/fa.fooladvand";
+  const termsUrl = metadata.termsUrl === "https://tanzil.net/trans/"
+    ? metadata.termsUrl
+    : "https://tanzil.net/trans/";
+  const label = `${translator} · ${source} (${identifier}) ↗`;
+  ["#translation-credit-link", "#detail-translation-link"].forEach((selector) => {
+    const link = $(selector);
+    if (!link) return;
+    link.textContent = label;
+    link.href = sourceUrl;
+  });
+  ["#translation-terms-link", "#detail-translation-terms-link"].forEach((selector) => {
+    const link = $(selector);
+    if (!link) return;
+    link.href = termsUrl;
+  });
+  const disclosure = $(".translation-disclosure");
+  if (disclosure && metadata.licenseFa) disclosure.title = metadata.licenseFa;
 }
 
 function faNumber(value) {
@@ -247,6 +275,8 @@ async function loadData() {
     throw new Error("پیکرهٔ محلی یا فهرست پژوهش در دسترس نیست.");
   }
   const corpus = await corpusResponse.json();
+  state.translationMeta = corpus.translation || {};
+  updateTranslationAttribution();
   state.lexicon = await lexiconResponse.json();
   const catalog = await catalogResponse.json();
   const tafsirRegistry = await tafsirRegistryResponse.json();

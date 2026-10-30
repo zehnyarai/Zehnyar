@@ -12,6 +12,20 @@ class QuranResearchTests(unittest.TestCase):
         self.assertEqual(len(main.CORPUS), 6236)
         self.assertEqual(len(main.VERSE_MAP), 6236)
 
+    def test_api_metadata_identifies_the_current_persian_translation_and_terms(self):
+        corpus = main.meta()["corpus"]
+        self.assertEqual(corpus["verses"], 6236)
+        self.assertIn("Fooladvand", corpus["persian"])
+        self.assertEqual(corpus["translation_source_url"], "https://tanzil.net/trans/fa.fooladvand")
+        self.assertEqual(corpus["translation_terms_url"], "https://tanzil.net/trans/")
+        self.assertEqual(corpus["translation_use"], "Non-commercial use only")
+        self.assertEqual(corpus["translation"]["id"], "fa.fooladvand")
+
+    def test_single_verse_api_response_carries_translation_attribution(self):
+        result = main.get_verse(1, 1)
+        self.assertEqual(result["translation"]["id"], "fa.fooladvand")
+        self.assertEqual(result["translation"]["source_url"], "https://tanzil.net/trans/fa.fooladvand")
+
     def test_normalization_keeps_search_equivalents_together(self):
         self.assertEqual(main.normalize("إِنَّ اللَّهَ عَلِيمٌ"), "ان الله علیم")
         self.assertEqual(main.normalize("مي‌كند"), "می کند")
@@ -263,6 +277,9 @@ class QuranResearchTests(unittest.TestCase):
         self.assertIn("# دفتر کامل شواهد قرآن‌پژوهه", registry)
         self.assertIn("## شواهد واژگانی", registry)
         self.assertIn("## مسیرهای رواییِ پیشنهادی", registry)
+        self.assertIn("محمدمهدی فولادوند", registry)
+        self.assertIn("https://tanzil.net/trans/fa.fooladvand", registry)
+        self.assertIn("استفادهٔ غیرتجاری", registry)
         self.assertIn("ص 38:21", registry)
 
     def test_pagination_keeps_the_full_evidence_registry_reachable(self):

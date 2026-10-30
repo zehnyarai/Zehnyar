@@ -24,9 +24,39 @@ from fastapi.responses import FileResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+try:
+    from quran.translation_source import (
+        TANZIL_TRANSLATION_ID,
+        TANZIL_TRANSLATION_SOURCE_URL,
+        TANZIL_TRANSLATION_TERMS_URL,
+        TANZIL_TRANSLATION_USE,
+        TANZIL_TRANSLATOR,
+        TANZIL_TRANSLATOR_FA,
+        load_tanzil_translation,
+    )
+except ModuleNotFoundError:
+    from translation_source import (
+        TANZIL_TRANSLATION_ID,
+        TANZIL_TRANSLATION_SOURCE_URL,
+        TANZIL_TRANSLATION_TERMS_URL,
+        TANZIL_TRANSLATION_USE,
+        TANZIL_TRANSLATOR,
+        TANZIL_TRANSLATOR_FA,
+        load_tanzil_translation,
+    )
+
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 STATIC_DIR = BASE_DIR / "static"
+TRANSLATION_API_METADATA = {
+    "id": TANZIL_TRANSLATION_ID,
+    "translator": TANZIL_TRANSLATOR,
+    "translator_fa": TANZIL_TRANSLATOR_FA,
+    "source": "Tanzil Project",
+    "source_url": TANZIL_TRANSLATION_SOURCE_URL,
+    "terms_url": TANZIL_TRANSLATION_TERMS_URL,
+    "use": TANZIL_TRANSLATION_USE,
+}
 
 ARABIC_MARKS = re.compile(r"[\u0610-\u061a\u064b-\u065f\u0670\u06d6-\u06ed\u08d4-\u08ff]")
 PUNCTUATION = re.compile(r"[^\w\s\u0600-\u06ff]")
@@ -416,31 +446,41 @@ PRACTICAL_LENSES: dict[str, dict[str, Any]] = {
 def load_corpus() -> tuple[list[dict[str, Any]], dict[tuple[int, int], dict[str, Any]], dict[int, dict[str, Any]]]:
     with (DATA_DIR / "quran-uthmani.json").open(encoding="utf-8") as file:
         arabic = json.load(file)
-    with (DATA_DIR / "quran-fa-ih.json").open(encoding="utf-8") as file:
-        persian = json.load(file)
     with (DATA_DIR / "chapters.json").open(encoding="utf-8") as file:
         chapters_data = json.load(file)["chapters"]
 
+    translations = load_tanzil_translation(DATA_DIR / "quran-fa-fooladvand.txt")
     chapters = {item["id"]: item for item in chapters_data}
     corpus: list[dict[str, Any]] = []
     verse_map: dict[tuple[int, int], dict[str, Any]] = {}
+    expected_refs: set[tuple[int, int]] = set()
 
-    for chapter_key, ayat in arabic.items():
-        for arabic_ayah, persian_ayah in zip(ayat, persian[chapter_key]):
+    for ayat in arabic.values():
+        for arabic_ayah in ayat:
             chapter = int(arabic_ayah["chapter"])
             verse = int(arabic_ayah["verse"])
+            reference = (chapter, verse)
+            expected_refs.add(reference)
+            persian_text = translations.get(reference)
+            if persian_text is None:
+                raise ValueError(f"No Persian translation found for {chapter}:{verse}")
             record = {
                 "surah": chapter,
                 "ayah": verse,
                 "arabic": arabic_ayah["text"],
-                "persian": persian_ayah["text"],
+                "persian": persian_text,
                 "arabic_normalized": normalize(arabic_ayah["text"]),
-                "persian_normalized": normalize(persian_ayah["text"]),
+                "persian_normalized": normalize(persian_text),
                 "surah_name": chapters[chapter]["name"],
                 "surah_type": "مدنی" if chapters[chapter]["type"] == "medinan" else "مکی",
             }
             corpus.append(record)
-            verse_map[(chapter, verse)] = record
+            verse_map[reference] = record
+
+    if expected_refs != set(translations):
+        raise ValueError("Arabic and pinned Tanzil translation verse maps do not match")
+    if len(corpus) != 6236:
+        raise ValueError(f"Expected 6236 verse records, found {len(corpus)}")
     return corpus, verse_map, chapters
 
 
@@ -1007,7 +1047,11 @@ def analyze(
         "method": method,
         "corpus": {
             "arabic": "Tanzil Uthmani (verbatim)",
-            "persian": "QuranEnc — Persian, Ihsan Elahi Zaheer",
+            "persian": f"Tanzil — {TANZIL_TRANSLATOR} ({TANZIL_TRANSLATION_ID})",
+            "persian_source_url": TANZIL_TRANSLATION_SOURCE_URL,
+            "persian_terms_url": TANZIL_TRANSLATION_TERMS_URL,
+            "translation_use": TANZIL_TRANSLATION_USE,
+            "translation": TRANSLATION_API_METADATA,
             "total_verses": len(CORPUS),
         },
     }
@@ -1022,6 +1066,9 @@ def research_markdown(query: str, mode: Literal["topic", "literal"]) -> str:
         f"- پرسش: {result['query']}",
         f"- حالت: {result['mode']['label']}",
         f"- پیکره: {result['corpus']['total_verses']} آیه",
+        f"- ترجمهٔ فارسی: {TANZIL_TRANSLATOR_FA}، Tanzil `{TANZIL_TRANSLATION_ID}`",
+        f"- صفحهٔ ترجمه: {TANZIL_TRANSLATION_SOURCE_URL}",
+        f"- شرایط بازنشر: استفادهٔ غیرتجاری؛ برای شرایط رسمی و کاربردهای دیگر به {TANZIL_TRANSLATION_TERMS_URL} مراجعه کنید.",
         f"- شاهد مستقیم: {result['stats']['direct']}",
         f"- پیوند واژگانی: {result['stats']['thematic']}",
         "",
@@ -1131,7 +1178,15 @@ def meta() -> dict[str, Any]:
             {"id": "literal", "label": "فقط عبارت", "description": "بدون توسعهٔ واژگانی"},
             {"id": "topic", "label": "موضوعیِ شفاف", "description": "با واژه‌نامهٔ قابل مشاهدهٔ موضوع"},
         ],
-        "corpus": {"verses": len(CORPUS), "arabic": "Tanzil Uthmani", "persian": "QuranEnc Persian (Ihsan Elahi Zaheer)"},
+        "corpus": {
+            "verses": len(CORPUS),
+            "arabic": "Tanzil Uthmani",
+            "persian": f"Tanzil Persian — {TANZIL_TRANSLATOR} ({TANZIL_TRANSLATION_ID})",
+            "translation_source_url": TANZIL_TRANSLATION_SOURCE_URL,
+            "translation_terms_url": TANZIL_TRANSLATION_TERMS_URL,
+            "translation_use": TANZIL_TRANSLATION_USE,
+            "translation": TRANSLATION_API_METADATA,
+        },
     }
 
 
@@ -1298,7 +1353,9 @@ def get_verse(surah: int, ayah: int) -> dict[str, Any]:
     record = VERSE_MAP.get((surah, ayah))
     if not record:
         raise HTTPException(status_code=404, detail="آیه پیدا نشد.")
-    return serialize_verse(record, 0, [], "متنِ پایه")
+    payload = serialize_verse(record, 0, [], "متنِ پایه")
+    payload["translation"] = TRANSLATION_API_METADATA
+    return payload
 
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
