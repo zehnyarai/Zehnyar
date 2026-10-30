@@ -1,6 +1,7 @@
 import importlib.util
 import json
 from pathlib import Path
+import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -45,6 +46,32 @@ class StudyWorkbenchTests(unittest.TestCase):
         self.assertEqual(workbench.validate_batch(batch), [])
         a["notes"].append(dict(a["notes"][0]))
         self.assertTrue(any("notes[5] duplicates" in error for error in workbench.validate_batch(batch)))
+
+    def test_merge_records_coverage_without_claiming_scholarly_review(self):
+        annotation = {
+            "notes": [{"text":f"note {n}","evidence":"2:41 source"} for n in range(4)],
+            "messages": [{"text":f"message {n}","evidence":"2:41 source"} for n in range(4)],
+            "principles": [{"text":f"principle {n}","evidence":"2:41 source"} for n in range(4)],
+            "framework": {model:{field:"filled" for field in ("input","operation","meaning","limit")} for model in workbench.MODELS},
+            "thematic": [{"reference":"2:40","relation":"context"}],
+            "context": [{"reference":"2:40-42","relation":"near"}],
+            "network": [{"reference":"2:40-42","relation":"network"}],
+            "sources": list(workbench.SOURCE_FILES),
+        }
+        batch = {"start":[2,41],"end":[2,41],"verses":[{"id":"2:41","annotation":annotation}]}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "annotations.json"
+            path.write_text(json.dumps({"verses":{},"reviewedRange":"1:1-1:7"}),encoding="utf-8")
+            original = workbench.ANNOTATIONS
+            try:
+                workbench.ANNOTATIONS = path
+                self.assertEqual(workbench.merge(batch),1)
+            finally:
+                workbench.ANNOTATIONS = original
+            saved = json.loads(path.read_text(encoding="utf-8"))
+            self.assertEqual(saved["coverageRange"],"1:1-1:7; 2:41-2:41")
+            self.assertNotIn("reviewedRange",saved)
+            self.assertIn("2:41",saved["verses"])
 
 
 if __name__ == "__main__":

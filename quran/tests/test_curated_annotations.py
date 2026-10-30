@@ -387,6 +387,25 @@ class CuratedAnnotationTests(unittest.TestCase):
             self.assertIn(f'reviewedStudyField(verse, "{field}")', app)
         self.assertIn("/static/verse-study-annotations.json", worker)
 
+    def test_opening_research_prompts_stay_with_quranic_text_and_tafsir(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))
+        verses = data["verses"]
+        opening = [f"1:{n}" for n in range(1, 8)] + [f"2:{n}" for n in range(1, 9)]
+        tangents = ("اقتصاد", "رفاه", "سیاستِ رفاهی", "نظریه‌های ارتباطی", "روان‌شناختی", "شاخص‌های مدرن")
+        required_sources = {"ar_tabari_qurancom", "ar_qurtubi_qurancom", "fa_mizan_furqan", "ar_qe_arabic_moyassar", "fa_qe_persian_mokhtasar"}
+        for verse_id in opening:
+            entry = verses[verse_id]
+            self.assertEqual(len(entry["research"]), 4, verse_id)
+            self.assertTrue(required_sources <= set(entry["sources"]), verse_id)
+            for prompt in entry["research"]:
+                combined = prompt["title"] + " " + prompt["question"]
+                self.assertFalse(any(term in combined for term in tangents), (verse_id, combined))
+        method = data["editorialMethod"]
+        self.assertIn("سیاقِ سوره", method)
+        self.assertIn("گواهِ بازبینیِ علمی نیست", method)
+        self.assertIn("coverageRange", data)
+        self.assertNotIn("reviewedRange", data)
+
 
 if __name__ == "__main__":
     unittest.main()

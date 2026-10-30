@@ -60,7 +60,12 @@ def test_classical_and_modern_fields_are_independently_sourced():
         for item in entry["classical"]:
             assert "ق،" in item["cite"] or "Izutsu" in item["cite"], f"{vid}: خوانش کهن ارجاعِ کهن ندارد"
         for item in entry["modern"]:
-            assert any(token in item["cite"] for token in ("ق،", "، ۱۳", "، ۱۴", ", 19", ", 20")), (
+            cite = item["cite"]
+            has_publication_marker = any(token in cite for token in ("ق،", "، ۱۳", "، ۱۴", ", 19", ", 20"))
+            has_versioned_local_source = (
+                "QuranEnc" in cite and "نسخهٔ 1.0.0" in cite and "ذیل" in cite
+            ) or ("Furqan 2026.0" in cite and "ذیل" in cite)
+            assert has_publication_marker or has_versioned_local_source, (
                 f"{vid}: ارجاعِ معاصر مشخص نیست"
             )
 
@@ -153,3 +158,16 @@ def test_tabari_2_7_preference_is_reported_with_its_scope():
     assert "طبری" in text
     assert "ترجیح می‌دهد" in text
     assert "در هر مسئله جداگانه" in text
+
+
+def test_opening_review_batch_has_four_source_bound_studies_and_questions():
+    verse_ids = [f"1:{n}" for n in range(1, 8)] + [f"2:{n}" for n in range(1, 9)]
+    for verse_id in verse_ids:
+        entry = DOSSIER["verses"][verse_id]
+        assert len(entry["modern"]) == 4, verse_id
+        assert len(entry["research"]) == 4, verse_id
+        assert all(item["cite"].strip() and ("ذیل" in item["cite"] or "قرآن،" in item["cite"]) for item in entry["research"]), verse_id
+        assert len(entry["critical"]) >= 3, verse_id
+    method = DOSSIER["editorialMethod"]
+    assert "عنوان و کارکردِ فیلد" in method
+    assert "تناسبِ محتوایی" in method

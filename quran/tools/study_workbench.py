@@ -139,9 +139,10 @@ def merge(batch: dict) -> int:
             raise ValueError(f"{key} already exists; refusing to overwrite")
         verses[key] = item["annotation"]
     lo, hi = batch["start"], batch["end"]
-    ranges = payload.get("reviewedRange", "")
+    ranges = payload.get("coverageRange", payload.get("reviewedRange", ""))
     ranges += f"; {lo[0]}:{lo[1]}-{hi[0]}:{hi[1]}"
-    payload["reviewedRange"] = ranges.lstrip("; ")
+    payload["coverageRange"] = ranges.lstrip("; ")
+    payload.pop("reviewedRange", None)
     ANNOTATIONS.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return len(batch["verses"])
 

@@ -120,3 +120,15 @@ def test_method_has_three_gates_and_a_testable_rule():
 def test_fields_cover_more_than_one_domain():
     fields = {use["field"] for _, use, _ in iter_uses()}
     assert len(fields) >= 40, f"تنوعِ میدان‌ها کم است: {len(fields)}"
+
+
+def test_opening_review_applications_are_quran_study_not_generic_advice():
+    reviewed = [f"1:{n}" for n in range(1, 8)] + [f"2:{n}" for n in range(1, 9)]
+    unrelated_sources = ("Bourdieu", "Kahneman", "Tufekci", "Gadamer", "Hirsch", "Goldziher", "Nöldeke")
+    for verse_id in reviewed:
+        uses = APP["verses"][verse_id]["uses"]
+        assert len(uses) == 4, verse_id
+        for use in uses:
+            assert any(source in use["cite"] for source in ("قرآن", "طبری", "قرطبی", "المیزان", "QuranEnc", "Izutsu", "Neuwirth", "Sells", "Sinai", "Rahman")), verse_id
+            assert not any(source in use["cite"] for source in unrelated_sources), (verse_id, use["cite"])
+    assert "فهم" in APP["notice"] and "قرآن" in APP["notice"]
