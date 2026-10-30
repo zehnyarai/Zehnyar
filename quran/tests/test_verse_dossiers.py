@@ -133,3 +133,23 @@ def test_opening_dossiers_respect_the_item_count_limits():
         assert 4 <= len(entry["notes"]) <= 5, verse_id
         assert 4 <= len(entry["modern"]) <= 5, verse_id
         assert 4 <= len(entry["research"]) <= 5, verse_id
+
+
+def test_plural_and_passive_forms_are_not_given_unstated_social_intent():
+    plural = DOSSIER["verses"]["1:5"]["notes"][2]["text"]
+    passive = DOSSIER["verses"]["1:7"]["notes"][1]["text"]
+    assert "به‌تنهایی" in plural and "حضور در جماعت" in plural
+    assert "نمی‌توان" in passive and "قصدِ جلوگیری" in passive
+
+
+def test_baqarah_2_4_keeps_the_imperfect_verb_analysis_accurate():
+    text = DOSSIER["verses"]["2:4"]["notes"][2]["text"]
+    assert "۲:۴ نیز دو فعلِ مضارع دارد" in text
+    assert "نه تغییرِ زمان یا ساختِ فعل" in text
+
+
+def test_tabari_2_7_preference_is_reported_with_its_scope():
+    text = DOSSIER["verses"]["2:7"]["classical"][0]["text"]
+    assert "طبری" in text
+    assert "ترجیح می‌دهد" in text
+    assert "در هر مسئله جداگانه" in text
