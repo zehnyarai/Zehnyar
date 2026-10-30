@@ -29,7 +29,10 @@ function appExtra() {
 }
 
 export function getApiBase() {
-  const configured = appExtra().apiBaseUrl || '';
+  // Expo only inlines EXPO_PUBLIC_* values during Metro's release bundle step.
+  // Read the public build-time variable directly so native builds do not depend
+  // on the app-config manifest being available at runtime.
+  const configured = process.env.EXPO_PUBLIC_VISAYAR_API_BASE_URL || appExtra().apiBaseUrl || '';
   if (configured) return configured.replace(/\/$/, '');
   if (typeof window !== 'undefined' && window.location?.origin) return window.location.origin;
   return '';

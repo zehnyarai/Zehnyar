@@ -25,7 +25,7 @@ function findBundles(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const file = path.join(directory, entry.name);
     if (entry.isDirectory()) return findBundles(file);
-    return entry.isFile() && /\.bundle$/.test(entry.name) ? [file] : [];
+    return entry.isFile() && /\.(?:bundle|hbc)$/.test(entry.name) ? [file] : [];
   });
 }
 
