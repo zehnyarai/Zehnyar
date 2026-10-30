@@ -6,7 +6,7 @@ on:
       publish_release:
         description: "Publish or update the mobile-latest prerelease"
         required: true
-        default: true
+        default: false
         type: boolean
   push:
     paths:
@@ -24,15 +24,22 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
-      - name: Bring heavy tafsir sources from the app branch
-        # سه منبع حجیم (طبری، قرطبی، المیزان) در این شاخه نگه داشته نمی‌شوند؛
-        # از شاخهٔ اپ بازیابی می‌شوند تا حجم مخزن سبک بماند.
+      - name: Bring the allowlisted heavy tafsir sources from the app data branch
+        # فقط طبری، قرطبی و المیزانِ نسخه‌دار دریافت می‌شوند؛ متنِ حذف‌شده در این بسته نیست.
         continue-on-error: true
         run: |
           git fetch --no-tags --depth=1 origin arena/b44e7de5-zehnyar
-          mkdir -p /tmp/tafsir
-          git archive FETCH_HEAD static/tafsir | tar -x -C /tmp
-          cp -n /tmp/static/tafsir/*.json quran/static/tafsir/ || true
+          mkdir -p quran/static/tafsir
+          for file in \
+            arabic-tabari-quran-com-api-1.1.json \
+            arabic-qurtubi-quran-com-api-1.1.json \
+            persian-mizan-furqan-2026.json; do
+            if git cat-file -e "FETCH_HEAD:static/tafsir/$file" 2>/dev/null; then
+              git show "FETCH_HEAD:static/tafsir/$file" > "quran/static/tafsir/$file"
+            else
+              echo "Optional pinned source not found: $file"
+            fi
+          done
           ls -lh quran/static/tafsir
 
       - name: Set up JDK 17
@@ -57,7 +64,7 @@ jobs:
           if-no-files-found: error
 
       - name: Publish latest prerelease
-        if: github.event_name == 'push' || inputs.publish_release == true
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_release == true
         uses: softprops/action-gh-release@v2
         with:
           tag_name: mobile-latest

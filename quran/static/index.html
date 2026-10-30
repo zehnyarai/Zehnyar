@@ -80,12 +80,14 @@
             <p id="donation-status" class="donation-status" role="status" aria-live="polite">واریز کاملاً اختیاری است.</p>
           </div>
         </section>
+        <div id="search-page-workspace" data-page-workspace></div>
       </section>
 
       <section id="library-screen" class="screen library-screen" hidden aria-labelledby="library-title">
         <div class="screen-topbar"><button class="back-button" data-go="search" type="button">← بازگشت به جست‌وجو</button><span class="corpus-badge">کتابخانهٔ پژوهش</span></div>
         <div class="results-heading"><p class="eyebrow">نقشهٔ مطالعه</p><h2 id="library-title">—</h2><p id="library-description"></p></div>
         <div id="library-list" class="library-list" aria-live="polite"></div>
+        <div id="library-page-workspace" data-page-workspace></div>
       </section>
 
       <section id="surah-screen" class="screen surah-screen" hidden aria-labelledby="surah-title">
@@ -98,6 +100,7 @@
           <button id="surah-tab-reflections" data-surah-tab="reflections" type="button" role="tab" aria-selected="false" aria-controls="surah-panels">اقوال مهم و تأمل‌برانگیز</button>
         </div>
         <div id="surah-panels" class="detail-panels" role="tabpanel" aria-labelledby="surah-tab-overview"></div>
+        <div id="surah-page-workspace" data-page-workspace></div>
       </section>
 
       <section id="story-screen" class="screen story-screen" hidden aria-labelledby="story-title">
@@ -107,6 +110,7 @@
           <button class="active" data-story-tab="verses" type="button">همهٔ آیات</button><button data-story-tab="concepts" type="button">مفاهیم کلیدی</button><button data-story-tab="characters" type="button">شخصیت‌ها</button><button data-story-tab="topics" type="button">موضوعات</button><button data-story-tab="subtleties" type="button">نکات و ظرایف</button><button data-story-tab="principles" type="button">اصول زندگی</button><button data-story-tab="wonders" type="button">شگفتی‌ها</button><button data-story-tab="narratology" type="button">روایت‌شناسی</button><button data-story-tab="elements" type="button">عناصر داستان</button><button data-story-tab="semiotics" type="button">نشانه‌شناسی</button>
         </div>
         <div id="story-panels" class="detail-panels"></div>
+        <div id="story-page-workspace" data-page-workspace></div>
       </section>
 
       <section id="results-screen" class="screen results-screen" hidden aria-labelledby="results-title">
@@ -127,6 +131,7 @@
         </div>
         <div id="verse-list" class="verse-list" aria-live="polite"></div>
         <button id="load-more" class="load-more" type="button" hidden>نمایش آیه‌های بعدی</button>
+        <div id="results-page-workspace" data-page-workspace></div>
       </section>
 
       <section id="detail-screen" class="screen detail-screen" hidden aria-labelledby="detail-title">
@@ -189,7 +194,7 @@
       <p class="reading-notice">رده‌های منبع در برنامه از هم جدا هستند. فقط منبعی که متن، انتساب و پیوندِ مشخص دارد در تحلیلِ آیه به‌کار می‌رود؛ عنوانِ یک رده به‌تنهایی به معنای استناد به همهٔ آثار آن رده نیست.</p>
       <div class="source-category-list">
         <article><h3>متن قرآن و ترجمهٔ پایه</h3><p>متن عربیِ عثمانی از Tanzil است. ترجمهٔ فارسیِ پایه، ترجمهٔ محمدمهدی فولادوند با شناسهٔ Tanzil <code>fa.fooladvand</code> است: <a href="https://tanzil.net/trans/fa.fooladvand" target="_blank" rel="noopener noreferrer">صفحهٔ رسمی ترجمه ↗</a> <a href="https://tanzil.net/trans/" target="_blank" rel="noopener noreferrer">شرایط رسمی استفاده ↗</a>. شرایط Tanzil این ترجمه را به استفادهٔ غیرتجاری محدود می‌کند؛ برای کاربردهای دیگر باید از مترجم یا ناشر اجازه گرفت. <a href="https://quran.inoor.ir/" target="_blank" rel="noopener noreferrer">ورود به پایگاه جامع قرآنی ↗</a> <a href="https://quran.com/" target="_blank" rel="noopener noreferrer">مطالعه در Quran.com ↗</a></p></article>
-        <article><h3>تفاسیر جامع</h3><p>در تب «منابع تفسیری آیه» متنِ آیه‌به‌آیهٔ پنج اثر با انتساب و نسخه می‌آید: المختصر، التفسیر المیسر، طبری، قرطبی و ترجمهٔ فارسی المیزان. سه متن حجیمِ تکمیلی با انتخاب کاربر و هر بار یکی بارگیری می‌شوند. <a href="https://quran.inoor.ir/" target="_blank" rel="noopener noreferrer">پایگاه جامع قرآنی نور ↗</a> <a href="https://noorlib.ir/" target="_blank" rel="noopener noreferrer">کتابخانهٔ دیجیتال نور ↗</a></p></article>
+        <article><h3>تفاسیر جامع</h3><p>در تب «منابع تفسیری آیه» چهار متنِ آیه‌به‌آیه با انتساب و نسخه می‌آید: التفسير الميسر از QuranEnc، طبری و قرطبی از بستهٔ داده‌ای Quran.com API، و ترجمهٔ فارسی المیزان از Furqan Apps. سه متنِ حجیمِ تکمیلی با انتخاب کاربر و هر بار یکی بارگیری می‌شوند. <a href="https://quran.inoor.ir/" target="_blank" rel="noopener noreferrer">پایگاه جامع قرآنی نور ↗</a> <a href="https://noorlib.ir/" target="_blank" rel="noopener noreferrer">کتابخانهٔ دیجیتال نور ↗</a></p></article>
         <article><h3>کتب علوم قرآنی</h3><p>برای دسترسی به فهرست و نسخه‌های دیجیتالِ کتاب‌های قرآن‌پژوهی: <a href="https://noorlib.ir/" target="_blank" rel="noopener noreferrer">کتابخانهٔ دیجیتال نور ↗</a> <a href="https://quran.inoor.ir/" target="_blank" rel="noopener noreferrer">پایگاه جامع قرآنی ↗</a></p></article>
         <article><h3>مقالات قرآنی</h3><p>برای جست‌وجوی مقالات و نشریات علمی مرتبط با قرآن: <a href="https://www.noormags.ir/" target="_blank" rel="noopener noreferrer">نورمگز ↗</a> <a href="https://ensani.ir/fa" target="_blank" rel="noopener noreferrer">پایگاه مجلات علوم انسانی ↗</a></p></article>
         <article><h3>مقالات تفسیری</h3><p>برای یافتن پژوهش‌های تفسیری و مقالات موضوعی: <a href="https://www.noormags.ir/" target="_blank" rel="noopener noreferrer">جست‌وجو در نورمگز ↗</a> <a href="https://ensani.ir/fa" target="_blank" rel="noopener noreferrer">جست‌وجو در مجلات علوم انسانی ↗</a> <a href="https://quran.inoor.ir/" target="_blank" rel="noopener noreferrer">مطالعه در پایگاه جامع قرآنی ↗</a></p></article>

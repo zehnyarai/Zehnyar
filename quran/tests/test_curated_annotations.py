@@ -81,7 +81,10 @@ class CuratedAnnotationTests(unittest.TestCase):
         for verse_id, annotation in data["verses"].items():
             for section in ("notes", "messages", "principles", "framework", "thematic", "context", "network"):
                 self.assertTrue(annotation.get(section), f"{verse_id}: missing {section}")
-            for model in ("izutsu", "fillmore", "cognitive"):
+            if verse_id.startswith(("4:", "5:", "6:")):
+                self.assertTrue(annotation.get("research"), f"{verse_id}: missing research")
+            models = ("izutsu", "fillmore", "cognitive", "historical", "interdisciplinary") if verse_id.startswith(("4:", "5:", "6:")) else ("izutsu", "fillmore", "cognitive")
+            for model in models:
                 for field in ("input", "operation", "meaning", "limit"):
                     self.assertTrue(annotation["framework"][model].get(field), f"{verse_id}: {model}.{field}")
             self.assertTrue(set(annotation["sources"]) <= source_ids, verse_id)
@@ -320,29 +323,86 @@ class CuratedAnnotationTests(unittest.TestCase):
             self.assertEqual(len(entry["research"]), 3)
             self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
 
-    def test_nisa_verses_one_to_one_hundred_seventy_six_have_four_distinct_cited_items_and_research_prompts(self):
+    def test_nisa_verses_one_to_one_hundred_seventy_six_have_five_distinct_cited_items_and_research_prompts(self):
         verses = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        list_fields = ("notes", "messages", "principles", "thematic", "context", "network", "research")
+        models = ("izutsu", "fillmore", "cognitive", "historical", "interdisciplinary")
         for ayah in range(1, 177):
-            entry = verses[f"4:{ayah}"]
-            for field in ("notes", "messages", "principles"):
-                self.assertEqual(len(entry[field]), 4, f"4:{ayah} {field}")
-                self.assertTrue(all(item.get("evidence") for item in entry[field]))
-                texts = [" ".join(item["text"].split()) for item in entry[field]]
-                self.assertEqual(len(texts), len(set(texts)), f"4:{ayah} {field} repeats")
-            self.assertEqual(len(entry["research"]), 3)
-            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+            verse_id = f"4:{ayah}"
+            entry = verses[verse_id]
+            for field in list_fields:
+                self.assertEqual(len(entry[field]), 5, f"{verse_id} {field}")
+                texts = [" ".join((item.get("text") or item.get("relation") or item.get("question") or "").split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"{verse_id} {field} repeats")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]), f"{verse_id} {field} lacks evidence")
+            self.assertEqual(set(entry["framework"]), set(models), verse_id)
+            for model in models:
+                self.assertTrue(entry["framework"][model].get("cite"), f"{verse_id} framework.{model}.cite")
+            self.assertEqual(set(entry["sources"]), {"ar_qe_arabic_moyassar", "ar_tabari_qurancom", "ar_qurtubi_qurancom", "fa_mizan_furqan"}, verse_id)
 
-    def test_al_maida_verses_one_to_one_hundred_twenty_have_four_distinct_cited_items_and_research_prompts(self):
+    def test_maida_verses_one_to_one_hundred_twenty_have_five_distinct_cited_items_and_models(self):
         verses = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        list_fields = ("notes", "messages", "principles", "thematic", "context", "network", "research")
+        models = ("izutsu", "fillmore", "cognitive", "historical", "interdisciplinary")
+        expected_sources = {"ar_qe_arabic_moyassar", "ar_tabari_qurancom", "ar_qurtubi_qurancom", "fa_mizan_furqan"}
         for ayah in range(1, 121):
-            entry = verses[f"5:{ayah}"]
-            for field in ("notes", "messages", "principles"):
-                self.assertEqual(len(entry[field]), 4, f"5:{ayah} {field}")
-                self.assertTrue(all(item.get("evidence") for item in entry[field]))
-                texts = [" ".join(item["text"].split()) for item in entry[field]]
-                self.assertEqual(len(texts), len(set(texts)), f"5:{ayah} {field} repeats")
-            self.assertEqual(len(entry["research"]), 3)
-            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+            verse_id = f"5:{ayah}"
+            entry = verses[verse_id]
+            for field in list_fields:
+                self.assertEqual(len(entry[field]), 5, f"{verse_id} {field}")
+                texts = [" ".join((item.get("text") or item.get("relation") or item.get("question") or "").split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"{verse_id} {field} repeats")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]), f"{verse_id} {field} lacks evidence")
+            self.assertEqual(set(entry["framework"]), set(models), verse_id)
+            self.assertTrue(all(entry["framework"][model].get("cite") for model in models), verse_id)
+            self.assertEqual(set(entry["sources"]), expected_sources, verse_id)
+
+    def test_al_anam_verses_one_to_one_hundred_sixty_five_have_five_distinct_cited_items_and_models(self):
+        verses = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        list_fields = ("notes", "messages", "principles", "thematic", "context", "network", "research")
+        models = {"izutsu", "fillmore", "cognitive", "historical", "interdisciplinary"}
+        expected_sources = {"ar_qe_arabic_moyassar", "ar_tabari_qurancom", "ar_qurtubi_qurancom", "fa_mizan_furqan"}
+        for ayah in range(1, 166):
+            verse_id = f"6:{ayah}"
+            entry = verses[verse_id]
+            for field in list_fields:
+                self.assertEqual(len(entry[field]), 5, f"{verse_id} {field}")
+                texts = [" ".join((item.get("text") or item.get("relation") or item.get("question") or "").split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"{verse_id} {field} repeats")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]), f"{verse_id} {field} lacks evidence")
+            self.assertEqual(set(entry["framework"]), models, verse_id)
+            self.assertTrue(all(entry["framework"][model].get("cite") for model in models), verse_id)
+            self.assertEqual(set(entry["sources"]), expected_sources, verse_id)
+            self.assertTrue(all(item["text"].startswith("پیشنهادِ من") for item in entry["messages"]), verse_id)
+            for field in ("notes", "messages"):
+                self.assertFalse(any(item.get("sourceId") == "fa_mizan_furqan" or "نقلِ عینِ متنِ المیزان" in item.get("text", "") for item in entry[field]), (verse_id, field))
+        self.assertTrue(all(item.get("title") and item.get("question") and item.get("evidence") for item in verses["6:1"]["research"]))
+        self.assertIn("resolution 70/186", verses["6:152"]["framework"]["interdisciplinary"]["cite"])
+        self.assertIn("para. 32", verses["6:152"]["framework"]["interdisciplinary"]["cite"])
+
+    def test_baqarah_9_to_286_annotation_research_stays_quranic_and_source_bound(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))
+        verses = data["verses"]
+        required_sources = {"ar_tabari_qurancom", "ar_qurtubi_qurancom", "ar_qe_arabic_moyassar"}
+        tangents = ("شاخص‌های اعتمادِ نهادی", "شبکه‌های اجتماعی", "مدیریتِ تصویر", "سیاست‌گذاریِ امروز", "بازارِ امروز")
+        for ayah in range(9, 287):
+            verse_id = f"2:{ayah}"
+            entry = verses[verse_id]
+            self.assertEqual(len(entry["research"]), 3, verse_id)
+            self.assertTrue(required_sources <= set(entry["sources"]), verse_id)
+            for item in entry["research"]:
+                self.assertTrue(item.get("title") and item.get("question") and item.get("evidence"), verse_id)
+                self.assertFalse(any(term in item["question"] for term in tangents), (verse_id, item["question"]))
+
+    def test_baqarah_annotation_applications_use_explicit_verse_scope(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        self.assertIn("نظارتِ اجتماعی", data["2:234"]["notes"][2]["text"])
+        self.assertIn("نتیجه نمی‌شود", data["2:234"]["notes"][2]["text"])
+        self.assertIn("قیاسی محدود", data["2:60"]["principles"][0]["text"])
+        self.assertIn("نه حکمِ مستقیمِ آیه", data["2:60"]["principles"][0]["text"])
+        self.assertIn("وعدهٔ سودِ مالیِ تضمینی", data["2:245"]["principles"][3]["text"])
+        self.assertIn("آیه به‌تنهایی نظریهٔ سیاسیِ عام نمی‌سازد", data["2:246"]["principles"][1]["text"])
+        self.assertNotIn("در تحلیلِ اقتصاد", data["2:276"]["principles"][3]["text"])
 
     def test_user_suggestions_remain_under_verse_notes_messages_and_principles(self):
         app = (ROOT / "static/app.js").read_text(encoding="utf-8")
@@ -366,10 +426,43 @@ class CuratedAnnotationTests(unittest.TestCase):
         self.assertIn("loadDeferredTafsir", app)
         self.assertIn("data-load-tafsir", app)
         self.assertIn('data-detail-tab="research"', html)
-        self.assertIn('proposalForm(verse, "research")', app)
-        self.assertIn("MODERN_RESEARCH_LENSES", app)
+        self.assertIn('field === "research" ? "research"', app)
+        self.assertIn("QURANIC_RESEARCH_LENSES", app)
+        for off_topic in ("اقتصاد و توزیع منابع", "گفتار عمومی و مسئولیت رسانه‌ای", "تجربهٔ انسانی و سلامت روان"):
+            self.assertNotIn(off_topic, app)
         for host in ("quran.inoor.ir", "noorlib.ir", "noormags.ir", "ensani.ir"):
             self.assertIn(host, html)
+
+    def test_every_nonverse_page_has_local_notes_and_verse_bound_proposals(self):
+        html = (ROOT / "static/index.html").read_text(encoding="utf-8")
+        app = (ROOT / "static/app.js").read_text(encoding="utf-8")
+        for screen in ("search", "results", "library", "surah", "story"):
+            self.assertIn(f'id="{screen}-page-workspace" data-page-workspace', html)
+        for marker in (
+            'data-field-note="note"', 'data-field-note="proposal"', 'name="verse_id"',
+            'name="witness"', 'data-page-proposal-form',
+        ):
+            self.assertIn(marker, app)
+        self.assertIn("localStorage.setItem(FIELD_NOTES_KEY", app)
+        self.assertIn("canonicalPageVerseId", app)
+        self.assertIn("state.corpus.find((item) => item.id === verseId)", app)
+        self.assertIn("validateVerseProposal(verse, claim, witness)", app)
+        self.assertIn("verse_id: verse.id", app)
+        self.assertIn("witness: witness.trim()", app)
+        research = app.split("function detailPanelResearch", 1)[1].split("function detailPanelTafsir", 1)[0]
+        self.assertIn(".slice(0, 5)", research)
+        self.assertIn("pageScope: scope", app)
+
+    def test_unreviewed_modern_and_critical_panels_do_not_reuse_generic_anchors(self):
+        app = (ROOT / "static/app.js").read_text(encoding="utf-8")
+        modern = app.split("function detailPanelModern", 1)[1].split("function detailPanelCritical", 1)[0]
+        critical = app.split("function detailPanelCritical", 1)[1].split("function detailPanelResearch", 1)[0]
+        self.assertNotIn("dossierAnchors(", modern)
+        self.assertNotIn("dossierAnchors(", critical)
+        self.assertIn("state.scholarPilotData?.[verse.id]", modern)
+        self.assertIn("state.scholarPilotData?.[verse.id]", critical)
+        self.assertIn("خوانشِ معاصرِ اختصاصی نوشته نشده است", modern)
+        self.assertIn("هیچ لنگرِ عمومی یا قیاسِ بیرونی", critical)
 
     def test_advanced_search_stays_collapsed_without_removing_fields(self):
         html = (ROOT / "static/index.html").read_text(encoding="utf-8")
@@ -392,7 +485,7 @@ class CuratedAnnotationTests(unittest.TestCase):
         verses = data["verses"]
         opening = [f"1:{n}" for n in range(1, 8)] + [f"2:{n}" for n in range(1, 9)]
         tangents = ("اقتصاد", "رفاه", "سیاستِ رفاهی", "نظریه‌های ارتباطی", "روان‌شناختی", "شاخص‌های مدرن")
-        required_sources = {"ar_tabari_qurancom", "ar_qurtubi_qurancom", "fa_mizan_furqan", "ar_qe_arabic_moyassar", "fa_qe_persian_mokhtasar"}
+        required_sources = {"ar_tabari_qurancom", "ar_qurtubi_qurancom", "fa_mizan_furqan", "ar_qe_arabic_moyassar"}
         for verse_id in opening:
             entry = verses[verse_id]
             self.assertEqual(len(entry["research"]), 4, verse_id)
@@ -405,6 +498,38 @@ class CuratedAnnotationTests(unittest.TestCase):
         self.assertIn("گواهِ بازبینیِ علمی نیست", method)
         self.assertIn("coverageRange", data)
         self.assertNotIn("reviewedRange", data)
+
+
+    def test_araf_and_anfal_have_five_cited_annotation_items_and_five_models(self):
+        verses = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        list_fields = ("notes", "messages", "principles", "thematic", "context", "network", "research")
+        models = {"izutsu", "fillmore", "cognitive", "historical", "interdisciplinary"}
+        expected_sources = {"ar_qe_arabic_moyassar", "ar_tabari_qurancom", "ar_qurtubi_qurancom", "fa_mizan_furqan"}
+        for surah, count in ((7, 206), (8, 75)):
+            for ayah in range(1, count + 1):
+                verse_id = f"{surah}:{ayah}"
+                entry = verses[verse_id]
+                for field in list_fields:
+                    self.assertEqual(len(entry[field]), 5, f"{verse_id} {field}")
+                    texts = [" ".join((item.get("text") or item.get("relation") or item.get("question") or "").split()) for item in entry[field]]
+                    self.assertEqual(len(texts), len(set(texts)), f"{verse_id} {field} repeats")
+                    self.assertTrue(all(item.get("evidence") for item in entry[field]), f"{verse_id} {field} lacks evidence")
+                self.assertEqual(set(entry["framework"]), models, verse_id)
+                self.assertTrue(all(entry["framework"][model].get("cite") for model in models), verse_id)
+                self.assertEqual(set(entry["sources"]), expected_sources, verse_id)
+                self.assertTrue(any(item.get("text", "").startswith("پیشنهادِ من") for item in entry["messages"]), verse_id)
+
+    def test_araf_tabari_gap_is_recorded_as_missing_not_a_commentary_quote(self):
+        verses = json.loads((ROOT / "static/verse-dossiers.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in (96, 97, 98):
+            entry = verses[f"7:{ayah}"]
+            self.assertEqual(len(entry["classical"]), 5)
+            self.assertFalse(any(item["text"].startswith("نقلِ مستقیمِ عربیِ طبری") for item in entry["classical"]))
+            gap = next(item for item in entry["classical"] if item.get("sourceRecordId") == "99")
+            self.assertIn("سقط تفسير هذه الآيات الثلاث", gap["text"])
+            self.assertIn("اعراف ۷:۹۹", gap["cite"])
+            self.assertEqual([item["sourceId"] for item in entry["classical"]].count("ar_qurtubi_qurancom"), 4)
+            self.assertIn("شرحِ جداگانه ندارد", entry["critical"][0]["text"])
 
 
 if __name__ == "__main__":

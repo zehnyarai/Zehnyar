@@ -287,3 +287,37 @@ h1, h2, h3, p { margin-top: 0; } h1 { max-width: 740px; margin: 21px auto 15px; 
 .detail-translation-credit { margin: 6px 0 0; color: #8195a0; font-size: 9px; line-height: 1.8; }
 .detail-translation-credit span { color: #6f8995; }
 @media (max-width: 700px) { .translation-disclosure { top: 62px; width: min(100% - 28px, 1180px); padding: 5px 8px; gap: 4px 9px; font-size: 8px; }.detail-translation-credit { font-size: 8px; } }
+
+/* Every non-verse page has a local research notebook and a verse-bound proposal form. */
+.page-workspace-content { margin-block: 18px 28px; }
+.page-workspace-content > .eyebrow { margin: 0 0 4px; color: var(--teal-dark); }
+.page-workspace-content > h3 { margin: 0 0 12px; color: var(--deep); }
+.page-workspace-content .page-note-field { display: flex; flex-direction: column; gap: 5px; margin: 10px 0; color: #174f65; }
+.page-workspace-content .page-note-field > span { color: #547887; font-size: 12px; }
+.page-workspace-content .page-note-field > span b { color: #174f65; }
+.page-workspace-content .page-note-field input,
+.page-workspace-content .page-note-field textarea { width: 100%; min-width: 0; padding: 10px 12px; border: 1px solid #b8d4df; border-radius: 10px; background: #fff; color: var(--ink); font: inherit; }
+.page-workspace-content .page-note-field input { min-height: 44px; }
+.page-workspace-content .page-note-field textarea { min-height: 100px; resize: vertical; }
+.page-workspace-content .page-note-field input:focus,
+.page-workspace-content .page-note-field textarea:focus { outline: 2px solid #67b9be; outline-offset: 1px; }
+.page-workspace-content .page-proposal-details { margin-top: 16px; padding: 12px 14px; border: 1px solid #d4e5e6; border-radius: 12px; background: rgba(255,255,255,.76); }
+.page-workspace-content .page-proposal-details > summary { color: var(--teal-dark); font-weight: 800; cursor: pointer; }
+.page-workspace-content .page-proposal-details > .field-proposal-hint { color: #5c7a89; font-size: 11px; line-height: 1.9; }
+.page-proposal-form { display: grid; gap: 10px; }
+.page-proposal-grid { display: grid; grid-template-columns: minmax(150px, .55fr) minmax(0, 1.45fr); gap: 12px; }
+.page-proposal-form > button,
+.page-local-proposals article > button { justify-self: start; padding: 8px 13px; color: #fff; border: 0; border-radius: 8px; background: var(--teal-dark); font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
+.page-proposal-form > button:hover,
+.page-local-proposals article > button:hover { background: var(--teal); }
+.page-proposal-form .proposal-status { min-height: 1.5em; color: #527381; font-size: 11px; line-height: 1.8; }
+.page-proposal-form .proposal-status[data-status="rejected"] { color: #9a3e35; }
+.page-proposal-form .proposal-status[data-status="accepted"] { color: #26704d; }
+.page-proposal-form .proposal-status[data-status="local"] { color: #8a6833; }
+.page-local-proposals { display: grid; gap: 8px; margin-top: 14px; }
+.page-local-proposals h4 { margin: 0; color: var(--teal-dark); font-size: 12px; }
+.page-local-proposals article { display: grid; gap: 6px; padding: 11px; border: 1px solid #e4d9b7; border-radius: 10px; background: #fffdf6; }
+.page-local-proposals article p { margin: 0; color: #496c79; line-height: 1.9; }
+.page-local-proposals article small { color: #788783; line-height: 1.8; }
+.page-local-proposals article > button { font-size: 10px; }
+@media (max-width: 650px) { .page-proposal-grid { grid-template-columns: 1fr; gap: 4px; }.page-workspace-content { margin-block: 14px 22px; padding: 13px; } }

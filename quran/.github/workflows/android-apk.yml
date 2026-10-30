@@ -6,7 +6,7 @@ on:
       publish_release:
         description: "Publish or update the mobile-latest prerelease"
         required: true
-        default: true
+        default: false
         type: boolean
   push:
     paths:
@@ -48,7 +48,7 @@ jobs:
       - name: Publish latest prerelease
         # A source update that rebuilds the APK also refreshes the stable download
         # link; workflow_dispatch keeps a manual republish option.
-        if: github.event_name == 'push' || inputs.publish_release == true
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_release == true
         uses: softprops/action-gh-release@v2
         with:
           tag_name: mobile-latest

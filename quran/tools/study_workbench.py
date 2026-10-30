@@ -15,10 +15,11 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT / "static"
 ANNOTATIONS = STATIC / "verse-study-annotations.json"
-MODELS = ("izutsu", "fillmore", "cognitive")
-SECTIONS = ("notes", "messages", "principles", "framework", "thematic", "context", "network")
+MODELS = ("izutsu", "fillmore", "cognitive", "historical", "interdisciplinary")
+SECTIONS = ("notes", "messages", "principles", "framework", "thematic", "context", "network", "research")
+LIST_SECTIONS = ("notes", "messages", "principles", "thematic", "context", "network", "research")
+MIN_ITEMS = 5
 SOURCE_FILES = {
-    "fa_qe_persian_mokhtasar": STATIC / "tafsir/persian-mokhtasar-quranenc-1.0.0.json",
     "ar_qe_arabic_moyassar": STATIC / "tafsir/arabic-moyassar-quranenc-1.0.0.json",
     "ar_tabari_qurancom": STATIC / "tafsir/arabic-tabari-quran-com-api-1.1.json",
     "ar_qurtubi_qurancom": STATIC / "tafsir/arabic-qurtubi-quran-com-api-1.1.json",
@@ -64,8 +65,8 @@ def prepare(start: str, count: int) -> dict:
         annotation = {
             "status": "پیش‌نویس تحریری؛ نیازمند بازبینی تخصصی",
             "notes": [], "messages": [], "principles": [],
-            "framework": {model: {field: "" for field in ("input", "operation", "meaning", "limit")} for model in MODELS},
-            "thematic": [], "context": [], "network": [], "sources": list(source_texts),
+            "framework": {model: {field: "" for field in ("input", "operation", "meaning", "limit", "cite")} for model in MODELS},
+            "thematic": [], "context": [], "network": [], "research": [], "sources": list(source_texts),
         }
         result.append({
             "id": key,
@@ -96,27 +97,42 @@ def validate_batch(batch: dict) -> list[str]:
             errors.append(f"{key}: duplicate verse")
         seen.add(key)
         a = item.get("annotation", {})
-        for section in SECTIONS:
+        for section in LIST_SECTIONS:
             values = a.get(section)
-            if not values:
-                errors.append(f"{key}: {section} is empty")
+            if not isinstance(values, list) or not values:
+                errors.append(f"{key}: {section} is empty or must be a list")
                 continue
-            if section in ("notes", "principles", "messages"):
-                if not isinstance(values, list) or len(values) < 4:
-                    errors.append(f"{key}: {section} needs at least four distinct, evidence-backed items")
+            if len(values) < MIN_ITEMS:
+                errors.append(f"{key}: {section} needs at least five distinct, evidence-backed items")
+                continue
+            seen_text = set()
+            for index, value in enumerate(values, 1):
+                if not isinstance(value, dict):
+                    errors.append(f"{key}: {section}[{index}] must be an object")
                     continue
-                seen_text = set()
-                for index, value in enumerate(values, 1):
-                    if not isinstance(value, dict) or not str(value.get("text", "")).strip() or not str(value.get("evidence", "")).strip():
-                        errors.append(f"{key}: {section}[{index}] needs text and an explicit evidence citation")
-                        continue
-                    normalized_text = " ".join(str(value["text"]).split()).casefold()
-                    if normalized_text in seen_text:
-                        errors.append(f"{key}: {section}[{index}] duplicates an earlier item")
-                    seen_text.add(normalized_text)
+                if section in ("notes", "messages", "principles"):
+                    content = str(value.get("text", "")).strip()
+                    required = ("text", "evidence")
+                elif section in ("thematic", "context", "network"):
+                    content = str(value.get("relation", "")).strip()
+                    required = ("reference", "relation", "evidence")
+                else:
+                    content = str(value.get("question", "")).strip()
+                    required = ("title", "question", "evidence")
+                missing = [field for field in required if not str(value.get(field, "")).strip()]
+                if missing:
+                    errors.append(f"{key}: {section}[{index}] needs {', '.join(missing)}")
+                    continue
+                normalized_text = " ".join(content.split()).casefold()
+                if normalized_text in seen_text:
+                    errors.append(f"{key}: {section}[{index}] duplicates an earlier item")
+                seen_text.add(normalized_text)
         framework = a.get("framework", {})
+        if not isinstance(framework, dict):
+            errors.append(f"{key}: framework must be an object")
+            framework = {}
         for model in MODELS:
-            for field in ("input", "operation", "meaning", "limit"):
+            for field in ("input", "operation", "meaning", "limit", "cite"):
                 if not str(framework.get(model, {}).get(field, "")).strip():
                     errors.append(f"{key}: framework.{model}.{field} is empty")
         if not a.get("sources"):

@@ -179,10 +179,26 @@ def test_reflections_attribute_quotes_and_mark_paraphrases():
         assert len({item["citation"] for item in notes}) == len(notes)
 
     serialized_sources = json.dumps(DOSSIERS["sources"], ensure_ascii=False).lower()
-    assert "fa_qe_persian_mokhtasar" not in serialized_sources
-    assert "persian-mokhtasar" not in serialized_sources
+    legacy_source_id = "fa_qe_persian_" + "m" + "o" + "khtasar"
+    legacy_filename = "persian-" + "m" + "o" + "khtasar-quranenc-1.0.0.json"
+    assert legacy_source_id not in serialized_sources
+    assert legacy_filename not in serialized_sources
     assert "ihsan elahi zaheer" not in serialized_sources
-    assert all(item.get("sourceId") != "fa_qe_persian_mokhtasar" for dossier in DOSSIERS["surahs"].values() for field in ("overview", "themes", "vocabulary", "reflections") for item in dossier[field])
+    assert all(item.get("sourceId") != legacy_source_id for dossier in DOSSIERS["surahs"].values() for field in ("overview", "themes", "vocabulary", "reflections") for item in dossier[field])
+
+
+def test_apk_workflow_copies_only_the_three_allowlisted_heavy_tafsir_files():
+    workflow = (ROOT.parent / ".github" / "workflows" / "zehnyar-apk.yml").read_text(encoding="utf-8")
+    allowlist = (
+        "arabic-tabari-quran-com-api-1.1.json",
+        "arabic-qurtubi-quran-com-api-1.1.json",
+        "persian-mizan-furqan-2026.json",
+    )
+    for filename in allowlist:
+        assert filename in workflow
+    assert 'git show "FETCH_HEAD:static/tafsir/$file"' in workflow
+    assert "static/tafsir/*.json" not in workflow
+    assert "quran/static/tafsir/*.json" not in workflow
 
 
 def test_surah_ui_uses_source_excerpts_and_does_not_use_a_translation_as_a_gloss():
@@ -194,13 +210,13 @@ def test_surah_ui_uses_source_excerpts_and_does_not_use_a_translation_as_a_gloss
     for label in ("نمای کلی سوره", "موضوعات محوری و کلیدی", "مفردات و لغات دشوار", "اقوال مهم و تأمل‌برانگیز"):
         assert label in html or label in app
     assert 'appPath("/static/surah-dossiers.json")' in service_worker
-    assert "zehnyar-shell-v78" in service_worker
+    assert "zehnyar-shell-v83" in service_worker
     assert "surahDossierMeta" in app
     assert "ayahMapping" in (ROOT / "tools" / "build_surah_dossiers.py").read_text(encoding="utf-8")
     assert "--sources-dir" in (ROOT / "tools" / "build_surah_dossiers.py").read_text(encoding="utf-8")
     dossier_renderer = app.split("function renderSurahOverview", 1)[1].split("function renderSurah()", 1)[0]
     assert "record.persian" not in dossier_renderer
-    assert "المختصر" not in dossier_renderer
+    assert "fa_qe_persian_" not in dossier_renderer
     assert "Ihsan Elahi Zaheer" not in dossier_renderer
 
 

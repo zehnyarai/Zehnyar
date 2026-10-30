@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "notice": "فهرستِ آثار با متنِ تفسیری فرق دارد. فقط اثری که برای آن فایلِ آیه‌به‌آیه، نسخه، انتساب و مجوز/شرایط استفادهٔ قابل بررسی ثبت شده باشد، متنش در برنامه نمایش داده می‌شود.",
   "collections": [
     {
@@ -7,14 +7,6 @@
       "title": "متن‌های تفسیریِ فعالِ آیه‌به‌آیه",
       "status": "available",
       "items": [
-        {
-          "id": "fa_qe_persian_mokhtasar",
-          "title": "ترجمهٔ فارسی المختصر فی تفسیر القرآن الکریم",
-          "author": "Persian Translation of Al-Mukhtasar in Interpreting the Noble Quran",
-          "language": "fa",
-          "status": "available",
-          "basis": "QuranEnc، نسخهٔ 1.0.0؛ متن کامل آیه‌به‌آیه در برنامه موجود است."
-        },
         {
           "id": "ar_qe_arabic_moyassar",
           "title": "التفسير الميسر",

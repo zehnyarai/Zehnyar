@@ -199,8 +199,11 @@ class QuranResearchTests(unittest.TestCase):
     def test_full_cited_tafsir_sources_cover_the_complete_corpus(self):
         static_dir = Path(main.STATIC_DIR)
         registry = json.loads((static_dir / "tafsir-sources.json").read_text(encoding="utf-8"))
-        self.assertEqual(len(registry["sources"]), 5)
-        self.assertEqual({source["id"] for source in registry["sources"]}, {"fa_qe_persian_mokhtasar", "ar_qe_arabic_moyassar", "ar_tabari_qurancom", "ar_qurtubi_qurancom", "fa_mizan_furqan"})
+        self.assertEqual(len(registry["sources"]), 4)
+        self.assertEqual({source["id"] for source in registry["sources"]}, {"ar_qe_arabic_moyassar", "ar_tabari_qurancom", "ar_qurtubi_qurancom", "fa_mizan_furqan"})
+        missing = [source["file"] for source in registry["sources"] if not (static_dir / source["file"].removeprefix("static/")).is_file()]
+        if missing:
+            self.skipTest(f"large gitignored tafsir sources were not supplied: {', '.join(missing)}")
         for source in registry["sources"]:
             payload = json.loads((static_dir / source["file"].removeprefix("static/")).read_text(encoding="utf-8"))
             verse_total = sum(len(ayahs) for ayahs in payload.get("verses", {}).values())
