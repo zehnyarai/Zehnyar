@@ -105,6 +105,13 @@ class CuratedAnnotationTests(unittest.TestCase):
             for field in ("notes", "principles", "messages"):
                 self.assertTrue(all(item["text"].strip() != translation for item in entry[field]))
 
+    def test_opening_verses_have_four_source_bound_research_questions(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for verse_id in ("1:1", "2:1"):
+            research = data[verse_id]["research"]
+            self.assertEqual(len(research), 4, verse_id)
+            self.assertTrue(all(item.get("title") and item.get("question") and item.get("evidence") for item in research))
+
     def test_baqarah_first_ten_have_distinct_cited_sections_and_research_prompts(self):
         data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
         for ayah in range(1, 11):
@@ -114,7 +121,7 @@ class CuratedAnnotationTests(unittest.TestCase):
                 self.assertTrue(all(item.get("evidence") for item in entry[field]))
                 texts = [" ".join(item["text"].split()) for item in entry[field]]
                 self.assertEqual(len(texts), len(set(texts)), f"2:{ayah} {field} repeats")
-            self.assertEqual(len(entry["research"]), 3)
+            self.assertEqual(len(entry["research"]), 4 if ayah == 1 else 3)
             self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
 
     def test_baqarah_verses_eleven_to_twenty_have_distinct_cited_sections_and_research_prompts(self):

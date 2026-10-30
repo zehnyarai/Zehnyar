@@ -111,3 +111,25 @@ def test_baqarah_2_282_article_page_ranges_are_not_conflated():
     assert "صص. ۸۱–۱۲۱" in rezai
     assert "صص. ۱۱۳–۱۳۸" not in rezai
     assert "صص. ۱۱۳–۱۳۸" in tayeb
+
+
+def test_fatiha_1_1_qualifies_the_report_about_al_rahman():
+    text = DOSSIER["verses"]["1:1"]["critical"][1]["text"]
+    assert "گروهی" in text
+    assert "ناآشناییِ همگانی" in text
+    assert "فرقان ۲۵:۶۰" in DOSSIER["verses"]["1:1"]["critical"][1]["cite"]
+
+
+def test_tabaris_preference_on_baqarah_disjoint_letters_is_reported():
+    item = DOSSIER["verses"]["2:1"]["classical"][0]
+    assert "طبری" in item["cite"]
+    assert "الصواب عندي" in item["text"]
+    assert "بی‌طرفِ محض" in item["text"]
+
+
+def test_opening_dossiers_respect_the_item_count_limits():
+    for verse_id in ("1:1", "2:1"):
+        entry = DOSSIER["verses"][verse_id]
+        assert 4 <= len(entry["notes"]) <= 5, verse_id
+        assert 4 <= len(entry["modern"]) <= 5, verse_id
+        assert 4 <= len(entry["research"]) <= 5, verse_id
