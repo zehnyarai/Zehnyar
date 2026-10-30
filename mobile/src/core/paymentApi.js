@@ -11,6 +11,7 @@ const SERVER_FREE_SYNCED_KEY = 'visayar.free.assessments.server-synced.v1';
 const LAST_REQUEST_KEY = 'visayar.payment.request.v1';
 const OFFLINE_PAID_STATE_KEY = 'visayar.offline-paid-state.v1';
 const ADMIN_TOKEN_KEY = 'visayar.admin.session.v1';
+const EXPERIENCE_CLIENT_TOKEN_KEY = 'visayar.experiences.client-token.v1';
 
 export async function getInstallId() {
   let id = await AsyncStorage.getItem(INSTALL_KEY);
@@ -141,6 +142,64 @@ export async function adminReviewPayment(requestId, decision, reason = '') {
 
 export async function getAdminToken() {
   return readAdminToken();
+}
+
+export async function getExperienceClientToken() {
+  let token = null;
+  try { token = await SecureStore.getItemAsync(EXPERIENCE_CLIENT_TOKEN_KEY); } catch (error) { /* secure storage may be unavailable on web */ }
+  if (!token) token = await AsyncStorage.getItem(EXPERIENCE_CLIENT_TOKEN_KEY);
+  if (!token) {
+    token = Crypto.randomUUID();
+    try { await SecureStore.setItemAsync(EXPERIENCE_CLIENT_TOKEN_KEY, token); }
+    catch (error) { await AsyncStorage.setItem(EXPERIENCE_CLIENT_TOKEN_KEY, token); }
+  }
+  return token;
+}
+
+export async function listExperiences({ destination, stage, offset = 0, limit = 30 } = {}) {
+  const params = new URLSearchParams({ offset: String(offset), limit: String(limit) });
+  if (destination) params.set('destination', destination);
+  if (stage) params.set('stage', stage);
+  const clientToken = await getExperienceClientToken();
+  return api(`/api/experiences?${params.toString()}`, { headers: { 'X-Experience-Client-Token': clientToken } });
+}
+
+export async function submitExperience(payload) {
+  const clientToken = await getExperienceClientToken();
+  return api('/api/experiences', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Experience-Client-Token': clientToken },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteExperience(experienceId) {
+  const clientToken = await getExperienceClientToken();
+  return api(`/api/experiences/${encodeURIComponent(experienceId)}`, {
+    method: 'DELETE',
+    headers: { 'X-Experience-Client-Token': clientToken },
+  });
+}
+
+export async function reportExperience(experienceId, reason) {
+  const clientToken = await getExperienceClientToken();
+  return api(`/api/experiences/${encodeURIComponent(experienceId)}/report`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Experience-Client-Token': clientToken },
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export async function adminListExperiences(status = 'pending') {
+  return adminApi(`/api/admin/experiences?status=${encodeURIComponent(status)}`);
+}
+
+export async function adminReviewExperience(experienceId, status) {
+  return adminApi(`/api/admin/experiences/${encodeURIComponent(experienceId)}/review`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  });
 }
 
 export async function loadPaymentPanel() {

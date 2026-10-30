@@ -6,7 +6,8 @@ import { colors, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { Button, Card, Pill, PressableScale, ScrollScreen, SectionTitle, Text } from '../components/ui';
 import { toPersianDigits } from '../core/format';
-import { adminListPayments, adminLogin, adminLogout, adminReviewPayment, getAdminSession, getAdminToken, getApiBase } from '../core/paymentApi';
+import { countries } from '../core/data';
+import { adminListExperiences, adminListPayments, adminLogin, adminLogout, adminReviewExperience, adminReviewPayment, getAdminSession, getAdminToken, getApiBase } from '../core/paymentApi';
 
 const FILTERS = ['pending', 'approved', 'rejected', 'all'];
 const PREVIEW_ITEMS = [
@@ -34,13 +35,15 @@ function statusTone(status) {
 }
 
 export default function AdminScreen({ navigation }) {
-  const { t, lang } = useI18n();
+  const { t, lang, pick } = useI18n();
   const dir = useDirection();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [session, setSession] = useState(null);
   const [demoMode, setDemoMode] = useState(false);
   const [allItems, setAllItems] = useState([]);
+  const [experienceItems, setExperienceItems] = useState([]);
+  const [reportedExperiences, setReportedExperiences] = useState([]);
   const [filter, setFilter] = useState('pending');
   const [search, setSearch] = useState('');
   const [imageRequest, setImageRequest] = useState(null);
@@ -51,8 +54,14 @@ export default function AdminScreen({ navigation }) {
   const [rejectReason, setRejectReason] = useState('');
 
   const loadQueue = useCallback(async () => {
-    const result = await adminListPayments('all');
-    setAllItems(result.items || []);
+    const [payments, experiences, reported] = await Promise.all([
+      adminListPayments('all'),
+      adminListExperiences('pending').catch(() => ({ items: [] })),
+      adminListExperiences('reported').catch(() => ({ items: [] })),
+    ]);
+    setAllItems(payments.items || []);
+    setExperienceItems(experiences.items || []);
+    setReportedExperiences(reported.items || []);
   }, []);
 
   const refresh = useCallback(async () => {
@@ -63,6 +72,8 @@ export default function AdminScreen({ navigation }) {
       if (!current.authenticated) {
         setToken(null);
         setAllItems([]);
+        setExperienceItems([]);
+        setReportedExperiences([]);
         return;
       }
       setToken(await getAdminToken());
@@ -98,6 +109,8 @@ export default function AdminScreen({ navigation }) {
     setSession({ authenticated: true, preview: true });
     setToken(null);
     setAllItems(PREVIEW_ITEMS);
+    setExperienceItems([]);
+    setReportedExperiences([]);
     setFilter('all');
     setSearch('');
   };
@@ -131,6 +144,8 @@ export default function AdminScreen({ navigation }) {
     setSession({ authenticated: false });
     setToken(null);
     setAllItems([]);
+    setExperienceItems([]);
+    setReportedExperiences([]);
     setImageRequest(null);
   };
 
@@ -148,6 +163,18 @@ export default function AdminScreen({ navigation }) {
         },
       },
     ]);
+  };
+
+  const reviewExperience = async (item, status) => {
+    setBusyId(item.id);
+    try {
+      await adminReviewExperience(item.id, status);
+      await loadQueue();
+    } catch (error) {
+      Alert.alert(t('common.dismiss'), t('admin.experienceReviewError'));
+    } finally {
+      setBusyId(null);
+    }
   };
 
   const beginReject = (item) => {
@@ -288,6 +315,40 @@ export default function AdminScreen({ navigation }) {
               <Card><Text variant="small" color={colors.ink70} style={{ textAlign: dir.text }}>{search ? t('admin.noSearchResults') : t('admin.empty')}</Text></Card>
             ) : null}
             {loading ? <ActivityIndicator color={colors.teal700} /> : null}
+
+            <Card>
+              <View style={{ flexDirection: dir.row, alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm }}>
+                <SectionTitle title={t('admin.experienceQueue')} subtitle={`${experienceItems.length} ${t('admin.experiencePending')}`} />
+                {!demoMode ? <Button label={t('admin.refresh')} variant="outline" size="sm" icon="refresh-outline" onPress={refresh} loading={loading} /> : null}
+              </View>
+            </Card>
+            {experienceItems.map((item) => (
+              <Card key={`experience-${item.id}`}>
+                <View style={{ flexDirection: dir.row, alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm }}>
+                  <Text variant="bodyStrong" color={colors.ink} style={{ flex: 1, textAlign: dir.text }}>{item.title}</Text>
+                  {item.report_count ? <Pill label={`${t('admin.reportCount')}: ${item.report_count}`} tone="danger" /> : null}
+                </View>
+                <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.xs, textAlign: dir.text }}>{pick(countries.find((country) => country.code === item.destination)?.nameFa || item.destination, countries.find((country) => country.code === item.destination)?.nameEn || item.destination)} · {t(`experiences.stages.${item.stage}`)} · {dateLabel(item.created_at, lang)}</Text>
+                <Text variant="small" color={colors.ink70} style={{ marginTop: spacing.sm, textAlign: dir.text, lineHeight: 22 }}>{item.body}</Text>
+                {!demoMode ? <View style={[styles.actions, { flexDirection: dir.row }]}>
+                  <Button label={t('admin.publishExperience')} size="sm" icon="checkmark-circle-outline" loading={busyId === item.id} onPress={() => reviewExperience(item, 'approved')} />
+                  <Button label={t('admin.rejectExperience')} variant="outline" size="sm" icon="close-circle-outline" loading={busyId === item.id} onPress={() => reviewExperience(item, 'rejected')} />
+                </View> : null}
+              </Card>
+            ))}
+            {!experienceItems.length ? <Card><Text variant="small" color={colors.ink60} style={{ textAlign: dir.text }}>{t('admin.noExperiencePending')}</Text></Card> : null}
+            {reportedExperiences.length ? <Card><SectionTitle title={t('admin.reportedExperiences')} subtitle={t('admin.reportedSubtitle')} /></Card> : null}
+            {reportedExperiences.map((item) => (
+              <Card key={`reported-${item.id}`}>
+                <View style={{ flexDirection: dir.row, alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm }}>
+                  <Text variant="bodyStrong" color={colors.ink} style={{ flex: 1, textAlign: dir.text }}>{item.title}</Text>
+                  <Pill label={`${t('admin.reportCount')}: ${item.report_count}`} tone="danger" />
+                </View>
+                <Text variant="small" color={colors.ink70} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{item.body}</Text>
+                {item.report_reasons?.length ? <Text variant="micro" color={colors.danger} style={{ marginTop: spacing.xs, textAlign: dir.text }}>{`${t('admin.reportReasons')}: ${item.report_reasons.map((reason) => t(`experiences.reportReasons.${reason}`)).join(lang === 'fa' ? '، ' : ', ')}`}</Text> : null}
+                {!demoMode ? <Button label={t('admin.hideExperience')} variant="outline" size="sm" icon="eye-off-outline" loading={busyId === item.id} onPress={() => reviewExperience(item, 'hidden')} style={{ marginTop: spacing.sm }} /> : null}
+              </Card>
+            ))}
           </>
         )}
       </View>

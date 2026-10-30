@@ -25,6 +25,7 @@ from .payments import (
     get_gemini_api_key,
     router as payments_router,
 )
+from .experiences import ADMIN as experiences_admin_router, router as experiences_router
 
 from .engine.engine import (
     Profile,
@@ -58,6 +59,8 @@ app.include_router(payments_router)
 app.include_router(payments_admin_router)
 app.include_router(admin_auth_router)
 app.include_router(admin_settings_router)
+app.include_router(experiences_router)
+app.include_router(experiences_admin_router)
 
 _cache: dict = {}
 

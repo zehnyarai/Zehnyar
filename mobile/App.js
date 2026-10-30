@@ -18,6 +18,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import ExploreScreen from './src/screens/ExploreScreen';
 import AdvisorScreen from './src/screens/AdvisorScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import ExperiencesScreen from './src/screens/ExperiencesScreen';
 import PaymentsScreen from './src/screens/PaymentsScreen';
 import AdminScreen from './src/screens/AdminScreen';
 import WizardScreen from './src/screens/WizardScreen';
@@ -34,13 +35,14 @@ const TAB_ICONS = {
   Explore: ['earth', 'earth-outline'],
   Advisor: ['sparkles', 'sparkles-outline'],
   Profile: ['person-circle', 'person-circle-outline'],
+  Experiences: ['chatbubbles', 'chatbubbles-outline'],
 };
 
 function CustomTabBar({ state, navigation }) {
   const { t } = useI18n();
   const dir = useDirection();
   const insets = useSafeAreaInsets();
-  const labels = { Home: t('nav.home'), Explore: t('nav.explore'), Advisor: t('nav.advisor'), Profile: t('nav.profile') };
+  const labels = { Home: t('nav.home'), Explore: t('nav.explore'), Advisor: t('nav.advisor'), Profile: t('nav.profile'), Experiences: t('nav.experiences') };
 
   return (
     <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 10) }]}>
@@ -80,6 +82,7 @@ function Tabs() {
       <Tab.Screen name="Explore" component={ExploreScreen} />
       <Tab.Screen name="Advisor" component={AdvisorScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Experiences" component={ExperiencesScreen} />
     </Tab.Navigator>
   );
 }
