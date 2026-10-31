@@ -16,7 +16,7 @@ import AdminScreen from '../src/screens/AdminScreen';
 import WizardScreen from '../src/screens/WizardScreen';
 import ResultsScreen from '../src/screens/ResultsScreen';
 import CountryDetailScreen from '../src/screens/CountryDetailScreen';
-import { Button } from '../src/components/ui';
+import { Button, PressableScale } from '../src/components/ui';
 import { GoalTile } from '../src/components/cards';
 
 jest.mock('expo-font', () => ({
@@ -204,6 +204,10 @@ describe('Visayar app', () => {
     expect(text).toContain('نتیجه ارزیابی');
     expect(text).toContain('نمودار قوت و ضعف پرونده');
     expect(text).toContain('کانادا');
+
+    const advisorCard = tree.root.findAllByType(PressableScale).at(-1);
+    act(() => advisorCard.props.onPress());
+    expect(navigation.navigate).toHaveBeenCalledWith('Tabs', { screen: 'Advisor' });
   });
 
   it('renders the country detail for every destination', () => {

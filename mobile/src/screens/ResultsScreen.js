@@ -170,7 +170,7 @@ export default function ResultsScreen({ navigation }) {
       </View>
 
       <View style={{ padding: spacing.md }}>
-        <PressableScale onPress={() => navigation.navigate('Advisor')}>
+        <PressableScale onPress={() => navigation.navigate('Tabs', { screen: 'Advisor' })}>
           <Card style={{ backgroundColor: colors.sky50, borderColor: colors.sky300 }}>
             <View style={{ flexDirection: dir.row, alignItems: 'center', gap: spacing.sm }}>
               <View style={styles.advisorIcon}>
