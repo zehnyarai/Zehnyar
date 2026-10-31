@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,7 +21,7 @@ const SKILL_KEYS = ['listening', 'reading', 'writing', 'speaking'];
 export default function WizardScreen({ navigation }) {
   const { t, lang, pick } = useI18n();
   const dir = useDirection();
-  const { profile, updateProfile, updateNested, setProfile, compute, canStartAssessment } = useAppState();
+  const { profile, updateProfile, updateNested, setProfile, compute } = useAppState();
   const [step, setStep] = useState(0);
   const [occupationSheet, setOccupationSheet] = useState(false);
   const [testSheet, setTestSheet] = useState(false);
@@ -31,14 +31,6 @@ export default function WizardScreen({ navigation }) {
 
   const stepKey = STEPS[step];
   const progress = ((step + 1) / STEPS.length) * 100;
-
-  useEffect(() => {
-    let mounted = true;
-    canStartAssessment().then((allowed) => {
-      if (mounted && !allowed) navigation.replace('Payments');
-    }).catch(() => {});
-    return () => { mounted = false; };
-  }, [canStartAssessment, navigation]);
 
   const filteredOccupations = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -84,7 +76,7 @@ export default function WizardScreen({ navigation }) {
       try {
         const computed = await compute(t);
         if (!computed) {
-          navigation.replace('Payments');
+          navigation.navigate('Payments');
           return;
         }
         navigation.replace('Results');

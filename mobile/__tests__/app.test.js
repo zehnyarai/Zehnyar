@@ -17,6 +17,7 @@ import WizardScreen from '../src/screens/WizardScreen';
 import ResultsScreen from '../src/screens/ResultsScreen';
 import CountryDetailScreen from '../src/screens/CountryDetailScreen';
 import { Button } from '../src/components/ui';
+import { GoalTile } from '../src/components/cards';
 
 jest.mock('expo-font', () => ({
   useFonts: () => [true],
@@ -103,6 +104,18 @@ describe('Visayar app', () => {
     expect(text).toContain('ادامه ارزیابی من');
   });
 
+  it('lets users choose an assessment goal before checking payment at calculation time', () => {
+    const tree = renderWithProviders(<HomeScreen navigation={navigation} />, { profile: engine.emptyProfile() });
+    const workGoal = tree.root.findAllByType(GoalTile).find((tile) => tile.props.goalId === 'work');
+
+    act(() => {
+      workGoal.props.onPress();
+    });
+
+    expect(navigation.navigate).toHaveBeenCalledWith('Wizard', { from: 'home' });
+    expect(navigation.navigate).not.toHaveBeenCalledWith('Payments');
+  });
+
   it('renders every tab screen without crashing', () => {
     renderWithProviders(<ExploreScreen navigation={navigation} />);
     renderWithProviders(<ProfileScreen navigation={navigation} />);
@@ -147,6 +160,7 @@ describe('Visayar app', () => {
         </I18nProvider>,
       );
     });
+    expect(navigation.replace).not.toHaveBeenCalledWith('Payments');
     for (let step = 0; step < 6; step += 1) {
       const buttons = tree.root.findAllByType(Button);
       const next = buttons[buttons.length - 1];

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Image, ScrollView, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,8 +22,7 @@ const REASONS = [
 export default function HomeScreen({ navigation }) {
   const { t, lang, pick, toggleLanguage } = useI18n();
   const dir = useDirection();
-  const { profile, updateProfile, hasAssessment, result, canStartAssessment } = useAppState();
-  const [checkingAccess, setCheckingAccess] = useState(false);
+  const { profile, updateProfile, hasAssessment, result } = useAppState();
   const countries = getCountries();
   const totals = getTotals();
   const dataMeta = getMeta();
@@ -38,20 +37,9 @@ export default function HomeScreen({ navigation }) {
   const best = result ? result.countries[0] : null;
   const featured = [...countries].sort((a, b) => a.priority - b.priority).slice(0, 6);
 
-  const startAssessment = async (goal) => {
-    if (checkingAccess) return;
-    setCheckingAccess(true);
-    try {
-      const allowed = await canStartAssessment();
-      if (!allowed) {
-        navigation.navigate('Payments');
-        return;
-      }
-      if (goal) updateProfile({ goal });
-      navigation.navigate('Wizard', { from: 'home' });
-    } finally {
-      setCheckingAccess(false);
-    }
+  const startAssessment = (goal) => {
+    if (goal) updateProfile({ goal });
+    navigation.navigate('Wizard', { from: 'home' });
   };
 
   return (
@@ -116,7 +104,6 @@ export default function HomeScreen({ navigation }) {
             label={hasAssessment ? t('home.ctaResult') : draft ? t('home.ctaContinue') : t('home.ctaStart')}
             icon={hasAssessment ? 'analytics-outline' : 'sparkles-outline'}
             onPress={() => (hasAssessment ? navigation.navigate('Results') : startAssessment())}
-            loading={checkingAccess && !hasAssessment}
             variant="light"
           />
           <View style={{ flexDirection: dir.row, alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 2 }}>
