@@ -324,12 +324,14 @@ def test_al_anam_6_1_to_165_has_five_cited_items_and_only_direct_mizan_quotes():
     assert batch["range"] == "6:1–165" and batch["count"] == 165
     anam_revision = find_revision(DOSSIER["revision"], "6:1–6:165")
     assert anam_revision and anam_revision["count"] == 165
-    assert DOSSIER["revision"]["range"] == "9:1–9:129"
-    assert DOSSIER["revision"]["count"] == 129
-    assert DOSSIER["revision"]["previousRevision"]["range"] == "8:1–8:75"
-    assert DOSSIER["revision"]["previousRevision"]["count"] == 75
-    assert DOSSIER["revision"]["previousRevision"]["previousRevision"]["range"] == "7:1–7:206"
-    assert DOSSIER["revision"]["previousRevision"]["previousRevision"]["count"] == 206
+    assert DOSSIER["revision"]["range"] == "10:1–10:48"
+    assert DOSSIER["revision"]["count"] == 48
+    assert DOSSIER["revision"]["previousRevision"]["range"] == "9:1–9:129"
+    assert DOSSIER["revision"]["previousRevision"]["count"] == 129
+    assert DOSSIER["revision"]["previousRevision"]["previousRevision"]["range"] == "8:1–8:75"
+    assert DOSSIER["revision"]["previousRevision"]["previousRevision"]["count"] == 75
+    assert DOSSIER["revision"]["previousRevision"]["previousRevision"]["previousRevision"]["range"] == "7:1–7:206"
+    assert DOSSIER["revision"]["previousRevision"]["previousRevision"]["previousRevision"]["count"] == 206
     assert anam_revision["previousRevision"]["count"] == 120
     no_direct_mizan = {4, 10, 11, 32, 42, 48, 49, 55, 78, 85, 87, 92, 97, 101, 105, 106, 111, 127, 130, 132, 144, 147, 148, 155, 156, 161}
     mizan_count = 0
@@ -408,7 +410,7 @@ def test_tawbah_9_1_to_129_has_five_cited_items_and_direct_mizan_only():
     assert batch["range"] == "9:1–129" and batch["count"] == 129
     revision = find_revision(DOSSIER["revision"], "9:1–9:129")
     assert revision and revision["count"] == 129
-    assert DOSSIER["revision"]["previousRevision"]["count"] == 75
+    assert revision["previousRevision"]["count"] == 75
     mizan_count = 0
     for ayah in range(1, 130):
         verse_id = f"9:{ayah}"
@@ -439,3 +441,59 @@ def test_tawbah_mizan_gap_does_not_claim_absence_of_tafsir():
     assert item.get("sourceId") is None
     assert "برشِ مستقیمِ قابلِ انتساب بازیابی نشد" in item["text"]
     assert "نه ادعایِ نبودِ تفسیر" in item["text"]
+
+
+def test_yunus_10_1_to_48_has_four_draft_batches_and_verified_mizan_gaps():
+    expected_batches = {
+        "dossier-35": ("10:1–12", 12),
+        "dossier-36": ("10:13–24", 12),
+        "dossier-37": ("10:25–36", 12),
+        "dossier-38": ("10:37–48", 12),
+    }
+    batches = {batch["id"]: batch for batch in DOSSIER["batches"] if batch["id"] in expected_batches}
+    assert set(batches) == set(expected_batches)
+    for batch_id, (range_, count) in expected_batches.items():
+        assert batches[batch_id]["range"] == range_
+        assert batches[batch_id]["count"] == count
+        assert "پیش‌نویس" in batches[batch_id]["status"]
+
+    revision = DOSSIER["revision"]
+    assert revision["range"] == "10:1–10:48" and revision["count"] == 48
+    assert revision["previousRevision"]["range"] == "9:1–9:129"
+    corpus_by_id = {f"{row[0]}:{row[1]}": row for row in CORPUS if isinstance(row, list)}
+    expected_mizan_by_batch = {"dossier-35": 2, "dossier-36": 5, "dossier-37": 7, "dossier-38": 0}
+    for batch_id, (range_, _) in expected_batches.items():
+        first, last = (int(part) for part in range_.split(":")[1].split("–"))
+        direct_mizan_count = 0
+        for ayah in range(first, last + 1):
+            verse_id = f"10:{ayah}"
+            entry = DOSSIER["verses"][verse_id]
+            assert entry["reviewStatus"].startswith("پیش‌نویس"), verse_id
+            for field in FIELDS:
+                assert len(entry[field]) == 5, f"{verse_id}:{field}"
+                assert all(item["cite"].strip() and "ص." not in item["cite"] and "صص." not in item["cite"] for item in entry[field])
+            assert [item.get("sourceId") for item in entry["classical"]].count("ar_tabari_qurancom") == 3, verse_id
+            assert [item.get("sourceId") for item in entry["classical"]].count("ar_qurtubi_qurancom") == 2, verse_id
+            assert any(item.get("sourceId") == "ar_qe_arabic_moyassar" and "نسخهٔ 1.0.0" in item["cite"] for item in entry["modern"]), verse_id
+            mizan_items = [item for item in entry["modern"] if "Furqan Apps" in item["cite"] and "قطعهٔ" in item["cite"]]
+            assert len(mizan_items) == 1, verse_id
+            mizan = mizan_items[0]
+            assert "نسخهٔ 2026.0" in mizan["cite"] and "موضعِ" in mizan["cite"], verse_id
+            if mizan.get("sourceId") == "fa_mizan_furqan":
+                direct_mizan_count += 1
+                assert mizan.get("sourceRecordId") and mizan.get("referenceRange"), verse_id
+                assert mizan.get("sourceExcerptTruncated") in (True, False), verse_id
+                assert "نقلِ مستقیمِ فارسیِ المیزان" in mizan["text"], verse_id
+            else:
+                assert mizan.get("sourceId") is None, verse_id
+                assert "برشِ مستقیمِ قابلِ انتساب بازیابی نشد" in mizan["text"], verse_id
+                assert "نه ادعایِ نبودِ تفسیر" in mizan["text"], verse_id
+            translation = corpus_by_id[verse_id][3].strip()
+            assert entry["notes"][0]["text"].strip() != translation, verse_id
+            assert entry["notes"][0]["cite"].startswith("قرآن، یونس"), verse_id
+        assert direct_mizan_count == expected_mizan_by_batch[batch_id]
+
+    first_note = DOSSIER["verses"]["10:1"]["notes"][0]["text"]
+    assert "الٓر" in first_note and "بِسْمِ" not in first_note
+    assert "۱۴ موضع" in revision["method"] and "۳۴ موضع" in revision["method"]
+    assert "تأییدِ تخصصی نیست" in revision["caveat"]

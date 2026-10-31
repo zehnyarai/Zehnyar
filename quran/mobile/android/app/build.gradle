@@ -14,8 +14,8 @@ android {
         // package works on 32-bit and 64-bit Android devices, including Android 13.
         minSdk 21
         targetSdk 35
-        versionCode 23
-        versionName '1.19.0'
+        versionCode 24
+        versionName '1.20.0'
     }
 }
 

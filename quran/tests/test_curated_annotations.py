@@ -553,6 +553,35 @@ class CuratedAnnotationTests(unittest.TestCase):
         self.assertIn("resolution 2200A (XXI)", comparison)
         self.assertIn("art. 18", comparison)
 
+    def test_yunus_10_1_to_48_has_five_source_bound_annotations_and_preserves_three_models(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))
+        verses = data["verses"]
+        corpus = json.loads((ROOT / "static/offline-corpus.json").read_text(encoding="utf-8"))["verses"]
+        corpus_by_id = {f"{row[0]}:{row[1]}": row for row in corpus if isinstance(row, list)}
+        list_fields = ("notes", "messages", "principles", "thematic", "context", "network", "research")
+        models = {"izutsu", "fillmore", "cognitive", "historical", "interdisciplinary"}
+        expected_sources = {"ar_qe_arabic_moyassar", "ar_tabari_qurancom", "ar_qurtubi_qurancom", "fa_mizan_furqan"}
+        for ayah in range(1, 49):
+            verse_id = f"10:{ayah}"
+            entry = verses[verse_id]
+            self.assertEqual(entry["status"], "پیش‌نویس تحریری؛ نیازمند بازبینی تخصصی", verse_id)
+            translation = corpus_by_id[verse_id][3].strip()
+            for field in list_fields:
+                self.assertEqual(len(entry[field]), 5, f"{verse_id} {field}")
+                texts = [" ".join((item.get("text") or item.get("relation") or item.get("question") or "").split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"{verse_id} {field} repeats")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]), f"{verse_id} {field} lacks evidence")
+                self.assertTrue(all(item.get("text", "").strip() != translation for item in entry[field]), f"{verse_id} {field} repeats the translation")
+            self.assertEqual(set(entry["framework"]), models, verse_id)
+            self.assertEqual(set(entry["framework"]["izutsu"]), {"input", "operation", "meaning", "limit", "cite"}, verse_id)
+            self.assertEqual(set(entry["framework"]["fillmore"]), {"input", "operation", "meaning", "limit", "cite"}, verse_id)
+            self.assertEqual(set(entry["framework"]["cognitive"]), {"input", "operation", "meaning", "limit", "cite"}, verse_id)
+            self.assertTrue(all(entry["framework"][model].get("cite") for model in models), verse_id)
+            self.assertEqual(set(entry["sources"]), expected_sources, verse_id)
+            self.assertTrue(all(item.get("title") and item.get("question") and item.get("evidence") for item in entry["research"]), verse_id)
+        self.assertIn("الٓر", verses["10:1"]["notes"][0]["text"])
+        self.assertNotIn("بِسْمِ", verses["10:1"]["notes"][0]["text"])
+
 
 if __name__ == "__main__":
     unittest.main()
