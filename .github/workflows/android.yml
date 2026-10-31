@@ -4,9 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release, e.g. 2.0.1 (empty = use the pushed tag)'
+        description: 'Version number only, e.g. 2.3.14. Do not enter a branch name; empty uses the app version/tag.'
         required: false
         default: ''
+      bazaar_draft:
+        description: 'Build a non-public Cafe Bazaar registration draft (payments disabled)'
+        required: false
+        type: boolean
+        default: true
       publish_release:
         description: 'Publish a public GitHub release (leave off for a test build)'
         required: false
@@ -53,6 +58,8 @@ jobs:
           if [[ "$RAW" == draft-* ]]; then
             BAZAAR_DRAFT=true
             RAW="${RAW#draft-}"
+          elif [[ "${{ inputs.bazaar_draft }}" == "true" ]]; then
+            BAZAAR_DRAFT=true
           fi
           if [ -z "$RAW" ] && [ "${GITHUB_REF_TYPE}" = "tag" ]; then
             RAW="${GITHUB_REF_NAME}"
@@ -61,6 +68,10 @@ jobs:
             RAW="$(node -p "require('./mobile/app.json').expo.version")"
           fi
           VERSION="${RAW#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$ ]]; then
+            echo "::error::Enter a version number such as 2.3.14 in the Version field; choose the branch only in the 'Use workflow from' dropdown."
+            exit 1
+          fi
           echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "bazaar_draft=$BAZAAR_DRAFT" >> "$GITHUB_OUTPUT"
           echo "Resolved release version: $VERSION"
