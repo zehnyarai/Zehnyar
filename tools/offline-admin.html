@@ -19,7 +19,7 @@
 <div class="field"><label for="install-id">شناسهٔ نصب از پیام سفارش</label><input id="install-id" autocomplete="off" placeholder="شناسهٔ نصب کاربر"></div>
 <div class="field"><label for="transfer-date">تاریخ واریز</label><input id="transfer-date" autocomplete="off" placeholder="نمونه: ۱۴۰۵/۰۸/۰۵"></div>
 <div class="field"><label for="tracking">کد پیگیری تراکنش</label><input id="tracking" autocomplete="off" placeholder="کد پیگیری"></div>
-<div class="field"><label for="credits">بستهٔ خریداری‌شده</label><select id="credits"><option value="1">یک ارزیابی — ۶۰۰٬۰۰۰ تومان</option><option value="3">سه ارزیابی — ۱٬۵۰۰٬۰۰۰ تومان</option><option value="6">شش ارزیابی — ۲٬۷۰۰٬۰۰۰ تومان</option><option value="12">دوازده ارزیابی — ۴٬۸۰۰٬۰۰۰ تومان</option></select></div>
+<div class="field"><label for="credits">بستهٔ خریداری‌شده</label><select id="credits"><option value="1">یک ارزیابی — ۴۵۰٬۰۰۰ تومان</option><option value="3">سه ارزیابی — ۱٬۱۲۰٬۵۰۰ تومان (۱۷٪ تخفیف)</option><option value="6">شش ارزیابی — ۲٬۰۲۵٬۰۰۰ تومان (۲۵٪ تخفیف)</option><option value="12">دوازده ارزیابی — ۳٬۶۱۸٬۰۰۰ تومان (۳۳٪ تخفیف)</option></select></div>
 <div class="field"><label for="key-file">فایل کلید خصوصی مدیر</label><input id="key-file" type="file" accept=".txt,.key,text/plain"><span class="small">فایل متنی کلید فقط برای صدور کد است؛ آن را به کاربر ندهید.</span></div>
 <div class="row"><button id="approve">تأیید و ساخت کد اعتبار</button><button id="reject" class="reject">رد فیش با دلیل</button><button id="reset" class="secondary">فیش بعدی</button></div>
 <p id="status" class="status" role="status"></p>
@@ -54,7 +54,7 @@ function makeId() {
 }
 function orderDetails() {
   const credits = Number(byId('credits').value);
-  const amounts = { 1: '۶۰۰٬۰۰۰', 3: '۱٬۵۰۰٬۰۰۰', 6: '۲٬۷۰۰٬۰۰۰', 12: '۴٬۸۰۰٬۰۰۰' };
+  const amounts = { 1: '۴۵۰٬۰۰۰', 3: '۱٬۱۲۰٬۵۰۰', 6: '۲٬۰۲۵٬۰۰۰', 12: '۳٬۶۱۸٬۰۰۰' };
   return {
     credits,
     amount: amounts[credits],
@@ -76,12 +76,12 @@ function readOrder() {
   const rawAmount = valueFor(['مبلغ واریزی', 'Transfer amount']);
   const asciiAmount = rawAmount.replace(/[۰-۹٠-٩]/g, (digit) => String('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩'.indexOf(digit) % 10));
   const digits = asciiAmount.replace(/\D/g, '');
-  const creditsByAmount = { '600000': '1', '1500000': '3', '2700000': '6', '4800000': '12' };
+  const creditsByAmount = { '450000': '1', '1120500': '3', '2025000': '6', '3618000': '12', '600000': '1', '1500000': '3', '2700000': '6', '4800000': '12' };
   const packageChoices = [
-    { value: '1', names: ['یک ارزیابی', '1 assessment'], amount: '600000' },
-    { value: '3', names: ['سه ارزیابی', '3 assessments'], amount: '1500000' },
-    { value: '6', names: ['شش ارزیابی', '6 assessments'], amount: '2700000' },
-    { value: '12', names: ['دوازده ارزیابی', '12 assessments'], amount: '4800000' },
+    { value: '1', names: ['یک ارزیابی', '1 assessment'], amount: '450000' },
+    { value: '3', names: ['سه ارزیابی', '3 assessments'], amount: '1120500' },
+    { value: '6', names: ['شش ارزیابی', '6 assessments'], amount: '2025000' },
+    { value: '12', names: ['دوازده ارزیابی', '12 assessments'], amount: '3618000' },
   ];
   const chosen = packageChoices.find((item) => item.names.some((name) => packageName.includes(name)))
     || packageChoices.find((item) => item.amount === digits || creditsByAmount[digits] === item.value);

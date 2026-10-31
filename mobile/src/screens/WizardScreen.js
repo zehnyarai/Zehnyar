@@ -622,7 +622,7 @@ const styles = {
     right: 0,
     bottom: 0,
     padding: spacing.md,
-    paddingBottom: spacing.lg,
+    paddingBottom: spacing.xxl,
     backgroundColor: colors.surface,
     borderTopWidth: 1,
     borderTopColor: colors.border,

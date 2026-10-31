@@ -29,10 +29,10 @@ def test_payment_prices_and_free_quota(monkeypatch, tmp_path):
     assert config["enabled"] is True
     assert config["freeAssessments"] == 2
     assert {p["sku"]: p["priceToman"] for p in config["packages"]} == {
-        "assessment_1": 600_000,
-        "assessment_3": 1_500_000,
-        "assessment_6": 2_700_000,
-        "assessment_12": 4_800_000,
+        "assessment_1": 450_000,
+        "assessment_3": 1_120_500,
+        "assessment_6": 2_025_000,
+        "assessment_12": 3_618_000,
     }
     assert {p["sku"]: p["discountPercent"] for p in config["packages"]} == {
         "assessment_1": 0, "assessment_3": 17, "assessment_6": 25, "assessment_12": 33,
@@ -52,7 +52,7 @@ def test_manual_receipt_admin_approval_grants_credits_once(monkeypatch, tmp_path
     )
     assert response.status_code == 200, response.text
     request_id = response.json()["requestId"]
-    assert response.json()["priceToman"] == 1_500_000
+    assert response.json()["priceToman"] == 1_120_500
     stored_receipts = list((tmp_path / "receipts").glob("*"))
     assert len(stored_receipts) == 1
     assert b"fake-png" not in stored_receipts[0].read_bytes()

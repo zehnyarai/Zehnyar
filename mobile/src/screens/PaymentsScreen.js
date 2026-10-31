@@ -10,10 +10,10 @@ import { groupThousands, toPersianDigits } from '../core/format';
 import { checkRequest, getApiBase, getOfflinePaymentConfig, loadPaymentPanel, submitReceipt } from '../core/paymentApi';
 
 const PACKAGES = [
-  { sku: 'assessment_1', credits: 1, priceToman: 600000, discountPercent: 0, label: 'single' },
-  { sku: 'assessment_3', credits: 3, priceToman: 1500000, discountPercent: 17, label: 'three' },
-  { sku: 'assessment_6', credits: 6, priceToman: 2700000, discountPercent: 25, label: 'six' },
-  { sku: 'assessment_12', credits: 12, priceToman: 4800000, discountPercent: 33, label: 'twelve' },
+  { sku: 'assessment_1', credits: 1, priceToman: 450000, discountPercent: 0, label: 'single' },
+  { sku: 'assessment_3', credits: 3, priceToman: 1120500, discountPercent: 17, label: 'three' },
+  { sku: 'assessment_6', credits: 6, priceToman: 2025000, discountPercent: 25, label: 'six' },
+  { sku: 'assessment_12', credits: 12, priceToman: 3618000, discountPercent: 33, label: 'twelve' },
 ];
 
 function amount(value, lang, t) {
