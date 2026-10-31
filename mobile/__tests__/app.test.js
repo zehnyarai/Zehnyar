@@ -112,7 +112,7 @@ describe('Visayar app', () => {
       workGoal.props.onPress();
     });
 
-    expect(navigation.navigate).toHaveBeenCalledWith('Wizard', { from: 'home' });
+    expect(navigation.navigate).toHaveBeenCalledWith('Wizard', { from: 'home', goal: 'work' });
     expect(navigation.navigate).not.toHaveBeenCalledWith('Payments');
   });
 
@@ -161,7 +161,7 @@ describe('Visayar app', () => {
       );
     });
     expect(navigation.replace).not.toHaveBeenCalledWith('Payments');
-    for (let step = 0; step < 6; step += 1) {
+    for (let step = 0; step < 7; step += 1) {
       const buttons = tree.root.findAllByType(Button);
       const next = buttons[buttons.length - 1];
       act(() => {
@@ -170,6 +170,29 @@ describe('Visayar app', () => {
     }
     const text = JSON.stringify(tree.toJSON());
     expect(text).toContain('محاسبه شانس قبولی');
+  });
+
+  it('opens a distinct goal-specific form without repeating the goal picker or mixing unrelated fields', () => {
+    const cases = [
+      { goal: 'work', heading: 'مسیر کاری', includes: 'شغل استاندارد', excludes: ['پذیرش قطعی دانشگاه دارم', 'سرمایه اولیه کسب‌وکار', 'درآمد ماهانه دورکاری'] },
+      { goal: 'study', heading: 'مسیر تحصیلی', includes: 'پذیرش قطعی دانشگاه دارم', excludes: ['شغل استاندارد', 'سرمایه قابل سرمایه‌گذاری', 'درآمد ماهانه دورکاری'] },
+      { goal: 'startup', heading: 'استارتاپ و کسب‌وکار', includes: 'سرمایه اولیه کسب‌وکار', excludes: ['پذیرش قطعی دانشگاه دارم', 'شغل استاندارد', 'درآمد ماهانه دورکاری'] },
+      { goal: 'investment', heading: 'سرمایه‌گذاری', includes: 'سرمایه قابل سرمایه‌گذاری', excludes: ['پذیرش قطعی دانشگاه دارم', 'شغل استاندارد', 'درآمد ماهانه دورکاری'] },
+      { goal: 'selfsponsored', heading: 'درآمد دورکاری', includes: 'درآمد ماهانه دورکاری', excludes: ['پذیرش قطعی دانشگاه دارم', 'شغل استاندارد', 'سرمایه قابل سرمایه‌گذاری'] },
+    ];
+
+    cases.forEach(({ goal, heading, includes, excludes }) => {
+      const tree = renderWithProviders(
+        <WizardScreen navigation={navigation} route={{ params: { from: 'home', goal } }} />,
+        { profile: { ...engine.emptyProfile(), goal } },
+      );
+      const text = JSON.stringify(tree.toJSON());
+      expect(text).toContain(heading);
+      expect(text).toContain(includes);
+      expect(text).not.toContain('هدف مهاجرت');
+      excludes.forEach((label) => expect(text).not.toContain(label));
+      act(() => tree.unmount());
+    });
   });
 
   it('renders the results screen with a radar chart and country ranking', () => {

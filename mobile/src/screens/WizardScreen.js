@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,14 +14,23 @@ import {
 } from '../components/ui';
 import { GoalTile } from '../components/cards';
 
-const STEPS = ['goal', 'profile', 'education', 'language', 'work', 'funds', 'adaptability', 'review'];
+const GOAL_STEPS = {
+  work: ['work', 'profile', 'education', 'language', 'funds', 'adaptability', 'review'],
+  study: ['study', 'profile', 'education', 'language', 'funds', 'adaptability', 'review'],
+  startup: ['startup', 'profile', 'education', 'language', 'funds', 'adaptability', 'review'],
+  investment: ['investment', 'profile', 'education', 'language', 'funds', 'adaptability', 'review'],
+  selfsponsored: ['remote', 'profile', 'education', 'language', 'funds', 'adaptability', 'review'],
+};
 const CEFR = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const SKILL_KEYS = ['listening', 'reading', 'writing', 'speaking'];
 
-export default function WizardScreen({ navigation }) {
+export default function WizardScreen({ navigation, route = {} }) {
   const { t, lang, pick } = useI18n();
   const dir = useDirection();
   const { profile, updateProfile, updateNested, setProfile, compute } = useAppState();
+  const requestedGoal = GOAL_STEPS[route.params?.goal] ? route.params.goal : null;
+  const [selectedGoal, setSelectedGoal] = useState(() => requestedGoal || profile.goal || 'work');
+  const [choosingGoal, setChoosingGoal] = useState(!requestedGoal);
   const [step, setStep] = useState(0);
   const [occupationSheet, setOccupationSheet] = useState(false);
   const [testSheet, setTestSheet] = useState(false);
@@ -29,8 +38,20 @@ export default function WizardScreen({ navigation }) {
   const [computing, setComputing] = useState(false);
   const { educationLevels, languageTests, occupations } = getDataset();
 
-  const stepKey = STEPS[step];
-  const progress = ((step + 1) / STEPS.length) * 100;
+  useEffect(() => {
+    if (!requestedGoal) return;
+    setSelectedGoal(requestedGoal);
+    setChoosingGoal(false);
+    setStep(0);
+    updateProfile({ goal: requestedGoal });
+  }, [requestedGoal, updateProfile]);
+
+  const formSteps = GOAL_STEPS[selectedGoal] || GOAL_STEPS.work;
+  const stepKey = choosingGoal ? 'goal' : formSteps[step];
+  const totalSteps = formSteps.length + (requestedGoal ? 0 : 1);
+  const currentStep = choosingGoal ? 0 : step + (requestedGoal ? 0 : 1);
+  const progress = ((currentStep + 1) / totalSteps) * 100;
+
 
   const filteredOccupations = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -68,10 +89,20 @@ export default function WizardScreen({ navigation }) {
     setProfile((current) => ({ ...current, languages: current.languages.filter((_, i) => i !== index) }));
   };
 
+  const selectGoal = (goal) => {
+    setSelectedGoal(goal);
+    updateProfile({ goal });
+  };
+
   const goNext = async () => {
     if (computing) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    if (step === STEPS.length - 2) {
+    if (choosingGoal) {
+      setChoosingGoal(false);
+      setStep(0);
+      return;
+    }
+    if (stepKey === 'review') {
       setComputing(true);
       try {
         const computed = await compute(t);
@@ -85,11 +116,19 @@ export default function WizardScreen({ navigation }) {
       }
       return;
     }
-    setStep((current) => Math.min(STEPS.length - 1, current + 1));
+    setStep((current) => Math.min(formSteps.length - 1, current + 1));
   };
 
   const goBack = () => {
+    if (choosingGoal) {
+      navigation.goBack();
+      return;
+    }
     if (step === 0) {
+      if (!requestedGoal) {
+        setChoosingGoal(true);
+        return;
+      }
       navigation.goBack();
       return;
     }
@@ -103,7 +142,7 @@ export default function WizardScreen({ navigation }) {
           <IconButton icon={dir.isRtl ? 'close' : 'close'} onPress={() => navigation.goBack()} bg="rgba(255,255,255,0.14)" color={colors.white} size={38} />
           <View style={{ flex: 1 }}>
             <Text variant="micro" style={{ color: 'rgba(255,255,255,0.7)', textAlign: dir.text }}>
-              {`${t('wizard.stepLabel')} ${localiseNumber(step + 1, lang)} ${t('common.of')} ${localiseNumber(STEPS.length, lang)}`}
+              {`${t('wizard.stepLabel')} ${localiseNumber(currentStep + 1, lang)} ${t('common.of')} ${localiseNumber(totalSteps, lang)}`}
             </Text>
             <Text variant="h2" color={colors.white} style={{ textAlign: dir.text }}>
               {t(`wizard.steps.${stepKey}.title`)}
@@ -124,15 +163,15 @@ export default function WizardScreen({ navigation }) {
             <View style={{ gap: spacing.sm }}>
               <View style={{ flexDirection: dir.row, gap: spacing.sm }}>
                 {['work', 'study'].map((goal) => (
-                  <GoalTile key={goal} goalId={goal} active={profile.goal === goal} onPress={() => updateProfile({ goal })} />
+                  <GoalTile key={goal} goalId={goal} active={selectedGoal === goal} onPress={() => selectGoal(goal)} />
                 ))}
               </View>
               <View style={{ flexDirection: dir.row, gap: spacing.sm }}>
                 {['startup', 'investment'].map((goal) => (
-                  <GoalTile key={goal} goalId={goal} active={profile.goal === goal} onPress={() => updateProfile({ goal })} />
+                  <GoalTile key={goal} goalId={goal} active={selectedGoal === goal} onPress={() => selectGoal(goal)} />
                 ))}
               </View>
-              <GoalTile goalId="selfsponsored" active={profile.goal === 'selfsponsored'} onPress={() => updateProfile({ goal: 'selfsponsored' })} />
+              <GoalTile goalId="selfsponsored" active={selectedGoal === 'selfsponsored'} onPress={() => selectGoal('selfsponsored')} />
             </View>
           ) : null}
 
@@ -242,26 +281,118 @@ export default function WizardScreen({ navigation }) {
                   value={profile.educationStem}
                   onValueChange={(value) => updateProfile({ educationStem: value })}
                 />
-                <Divider />
-                <ToggleRow
-                  icon="ribbon-outline"
-                  label={t('wizard.eca')}
-                  value={profile.adaptability.eca}
-                  onValueChange={(value) => updateNested('adaptability', { eca: value })}
-                />
-                <Divider />
-                <ToggleRow
-                  icon="school"
-                  label={t('wizard.recentGraduate')}
-                  value={profile.recentGraduate}
-                  onValueChange={(value) => updateProfile({ recentGraduate: value })}
-                />
-                <Divider />
+              </Card>
+            </View>
+          ) : null}
+
+          {stepKey === 'study' ? (
+            <View style={{ gap: spacing.md }}>
+              <Card>
                 <ToggleRow
                   icon="document-text-outline"
                   label={t('wizard.studyOffer')}
+                  hint={t('wizard.studyOfferHint')}
                   value={profile.studyOffer}
                   onValueChange={(value) => updateProfile({ studyOffer: value })}
+                />
+                <Divider />
+                <ToggleRow
+                  icon="school-outline"
+                  label={t('wizard.recentGraduate')}
+                  hint={t('wizard.recentGraduateHint')}
+                  value={profile.recentGraduate}
+                  onValueChange={(value) => updateProfile({ recentGraduate: value })}
+                />
+              </Card>
+            </View>
+          ) : null}
+
+          {stepKey === 'startup' ? (
+            <View style={{ gap: spacing.md }}>
+              <Card>
+                <MoneyField
+                  label={t('wizard.startupCapitalLabel')}
+                  hint={t('wizard.startupCapitalHint')}
+                  value={profile.investmentUsd ? String(profile.investmentUsd) : ''}
+                  onChangeText={(raw) => updateProfile({ investmentUsd: raw === '' ? 0 : Number(raw.replace(/[^0-9]/g, '')) })}
+                  currencyLabel="USD"
+                  placeholder="0"
+                />
+              </Card>
+              <Card>
+                <Stepper
+                  label={t('wizard.businessExperience')}
+                  value={profile.work.totalYears}
+                  onChange={(value) => updateNested('work', { totalYears: value })}
+                  min={0}
+                  max={45}
+                  suffix={t('common.years')}
+                />
+              </Card>
+              <Card>
+                <ToggleRow
+                  icon="rocket-outline"
+                  label={t('wizard.startupBacking')}
+                  hint={t('wizard.startupBackingHint')}
+                  value={profile.startupBacking}
+                  onValueChange={(value) => updateProfile({ startupBacking: value })}
+                />
+                <Divider />
+                <ToggleRow
+                  icon="trophy-outline"
+                  label={t('wizard.achievement')}
+                  value={profile.achievement}
+                  onValueChange={(value) => updateProfile({ achievement: value })}
+                />
+              </Card>
+            </View>
+          ) : null}
+
+          {stepKey === 'investment' ? (
+            <View style={{ gap: spacing.md }}>
+              <Card>
+                <MoneyField
+                  label={t('wizard.investmentLabel')}
+                  hint={t('wizard.investmentHint')}
+                  value={profile.investmentUsd ? String(profile.investmentUsd) : ''}
+                  onChangeText={(raw) => updateProfile({ investmentUsd: raw === '' ? 0 : Number(raw.replace(/[^0-9]/g, '')) })}
+                  currencyLabel="USD"
+                  placeholder="0"
+                />
+              </Card>
+              <Card>
+                <Stepper
+                  label={t('wizard.investmentExperience')}
+                  value={profile.work.totalYears}
+                  onChange={(value) => updateNested('work', { totalYears: value })}
+                  min={0}
+                  max={45}
+                  suffix={t('common.years')}
+                />
+              </Card>
+            </View>
+          ) : null}
+
+          {stepKey === 'remote' ? (
+            <View style={{ gap: spacing.md }}>
+              <Card>
+                <MoneyField
+                  label={t('wizard.remoteIncomeLabel')}
+                  hint={t('wizard.remoteIncomeHint')}
+                  value={profile.remoteIncomeUsd ? String(profile.remoteIncomeUsd) : ''}
+                  onChangeText={(raw) => updateProfile({ remoteIncomeUsd: raw === '' ? 0 : Number(raw.replace(/[^0-9]/g, '')) })}
+                  currencyLabel="USD"
+                  placeholder="0"
+                />
+              </Card>
+              <Card>
+                <Stepper
+                  label={t('wizard.remoteExperience')}
+                  value={profile.work.totalYears}
+                  onChange={(value) => updateNested('work', { totalYears: value })}
+                  min={0}
+                  max={45}
+                  suffix={t('common.years')}
                 />
               </Card>
             </View>
@@ -375,8 +506,7 @@ export default function WizardScreen({ navigation }) {
                 <ToggleRow icon="shield-outline" label={t('wizard.licensing')} value={profile.work.licensing} onValueChange={(value) => updateNested('work', { licensing: value })} />
                 <Divider />
                 <ToggleRow icon="sparkles-outline" label={t('wizard.achievement')} value={profile.achievement} onValueChange={(value) => updateProfile({ achievement: value })} />
-                <Divider />
-                <ToggleRow icon="rocket-outline" label={t('wizard.startupBacking')} value={profile.startupBacking} onValueChange={(value) => updateProfile({ startupBacking: value })} />
+
               </Card>
 
               <Card>
@@ -413,40 +543,6 @@ export default function WizardScreen({ navigation }) {
                     <Chip key={amount} label={`$${amount / 1000}k`} onPress={() => updateNested('funds', { availableUsd: amount })} />
                   ))}
                 </View>
-                <Divider style={{ marginVertical: spacing.md }} />
-                <MoneyField
-                  label={t('wizard.cashLabel')}
-                  value={profile.funds.cashUsd ? String(profile.funds.cashUsd) : ''}
-                  onChangeText={(raw) => updateNested('funds', { cashUsd: raw === '' ? 0 : Number(raw.replace(/[^0-9]/g, '')) })}
-                  currencyLabel="USD"
-                  placeholder="0"
-                />
-                <Divider style={{ marginVertical: spacing.md }} />
-                <MoneyField
-                  label={t('wizard.assetsLabel')}
-                  value={profile.funds.assetsUsd ? String(profile.funds.assetsUsd) : ''}
-                  onChangeText={(raw) => updateNested('funds', { assetsUsd: raw === '' ? 0 : Number(raw.replace(/[^0-9]/g, '')) })}
-                  currencyLabel="USD"
-                  placeholder="0"
-                />
-              </Card>
-
-              <Card>
-                <MoneyField
-                  label={t('wizard.investmentLabel')}
-                  value={profile.investmentUsd ? String(profile.investmentUsd) : ''}
-                  onChangeText={(raw) => updateProfile({ investmentUsd: raw === '' ? 0 : Number(raw.replace(/[^0-9]/g, '')) })}
-                  currencyLabel="USD"
-                  placeholder="0"
-                />
-                <Divider style={{ marginVertical: spacing.md }} />
-                <MoneyField
-                  label={t('wizard.remoteIncomeLabel')}
-                  value={profile.remoteIncomeUsd ? String(profile.remoteIncomeUsd) : ''}
-                  onChangeText={(raw) => updateProfile({ remoteIncomeUsd: raw === '' ? 0 : Number(raw.replace(/[^0-9]/g, '')) })}
-                  currencyLabel="USD"
-                  placeholder="0"
-                />
               </Card>
 
               <Card>
@@ -470,6 +566,8 @@ export default function WizardScreen({ navigation }) {
                 <ToggleRow icon="book-outline" label={t('wizard.priorStudy')} value={profile.adaptability.priorStudyInCountry} onValueChange={(value) => updateNested('adaptability', { priorStudyInCountry: value })} />
                 <Divider />
                 <ToggleRow icon="hammer-outline" label={t('wizard.priorWork')} value={profile.adaptability.priorWorkInCountry} onValueChange={(value) => updateNested('adaptability', { priorWorkInCountry: value })} />
+                <Divider />
+                <ToggleRow icon="ribbon-outline" label={t('wizard.eca')} value={profile.adaptability.eca} onValueChange={(value) => updateNested('adaptability', { eca: value })} />
               </Card>
               <Card style={{ backgroundColor: colors.sky50 }}>
                 <Text variant="small" color={colors.ink70} style={{ textAlign: dir.text }}>
@@ -484,16 +582,29 @@ export default function WizardScreen({ navigation }) {
               <ReviewRow label={t('wizard.summaryGoal')} value={t(`goals.${profile.goal}.label`)} icon="flag-outline" />
               <ReviewRow label={t('wizard.summaryAge')} value={`${localiseNumber(profile.age, lang)} ${t('common.years')}`} icon="calendar-outline" />
               <ReviewRow label={t('wizard.summaryEducation')} value={t(`types.${profile.educationId}`)} icon="school-outline" />
-              <ReviewRow
-                label={t('wizard.summaryLanguage')}
-                value={profile.languages.length ? profile.languages.map((item) => t(`tests.${item.testId}`)).join('، ') : t('common.notSet')}
-                icon="language-outline"
-              />
-              <ReviewRow
-                label={t('wizard.summaryWork')}
-                value={`${localiseNumber(profile.work.totalYears, lang)} ${t('common.years')}${profile.work.occupationCode ? ` • ${pick(findOccupation(profile.work.occupationCode)?.titleFa, findOccupation(profile.work.occupationCode)?.titleEn)}` : ''}`}
-                icon="briefcase-outline"
-              />
+              {formSteps.includes('language') ? (
+                <ReviewRow
+                  label={t('wizard.summaryLanguage')}
+                  value={profile.languages.length ? profile.languages.map((item) => t(`tests.${item.testId}`)).join('، ') : t('common.notSet')}
+                  icon="language-outline"
+                />
+              ) : null}
+              {selectedGoal === 'work' ? (
+                <ReviewRow
+                  label={t('wizard.summaryWork')}
+                  value={`${localiseNumber(profile.work.totalYears, lang)} ${t('common.years')}${profile.work.occupationCode ? ` • ${pick(findOccupation(profile.work.occupationCode)?.titleFa, findOccupation(profile.work.occupationCode)?.titleEn)}` : ''}`}
+                  icon="briefcase-outline"
+                />
+              ) : null}
+              {selectedGoal === 'study' ? (
+                <ReviewRow label={t('wizard.summaryStudy')} value={profile.studyOffer ? t('common.yes') : t('common.no')} icon="school-outline" />
+              ) : null}
+              {selectedGoal === 'startup' || selectedGoal === 'investment' ? (
+                <ReviewRow label={t('wizard.summaryInvestment')} value={money(profile.investmentUsd, lang, 'USD')} icon="trending-up-outline" />
+              ) : null}
+              {selectedGoal === 'selfsponsored' ? (
+                <ReviewRow label={t('wizard.summaryRemoteIncome')} value={money(profile.remoteIncomeUsd, lang, 'USD')} icon="laptop-outline" />
+              ) : null}
               <ReviewRow label={t('wizard.summaryFunds')} value={money(profile.funds.availableUsd, lang, 'USD')} icon="wallet-outline" />
               <ReviewRow label={t('wizard.summaryFamily')} value={localiseNumber(profile.familySize, lang)} icon="people-outline" />
               <Card style={{ backgroundColor: colors.teal100, borderColor: colors.teal300, marginTop: spacing.xs }}>
@@ -512,8 +623,8 @@ export default function WizardScreen({ navigation }) {
           <View style={{ flexDirection: dir.row, gap: spacing.sm }}>
             <Button label={t('common.back')} variant="outline" onPress={goBack} style={{ flex: 1 }} />
             <Button
-              label={step === STEPS.length - 2 ? t('wizard.calculate') : t('common.next')}
-              icon={step === STEPS.length - 2 ? 'sparkles' : dir.isRtl ? 'arrow-back' : 'arrow-forward'}
+              label={stepKey === 'review' ? t('wizard.calculate') : t('common.next')}
+              icon={stepKey === 'review' ? 'sparkles' : dir.isRtl ? 'arrow-back' : 'arrow-forward'}
               onPress={goNext}
               loading={computing}
               style={{ flex: 1.6 }}

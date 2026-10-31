@@ -24,7 +24,7 @@ export default function AdvisorScreen({ navigation }) {
             title={t('advisor.title')}
             body={t('advisor.noAssessment')}
             actionLabel={t('advisor.startNow')}
-            onAction={() => navigation.navigate('Wizard')}
+            onAction={() => navigation.navigate('Wizard', { from: 'advisor' })}
           />
         </View>
       </ScrollScreen>

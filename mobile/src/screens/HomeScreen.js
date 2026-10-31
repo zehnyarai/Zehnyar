@@ -39,7 +39,7 @@ export default function HomeScreen({ navigation }) {
 
   const startAssessment = (goal) => {
     if (goal) updateProfile({ goal });
-    navigation.navigate('Wizard', { from: 'home' });
+    navigation.navigate('Wizard', { from: 'home', ...(goal ? { goal } : {}) });
   };
 
   return (
