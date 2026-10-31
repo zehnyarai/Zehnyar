@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -26,6 +27,7 @@ const SKILL_KEYS = ['listening', 'reading', 'writing', 'speaking'];
 
 export default function WizardScreen({ navigation, route = {} }) {
   const { t, lang, pick } = useI18n();
+  const insets = useContext(SafeAreaInsetsContext);
   const dir = useDirection();
   const { profile, updateProfile, updateNested, setProfile, compute } = useAppState();
   const requestedGoal = GOAL_STEPS[route.params?.goal] ? route.params.goal : null;
@@ -619,7 +621,7 @@ export default function WizardScreen({ navigation, route = {} }) {
           ) : null}
         </ScrollView>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, { bottom: Math.max(insets?.bottom || 0, spacing.md) + spacing.lg }]}>
           <View style={{ flexDirection: dir.row, gap: spacing.sm }}>
             <Button label={t('common.back')} variant="outline" onPress={goBack} style={{ flex: 1 }} />
             <Button
@@ -723,9 +725,8 @@ const styles = {
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 0,
     padding: spacing.md,
-    paddingBottom: spacing.xxl,
+    paddingBottom: spacing.md,
     backgroundColor: colors.surface,
     borderTopWidth: 1,
     borderTopColor: colors.border,
