@@ -44,10 +44,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Resolve release version
+      - name: Resolve release version and build mode
+        id: resolve-release
         run: |
           set -euo pipefail
           RAW="${{ github.event.inputs.version }}"
+          BAZAAR_DRAFT=false
+          if [[ "$RAW" == draft-* ]]; then
+            BAZAAR_DRAFT=true
+            RAW="${RAW#draft-}"
+          fi
           if [ -z "$RAW" ] && [ "${GITHUB_REF_TYPE}" = "tag" ]; then
             RAW="${GITHUB_REF_NAME}"
           fi
@@ -56,7 +62,9 @@ jobs:
           fi
           VERSION="${RAW#v}"
           echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "bazaar_draft=$BAZAAR_DRAFT" >> "$GITHUB_OUTPUT"
           echo "Resolved release version: $VERSION"
+          if [ "$BAZAAR_DRAFT" = true ]; then echo 'Building non-public Cafe Bazaar registration draft; payments remain disabled.'; fi
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -115,6 +123,7 @@ jobs:
           fi
 
       - name: Validate payment configuration without exposing card data
+        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' }}
         working-directory: mobile
         env:
           VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
@@ -144,6 +153,7 @@ jobs:
           NODE
 
       - name: Embed an optional static card fallback for Android runtime
+        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' }}
         working-directory: mobile
         env:
           VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
@@ -153,6 +163,7 @@ jobs:
         run: node ../tools/write_mobile_payment_card.js
 
       - name: Prebuild Android project
+        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' }}
         working-directory: mobile
         env:
           VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
@@ -162,10 +173,22 @@ jobs:
           VISAYAR_PAYMENT_BANK_NAME: ${{ secrets.VISAYAR_PAYMENT_BANK_NAME }}
         run: npx expo prebuild -p android --clean --no-install
 
+      - name: Prebuild Cafe Bazaar registration draft without payment secrets
+        if: ${{ steps.resolve-release.outputs.bazaar_draft == 'true' }}
+        working-directory: mobile
+        env:
+          VISAYAR_API_BASE_URL: ''
+          EXPO_PUBLIC_VISAYAR_API_BASE_URL: ''
+          VISAYAR_PAYMENT_CARD_NUMBER: ''
+          VISAYAR_PAYMENT_CARD_HOLDER: ''
+          VISAYAR_PAYMENT_BANK_NAME: ''
+        run: npx expo prebuild -p android --clean --no-install
+
       - name: Configure release signing
         run: node tools/android_prepare.js
 
       - name: Build release APK
+        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' }}
         working-directory: mobile/android
         env:
           VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
@@ -177,7 +200,21 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleRelease --no-daemon
 
+      - name: Build Cafe Bazaar registration draft APK
+        if: ${{ steps.resolve-release.outputs.bazaar_draft == 'true' }}
+        working-directory: mobile/android
+        env:
+          VISAYAR_API_BASE_URL: ''
+          EXPO_PUBLIC_VISAYAR_API_BASE_URL: ''
+          VISAYAR_PAYMENT_CARD_NUMBER: ''
+          VISAYAR_PAYMENT_CARD_HOLDER: ''
+          VISAYAR_PAYMENT_BANK_NAME: ''
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease --no-daemon
+
       - name: Verify card fallback or server-backed payments in the Android JS bundle
+        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' }}
         env:
           VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
           VISAYAR_PAYMENT_CARD_NUMBER: ${{ secrets.VISAYAR_PAYMENT_CARD_NUMBER }}
@@ -185,6 +222,26 @@ jobs:
 
       - name: Remove generated card source from the workspace
         run: git show HEAD:mobile/src/core/paymentCard.generated.js > mobile/src/core/paymentCard.generated.js
+
+      - name: Verify Cafe Bazaar registration package and embedded app bundle
+        if: ${{ steps.resolve-release.outputs.bazaar_draft == 'true' }}
+        run: |
+          set -euo pipefail
+          APK=mobile/android/app/build/outputs/apk/release/app-release.apk
+          AAPT="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name aapt | sort -V | tail -n 1)"
+          APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          "$AAPT" dump badging "$APK" | grep -F "package: name='ai.visayar.app'"
+          "$AAPT" dump permissions "$APK" | grep -F 'android.permission.INTERNET'
+          "$APKSIGNER" verify --verbose "$APK"
+          python3 - "$APK" <<'PY'
+          import sys, zipfile
+          with zipfile.ZipFile(sys.argv[1]) as apk:
+              names = set(apk.namelist())
+          assert 'AndroidManifest.xml' in names, 'APK has no Android manifest'
+          assert any(n.rsplit('/', 1)[-1].startswith('classes') and n.endswith('.dex') for n in names), 'APK has no dex payload'
+          assert any(n.endswith(('.bundle', '.hbc')) for n in names), 'APK has no embedded JavaScript bundle'
+          print('Production package and embedded app bundle verified for Bazaar draft registration.')
+          PY
 
       - name: Scan release APK with ClamAV
         run: |
@@ -204,22 +261,26 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p release
-          cp mobile/android/app/build/outputs/apk/release/app-release.apk \
-             "release/Visayar-${RELEASE_VERSION}-universal.apk"
-          ( cd release && sha256sum "Visayar-${RELEASE_VERSION}-universal.apk" > SHA256SUMS.txt )
+          if [ "${{ steps.resolve-release.outputs.bazaar_draft == 'true' }}" = 'true' ]; then
+            APK_NAME="Visayar-${RELEASE_VERSION}-Bazaar-Draft-universal.apk"
+          else
+            APK_NAME="Visayar-${RELEASE_VERSION}-universal.apk"
+          fi
+          cp mobile/android/app/build/outputs/apk/release/app-release.apk "release/$APK_NAME"
+          ( cd release && sha256sum "$APK_NAME" > SHA256SUMS.txt )
           cat release/SHA256SUMS.txt
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: zehnyar-release-apk
+          name: ${{ steps.resolve-release.outputs.bazaar_draft == 'true' && 'visayar-cafebazaar-registration-draft' || 'zehnyar-release-apk' }}
           path: |
             release/Visayar-*-universal.apk
             release/SHA256SUMS.txt
-          retention-days: 90
+          retention-days: ${{ steps.resolve-release.outputs.bazaar_draft == 'true' && 14 || 90 }}
 
       - name: Publish GitHub release
-        if: github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.publish_release)
+        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' && (github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.publish_release)) }}
         env:
           GH_TOKEN: ${{ github.token }}
           VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
