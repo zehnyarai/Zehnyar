@@ -30,6 +30,9 @@
 
 یکی را انتخاب کن و `{}`ها را با واقعیت پر کن:
 
+**نسخهٔ نهایی — بات چندزبانهٔ متن و صوتی (همین را بگذار):**
+> A Telegram assistant that answers user questions in text or voice, in whatever language the person writes in — one answer, two shapes. Live since 6 August 2026 with ~2,000 operations for real users; anything it is unsure about goes to a human.
+
 **اگر خبر/تغییر قوانین را به کاربران می‌رساند:**
 > Watches official immigration sources and pushes a short, readable Telegram update whenever a rule, fee or deadline actually changes — so {N} users hear about it from their own channel instead of noticing too late.
 
@@ -88,14 +91,20 @@
 
 > فیلدهای صفحهٔ دوم فرم: `Why should this scenario win?` · `Fill out your email` · `Fill out your Make Community username` (+ فیلد اختیاری ایمیل سازنده). همه انگلیسی.
 
-### نسخهٔ A — اگر بات به کاربران پاسخ می‌دهد
+### نسخهٔ A (نهایی) — بات پاسخ‌دهنده، چندزبانه و صوتی
 
 ```
-My scenario is the Telegram bot that answers our users' questions about our product, in the app they already open every day. It has been running in production since 6 August 2026 and has handled roughly 2,000 operations for real users, so the utility is measured rather than promised: questions that used to wait for a human reply now get an immediate, consistent answer, and only the genuinely unclear ones reach a person.
+My scenario is the Telegram bot that answers our users' questions — in text and in voice, in whatever language they choose to write in. It has been running in production since 6 August 2026 and has handled roughly 2,000 operations for real users, so the utility is measured rather than promised: someone who writes in their own language, or who would rather listen than read, gets an answer in seconds instead of waiting for a person to be online.
 
-What I am proudest of is what the bot refuses to do. It is not a general chatbot: it answers only from our own curated material, it has to admit when it does not know, and those cases are routed to a human instead of being guessed at. In a domain where a confident wrong answer costs someone real time and money, being right matters more than replying fast.
+What I am proudest of is how little stands between the question and the answer. There is one pipeline, not one bot per language: the message arrives, its language is detected, the answer is generated in that same language, and the same answer can come back as a spoken reply. Voice is not a feature bolted on the side — it is the same answer in a different shape, which is what makes the bot usable for people who cannot read comfortably, or who are listening instead of looking at a screen.
 
-It is small, cheap to run, and boring in the best way: one job done properly, with clear limits.
+And where it is not sure, it says so and hands the conversation to a human instead of guessing. It is small, cheap to run, and boring in the best way: one job done properly, in every language our users speak.
+```
+
+**نسخهٔ کوتاه (۵۰ کلمه، اگر جایی جای کم بود):**
+
+```
+A Telegram bot that answers user questions in text or voice, in any language they write in — one pipeline, not one bot per language. Live since August 2026, ~2,000 operations for real users, and anything uncertain is handed to a human instead of guessed at.
 ```
 
 ### نسخهٔ B — اگر بات خبر/تغییر/اعلان می‌فرستد
@@ -126,6 +135,21 @@ It is small, cheap to run, and boring in the best way: one job done properly, wi
 | `Fill out the Creator's email` | **خالی** (خودت سازنده‌ای) |
 | `Fill out your Make Community username` | نام کاربری‌ات در [community.make.com](https://community.make.com) — آواتار بالا-راست → نام کاربری؛ در آدرس پروفایل هم به شکل `community.make.com/u/<username>` دیده می‌شود. اگر حساب نداری، همان‌جا با ایمیل خودت ثبت‌نام کن (رایگان) و یک نام کاربری حرفه‌ای بردار (مثلاً `sadra_makes`) — این نام در معرفی برنده عمومی می‌شود |
 | تیک پایین فرم | موافقت با استفادهٔ عمومی از اطلاعات؛ اگر با انتشار عمومی سناریو و نام کاربری‌ات در کانال‌های Make موافقی، تیک بزن |
+
+---
+
+### پست لینکدین (۲ دقیقه — لینک پست را هم در فیلد اول فرم بگذار)
+
+```
+Most chat bots answer in one language, in one format.
+
+Ours answers in whatever language the user writes in — as text, or as a spoken reply if they would rather listen. One pipeline, not one bot per language: the message arrives, the language is detected, the answer comes back in that same language, and voice is just the same answer in a different shape.
+
+It has been live since August 2026 and has handled ~2,000 operations for real users. Anything it is not sure about is handed to a human instead of guessed at.
+
+Built in @Make_hq → {public share link}
+#Make #Automation #ScenarioOfTheMonth
+```
 
 ---
 
