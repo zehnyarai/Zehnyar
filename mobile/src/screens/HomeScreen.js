@@ -168,7 +168,7 @@ export default function HomeScreen({ navigation }) {
                   {t('nav.explore')}
                 </Text>
                 <Text variant="micro" color={colors.ink50} style={{ textAlign: dir.text, marginTop: 2 }}>
-                  {pick('۱۵ مقصد با درگاه رسمی', '15 destinations with official portals')}
+                  {pick('۲۵ مقصد با درگاه رسمی', '25 destinations with official portals')}
                 </Text>
               </View>
             </PressableScale>

@@ -71,7 +71,7 @@ export const dictionary = {
     home: {
       greeting: 'به ویزایار خوش آمدید',
       heroTitle: 'مسیر مهاجرت خود را با داده بسنجید، نه با حدس',
-      heroSubtitle: 'ارزیابی چندلایه در ۱۵ مقصد، ۵۸ مسیر ویزا و ۵۰ شغل استاندارد بین‌المللی',
+      heroSubtitle: 'ارزیابی چندلایه در ۲۵ مقصد، ۱۰۰ مسیر ویزا و ۵۰ شغل استاندارد بین‌المللی',
       verified: 'تاریخ بازبینی ثبت‌شدهٔ داده‌ها',
       verifiedValue: 'تاریخ بازبینی در داده نمایش داده شده است',
       dataReviewDue: 'زمان بازبینی ماهانهٔ این داده‌ها رسیده است؛ پیش از اقدام، شرایط را در منبع رسمی بررسی کنید.',
@@ -277,6 +277,7 @@ export const dictionary = {
       investment: 'سرمایه‌گذاری',
       digitalnomad: 'دورکاری',
       talent: 'استعداد',
+      family: 'خانوادگی',
       jobseeker: 'جست‌وجوی کار',
     },
     explore: {
@@ -319,7 +320,7 @@ export const dictionary = {
       dataVersion: 'نسخه بانک اطلاعاتی',
       verifiedAt: 'تاریخ بازبینی ثبت‌شده',
       coverage: 'پوشش',
-      coverageValue: '۱۵ کشور، ۵۸ مسیر، ۵۰ شغل',
+      coverageValue: '۲۵ کشور، ۱۰۰ مسیر، ۵۰ شغل',
       aboutTitle: 'درباره ویزایار',
       aboutBody: 'ویزایار سامانه ارزیابی و راهنمای مهاجرت است که شرایط اعلام‌شده مراجع رسمی را به امتیاز و نقشه راه قابل اجرا تبدیل می‌کند.',
       privacyTitle: 'حریم خصوصی',
@@ -450,7 +451,7 @@ export const dictionary = {
     home: {
       greeting: 'Welcome to Visayar',
       heroTitle: 'Judge your migration odds with data, not guesswork',
-      heroSubtitle: 'Multi-layer assessment across 15 destinations, 58 visa routes and 50 standard occupations',
+      heroSubtitle: 'Multi-layer assessment across 25 destinations, 100 visa routes and 50 standard occupations',
       verified: 'Recorded dataset review date',
       verifiedValue: 'Review date is shown with the data',
       dataReviewDue: 'This dataset is due for its monthly review. Verify requirements on the official source before acting.',
@@ -649,7 +650,7 @@ export const dictionary = {
     },
     visaTypes: {
       skilled: 'Skilled', work: 'Work', study: 'Study', startup: 'Startup', business: 'Business',
-      investment: 'Investment', digitalnomad: 'Digital nomad', talent: 'Talent', jobseeker: 'Job seeker',
+      investment: 'Investment', digitalnomad: 'Digital nomad', talent: 'Talent', family: 'Family', jobseeker: 'Job seeker',
     },
     explore: {
       title: 'Destination library',
@@ -688,7 +689,7 @@ export const dictionary = {
       dataVersion: 'Dataset version',
       verifiedAt: 'Recorded review date',
       coverage: 'Coverage',
-      coverageValue: '15 countries, 58 routes, 50 occupations',
+      coverageValue: '25 countries, 100 routes, 50 occupations',
       aboutTitle: 'About Visayar',
       aboutBody: 'Visayar turns published official requirements into scores and an executable roadmap.',
       privacyTitle: 'Privacy',

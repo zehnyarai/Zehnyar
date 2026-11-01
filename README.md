@@ -6,10 +6,10 @@ Intelligent immigration assessment platform with an Android super-app.
 
 | | |
 |---|---|
-| **پوشش داده** | ۱۵ کشور · ۵۸ مسیر ویزا · ۵۰ شغل استاندارد · ۸ آزمون زبان |
-| **Data coverage** | 15 countries · 58 visa routes · 50 standard occupations · 8 language tests |
+| **پوشش داده** | ۲۵ کشور · ۱۰۰ مسیر ویزا · ۵۰ شغل استاندارد · ۸ آزمون زبان |
+| **Data coverage** | 25 countries · 100 visa routes · 50 standard occupations · 8 language tests |
 | **آخرین استعلام رسمی / Last official verification** | مهر ۱۴۰۵ / اکتبر ۲۰۲۶ — `2026-10-25` |
-| **نسخه داده / Dataset version** | `2.0.0` |
+| **نسخه داده / Dataset version** | `2.0.2` |
 | **بسته اندروید / Android package** | `ai.visayar.app` |
 
 ---
@@ -25,6 +25,7 @@ Intelligent immigration assessment platform with an Android super-app.
 │   ├── dataset_lib.py        # زبان توصیفی قواعد امتیازدهی
 │   ├── countries_a.py        # بسته کشور ۱: کانادا، استرالیا، بریتانیا، آلمان، آمریکا، هلند، نیوزیلند
 │   ├── countries_b.py        # بسته کشور ۲: فرانسه، ایتالیا، اسپانیا، سوئد، دانمارک، ترکیه، امارات، عمان
+│   ├── countries_c.py        # بسته کشور ۳: ایرلند، پرتغال، فنلاند، بلژیک
 │   ├── occupations.py        # بانک مشاغل با کد NOC و ANZSCO
 │   ├── build_dataset.py      # تولید + اعتبارسنجی + بومی‌سازی ارقام فارسی
 │   ├── sync_mobile_data.js   # همگام‌سازی داده با باندل اپ

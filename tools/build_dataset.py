@@ -10,6 +10,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import countries_a
 import countries_b
+import countries_c
+import countries_d
 from dataset_lib import (
     DATASET_VERSION, DATA_SCHEMA_VERSION, EDUCATION_LEVELS, FX, LANGUAGE_TESTS, LAST_VERIFIED,
     REVIEW_INTERVAL_DAYS, STALE_AFTER_DAYS,
@@ -125,7 +127,7 @@ def validate(dataset):
 
 
 def main():
-    countries = countries_a.COUNTRIES + countries_b.COUNTRIES
+    countries = countries_a.COUNTRIES + countries_b.COUNTRIES + countries_c.COUNTRIES + countries_d.COUNTRIES
     countries.sort(key=lambda c: (c["priority"], c["nameEn"]))
     dataset = {
         "meta": {

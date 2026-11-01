@@ -8,7 +8,7 @@ described declaratively here, so the two engines stay in lock-step.
 from __future__ import annotations
 
 LAST_VERIFIED = "2026-10-25"
-DATASET_VERSION = "2.0.1"
+DATASET_VERSION = "2.0.3"
 DATA_SCHEMA_VERSION = 1
 REVIEW_INTERVAL_DAYS = 30
 STALE_AFTER_DAYS = 45
@@ -29,6 +29,12 @@ FX = {
     "SEK": {"rate": 0.095, "fa": "کرون سوئد", "en": "Swedish krona", "symbol": "kr"},
     "DKK": {"rate": 0.146, "fa": "کرون دانمارک", "en": "Danish krone", "symbol": "kr"},
     "NZD": {"rate": 0.60, "fa": "دلار نیوزیلند", "en": "New Zealand dollar", "symbol": "NZ$"},
+    "CNY": {"rate": 0.15032, "fa": "یوان چین", "en": "Chinese yuan", "symbol": "¥", "usdToLocal": 6.653, "asOf": "2026-10-30", "source": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html"},
+    "QAR": {"rate": 0.274725, "fa": "ریال قطر", "en": "Qatari riyal", "symbol": "ر.ق", "usdToLocal": 3.64, "asOf": "2026-11-01", "source": "https://www.qcb.gov.qa/en/Pages/MonetaryPolicyTools.aspx"},
+    "JPY": {"rate": 0.00636, "fa": "ین ژاپن", "en": "Japanese yen", "symbol": "¥", "usdToLocal": 157.25, "asOf": "2026-10-30", "source": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html"},
+    "KRW": {"rate": 0.0007489, "fa": "وون کره جنوبی", "en": "South Korean won", "symbol": "₩", "usdToLocal": 1335.7, "asOf": "2026-10-30", "source": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html"},
+    "MYR": {"rate": 0.2465, "fa": "رینگیت مالزی", "en": "Malaysian ringgit", "symbol": "RM", "usdToLocal": 4.0567, "asOf": "2026-10-30", "source": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html"},
+    "SGD": {"rate": 0.7822, "fa": "دلار سنگاپور", "en": "Singapore dollar", "symbol": "S$", "usdToLocal": 1.2784, "asOf": "2026-10-30", "source": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html"},
 }
 
 EDUCATION_LEVELS = [
@@ -428,7 +434,7 @@ def visa(
 def country(code, name_fa, name_en, flag_emoji, region, currency, authority_fa, authority_en,
             portal, portal_label_fa, portal_label_en, visas, summary_fa, summary_en,
             language_groups, timezone_fa, timezone_en, pr_path_fa, pr_path_en,
-            cost_of_living_fa, cost_of_living_en, priority=3):
+            cost_of_living_fa, cost_of_living_en, priority=3, verified_on=None):
     return {
         "code": code,
         "nameFa": name_fa,
@@ -442,7 +448,7 @@ def country(code, name_fa, name_en, flag_emoji, region, currency, authority_fa, 
             "portal": portal,
             "portalLabelFa": portal_label_fa,
             "portalLabelEn": portal_label_en,
-            "lastVerified": LAST_VERIFIED,
+            "lastVerified": verified_on or LAST_VERIFIED,
         },
         "visas": visas,
         "summaryFa": summary_fa,
