@@ -129,9 +129,12 @@ describe('Visayar app', () => {
     const text = JSON.stringify(tree.toJSON());
     expect(text).toContain('اعتبار ارزیابی');
     expect(text).toContain('۶۰۰٬۰۰۰ تومان');
-    expect(text).toContain('۱٬۶۲۰٬۰۰۰ تومان');
-    expect(text).toContain('۳٬۰۶۰٬۰۰۰ تومان');
-    expect(text).toContain('۵٬۴۰۰٬۰۰۰ تومان');
+    expect(text).toContain('۱٬۲۰۰٬۰۰۰ تومان');
+    expect(text).toContain('۲٬۵۰۰٬۰۰۰ تومان');
+    expect(text).toContain('۴٬۵۰۰٬۰۰۰ تومان');
+    expect(text).toContain('تخفیف ۳۳٫۳٪');
+    expect(text).toContain('تخفیف ۳۰٫۶٪');
+    expect(text).toContain('تخفیف ۳۷٫۵٪');
     expect(text).toContain('دوازده ارزیابی');
     expect(text).toContain('بارگذاری فیش واریزی');
     expect(text).toContain('تصویر فیش را از فایل‌های دستگاه انتخاب کنید');

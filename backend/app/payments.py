@@ -53,9 +53,9 @@ class PaymentReject(BaseModel):
 
 PACKAGES = {
     "assessment_1": {"credits": 1, "priceToman": 600_000, "labelFa": "یک ارزیابی", "labelEn": "1 assessment", "discountPercent": 0},
-    "assessment_3": {"credits": 3, "priceToman": 1_620_000, "labelFa": "سه ارزیابی", "labelEn": "3 assessments", "discountPercent": 10},
-    "assessment_6": {"credits": 6, "priceToman": 3_060_000, "labelFa": "شش ارزیابی", "labelEn": "6 assessments", "discountPercent": 15},
-    "assessment_12": {"credits": 12, "priceToman": 5_400_000, "labelFa": "دوازده ارزیابی", "labelEn": "12 assessments", "discountPercent": 25},
+    "assessment_3": {"credits": 3, "priceToman": 1_200_000, "labelFa": "سه ارزیابی", "labelEn": "3 assessments", "discountPercent": 33.3},
+    "assessment_6": {"credits": 6, "priceToman": 2_500_000, "labelFa": "شش ارزیابی", "labelEn": "6 assessments", "discountPercent": 30.6},
+    "assessment_12": {"credits": 12, "priceToman": 4_500_000, "labelFa": "دوازده ارزیابی", "labelEn": "12 assessments", "discountPercent": 37.5},
 }
 MAX_RECEIPT_BYTES = 5 * 1024 * 1024
 ALLOWED_RECEIPT_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}

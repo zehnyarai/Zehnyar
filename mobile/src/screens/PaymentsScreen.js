@@ -11,9 +11,9 @@ import { checkRequest, getApiBase, getOfflinePaymentConfig, loadPaymentPanel, su
 
 const PACKAGES = [
   { sku: 'assessment_1', credits: 1, priceToman: 600000, discountPercent: 0, label: 'single' },
-  { sku: 'assessment_3', credits: 3, priceToman: 1620000, discountPercent: 10, label: 'three' },
-  { sku: 'assessment_6', credits: 6, priceToman: 3060000, discountPercent: 15, label: 'six' },
-  { sku: 'assessment_12', credits: 12, priceToman: 5400000, discountPercent: 25, label: 'twelve' },
+  { sku: 'assessment_3', credits: 3, priceToman: 1200000, discountPercent: 33.3, label: 'three' },
+  { sku: 'assessment_6', credits: 6, priceToman: 2500000, discountPercent: 30.6, label: 'six' },
+  { sku: 'assessment_12', credits: 12, priceToman: 4500000, discountPercent: 37.5, label: 'twelve' },
 ];
 
 function amount(value, lang, t) {
@@ -23,7 +23,8 @@ function amount(value, lang, t) {
 }
 
 function discountLabel(value, lang, t) {
-  const number = lang === 'fa' ? toPersianDigits(String(value)) : String(value);
+  const rawNumber = String(value);
+  const number = lang === 'fa' ? toPersianDigits(rawNumber).replace('.', '٫') : rawNumber;
   const sign = lang === 'fa' ? String.fromCharCode(0x066a) : '%';
   return `${t('payments.discount')} ${number}${sign}`;
 }
