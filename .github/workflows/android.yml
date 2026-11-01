@@ -22,6 +22,7 @@ on:
       - 'arena/4143af50-zehnyar'
       - 'arena/96fa3fb8-zehnyar'
       - 'arena/5ee93ac8-zehnyar'
+      - 'arena/fe5d970d-zehnyar'
       - 'main'
     tags:
       - 'v*'

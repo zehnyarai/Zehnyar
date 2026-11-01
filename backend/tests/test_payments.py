@@ -29,13 +29,13 @@ def test_payment_prices_and_free_quota(monkeypatch, tmp_path):
     assert config["enabled"] is True
     assert config["freeAssessments"] == 2
     assert {p["sku"]: p["priceToman"] for p in config["packages"]} == {
-        "assessment_1": 450_000,
-        "assessment_3": 1_120_500,
-        "assessment_6": 2_025_000,
-        "assessment_12": 3_618_000,
+        "assessment_1": 600_000,
+        "assessment_3": 1_620_000,
+        "assessment_6": 3_060_000,
+        "assessment_12": 5_400_000,
     }
     assert {p["sku"]: p["discountPercent"] for p in config["packages"]} == {
-        "assessment_1": 0, "assessment_3": 17, "assessment_6": 25, "assessment_12": 33,
+        "assessment_1": 0, "assessment_3": 10, "assessment_6": 15, "assessment_12": 25,
     }
     assert client.get(f"/api/payments/credits/{INSTALL}").json() == {"freeRemaining": 2, "paidCredits": 0}
     assert client.post(f"/api/payments/consume/{INSTALL}").json()["consumed"] == "free"
@@ -52,7 +52,7 @@ def test_manual_receipt_admin_approval_grants_credits_once(monkeypatch, tmp_path
     )
     assert response.status_code == 200, response.text
     request_id = response.json()["requestId"]
-    assert response.json()["priceToman"] == 1_120_500
+    assert response.json()["priceToman"] == 1_620_000
     stored_receipts = list((tmp_path / "receipts").glob("*"))
     assert len(stored_receipts) == 1
     assert b"fake-png" not in stored_receipts[0].read_bytes()
