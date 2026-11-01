@@ -84,6 +84,51 @@
 
 ---
 
+## گام ۴٫۵: پاسخ نهاییِ فیلدهای صفحهٔ دوم (کامل، بدون جای خالی)
+
+> فیلدهای صفحهٔ دوم فرم: `Why should this scenario win?` · `Fill out your email` · `Fill out your Make Community username` (+ فیلد اختیاری ایمیل سازنده). همه انگلیسی.
+
+### نسخهٔ A — اگر بات به کاربران پاسخ می‌دهد
+
+```
+My scenario is the Telegram bot that answers our users' questions about our product, in the app they already open every day. It has been running in production since 6 August 2026 and has handled roughly 2,000 operations for real users, so the utility is measured rather than promised: questions that used to wait for a human reply now get an immediate, consistent answer, and only the genuinely unclear ones reach a person.
+
+What I am proudest of is what the bot refuses to do. It is not a general chatbot: it answers only from our own curated material, it has to admit when it does not know, and those cases are routed to a human instead of being guessed at. In a domain where a confident wrong answer costs someone real time and money, being right matters more than replying fast.
+
+It is small, cheap to run, and boring in the best way: one job done properly, with clear limits.
+```
+
+### نسخهٔ B — اگر بات خبر/تغییر/اعلان می‌فرستد
+
+```
+My scenario is the Telegram bot that delivers our project's updates to the people who actually need them. It has been live since 6 August 2026 and has handled roughly 2,000 operations for real users, so the utility is measured rather than promised: instead of sending everything, it selects each event, checks where it came from, and rewrites it into one short message a person can act on. The filter is the product, not the bot.
+
+What I am proudest of is the restraint in the design. A notification bot usually dies of noise: it forwards raw events, users mute it, and the channel stops working. This one de-duplicates, groups and labels before it sends, and it deliberately stays silent when nothing meaningful changed — so the channel stays a place people read.
+
+It is small, cheap to run, and boring in the best way: one job done properly, with clear limits.
+```
+
+### نسخهٔ C — خنثی و همیشه درست (اگر هیچ‌کدام دقیقاً توصیفش نمی‌کند)
+
+```
+This is a Telegram bot I built for our own project and real people use it every day. It has been in production since 6 August 2026 and has handled roughly 2,000 operations, so the utility here is measured, not promised.
+
+The design principle I would want other makers to copy is the handoff: the bot does one narrow job well and pushes anything uncertain to a human instead of guessing. That single rule is what makes a small automation trustworthy enough to leave running unattended.
+
+It is small, cheap to run, and boring in the best way: one job done properly, with clear limits.
+```
+
+### فیلدهای دیگر
+
+| فیلد | چه بنویسی |
+|---|---|
+| `Fill out your email` | ایمیل فعال خودت (با همان، جایزه هماهنگ می‌شود) — دقیق تایپ کن |
+| `Fill out the Creator's email` | **خالی** (خودت سازنده‌ای) |
+| `Fill out your Make Community username` | نام کاربری‌ات در [community.make.com](https://community.make.com) — آواتار بالا-راست → نام کاربری؛ در آدرس پروفایل هم به شکل `community.make.com/u/<username>` دیده می‌شود. اگر حساب نداری، همان‌جا با ایمیل خودت ثبت‌نام کن (رایگان) و یک نام کاربری حرفه‌ای بردار (مثلاً `sadra_makes`) — این نام در معرفی برنده عمومی می‌شود |
+| تیک پایین فرم | موافقت با استفادهٔ عمومی از اطلاعات؛ اگر با انتشار عمومی سناریو و نام کاربری‌ات در کانال‌های Make موافقی، تیک بزن |
+
+---
+
 ## گام ۵: فرم را پر کن (۶۰ ثانیه)
 
 [فرم Tally — Scenario of the Month](https://tally.so/r/MePybX)
