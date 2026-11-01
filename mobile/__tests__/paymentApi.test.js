@@ -26,7 +26,7 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
-import { consumeAssessmentCredit, getApiBase, getOfflinePaymentConfig, hasAssessmentAccess, loadPaymentPanel, submitReceipt } from '../src/core/paymentApi';
+import { consumeAssessmentCredit, getApiBase, getOfflinePaymentConfig, hasAssessmentAccess, loadPaymentPanel, registerBazaarPurchase, submitReceipt } from '../src/core/paymentApi';
 
 const originalFetch = global.fetch;
 
@@ -134,5 +134,49 @@ describe('payment panel static card configuration', () => {
     expect(panel.config.canSubmitReceipt).toBe(true);
     expect(panel.config.card.number).toBe('1234567890123456');
     expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+});
+
+
+describe('Cafe Bazaar purchase registration', () => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+    global.fetch = jest.fn();
+    Constants.expoConfig.extra.apiBaseUrl = 'https://payments.example';
+    Constants.expoConfig.extra.testBuild = false;
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  it('sends the untouched signed purchase payload to the backend for verification', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ status: 'granted', creditsAdded: 3, freeRemaining: 2, paidCredits: 3 }),
+    });
+    const purchase = {
+      originalJson: '{"orderId":"bazaar-test-order","productId":"assessment_3"}',
+      dataSignature: 'base64-signature-from-poolakey',
+      purchaseToken: 'never-sent-as-a-credential',
+    };
+
+    const result = await registerBazaarPurchase(purchase);
+
+    expect(result.paidCredits).toBe(3);
+    expect(global.fetch).toHaveBeenCalledWith('https://payments.example/api/payments/bazaar/purchases', expect.objectContaining({
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        installId: 'install-test-id',
+        purchaseData: purchase.originalJson,
+        dataSignature: purchase.dataSignature,
+      }),
+    }));
+  });
+
+  it('rejects a purchase result without the original signed data and signature', async () => {
+    await expect(registerBazaarPurchase({ purchaseToken: 'token' })).rejects.toThrow('INVALID_BAZAAR_PURCHASE_PROOF');
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 });

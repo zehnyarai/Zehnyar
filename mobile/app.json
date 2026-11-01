@@ -3,7 +3,7 @@
     "name": "ویزایار",
     "slug": "visayar",
     "scheme": "visayar",
-    "version": "2.3.17",
+    "version": "2.3.18",
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",
     "userInterfaceStyle": "light",
@@ -22,7 +22,7 @@
     },
     "android": {
       "package": "ai.visayar.app",
-      "versionCode": 42,
+      "versionCode": 43,
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/adaptive-icon.png",
         "backgroundColor": "#000000"

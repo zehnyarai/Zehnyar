@@ -246,6 +246,27 @@ export async function loadPaymentPanel() {
   }
 }
 
+export async function loadCreditBalance() {
+  const installId = await getInstallId();
+  return api(`/api/payments/credits/${installId}`);
+}
+
+export async function registerBazaarPurchase(purchase) {
+  if (!purchase || typeof purchase.originalJson !== 'string' || typeof purchase.dataSignature !== 'string') {
+    throw new Error('INVALID_BAZAAR_PURCHASE_PROOF');
+  }
+  const installId = await getInstallId();
+  return api('/api/payments/bazaar/purchases', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      installId,
+      purchaseData: purchase.originalJson,
+      dataSignature: purchase.dataSignature,
+    }),
+  });
+}
+
 export async function submitReceipt({ sku, transferDate, trackingCode, phone = '', receipt }) {
   const installId = await getInstallId();
   const body = new FormData();

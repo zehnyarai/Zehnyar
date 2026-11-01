@@ -8,6 +8,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
+import json
 import os
 import re
 import secrets
@@ -20,6 +21,9 @@ from typing import Optional
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, File, Form, HTTPException, Request, Response, UploadFile
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/api/payments", tags=["payments"])
@@ -29,6 +33,9 @@ AUTH = APIRouter(prefix="/api/admin/auth", tags=["admin authentication"])
 SETTINGS = APIRouter(prefix="/api/admin/settings", tags=["admin settings"])
 ADMIN_COOKIE = "visayar_admin_session"
 SESSION_TTL_SECONDS = 12 * 60 * 60
+BAZAAR_PACKAGE_NAME = "ai.visayar.app"
+# Public app-signing key from the Cafe Bazaar developer panel; intentionally public.
+BAZAAR_RSA_PUBLIC_KEY = "MIHNMA0GCSqGSIb3DQEBAQUAA4G7ADCBtwKBrwCwOm/60Tk9soJsn5U7KkXc0bZ4dLPRsk2od6Z9yhSAF9KTAl+LupPEBd12tGT+Km3nGv1Te/a3vJqLYXf7mqJrJmVr/ZTYc2VDPujKUbAncaxVHD5vkZbz0Joavblm3MLyqsEwemw5wIVyL+4+f7tk4y6gMBbpMIiuKITEO/Uaoc1/5ycKuhELR0xJcsVAJoR3HPAckKMQXqx4/C4oPIePH+qv/3WsES8mPSJoyskCAwEAAQ=="
 LOGIN_FAILURES: dict[str, list[float]] = {}
 
 
@@ -49,6 +56,12 @@ class PaymentCardUpdate(BaseModel):
 
 class PaymentReject(BaseModel):
     reason: str = Field(min_length=3, max_length=500)
+
+
+class BazaarPurchasePayload(BaseModel):
+    installId: str = Field(min_length=1, max_length=80)
+    purchaseData: str = Field(min_length=2, max_length=16_384)
+    dataSignature: str = Field(min_length=16, max_length=4_096)
 
 
 PACKAGES = {
@@ -96,6 +109,15 @@ def _db() -> sqlite3.Connection:
         );
         CREATE UNIQUE INDEX IF NOT EXISTS payment_tracking_unique
             ON payment_requests(tracking_code);
+        CREATE TABLE IF NOT EXISTS bazaar_purchases (
+            order_id TEXT PRIMARY KEY,
+            install_id TEXT NOT NULL,
+            sku TEXT NOT NULL,
+            credits INTEGER NOT NULL,
+            purchase_data_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY(install_id) REFERENCES customers(install_id)
+        );
         CREATE TABLE IF NOT EXISTS admin_sessions (
             token_hash TEXT PRIMARY KEY,
             username TEXT NOT NULL,
@@ -495,6 +517,95 @@ def credits(install_id: str):
         db.commit()
         row = db.execute("SELECT free_used,credits FROM customers WHERE install_id=?", (install_id,)).fetchone()
         return {"freeRemaining": max(0, 2 - row["free_used"]), "paidCredits": row["credits"]}
+    finally:
+        db.close()
+
+
+def _verified_bazaar_purchase(purchase_data: str, data_signature: str, install_id: str) -> dict:
+    """Verify Bazaar's signed purchase payload before any credit mutation."""
+    try:
+        key_bytes = base64.b64decode(BAZAAR_RSA_PUBLIC_KEY, validate=True)
+        public_key = serialization.load_der_public_key(key_bytes)
+        signature = base64.b64decode(data_signature, validate=True)
+        purchase = json.loads(purchase_data)
+    except (ValueError, TypeError, json.JSONDecodeError) as exc:
+        raise HTTPException(422, "Invalid Bazaar purchase proof") from exc
+    if not isinstance(purchase, dict):
+        raise HTTPException(422, "Invalid Bazaar purchase proof")
+    try:
+        public_key.verify(
+            signature,
+            purchase_data.encode("utf-8"),
+            padding.PKCS1v15(),
+            hashes.SHA1(),
+        )
+    except (InvalidSignature, ValueError, TypeError) as exc:
+        raise HTTPException(403, "Bazaar purchase signature is invalid") from exc
+
+    product_id = purchase.get("productId")
+    order_id = purchase.get("orderId")
+    purchase_token = purchase.get("purchaseToken")
+    package_name = purchase.get("packageName")
+    developer_payload = purchase.get("developerPayload", "")
+    try:
+        purchase_state = int(purchase.get("purchaseState", -1))
+    except (TypeError, ValueError):
+        purchase_state = -1
+    if package_name != BAZAAR_PACKAGE_NAME:
+        raise HTTPException(422, "Bazaar purchase belongs to a different app")
+    if product_id not in PACKAGES:
+        raise HTTPException(422, "Unknown Bazaar product")
+    if purchase_state != 0:
+        raise HTTPException(409, "Bazaar purchase is not in purchased state")
+    if not isinstance(order_id, str) or not order_id.strip() or len(order_id) > 160:
+        raise HTTPException(422, "Bazaar purchase order is missing")
+    if not isinstance(purchase_token, str) or not purchase_token.strip() or len(purchase_token) > 2_048:
+        raise HTTPException(422, "Bazaar purchase token is missing")
+    if developer_payload != install_id:
+        raise HTTPException(403, "Bazaar purchase does not match this installation")
+    return {"sku": product_id, "orderId": order_id.strip()}
+
+
+@router.post("/bazaar/purchases")
+def register_bazaar_purchase(payload: BazaarPurchasePayload):
+    """Validate the signed Cafe Bazaar purchase, grant credits once, and return balance."""
+    install_id = _install_id(payload.installId)
+    facts = _verified_bazaar_purchase(payload.purchaseData, payload.dataSignature, install_id)
+    package = PACKAGES[facts["sku"]]
+    purchase_hash = hashlib.sha256(payload.purchaseData.encode("utf-8")).hexdigest()
+    db = _db()
+    try:
+        db.execute("BEGIN IMMEDIATE")
+        _ensure_customer(db, install_id)
+        existing = db.execute(
+            "SELECT install_id,sku,purchase_data_hash FROM bazaar_purchases WHERE order_id=?",
+            (facts["orderId"],),
+        ).fetchone()
+        if existing:
+            if (existing["install_id"] != install_id or existing["sku"] != facts["sku"]
+                    or not hmac.compare_digest(existing["purchase_data_hash"], purchase_hash)):
+                db.rollback()
+                raise HTTPException(409, "Bazaar order has already been used")
+            credits_added = 0
+        else:
+            db.execute(
+                "INSERT INTO bazaar_purchases(order_id,install_id,sku,credits,purchase_data_hash,created_at) VALUES(?,?,?,?,?,?)",
+                (facts["orderId"], install_id, facts["sku"], package["credits"], purchase_hash, _now()),
+            )
+            db.execute(
+                "UPDATE customers SET credits=credits+?,updated_at=? WHERE install_id=?",
+                (package["credits"], _now(), install_id),
+            )
+            credits_added = package["credits"]
+        db.commit()
+        balance = db.execute("SELECT free_used,credits FROM customers WHERE install_id=?", (install_id,)).fetchone()
+        return {
+            "status": "granted" if credits_added else "already_granted",
+            "creditsAdded": credits_added,
+            "freeRemaining": max(0, 2 - balance["free_used"]),
+            "paidCredits": balance["credits"],
+            "orderId": facts["orderId"],
+        }
     finally:
         db.close()
 
