@@ -109,6 +109,7 @@ if (!signingConfigs || !buildTypes) {
 
 const signingBlock = `release {
             storeFile file(${groovyString(keystorePath.replace(/\\/g, '/'))})
+            storeType "JKS"
             storePassword ${groovyString(storePassword)}
             keyAlias ${groovyString(alias)}
             keyPassword ${groovyString(keyPassword)}

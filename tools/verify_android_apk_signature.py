@@ -35,7 +35,7 @@ def main() -> int:
     try:
         apk_info = run([apksigner, "verify", "--print-certs", str(apk)])
         key_info = run([
-            "keytool", "-list", "-v", "-keystore", keystore,
+            "keytool", "-list", "-v", "-storetype", "JKS", "-keystore", keystore,
             "-alias", alias, "-storepass", store_password,
         ])
     except (OSError, subprocess.CalledProcessError) as error:

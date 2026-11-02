@@ -133,8 +133,12 @@ jobs:
             exit 1
           fi
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
-          KEY_INFO="$(keytool -list -v -keystore "$ANDROID_KEYSTORE_PATH" \
-            -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS")"
+          if ! KEY_INFO="$(keytool -list -v -storetype JKS -keystore "$ANDROID_KEYSTORE_PATH" \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" 2>&1)"; then
+            echo "::error::Unable to read the JKS keystore. Check its base64 value, store password, and alias."
+            printf '%s\n' "$KEY_INFO"
+            exit 1
+          fi
           if printf '%s\n' "$KEY_INFO" | grep -Eqi 'Owner:.*Android Debug'; then
             echo "::error::Configured keystore is Android's debug key; use the actual release keystore."
             exit 1
