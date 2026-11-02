@@ -7,13 +7,14 @@ import { colors, fonts, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { Button, Card, Pill, PressableScale, ScrollScreen, SectionTitle, Text } from '../components/ui';
 import { groupThousands, toPersianDigits } from '../core/format';
-import { checkRequest, getApiBase, getOfflinePaymentConfig, loadPaymentPanel, submitReceipt } from '../core/paymentApi';
+import { checkRequest, getApiBase, getInstallId, getOfflinePaymentConfig, loadCreditBalance, loadPaymentPanel, registerBazaarPurchase, submitReceipt } from '../core/paymentApi';
+import { getCafeBazaarBilling, isBazaarIabBuild, BAZAAR_RSA_PUBLIC_KEY } from '../core/bazaarBilling';
 
 const PACKAGES = [
   { sku: 'assessment_1', credits: 1, priceToman: 600000, discountPercent: 0, label: 'single' },
-  { sku: 'assessment_3', credits: 3, priceToman: 1500000, discountPercent: 17, label: 'three' },
-  { sku: 'assessment_6', credits: 6, priceToman: 2700000, discountPercent: 25, label: 'six' },
-  { sku: 'assessment_12', credits: 12, priceToman: 4800000, discountPercent: 33, label: 'twelve' },
+  { sku: 'assessment_3', credits: 3, priceToman: 1200000, discountPercent: 33.3, label: 'three' },
+  { sku: 'assessment_6', credits: 6, priceToman: 2500000, discountPercent: 30.6, label: 'six' },
+  { sku: 'assessment_12', credits: 12, priceToman: 4500000, discountPercent: 37.5, label: 'twelve' },
 ];
 
 function amount(value, lang, t) {
@@ -23,7 +24,8 @@ function amount(value, lang, t) {
 }
 
 function discountLabel(value, lang, t) {
-  const number = lang === 'fa' ? toPersianDigits(String(value)) : String(value);
+  const rawNumber = String(value);
+  const number = lang === 'fa' ? toPersianDigits(rawNumber).replace('.', '٫') : rawNumber;
   const sign = lang === 'fa' ? String.fromCharCode(0x066a) : '%';
   return `${t('payments.discount')} ${number}${sign}`;
 }
@@ -33,8 +35,29 @@ function visibleBankLabel(value, lang) {
   return lang === 'fa' && /[A-Za-z]/.test(value) ? '—' : value;
 }
 
+function localizedBazaarPrice(value, lang, t) {
+  const latinDigits = String(value || '').replace(/[\u06f0-\u06f9\u0660-\u0669]/g, (digit) => {
+    const code = digit.charCodeAt(0);
+    return String(code >= 0x06f0 ? code - 0x06f0 : code - 0x0660);
+  }).replace(/[\u066c\u060c]/g, ',');
+  const tomanFa = String.fromCharCode(0x062a, 0x0648, 0x0645, 0x0627, 0x0646);
+  const rialFa = String.fromCharCode(0x0631, 0x06cc, 0x0627, 0x0644);
+  if (lang === 'fa') {
+    return toPersianDigits(latinDigits)
+      .replace(/,/g, String.fromCharCode(0x066c))
+      .replace(/\bToman\b/gi, t('payments.toman'))
+      .replace(/\bRial\b/gi, t('payments.rial'))
+      .replace(/\bIRR\b/gi, t('payments.rial'))
+      .replace(/\bIRT\b/gi, t('payments.toman'));
+  }
+  return latinDigits
+    .replace(new RegExp(tomanFa, 'g'), t('payments.toman'))
+    .replace(new RegExp(rialFa, 'g'), t('payments.rial'));
+}
+
 export default function PaymentsScreen({ navigation }) {
   const { t, lang, pick } = useI18n();
+  const bazaarIab = isBazaarIabBuild();
   const dir = useDirection();
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -46,8 +69,24 @@ export default function PaymentsScreen({ navigation }) {
   const [receipt, setReceipt] = useState(null);
   const [request, setRequest] = useState(null);
   const [balance, setBalance] = useState(null);
+  const [bazaarPrices, setBazaarPrices] = useState({});
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [bazaarError, setBazaarError] = useState('');
 
   const refresh = useCallback(async () => {
+    if (bazaarIab) {
+      setPanel(null);
+      setRequest(null);
+      setLoading(true);
+      try {
+        setBalance(await loadCreditBalance());
+      } catch (error) {
+        setBalance({ freeRemaining: 2, paidCredits: 0 });
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
     const fallback = getOfflinePaymentConfig();
     setPanel(fallback.enabled ? { ...fallback, canSubmitReceipt: !!getApiBase() } : null);
     setBalance(fallback.enabled ? { freeRemaining: 2, paidCredits: 0 } : null);
@@ -63,9 +102,101 @@ export default function PaymentsScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [bazaarIab]);
 
   useEffect(() => { refresh(); }, [refresh]);
+
+  useEffect(() => {
+    if (!bazaarIab) return undefined;
+    let active = true;
+    const loadBazaarCatalog = async () => {
+      const billing = getCafeBazaarBilling();
+      if (!billing) {
+        setBazaarError(t('payments.bazaarUnavailable'));
+        return;
+      }
+      setCatalogLoading(true);
+      setBazaarError('');
+      try {
+        await billing.connect({ rsaPublicKey: BAZAAR_RSA_PUBLIC_KEY });
+        const details = await billing.getInAppSkuDetails(PACKAGES.map((item) => item.sku));
+        if (!active) return;
+        const prices = Object.fromEntries((details || []).map((item) => [item.sku, item.price]).filter(([sku, price]) => sku && price));
+        setBazaarPrices(prices);
+        if (Object.keys(prices).length < PACKAGES.length) setBazaarError(t('payments.bazaarProductsUnavailable'));
+      } catch (error) {
+        if (active) setBazaarError(t('payments.bazaarUnavailable'));
+      } finally {
+        try { await billing.disconnect(); } catch (error) { /* no active connection to release */ }
+        if (active) setCatalogLoading(false);
+      }
+    };
+    loadBazaarCatalog();
+    return () => { active = false; };
+  }, [bazaarIab, t]);
+
+  const settleBazaarPurchase = async (billing, purchase) => {
+    if (!purchase?.purchaseToken || !purchase?.originalJson || !purchase?.dataSignature) {
+      throw new Error('INVALID_BAZAAR_PURCHASE_PROOF');
+    }
+    const sku = purchase.productId || purchase.sku;
+    if (!PACKAGES.some((item) => item.sku === sku)) return null;
+    const result = await registerBazaarPurchase(purchase);
+    await billing.consumePurchase(purchase.purchaseToken);
+    return result;
+  };
+
+  const buyWithBazaar = async () => {
+    const billing = getCafeBazaarBilling();
+    if (!billing) {
+      Alert.alert(t('common.dismiss'), t('payments.bazaarUnavailable'));
+      return;
+    }
+    if (!getApiBase()) {
+      Alert.alert(t('common.dismiss'), t('payments.bazaarNeedsServer'));
+      return;
+    }
+    if (!bazaarPrices[selected]) {
+      Alert.alert(t('common.dismiss'), t('payments.bazaarProductsUnavailable'));
+      return;
+    }
+    setSending(true);
+    setBazaarError('');
+    try {
+      await billing.connect({ rsaPublicKey: BAZAAR_RSA_PUBLIC_KEY });
+      // Retry any purchase left unconsumed by an app close/network interruption before starting a new order.
+      const pending = await billing.getPurchasedProducts();
+      let recoveredPendingPurchase = false;
+      for (const purchase of pending || []) {
+        const recovered = await settleBazaarPurchase(billing, purchase);
+        if (recovered) {
+          setBalance(recovered);
+          recoveredPendingPurchase = true;
+        }
+      }
+      if (recoveredPendingPurchase) {
+        Alert.alert(t('payments.bazaarPurchaseSuccess'));
+        return;
+      }
+      const installId = await getInstallId();
+      const purchase = await billing.purchaseProduct(selected, { developerPayload: installId });
+      const result = await settleBazaarPurchase(billing, purchase);
+      if (!result) throw new Error('INVALID_BAZAAR_PRODUCT');
+      setBalance(result);
+      Alert.alert(t('payments.bazaarPurchaseSuccess'));
+    } catch (error) {
+      const message = error?.message === 'INVALID_BAZAAR_PRODUCT' || error?.message === 'INVALID_BAZAAR_PURCHASE_PROOF'
+        ? t('payments.bazaarPurchaseError')
+        : error?.status === 0 || error?.message === 'API_NOT_CONFIGURED'
+          ? t('payments.bazaarNeedsServer')
+          : t('payments.bazaarPurchaseError');
+      setBazaarError(message);
+      Alert.alert(t('common.dismiss'), message);
+    } finally {
+      try { await billing.disconnect(); } catch (error) { /* billing may already have disconnected */ }
+      setSending(false);
+    }
+  };
 
   const chooseReceipt = async () => {
     try {
@@ -121,7 +252,7 @@ export default function PaymentsScreen({ navigation }) {
   const onlineMode = !!getApiBase();
 
   useEffect(() => {
-    if (!onlineMode || !request?.id || request.status !== 'pending') return undefined;
+    if (bazaarIab || !onlineMode || !request?.id || request.status !== 'pending') return undefined;
     let active = true;
     const refreshPending = async () => {
       try {
@@ -137,7 +268,7 @@ export default function PaymentsScreen({ navigation }) {
     const timer = setInterval(refreshPending, 8000);
     refreshPending();
     return () => { active = false; clearInterval(timer); };
-  }, [onlineMode, request?.id, request?.status, t]);
+  }, [bazaarIab, onlineMode, request?.id, request?.status, t]);
 
   const card = panel?.card;
   const canShowCard = !!panel?.enabled && !!card;
@@ -170,7 +301,7 @@ export default function PaymentsScreen({ navigation }) {
 
       <View style={{ padding: spacing.md, gap: spacing.md }}>
         <Card>
-          <SectionTitle title={t('payments.packages')} subtitle={t('payments.pricesIntro')} />
+          <SectionTitle title={t('payments.packages')} subtitle={t(bazaarIab ? 'payments.bazaarCatalogIntro' : 'payments.pricesIntro')} />
           <View style={{ gap: spacing.xs, marginTop: spacing.md }}>
             {PACKAGES.map((item) => {
               const active = selected === item.sku;
@@ -181,13 +312,15 @@ export default function PaymentsScreen({ navigation }) {
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: dir.row, alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                         <Text variant="bodyStrong" style={{ color: colors.ink }}>{t(`payments.${item.label}`)}</Text>
-                        {item.discountPercent > 0 ? <Pill label={discountLabel(item.discountPercent, lang, t)} tone="sky" /> : null}
+                        {!bazaarIab && item.discountPercent > 0 ? <Pill label={discountLabel(item.discountPercent, lang, t)} tone="sky" /> : null}
                       </View>
-                      <Text variant="micro" color={colors.ink50} style={{ marginTop: 3, textAlign: dir.text }}>
-                        {amount(Math.round(item.priceToman / item.credits), lang, t)} {t('payments.perAssessment')}
-                      </Text>
+                      {!bazaarIab ? (
+                        <Text variant="micro" color={colors.ink50} style={{ marginTop: 3, textAlign: dir.text }}>
+                          {amount(Math.round(item.priceToman / item.credits), lang, t)} {t('payments.perAssessment')}
+                        </Text>
+                      ) : null}
                     </View>
-                    <Text variant="h3" style={{ color: active ? colors.teal700 : colors.ink70 }}>{amount(item.priceToman, lang, t)}</Text>
+                    <Text variant="h3" style={{ color: active ? colors.teal700 : colors.ink70 }}>{bazaarIab ? (bazaarPrices[item.sku] ? localizedBazaarPrice(bazaarPrices[item.sku], lang, t) : (catalogLoading ? t('payments.priceLoading') : '—')) : amount(item.priceToman, lang, t)}</Text>
                   </View>
                 </PressableScale>
               );
@@ -195,6 +328,7 @@ export default function PaymentsScreen({ navigation }) {
           </View>
         </Card>
 
+        {!bazaarIab ? <>
         <Card>
           <SectionTitle
             title={t('payments.transferTitle')}
@@ -257,7 +391,29 @@ export default function PaymentsScreen({ navigation }) {
         </Card>
 
 
-        {request ? (
+        </> : (
+          <Card>
+            <SectionTitle title={t('payments.bazaarPurchaseTitle')} subtitle={t('payments.bazaarPurchaseHint')} />
+            {bazaarError ? (
+              <View style={styles.notice}>
+                <Ionicons name="information-circle-outline" size={22} color={colors.warn} />
+                <Text variant="small" color={colors.ink70} style={{ flex: 1, textAlign: dir.text }}>{bazaarError}</Text>
+              </View>
+            ) : null}
+            <Button
+              label={sending ? t('payments.bazaarProcessing') : `${t('payments.bazaarBuy')} · ${t(`payments.${activePackage.label}`)}`}
+              icon="cart-outline"
+              loading={sending || catalogLoading}
+              disabled={sending || catalogLoading || !bazaarPrices[selected] || !onlineMode}
+              onPress={buyWithBazaar}
+              style={{ marginTop: spacing.md }}
+            />
+            {!onlineMode ? <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('payments.bazaarNeedsServer')}</Text> : null}
+            <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('payments.bazaarPrivacy')}</Text>
+          </Card>
+        )}
+
+        {!bazaarIab && request ? (
           <Card>
             <SectionTitle title={t('payments.statusTitle')} />
             <View style={[styles.statusLine, { flexDirection: dir.row }]}>

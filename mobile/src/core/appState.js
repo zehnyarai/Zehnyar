@@ -1,8 +1,14 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { getDataset, subscribeDataset } from './data';
+import {
+  getDataset,
+  getDatasetSyncStatus,
+  subscribeDataset,
+  subscribeDatasetSync,
+  syncDataset,
+} from './data';
 import engine from './engine';
 import { clearAll, loadProfile, saveProfile, saveResult } from './storage';
-import { consumeAssessmentCredit, hasAssessmentAccess } from './paymentApi';
+import { consumeAssessmentCredit } from './paymentApi';
 
 const AppStateContext = createContext(null);
 
@@ -11,9 +17,24 @@ export function AppStateProvider({ children, initialProfile, initialResult }) {
   const [result, setResult] = useState(initialResult || null);
   const [hydrated, setHydrated] = useState(!!initialProfile);
   const [dataRevision, setDataRevision] = useState(0);
+  const [datasetSync, setDatasetSync] = useState(getDatasetSyncStatus);
   const saveTimer = useRef(null);
+  const assessedRevision = useRef(0);
 
   useEffect(() => subscribeDataset(() => setDataRevision((revision) => revision + 1)), []);
+  useEffect(() => subscribeDatasetSync(setDatasetSync), []);
+
+  useEffect(() => {
+    const dataChanged = dataRevision !== assessedRevision.current;
+    assessedRevision.current = dataRevision;
+    if (!hydrated || !result) return;
+    const currentVersion = getDataset().meta.version;
+    if (!dataChanged && result.datasetVersion === currentVersion) return;
+    const refreshed = engine.assess(getDataset(), profile);
+    setResult(refreshed);
+    saveResult(refreshed);
+  }, [dataRevision, hydrated, profile, result]);
+
 
   useEffect(() => {
     if (initialProfile) return undefined;
@@ -49,7 +70,6 @@ export function AppStateProvider({ children, initialProfile, initialResult }) {
     setProfile((current) => ({ ...current, [key]: { ...current[key], ...patch } }));
   }, [setProfile]);
 
-  const canStartAssessment = useCallback(() => hasAssessmentAccess(), []);
 
   const compute = useCallback(async (t) => {
     const allowance = await consumeAssessmentCredit();
@@ -65,6 +85,7 @@ export function AppStateProvider({ children, initialProfile, initialResult }) {
     setProfileState(engine.emptyProfile());
     setResult(null);
   }, []);
+  const refreshDataset = useCallback(() => syncDataset(), []);
 
   const value = useMemo(() => ({
     profile,
@@ -74,12 +95,13 @@ export function AppStateProvider({ children, initialProfile, initialResult }) {
     result,
     setResult,
     compute,
-    canStartAssessment,
     resetAll,
     hydrated,
     hasAssessment: !!result,
     dataRevision,
-  }), [profile, setProfile, updateProfile, updateNested, result, compute, canStartAssessment, resetAll, hydrated, dataRevision]);
+    datasetSync,
+    refreshDataset,
+  }), [profile, setProfile, updateProfile, updateNested, result, compute, resetAll, hydrated, dataRevision, datasetSync, refreshDataset]);
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 }

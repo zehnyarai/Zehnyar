@@ -16,7 +16,9 @@ import AdminScreen from '../src/screens/AdminScreen';
 import WizardScreen from '../src/screens/WizardScreen';
 import ResultsScreen from '../src/screens/ResultsScreen';
 import CountryDetailScreen from '../src/screens/CountryDetailScreen';
-import { Button } from '../src/components/ui';
+import ResearchSourcesScreen from '../src/screens/ResearchSourcesScreen';
+import { Button, PressableScale } from '../src/components/ui';
+import { GoalTile } from '../src/components/cards';
 
 jest.mock('expo-font', () => ({
   useFonts: () => [true],
@@ -103,6 +105,37 @@ describe('Visayar app', () => {
     expect(text).toContain('ادامه ارزیابی من');
   });
 
+  it('lets users choose an assessment goal before checking payment at calculation time', () => {
+    const tree = renderWithProviders(<HomeScreen navigation={navigation} />, { profile: engine.emptyProfile() });
+    const workGoal = tree.root.findAllByType(GoalTile).find((tile) => tile.props.goalId === 'work');
+
+    act(() => {
+      workGoal.props.onPress();
+    });
+
+    expect(navigation.navigate).toHaveBeenCalledWith('Wizard', { from: 'home', goal: 'work' });
+    expect(navigation.navigate).not.toHaveBeenCalledWith('Payments');
+  });
+
+  it('renders the curated migration-source library in Persian and English', () => {
+    const persian = renderWithProviders(<ResearchSourcesScreen navigation={navigation} />);
+    expect(JSON.stringify(persian.toJSON())).toContain('منابع معتبر مهاجرت');
+    expect(JSON.stringify(persian.toJSON())).toContain('آمار مهاجرت، کمبود نیروی کار و قوانین ویزا سه نوع داده متفاوت‌اند');
+
+    let english;
+    act(() => {
+      english = create(
+        <I18nProvider initialLang="en">
+          <AppStateProvider initialProfile={baseProfile}>
+            <ResearchSourcesScreen navigation={navigation} />
+          </AppStateProvider>
+        </I18nProvider>,
+      );
+    });
+    expect(JSON.stringify(english.toJSON())).toContain('Trusted migration sources');
+    expect(JSON.stringify(english.toJSON())).toContain('IOM Global Migration Data Portal');
+  });
+
   it('renders every tab screen without crashing', () => {
     renderWithProviders(<ExploreScreen navigation={navigation} />);
     renderWithProviders(<ProfileScreen navigation={navigation} />);
@@ -116,6 +149,12 @@ describe('Visayar app', () => {
     const text = JSON.stringify(tree.toJSON());
     expect(text).toContain('اعتبار ارزیابی');
     expect(text).toContain('۶۰۰٬۰۰۰ تومان');
+    expect(text).toContain('۱٬۲۰۰٬۰۰۰ تومان');
+    expect(text).toContain('۲٬۵۰۰٬۰۰۰ تومان');
+    expect(text).toContain('۴٬۵۰۰٬۰۰۰ تومان');
+    expect(text).toContain('تخفیف ۳۳٫۳٪');
+    expect(text).toContain('تخفیف ۳۰٫۶٪');
+    expect(text).toContain('تخفیف ۳۷٫۵٪');
     expect(text).toContain('دوازده ارزیابی');
     expect(text).toContain('بارگذاری فیش واریزی');
     expect(text).toContain('تصویر فیش را از فایل‌های دستگاه انتخاب کنید');
@@ -124,15 +163,13 @@ describe('Visayar app', () => {
     expect(text).not.toContain('پیام‌رسان');
   });
 
-  it('includes an offline-safe admin panel preview inside the app', () => {
+  it('does not expose a mock admin panel preview or fabricated receipts', () => {
     const tree = renderWithProviders(<AdminScreen navigation={navigation} />);
-    const previewButton = tree.root.findAllByType(Button).find((button) => button.props.label === 'دیدن پیش‌نمایش پنل');
-    expect(previewButton).toBeTruthy();
-    act(() => previewButton.props.onPress());
     const text = JSON.stringify(tree.toJSON());
-    expect(text).toContain('این پیش‌نمایش فقط داده‌های ساختگی دارد');
-    expect(text).toContain('دیدن نمونه رسید');
-    expect(text).not.toContain('تأیید و افزودن اعتبار');
+    expect(text).not.toContain('دیدن پیش‌نمایش پنل');
+    expect(text).not.toContain('پیگیری آزمایشی');
+    expect(text).not.toContain('دیدن نمونه رسید');
+    expect(text).toContain('ورود امن');
   });
 
   it('walks through all eight wizard steps', () => {
@@ -146,7 +183,8 @@ describe('Visayar app', () => {
         </I18nProvider>,
       );
     });
-    for (let step = 0; step < 6; step += 1) {
+    expect(navigation.replace).not.toHaveBeenCalledWith('Payments');
+    for (let step = 0; step < 7; step += 1) {
       const buttons = tree.root.findAllByType(Button);
       const next = buttons[buttons.length - 1];
       act(() => {
@@ -155,6 +193,29 @@ describe('Visayar app', () => {
     }
     const text = JSON.stringify(tree.toJSON());
     expect(text).toContain('محاسبه شانس قبولی');
+  });
+
+  it('opens a distinct goal-specific form without repeating the goal picker or mixing unrelated fields', () => {
+    const cases = [
+      { goal: 'work', heading: 'مسیر کاری', includes: 'شغل استاندارد', excludes: ['پذیرش قطعی دانشگاه دارم', 'سرمایه اولیه کسب‌وکار', 'درآمد ماهانه دورکاری'] },
+      { goal: 'study', heading: 'مسیر تحصیلی', includes: 'پذیرش قطعی دانشگاه دارم', excludes: ['شغل استاندارد', 'سرمایه قابل سرمایه‌گذاری', 'درآمد ماهانه دورکاری'] },
+      { goal: 'startup', heading: 'استارتاپ و کسب‌وکار', includes: 'سرمایه اولیه کسب‌وکار', excludes: ['پذیرش قطعی دانشگاه دارم', 'شغل استاندارد', 'درآمد ماهانه دورکاری'] },
+      { goal: 'investment', heading: 'سرمایه‌گذاری', includes: 'سرمایه قابل سرمایه‌گذاری', excludes: ['پذیرش قطعی دانشگاه دارم', 'شغل استاندارد', 'درآمد ماهانه دورکاری'] },
+      { goal: 'selfsponsored', heading: 'درآمد دورکاری', includes: 'درآمد ماهانه دورکاری', excludes: ['پذیرش قطعی دانشگاه دارم', 'شغل استاندارد', 'سرمایه قابل سرمایه‌گذاری'] },
+    ];
+
+    cases.forEach(({ goal, heading, includes, excludes }) => {
+      const tree = renderWithProviders(
+        <WizardScreen navigation={navigation} route={{ params: { from: 'home', goal } }} />,
+        { profile: { ...engine.emptyProfile(), goal } },
+      );
+      const text = JSON.stringify(tree.toJSON());
+      expect(text).toContain(heading);
+      expect(text).toContain(includes);
+      expect(text).not.toContain('هدف مهاجرت');
+      excludes.forEach((label) => expect(text).not.toContain(label));
+      act(() => tree.unmount());
+    });
   });
 
   it('renders the results screen with a radar chart and country ranking', () => {
@@ -166,6 +227,10 @@ describe('Visayar app', () => {
     expect(text).toContain('نتیجه ارزیابی');
     expect(text).toContain('نمودار قوت و ضعف پرونده');
     expect(text).toContain('کانادا');
+
+    const advisorCard = tree.root.findAllByType(PressableScale).at(-1);
+    act(() => advisorCard.props.onPress());
+    expect(navigation.navigate).toHaveBeenCalledWith('Tabs', { screen: 'Advisor' });
   });
 
   it('renders the country detail for every destination', () => {

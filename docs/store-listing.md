@@ -5,7 +5,7 @@
 **نام برنامه:** ویزایار — سامانه هوشمند مهاجرت
 
 **توضیح کوتاه (۸۰ نویسه):**
-شانس قبولی مهاجرت خود را در ۱۵ کشور با داده رسمی بسنجید و نقشه راه بگیرید.
+ارزیابی مهاجرت در ۲۵ کشور و ۱۰۰ مسیر؛ امتیازها تخمینی‌اند، نه تضمین قبولی.
 
 **توضیح کامل:**
 
@@ -13,7 +13,7 @@
 
 چه چیزی به دست می‌آورید:
 
-• شانس تخمینی قبولی در ۱۵ مقصد و ۵۸ مسیر ویزا، از جمله کانادا، استرالیا، آلمان، بریتانیا، آمریکا، هلند، نیوزیلند، فرانسه، ایتالیا، اسپانیا، سوئد، دانمارک، ترکیه، امارات و عمان.
+• ارزیابی مقایسه‌ای در ۲۵ مقصد و ۱۰۰ مسیر، از جمله ایرلند، پرتغال، فنلاند، بلژیک، چین، قطر، ژاپن، کره جنوبی، مالزی و سنگاپور، با پیوند به منابع رسمی؛ امتیازها تخمینی‌اند و تضمین قبولی نیستند.
 
 • امتیازدهی چندلایه: سن دقیق، وضعیت تأهل و امتیاز همسر، سطح تحصیلات از دیپلم فنی‌حرفه‌ای تا دکترا، چهار مهارت زبان به‌صورت جداگانه (آیلتس، تافل، پی‌تی‌ای، دولینگو، گوته، تی‌سی‌اف و تی‌ای‌اف)، سابقه کار با کد استاندارد بین‌المللی، جاب‌آفر، تمکن مالی و فاکتورهای سازگاری.
 
@@ -48,7 +48,7 @@
 **Name:** Visayar — Immigration Intelligence
 
 **Short description (80 chars):**
-Score your migration odds across 15 countries on official rules and get a roadmap.
+Compare profiles across 25 countries and 100 routes; scores are estimates.
 
 **Full description:**
 
@@ -56,7 +56,7 @@ Visayar turns published government requirements into a clear score and an execut
 
 What you get:
 
-• Estimated approval odds across 15 destinations and 58 visa routes, including Canada, Australia, Germany, the United Kingdom, the United States, the Netherlands, New Zealand, France, Italy, Spain, Sweden, Denmark, Turkey, the UAE and Oman.
+• Comparative profile assessment across 25 destinations and 100 routes, including Ireland, Portugal, Finland, Belgium, China, Qatar, Japan, South Korea, Malaysia and Singapore, with official source links. Scores are estimates, not approval guarantees.
 
 • Multi-layer scoring: exact age, marital status and spouse points, education from vocational awards to a doctorate, four language skills scored separately (IELTS, TOEFL, PTE, Duolingo, Goethe, TCF, TEF), standardised work history with NOC/ANZSCO codes, formal job offers, settlement funds and adaptability factors.
 
