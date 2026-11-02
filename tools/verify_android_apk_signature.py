@@ -42,7 +42,7 @@ def main() -> int:
         print(f"Release signature verification failed: {error}", file=sys.stderr)
         return 1
 
-    apk_match = re.search(r"Signer #1 certificate SHA-?256 digest:\s*([0-9a-f:]+)", apk_info, re.I)
+    apk_match = re.search(r"(?:Signer #\d+ certificate|V\d+ Signer: certificate)\s+SHA-?256 digest:\s*([0-9a-f:]+)", apk_info, re.I)
     key_match = re.search(r"SHA-?256:\s*([0-9a-f:]+)", key_info, re.I)
     if not apk_match or not key_match:
         if not apk_match:
