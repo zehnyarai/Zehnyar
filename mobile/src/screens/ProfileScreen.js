@@ -7,14 +7,15 @@ import { colors, fonts, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { useAppState } from '../core/appState';
 import { formatVerifiedDate, getDatasetFreshness, getMeta, getTotals } from '../core/data';
+import { num } from '../core/format';
 import { Button, Card, Divider, KeyValue, Pill, PressableScale, ScrollScreen, SectionTitle, Text, TrustBadge } from '../components/ui';
 
-const appVersion = (Constants.expoConfig && Constants.expoConfig.version) || '2.1.0';
+const appVersion = (Constants.expoConfig && Constants.expoConfig.version) || '—';
 
 export default function ProfileScreen({ navigation }) {
   const { t, lang, pick, setLanguage } = useI18n();
   const dir = useDirection();
-  const { resetAll, hasAssessment } = useAppState();
+  const { resetAll, hasAssessment, datasetSync, refreshDataset } = useAppState();
   const totals = getTotals();
   const meta = getMeta();
   const verifiedDate = formatVerifiedDate(meta.lastVerified, lang);
@@ -22,6 +23,12 @@ export default function ProfileScreen({ navigation }) {
   const freshnessMessage = freshness.status === 'stale' || freshness.status === 'invalid'
     ? t('home.dataStale')
     : freshness.status === 'review_due' ? t('home.dataReviewDue') : null;
+  const syncMessage = datasetSync.status === 'updated'
+    ? t('profile.dataSyncUpdated')
+    : datasetSync.status === 'current' ? t('profile.dataSyncCurrent')
+      : datasetSync.status === 'checking' ? t('profile.dataSyncChecking')
+        : t('profile.dataSyncOffline');
+  const syncTone = datasetSync.status === 'updated' || datasetSync.status === 'current' ? 'success' : 'warn';
 
   const confirmReset = () => {
     Alert.alert(
@@ -88,15 +95,38 @@ export default function ProfileScreen({ navigation }) {
           <Button label={t('admin.entryButton')} icon="shield-checkmark-outline" variant="outline" onPress={() => navigation.navigate('Admin')} style={{ marginTop: spacing.sm }} />
         </Card>
         <Card>
+          <SectionTitle title={t('sources.libraryTitle')} subtitle={t('sources.librarySubtitle')} />
+          <Button
+            label={t('sources.openLibrary')}
+            icon="library-outline"
+            variant="outline"
+            onPress={() => navigation.navigate('ResearchSources')}
+            style={{ marginTop: spacing.sm }}
+          />
+        </Card>
+
+        <Card>
           <SectionTitle title={t('profile.dataTitle')} />
           <View style={{ marginTop: spacing.xs }}>
             <KeyValue label={t('profile.dataVersion')} value={meta.version} />
             <KeyValue label={t('profile.verifiedAt')} value={verifiedDate} tone={colors.success} />
-            <KeyValue label={t('profile.coverage')} value={`${totals.countries} • ${totals.visas} • ${totals.occupations}`} />
+            <KeyValue
+              label={t('profile.coverage')}
+              value={`${t('home.statsCountries')}: ${num(totals.countries, lang)} · ${t('home.statsVisas')}: ${num(totals.visas, lang)} · ${t('home.statsOccupations')}: ${num(totals.occupations, lang)}`}
+            />
             <KeyValue label={t('profile.developer')} value={appVersion} />
           </View>
           {freshnessMessage ? <Text variant="micro" color={colors.warn} style={{ marginTop: spacing.xs, textAlign: dir.text }}>{freshnessMessage}</Text> : null}
-          <View style={{ marginTop: spacing.sm }}>
+          <View style={{ marginTop: spacing.sm, gap: spacing.xs }}>
+            <Pill label={syncMessage} tone={syncTone} icon={datasetSync.status === 'updated' ? 'cloud-done-outline' : datasetSync.status === 'checking' ? 'sync-outline' : 'cloud-outline'} />
+            <Button
+              label={datasetSync.status === 'checking' ? t('profile.dataSyncChecking') : t('profile.refreshData')}
+              icon="refresh-outline"
+              variant="outline"
+              size="sm"
+              loading={datasetSync.status === 'checking'}
+              onPress={refreshDataset}
+            />
             <TrustBadge label={t('home.trusted')} value={verifiedDate} />
           </View>
         </Card>

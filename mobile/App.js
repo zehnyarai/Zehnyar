@@ -25,6 +25,7 @@ import AdminScreen from './src/screens/AdminScreen';
 import WizardScreen from './src/screens/WizardScreen';
 import ResultsScreen from './src/screens/ResultsScreen';
 import CountryDetailScreen from './src/screens/CountryDetailScreen';
+import ResearchSourcesScreen from './src/screens/ResearchSourcesScreen';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -113,6 +114,7 @@ function Root() {
       <Stack.Screen name="Wizard" component={WizardScreen} options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="Results" component={ResultsScreen} />
       <Stack.Screen name="CountryDetail" component={CountryDetailScreen} />
+      <Stack.Screen name="ResearchSources" component={ResearchSourcesScreen} />
       <Stack.Screen name="Payments" component={PaymentsScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="Admin" component={AdminScreen} options={{ animation: 'slide_from_right' }} />
     </Stack.Navigator>

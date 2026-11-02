@@ -30,6 +30,7 @@ function appExtra() {
 }
 
 export function getApiBase() {
+  if (appExtra().testBuild === true) return '';
   // Expo only inlines EXPO_PUBLIC_* values during Metro's release bundle step.
   // Read the public build-time variable directly so native builds do not depend
   // on the app-config manifest being available at runtime.
@@ -40,6 +41,9 @@ export function getApiBase() {
 }
 
 export function getOfflinePaymentConfig() {
+  if (appExtra().testBuild === true) {
+    return { enabled: false, offlineMode: true, testMode: true, freeAssessments: 2, card: null };
+  }
   const candidates = [appExtra().paymentCard, paymentCardFallback];
   const source = candidates.find((candidate) => String(candidate?.number || '').replace(/\D/g, '').length === 16) || {};
   const number = String(source.number || '').replace(/\D/g, '');
@@ -240,6 +244,27 @@ export async function loadPaymentPanel() {
       request: null,
     };
   }
+}
+
+export async function loadCreditBalance() {
+  const installId = await getInstallId();
+  return api(`/api/payments/credits/${installId}`);
+}
+
+export async function registerBazaarPurchase(purchase) {
+  if (!purchase || typeof purchase.originalJson !== 'string' || typeof purchase.dataSignature !== 'string') {
+    throw new Error('INVALID_BAZAAR_PURCHASE_PROOF');
+  }
+  const installId = await getInstallId();
+  return api('/api/payments/bazaar/purchases', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      installId,
+      purchaseData: purchase.originalJson,
+      dataSignature: purchase.dataSignature,
+    }),
+  });
 }
 
 export async function submitReceipt({ sku, transferDate, trackingCode, phone = '', receipt }) {
