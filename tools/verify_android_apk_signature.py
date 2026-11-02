@@ -42,10 +42,15 @@ def main() -> int:
         print(f"Release signature verification failed: {error}", file=sys.stderr)
         return 1
 
-    apk_match = re.search(r"Signer #1 certificate SHA-256 digest:\s*([0-9a-f:]+)", apk_info, re.I)
-    key_match = re.search(r"SHA256:\s*([0-9a-f:]+)", key_info, re.I)
+    apk_match = re.search(r"Signer #1 certificate SHA-?256 digest:\s*([0-9a-f:]+)", apk_info, re.I)
+    key_match = re.search(r"SHA-?256:\s*([0-9a-f:]+)", key_info, re.I)
     if not apk_match or not key_match:
-        print("Could not read the APK and release-keystore certificate fingerprints.", file=sys.stderr)
+        if not apk_match:
+            print("Could not parse the APK SHA-256 digest from apksigner output.", file=sys.stderr)
+            print("\n".join(line for line in apk_info.splitlines() if "digest" in line.lower()), file=sys.stderr)
+        if not key_match:
+            print("Could not parse the keystore SHA-256 fingerprint from keytool output.", file=sys.stderr)
+            print("\n".join(line for line in key_info.splitlines() if "sha" in line.lower()), file=sys.stderr)
         return 1
     if normalized_fingerprint(apk_match.group(1)) != normalized_fingerprint(key_match.group(1)):
         print("APK certificate does not match the configured release keystore.", file=sys.stderr)
