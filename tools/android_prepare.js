@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
  * Patches the Expo-generated Android project so that `assembleRelease`
- * produces a signed, installable APK.
+ * produces a signed, installable APK with the configured release key.
  *
- * Signing material is read from environment variables so no secret ever
- * lives in the repository:
+ * Signing material is read from environment variables; no secret belongs in
+ * the repository or in an APK:
  *   ANDROID_KEYSTORE_PATH, ANDROID_KEY_ALIAS,
  *   ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_PASSWORD
  */
@@ -30,30 +30,113 @@ if (!keystorePath || !alias || !storePassword || !keyPassword) {
   process.exit(1);
 }
 
-let gradle = fs.readFileSync(gradlePath, 'utf8');
+function matchingBrace(source, openIndex) {
+  let depth = 0;
+  let quote = null;
+  let escaped = false;
+  let lineComment = false;
+  let blockComment = false;
 
-const signingBlock = `
-    signingConfigs {
-        release {
-            storeFile file("${keystorePath.replace(/\\/g, '/')}")
-            storePassword "${storePassword}"
-            keyAlias "${alias}"
-            keyPassword "${keyPassword}"
-        }
+  for (let index = openIndex; index < source.length; index += 1) {
+    const char = source[index];
+    const next = source[index + 1];
+    if (lineComment) {
+      if (char === '\n') lineComment = false;
+      continue;
     }
-`;
+    if (blockComment) {
+      if (char === '*' && next === '/') {
+        blockComment = false;
+        index += 1;
+      }
+      continue;
+    }
+    if (quote) {
+      if (escaped) escaped = false;
+      else if (char === '\\') escaped = true;
+      else if (char === quote) quote = null;
+      continue;
+    }
+    if (char === '/' && next === '/') {
+      lineComment = true;
+      index += 1;
+      continue;
+    }
+    if (char === '/' && next === '*') {
+      blockComment = true;
+      index += 1;
+      continue;
+    }
+    if (char === "'" || char === '"') {
+      quote = char;
+      continue;
+    }
+    if (char === '{') depth += 1;
+    if (char === '}') {
+      depth -= 1;
+      if (depth === 0) return index;
+    }
+  }
+  throw new Error('Unbalanced braces in generated build.gradle.');
+}
 
-if (!gradle.includes('signingConfigs {')) {
-  console.error('Unexpected build.gradle layout: no signingConfigs block.');
+function findBlock(source, name, start = 0, limit = source.length) {
+  const matcher = new RegExp(`\\b${name}\\s*\\{`, 'g');
+  matcher.lastIndex = start;
+  const match = matcher.exec(source);
+  if (!match || match.index >= limit) return null;
+  const open = source.indexOf('{', match.index);
+  const close = matchingBrace(source, open);
+  if (close > limit) return null;
+  return { start: match.index, open, close };
+}
+
+function groovyString(value) {
+  const escaped = String(value)
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\$/g, '\\$');
+  return `"${escaped}"`;
+}
+
+let gradle = fs.readFileSync(gradlePath, 'utf8');
+const signingConfigs = findBlock(gradle, 'signingConfigs');
+const buildTypes = findBlock(gradle, 'buildTypes');
+if (!signingConfigs || !buildTypes) {
+  console.error('Unexpected build.gradle layout: signingConfigs or buildTypes block is missing.');
   process.exit(1);
 }
-gradle = gradle.replace('signingConfigs {', `${signingBlock.trim()}\n\n    signingConfigs {`);
 
-const releaseTypeRegex = /(release\s*\{[\s\S]*?)signingConfig signingConfigs\.debug/;
-if (releaseTypeRegex.test(gradle)) {
-  gradle = gradle.replace(releaseTypeRegex, '$1signingConfig signingConfigs.release');
-} else if (!/release\s*\{[\s\S]*?signingConfig signingConfigs\.release/.test(gradle)) {
-  gradle = gradle.replace(/release\s*\{/, `release {\n            signingConfig signingConfigs.release`);
+const signingBlock = `release {
+            storeFile file(${groovyString(keystorePath.replace(/\\/g, '/'))})
+            storePassword ${groovyString(storePassword)}
+            keyAlias ${groovyString(alias)}
+            keyPassword ${groovyString(keyPassword)}
+        }`;
+const existingReleaseConfig = findBlock(gradle, 'release', signingConfigs.open + 1, signingConfigs.close);
+if (existingReleaseConfig) {
+  gradle = `${gradle.slice(0, existingReleaseConfig.start)}${signingBlock}${gradle.slice(existingReleaseConfig.close + 1)}`;
+} else {
+  gradle = `${gradle.slice(0, signingConfigs.close)}\n        ${signingBlock}\n    ${gradle.slice(signingConfigs.close)}`;
+}
+
+const updatedBuildTypes = findBlock(gradle, 'buildTypes');
+const releaseBuildType = findBlock(gradle, 'release', updatedBuildTypes.open + 1, updatedBuildTypes.close);
+if (!releaseBuildType) {
+  console.error('Unexpected build.gradle layout: release build type is missing.');
+  process.exit(1);
+}
+const releaseBody = gradle.slice(releaseBuildType.open + 1, releaseBuildType.close);
+const releaseSigningLine = /^(\s*)signingConfig\s+signingConfigs\.[A-Za-z0-9_]+\s*$/m;
+if (releaseSigningLine.test(releaseBody)) {
+  const bodyStart = releaseBuildType.open + 1;
+  const updatedBody = releaseBody.replace(releaseSigningLine, '$1signingConfig signingConfigs.release');
+  gradle = `${gradle.slice(0, bodyStart)}${updatedBody}${gradle.slice(releaseBuildType.close)}`;
+} else {
+  const lineStart = gradle.lastIndexOf('\n', releaseBuildType.start - 1) + 1;
+  const indentation = gradle.slice(lineStart, releaseBuildType.start).match(/^[ \t]*/)[0];
+  const insertAt = releaseBuildType.open + 1;
+  gradle = `${gradle.slice(0, insertAt)}\n${indentation}    signingConfig signingConfigs.release${gradle.slice(insertAt)}`;
 }
 
 // Keep the release build lean but debuggable-free.

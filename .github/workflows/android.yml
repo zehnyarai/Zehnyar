@@ -280,6 +280,14 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleRelease --no-daemon
 
+      - name: Verify APK uses the configured non-debug release key
+        run: |
+          set -euo pipefail
+          APK=mobile/android/app/build/outputs/apk/release/app-release.apk
+          APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -x "$APKSIGNER"
+          python3 tools/verify_android_apk_signature.py "$APKSIGNER" "$APK"
+
       - name: Verify card fallback or server-backed payments in the Android JS bundle
         if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' && steps.resolve-release.outputs.bazaar_iab != 'true' }}
         env:
@@ -382,14 +390,15 @@ jobs:
           AAPT="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name aapt | sort -V | tail -n 1)"
           APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           BADGING="$($AAPT dump badging "$APK")"
-          printf '%s\n' "$BADGING" | grep -F "package: name='ai.visayar.app' versionCode='46' versionName='2.3.21'"
+          printf '%s\n' "$BADGING" | grep -F "package: name='ai.visayar.app' versionCode='47' versionName='2.3.22'"
           PERMISSIONS="$($AAPT dump permissions "$APK")"
           if printf '%s\n' "$PERMISSIONS" | grep -E 'com\.farsitel\.bazaar\.permission\.PAY_THROUGH_BAZAAR|android\.permission\.SYSTEM_ALERT_WINDOW'; then
             echo '::error::The Myket APK contains a prohibited Cafe Bazaar or overlay permission.'
             exit 1
           fi
           "$APKSIGNER" verify --verbose "$APK"
-          echo 'Myket APK uses ai.visayar.app, version 2.3.21 (46), and contains neither prohibited permission.'
+          python3 tools/verify_android_apk_signature.py "$APKSIGNER" "$APK"
+          echo 'Myket APK uses ai.visayar.app, version 2.3.22 (47), and contains neither prohibited permission.'
 
       - name: Scan release APKs with ClamAV
         run: |
