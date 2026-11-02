@@ -48,8 +48,8 @@ jobs:
     env:
       ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/release.keystore
       ANDROID_KEY_ALIAS: zehnyar
-      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD || 'zehnyar-release-2026' }}
-      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD || 'zehnyar-release-2026' }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
       NODE_OPTIONS: --max-old-space-size=4096
 
     steps:
@@ -123,31 +123,23 @@ jobs:
         working-directory: mobile
         run: npm ci --no-audit --no-fund
 
-      - name: Restore previous release signing key
-        uses: actions/download-artifact@v4
-        with:
-          name: zehnyar-release-keystore
-          path: previous-keystore
-          run-id: 40639940668
-          github-token: ${{ github.token }}
-        continue-on-error: true
-
-      - name: Configure stable release keystore
+      - name: Configure and validate stable release keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          if [ -s previous-keystore/zehnyar-release.keystore ]; then
-            cp previous-keystore/zehnyar-release.keystore "$ANDROID_KEYSTORE_PATH"
-            echo "Restored the signing key used by the previous installable release."
-          elif [ -n "$KEYSTORE_BASE64" ]; then
-            printf '%s' "$KEYSTORE_BASE64" | base64 -d > "$ANDROID_KEYSTORE_PATH"
-            keytool -list -keystore "$ANDROID_KEYSTORE_PATH" \
-              -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
-            echo "Stable release signing key validated; key data hidden."
-          else
-            echo "No stable Android signing key is available; refusing to create a new key." >&2
+          set -euo pipefail
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$ANDROID_KEYSTORE_PASSWORD" ] || [ -z "$ANDROID_KEY_PASSWORD" ]; then
+            echo "::error::Configure ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, and ANDROID_KEY_PASSWORD as repository Actions secrets."
             exit 1
           fi
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
+          KEY_INFO="$(keytool -list -v -keystore "$ANDROID_KEYSTORE_PATH" \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS")"
+          if printf '%s\n' "$KEY_INFO" | grep -Eqi 'Owner:.*Android Debug'; then
+            echo "::error::Configured keystore is Android's debug key; use the actual release keystore."
+            exit 1
+          fi
+          echo "Stable non-debug release signing key validated; key data hidden."
 
       - name: Validate payment configuration without exposing card data
         if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' && steps.resolve-release.outputs.bazaar_iab != 'true' }}
