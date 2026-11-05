@@ -1,0 +1,16 @@
+{
+  "language": "fa",
+  "translationId": "fa.fooladvand",
+  "translator": "Mohammad Mahdi Fooladvand",
+  "displayName": "محمدمهدی فولادوند",
+  "primarySource": "Tanzil.net",
+  "sourceUrl": "https://tanzil.net/trans/",
+  "sourceTerms": "Non-commercial use, attribution, and source link; product has no paywall and donations are voluntary.",
+  "mirrorRepository": "Kristories/quran",
+  "mirrorCommit": "3a796d5d7f80c80b83adae5b39affcec2aeb426c",
+  "mirrorPath": "fixtures/fa/fooladvand/source.json",
+  "mirrorBlobSha": "dcb0921f6536ca637c80a050f50e3f6c13fa898d",
+  "mirrorFileSha256": "8d97ebdd52a1e1d326e74533e475f131bc8f1626e8e490b9d61150f92f407215",
+  "verseCount": 6236,
+  "surahCount": 114
+}

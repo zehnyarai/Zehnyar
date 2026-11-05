@@ -1,0 +1,13 @@
+.venv/
+annotation-workbench/
+__pycache__/
+*.py[cod]
+*.sqlite3
+.env
+.DS_Store
+
+# منابع تفسیریِ حجیم (۹۶ مگابایت) در مخزن نگه داشته نمی‌شوند؛
+# workflow ساخت APK آن‌ها را از شاخهٔ اپ (arena/b44e7de5-zehnyar) بازیابی می‌کند.
+static/tafsir/arabic-tabari-*.json
+static/tafsir/arabic-qurtubi-*.json
+static/tafsir/persian-mizan-*.json

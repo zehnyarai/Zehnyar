@@ -1,0 +1,504 @@
+import json
+import re
+from pathlib import Path
+import unittest
+
+ROOT = Path(__file__).resolve().parents[1]
+REMAINING_SURAH_COUNTS = {
+    52: 49, 53: 62, 54: 55, 55: 78, 56: 96, 57: 29, 58: 22, 59: 24, 60: 13,
+    61: 14, 62: 11, 63: 11, 64: 18, 65: 12, 66: 12, 67: 30, 68: 52, 69: 52,
+    70: 44, 71: 28, 72: 28, 73: 20, 74: 56, 75: 40, 76: 31, 77: 50, 78: 40,
+    79: 46, 80: 42, 81: 29, 82: 19, 83: 36, 84: 25, 85: 22, 86: 17, 87: 19,
+    88: 26, 89: 30, 90: 20, 91: 15, 92: 21, 93: 11, 94: 8, 95: 8, 96: 19,
+    97: 5, 98: 8, 99: 8, 100: 11, 101: 11, 102: 8, 103: 3, 104: 9, 105: 5,
+    106: 4, 107: 7, 108: 3, 109: 6, 110: 3, 111: 5,
+}
+
+
+class CuratedAnnotationTests(unittest.TestCase):
+    def test_restored_and_new_dossiers_are_complete(self):
+        static = ROOT / "static"
+        data = json.loads((static / "verse-study-annotations.json").read_text(encoding="utf-8"))
+        registry = json.loads((static / "tafsir-sources.json").read_text(encoding="utf-8"))
+        source_ids = {source["id"] for source in registry["sources"]}
+        expected = (
+            {f"1:{n}" for n in range(1, 8)}
+            | {f"2:{n}" for n in range(1, 287)}
+            | {f"3:{n}" for n in range(1, 201)}
+            | {f"4:{n}" for n in range(1, 177)}
+            | {f"5:{n}" for n in range(1, 121)}
+            | {f"6:{n}" for n in range(1, 166)}
+            | {f"7:{n}" for n in range(1, 207)}
+            | {f"8:{n}" for n in range(1, 76)}
+            | {f"9:{n}" for n in range(1, 130)}
+            | {f"10:{n}" for n in range(1, 110)}
+            | {f"11:{n}" for n in range(1, 124)}
+            | {f"12:{n}" for n in range(1, 112)}
+            | {f"13:{n}" for n in range(1, 44)}
+            | {f"14:{n}" for n in range(1, 53)}
+            | {f"15:{n}" for n in range(1, 100)}
+            | {f"16:{n}" for n in range(1, 129)}
+            | {f"17:{n}" for n in range(1, 112)}
+            | {f"18:{n}" for n in range(1, 111)}
+            | {f"19:{n}" for n in range(1, 99)}
+            | {f"20:{n}" for n in range(1, 136)}
+            | {f"21:{n}" for n in range(1, 113)}
+            | {f"22:{n}" for n in range(1, 79)}
+            | {f"23:{n}" for n in range(1, 119)}
+            | {f"24:{n}" for n in range(1, 65)}
+            | {f"25:{n}" for n in range(1, 78)}
+            | {f"26:{n}" for n in range(1, 228)}
+            | {f"27:{n}" for n in range(1, 94)}
+            | {f"28:{n}" for n in range(1, 89)}
+            | {f"29:{n}" for n in range(1, 70)}
+            | {f"30:{n}" for n in range(1, 61)}
+            | {f"31:{n}" for n in range(1, 35)}
+            | {f"32:{n}" for n in range(1, 31)}
+            | {f"33:{n}" for n in range(1, 74)}
+            | {f"34:{n}" for n in range(1, 55)}
+            | {f"35:{n}" for n in range(1, 46)}
+            | {f"36:{n}" for n in range(1, 84)}
+            | {f"37:{n}" for n in range(1, 183)}
+            | {f"38:{n}" for n in range(1, 89)}
+            | {f"39:{n}" for n in range(1, 76)}
+            | {f"40:{n}" for n in range(1, 86)}
+            | {f"41:{n}" for n in range(1, 55)}
+            | {f"42:{n}" for n in range(1, 54)}
+            | {f"43:{n}" for n in range(1, 90)}
+            | {f"44:{n}" for n in range(1, 60)}
+            | {f"45:{n}" for n in range(1, 38)}
+            | {f"46:{n}" for n in range(1, 36)}
+            | {f"47:{n}" for n in range(1, 39)}
+            | {f"48:{n}" for n in range(1, 30)}
+            | {f"49:{n}" for n in range(1, 19)}
+            | {f"50:{n}" for n in range(1, 46)}
+            | {f"51:{n}" for n in range(1, 61)}
+            | {f"{surah}:{n}" for surah, count in REMAINING_SURAH_COUNTS.items() for n in range(1, count + 1)}
+            | {f"112:{n}" for n in range(1, 5)}
+            | {f"113:{n}" for n in range(1, 6)}
+            | {f"114:{n}" for n in range(1, 7)}
+        )
+        self.assertEqual(set(data["verses"]), expected)
+        for verse_id, annotation in data["verses"].items():
+            for section in ("notes", "messages", "principles", "framework", "thematic", "context", "network"):
+                self.assertTrue(annotation.get(section), f"{verse_id}: missing {section}")
+            for model in ("izutsu", "fillmore", "cognitive"):
+                for field in ("input", "operation", "meaning", "limit"):
+                    self.assertTrue(annotation["framework"][model].get(field), f"{verse_id}: {model}.{field}")
+            self.assertTrue(set(annotation["sources"]) <= source_ids, verse_id)
+        status_ranges = ((5, 120), (6, 165), (7, 206), (8, 75), (9, 129), (10, 109), (11, 123), (12, 111), (13, 43), (14, 52), (15, 99), (16, 128), (17, 111), (18, 110), (19, 98), (20, 135), (21, 112), (22, 78), (23, 118), (24, 64), (25, 77), (26, 227), (27, 93), (28, 88), (29, 69), (30, 60), (31, 34), (32, 30), (33, 73), (34, 54), (35, 45), (36, 83), (37, 182), (38, 88), (39, 75), (40, 85), (41, 54), (42, 53), (43, 89), (44, 59), (45, 37), (46, 35), (47, 38), (48, 29), (49, 18), (50, 45), (51, 60), (112, 4), (113, 5), (114, 6))
+        for surah, count in (*status_ranges, *REMAINING_SURAH_COUNTS.items()):
+            for n in range(1, count + 1):
+                self.assertEqual(data["verses"][f"{surah}:{n}"]["status"], "پیش‌نویس تحریری؛ نیازمند بازبینی تخصصی")
+
+    def test_fatiha_editorial_batch_has_four_cited_items_in_each_requested_field(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        corpus = json.loads((ROOT / "static/offline-corpus.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(1, 8):
+            entry = data[f"1:{ayah}"]
+            for field in ("notes", "principles", "messages"):
+                self.assertGreaterEqual(len(entry[field]), 4, f"1:{ayah} needs four {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+            self.assertGreaterEqual(len(entry["research"]), 4)
+            self.assertLessEqual(len(entry["research"]), 5)
+            self.assertTrue(all(item.get("title") and item.get("question") and item.get("evidence") for item in entry["research"]))
+            tuple_record = next(row for row in corpus if f"{row[0]}:{row[1]}" == f"1:{ayah}")
+            translation = tuple_record[3].strip()
+            for field in ("notes", "principles", "messages"):
+                self.assertTrue(all(item["text"].strip() != translation for item in entry[field]))
+
+    def test_fatiha_does_not_use_the_prohibited_mukhtasar_source_or_repeat_its_translation(self):
+        static = ROOT / "static"
+        corpus = json.loads((static / "offline-corpus.json").read_text(encoding="utf-8"))["verses"]
+        files = (
+            "verse-dossiers.json",
+            "scholar-application.json",
+            "verse-study-annotations.json",
+        )
+        translations = {
+            f"1:{row[1]}": row[3].strip()
+            for row in corpus
+            if isinstance(row, list) and row[0] == 1
+        }
+        for filename in files:
+            data = json.loads((static / filename).read_text(encoding="utf-8"))["verses"]
+            for ayah in range(1, 8):
+                verse_id = f"1:{ayah}"
+                entry = data[verse_id]
+                serialized = json.dumps(entry, ensure_ascii=False).casefold()
+                self.assertNotIn("fa_qe_persian_mokhtasar", serialized, verse_id)
+                self.assertNotIn("المختصر", serialized, verse_id)
+                if filename == "verse-dossiers.json":
+                    for field in ("notes", "context", "classical", "modern", "critical", "research"):
+                        self.assertTrue(all(item["text"].strip() != translations[verse_id] for item in entry[field]))
+                elif filename == "scholar-application.json":
+                    self.assertEqual(len(entry["uses"]), 4, verse_id)
+                    self.assertTrue(all(use["text"].strip() != translations[verse_id] for use in entry["uses"]))
+                else:
+                    for field in ("notes", "messages", "principles"):
+                        self.assertTrue(all(item["text"].strip() != translations[verse_id] for item in entry[field]))
+
+    def test_tafsir_availability_metadata_matches_packaged_files(self):
+        static = ROOT / "static"
+        sources = json.loads((static / "tafsir-sources.json").read_text(encoding="utf-8"))["sources"]
+        for source in sources:
+            source_file = source.get("file")
+            path = ROOT / source_file if source_file else None
+            self.assertEqual(source["localAvailable"], bool(path and path.is_file()), source["id"])
+            if not source_file:
+                self.assertFalse(source["localAvailable"], source["id"])
+                self.assertFalse(source.get("preload", True), source["id"])
+        catalog = json.loads((static / "tafsir-catalog.json").read_text(encoding="utf-8"))
+        statuses = {item["id"]: item["status"] for item in catalog["collections"][0]["items"]}
+        source_map = {item["id"]: item for item in sources}
+        for source_id in ("ar_tabari_qurancom", "ar_qurtubi_qurancom", "fa_mizan_furqan"):
+            expected = "available" if source_map[source_id]["localAvailable"] else "excerpt-only"
+            self.assertEqual(statuses[source_id], expected, source_id)
+
+    def test_fatiha_surah_reflections_and_tafsir_panel_use_the_verified_replacement(self):
+        static = ROOT / "static"
+        dossiers = json.loads((static / "surah-dossiers.json").read_text(encoding="utf-8"))
+        fatiha = dossiers["surahs"]["1"]
+        serialized = json.dumps(fatiha, ensure_ascii=False).casefold()
+        self.assertNotIn("fa_qe_persian_mokhtasar", serialized)
+        self.assertNotIn("المختصر", serialized)
+        self.assertTrue(all(item["sourceId"] == "ar_qe_arabic_moyassar" for item in fatiha["reflections"]))
+        pilot = json.loads((static / "scholar-pilot.json").read_text(encoding="utf-8"))["verses"]["1:1"]
+        self.assertNotIn("fa_qe_persian_mokhtasar", json.dumps(pilot, ensure_ascii=False))
+        self.assertNotIn("المختصر", json.dumps(pilot, ensure_ascii=False))
+        sources = json.loads((static / "tafsir-sources.json").read_text(encoding="utf-8"))["sources"]
+        serialized_sources = json.dumps(sources, ensure_ascii=False)
+        self.assertNotIn("fa_qe_persian_mokhtasar", serialized_sources)
+        self.assertNotIn("المختصر", serialized_sources)
+        app = (static / "app.js").read_text(encoding="utf-8")
+        self.assertIn("excludeFromSurahs", app)
+        self.assertIn("state.tafsirSources.filter((source) => !source.excludeFromSurahs?.includes(verse.surah))", app)
+        self.assertNotIn("متنِ کوتاهِ مرجع (المختصر", app)
+
+    def test_fatiha_foundations_quran_links_and_all_three_models_are_cited(self):
+        static = ROOT / "static"
+        data = json.loads((static / "verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        corpus = json.loads((static / "offline-corpus.json").read_text(encoding="utf-8"))["verses"]
+        corpus_ids = {f"{row[0]}:{row[1]}" for row in corpus}
+        app = (static / "app.js").read_text(encoding="utf-8")
+        self.assertIn("data-related-id", app)
+        for ayah in range(1, 8):
+            entry = data[f"1:{ayah}"]
+            self.assertGreaterEqual(len(entry.get("foundations", [])), 4, f"1:{ayah}: foundations")
+            self.assertGreaterEqual(len(entry.get("quran", [])), 3, f"1:{ayah}: Quran links")
+            self.assertTrue(all(item.get("text") and item.get("evidence") for item in entry["foundations"]))
+            self.assertTrue(all(item.get("reference") and item.get("relation") and item.get("relationType") and item.get("evidence") and item.get("limit") for item in entry["quran"]))
+            self.assertTrue(all(item.get("verseId") in corpus_ids for item in entry["quran"]), f"1:{ayah}: Quran link target")
+            for item in entry["quran"]:
+                match = re.search(r"([0-9۰-۹٠-٩]+):([0-9۰-۹٠-٩]+)", item["reference"])
+                self.assertIsNotNone(match, item["reference"])
+                target = match.group(1).translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789")) + ":" + match.group(2).translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
+                self.assertEqual(item["verseId"], target, item["reference"])
+            for model in ("izutsu", "fillmore", "cognitive"):
+                self.assertTrue(entry["framework"][model].get("cite"), f"1:{ayah}: missing {model} method citation")
+
+    def test_fatiha_has_curated_payload_for_every_editorial_panel(self):
+        static = ROOT / "static"
+        annotations = json.loads((static / "verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        dossiers = json.loads((static / "verse-dossiers.json").read_text(encoding="utf-8"))["verses"]
+        applications = json.loads((static / "scholar-application.json").read_text(encoding="utf-8"))["verses"]
+        sources = {item["id"]: item for item in json.loads((static / "tafsir-sources.json").read_text(encoding="utf-8"))["sources"]}
+        for ayah in range(1, 8):
+            vid = f"1:{ayah}"
+            note = annotations[vid]
+            dossier = dossiers[vid]
+            self.assertEqual(len(note["notes"]), 4, vid)
+            self.assertEqual(len(note["messages"]), 4, vid)
+            self.assertEqual(len(note["principles"]), 4, vid)
+            self.assertEqual(len(note["foundations"]), 4, vid)
+            self.assertGreaterEqual(len(note["thematic"]), 2, vid)
+            self.assertGreaterEqual(len(note["context"]), 2, vid)
+            self.assertGreaterEqual(len(note["network"]), 1, vid)
+            self.assertGreaterEqual(len(note["quran"]), 3, vid)
+            self.assertEqual(set(note["framework"]), {"izutsu", "fillmore", "cognitive"}, vid)
+            self.assertEqual(len(dossier["classical"]), 2, vid)
+            self.assertEqual(len(dossier["modern"]), 3, vid)
+            self.assertEqual(len(dossier["critical"]), 3, vid)
+            self.assertEqual(len(dossier["research"]), 4, vid)
+            self.assertEqual(len(applications[vid]["uses"]), 4, vid)
+            self.assertTrue(all(source_id in sources for source_id in note["sources"]), vid)
+        self.assertFalse(sources["ar_tabari_qurancom"]["localAvailable"])
+        self.assertFalse(sources["ar_qurtubi_qurancom"]["localAvailable"])
+        self.assertFalse(sources["fa_mizan_furqan"]["localAvailable"])
+
+    def test_baqarah_first_ten_have_distinct_cited_sections_and_research_prompts(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(1, 11):
+            entry = data[f"2:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"2:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"2:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_baqarah_verses_eleven_to_twenty_have_distinct_cited_sections_and_research_prompts(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(11, 21):
+            entry = data[f"2:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"2:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"2:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_baqarah_verses_twenty_one_to_thirty_have_distinct_cited_sections_and_research_prompts(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(21, 31):
+            entry = data[f"2:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"2:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"2:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_baqarah_verses_thirty_one_to_fifty_have_distinct_cited_sections_and_research_prompts(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(31, 51):
+            entry = data[f"2:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"2:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"2:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_baqarah_verses_fifty_one_to_seventy_have_distinct_cited_sections_and_research_prompts(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(51, 71):
+            entry = data[f"2:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"2:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"2:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_baqarah_verses_fifty_one_to_eighty_have_distinct_cited_sections_and_research_prompts(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(51, 81):
+            entry = data[f"2:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"2:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"2:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_baqarah_verses_eighty_one_to_one_hundred_have_distinct_cited_sections_and_research_prompts(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(81, 101):
+            entry = data[f"2:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"2:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"2:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_baqarah_verses_one_hundred_one_to_one_hundred_ten_have_distinct_cited_sections_and_research_prompts(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(101, 111):
+            entry = data[f"2:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"2:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"2:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_baqarah_verses_one_hundred_eleven_to_one_hundred_twenty_have_distinct_cited_sections_and_research_prompts(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(111, 121):
+            entry = data[f"2:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"2:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"2:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_baqarah_verses_one_hundred_twenty_one_to_one_hundred_forty_have_distinct_cited_sections_and_research_prompts(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(121, 141):
+            entry = data[f"2:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"2:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"2:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_baqarah_verses_one_hundred_forty_one_to_one_hundred_fifty_have_distinct_cited_sections_and_research_prompts(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(141, 151):
+            entry = data[f"2:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"2:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"2:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_baqarah_verses_one_hundred_fifty_one_to_one_hundred_seventy_have_distinct_cited_sections_and_research_prompts(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(151, 171):
+            entry = data[f"2:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"2:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"2:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_baqarah_verses_one_hundred_seventy_one_to_two_hundred_have_distinct_cited_sections_and_research_prompts(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(171, 201):
+            entry = data[f"2:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"2:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"2:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_baqarah_verses_two_hundred_one_to_two_hundred_fifty_have_distinct_cited_sections_and_research_prompts(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(201, 251):
+            entry = data[f"2:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"2:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"2:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_baqarah_verses_two_hundred_fifty_one_to_two_hundred_eighty_six_have_distinct_cited_sections_and_research_prompts(self):
+        data = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(251, 287):
+            entry = data[f"2:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"2:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"2:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_baqarah_tafsir_citations_are_backed_by_linked_source_metadata(self):
+        verses = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(1, 287):
+            entry = verses[f"2:{ayah}"]
+            claims = " ".join(
+                item.get("text", "") + " " + item.get("evidence", "")
+                for field in ("notes", "principles", "messages", "research")
+                for item in entry.get(field, [])
+            )
+            if "طبری" in claims:
+                self.assertIn("ar_tabari_qurancom", entry["sources"], f"2:{ayah} Tabari source")
+            if "قرطبی" in claims:
+                self.assertIn("ar_qurtubi_qurancom", entry["sources"], f"2:{ayah} Qurtubi source")
+
+    def test_al_imran_verses_one_to_two_hundred_have_four_distinct_cited_items_and_research_prompts(self):
+        verses = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(1, 201):
+            entry = verses[f"3:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"3:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"3:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_nisa_verses_one_to_one_hundred_seventy_six_have_four_distinct_cited_items_and_research_prompts(self):
+        verses = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(1, 177):
+            entry = verses[f"4:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"4:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"4:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_al_maida_verses_one_to_one_hundred_twenty_have_four_distinct_cited_items_and_research_prompts(self):
+        verses = json.loads((ROOT / "static/verse-study-annotations.json").read_text(encoding="utf-8"))["verses"]
+        for ayah in range(1, 121):
+            entry = verses[f"5:{ayah}"]
+            for field in ("notes", "messages", "principles"):
+                self.assertEqual(len(entry[field]), 4, f"5:{ayah} {field}")
+                self.assertTrue(all(item.get("evidence") for item in entry[field]))
+                texts = [" ".join(item["text"].split()) for item in entry[field]]
+                self.assertEqual(len(texts), len(set(texts)), f"5:{ayah} {field} repeats")
+            self.assertEqual(len(entry["research"]), 3)
+            self.assertTrue(all(item.get("question") and item.get("evidence") for item in entry["research"]))
+
+    def test_user_suggestions_remain_under_verse_notes_messages_and_principles(self):
+        app = (ROOT / "static/app.js").read_text(encoding="utf-8")
+        for kind in ("notes", "messages", "principles"):
+            self.assertIn(f'${{proposalForm(verse, "{kind}")}}', app)
+        self.assertIn("پیشنهادِ پژوهشگر", app)
+        html = (ROOT / "static/index.html").read_text(encoding="utf-8")
+        self.assertIn('id="admin-dialog"', html)
+        self.assertIn('id="admin-token" type="password"', html)
+        self.assertNotIn("ZEHNYAR_ADMIN_TOKEN", app)
+
+    def test_brand_sources_and_per_section_notes_are_wired(self):
+        html = (ROOT / "static/index.html").read_text(encoding="utf-8")
+        app = (ROOT / "static/app.js").read_text(encoding="utf-8")
+        manifest = json.loads((ROOT / "static/manifest.webmanifest").read_text(encoding="utf-8"))
+        self.assertIn("قرآن‌پژوهه", html)
+        self.assertEqual(manifest["short_name"], "قرآن‌پژوهه")
+        self.assertNotIn('data-detail-tab="notebook"', html)
+        self.assertIn("data-field-note", app)
+        self.assertIn("FIELD_NOTES_KEY", app)
+        self.assertIn("loadDeferredTafsir", app)
+        self.assertIn("data-load-tafsir", app)
+        self.assertIn('data-detail-tab="research"', html)
+        self.assertIn('proposalForm(verse, "research")', app)
+        self.assertIn("MODERN_RESEARCH_LENSES", app)
+        for host in ("quran.inoor.ir", "noorlib.ir", "noormags.ir", "ensani.ir"):
+            self.assertIn(host, html)
+
+    def test_advanced_search_stays_collapsed_without_removing_fields(self):
+        html = (ROOT / "static/index.html").read_text(encoding="utf-8")
+        self.assertIn('<details class="advanced-search">', html)
+        self.assertNotIn('<details class="advanced-search" open', html)
+        for field_id in ("keyword-query", "concept-query", "topic-query", "quranic-equivalent-query", "translation-equivalent-query", "semantic-query", "synonym-query", "root-query"):
+            self.assertIn(f'id="{field_id}"', html)
+
+    def test_ui_and_service_worker_load_curated_studies(self):
+        app = (ROOT / "static/app.js").read_text(encoding="utf-8")
+        worker = (ROOT / "static/sw.js").read_text(encoding="utf-8")
+        for part in ("VERSE_STUDIES_URL", "reviewedStudyFor", "reviewedStudyField", "state.verseStudies", "annotation.status"):
+            self.assertIn(part, app)
+        for field in ("framework", "thematic", "context", "network"):
+            self.assertIn(f'reviewedStudyField(verse, "{field}")', app)
+        self.assertIn("/static/verse-study-annotations.json", worker)
+
+
+if __name__ == "__main__":
+    unittest.main()
