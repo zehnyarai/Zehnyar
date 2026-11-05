@@ -1,11 +1,13 @@
 import React from 'react';
+import { Text as NativeText } from 'react-native';
 import { act, create } from 'react-test-renderer';
 
 import App from '../App';
 import { I18nProvider } from '../src/i18n';
-import { AppStateProvider } from '../src/core/appState';
+import { AppStateProvider, useAppState } from '../src/core/appState';
 import { dataset } from '../src/core/data';
 import engine from '../src/core/engine';
+import { clearAll, saveProfile, saveResult } from '../src/core/storage';
 
 import HomeScreen from '../src/screens/HomeScreen';
 import ExploreScreen from '../src/screens/ExploreScreen';
@@ -16,7 +18,9 @@ import AdminScreen from '../src/screens/AdminScreen';
 import WizardScreen from '../src/screens/WizardScreen';
 import ResultsScreen from '../src/screens/ResultsScreen';
 import CountryDetailScreen from '../src/screens/CountryDetailScreen';
-import { Button } from '../src/components/ui';
+import ResearchSourcesScreen from '../src/screens/ResearchSourcesScreen';
+import { Button, PressableScale } from '../src/components/ui';
+import { GoalTile } from '../src/components/cards';
 
 jest.mock('expo-font', () => ({
   useFonts: () => [true],
@@ -38,6 +42,14 @@ jest.mock('expo-haptics', () => ({
 }));
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'));
+jest.mock('expo-secure-store', () => {
+  const values = new Map();
+  return {
+    getItemAsync: jest.fn(async (key) => (values.has(key) ? values.get(key) : null)),
+    setItemAsync: jest.fn(async (key, value) => values.set(key, value)),
+    deleteItemAsync: jest.fn(async (key) => values.delete(key)),
+  };
+});
 
 const navigation = {
   navigate: jest.fn(),
@@ -59,18 +71,23 @@ const baseProfile = {
 
 const assessed = engine.assess(dataset, baseProfile);
 
-function renderWithProviders(element, { profile = baseProfile, result = null } = {}) {
+function renderWithProviders(element, { profile = baseProfile, result = null, privacyConsent = true } = {}) {
   let tree;
   act(() => {
     tree = create(
       <I18nProvider initialLang="fa">
-        <AppStateProvider initialProfile={profile} initialResult={result}>
+        <AppStateProvider initialProfile={profile} initialResult={result} initialPrivacyConsent={privacyConsent}>
           {element}
         </AppStateProvider>
       </I18nProvider>,
     );
   });
   return tree;
+}
+
+function AssessmentRestoreProbe() {
+  const { hasAssessment, profile } = useAppState();
+  return <NativeText>{`${hasAssessment}:${profile.age}`}</NativeText>;
 }
 
 describe('Visayar app', () => {
@@ -94,6 +111,51 @@ describe('Visayar app', () => {
     expect(tree.toJSON()).toBeTruthy();
   });
 
+  it('restores the previous assessment from local state after the app process restarts', async () => {
+    await clearAll();
+    await saveProfile(baseProfile);
+    await saveResult(assessed, baseProfile);
+
+    let tree;
+    await act(async () => {
+      tree = create(
+        <I18nProvider initialLang="fa">
+          <AppStateProvider>
+            <AssessmentRestoreProbe />
+          </AppStateProvider>
+        </I18nProvider>,
+      );
+      for (let index = 0; index < 8; index += 1) await Promise.resolve();
+    });
+
+    expect(JSON.stringify(tree.toJSON())).toContain('true:31');
+    await act(async () => tree.unmount());
+    await clearAll();
+  });
+
+  it('does not restore an old assessment after the saved profile has changed', async () => {
+    const changedProfile = { ...baseProfile, age: 32 };
+    await clearAll();
+    await saveProfile(changedProfile);
+    await saveResult(assessed, baseProfile);
+
+    let tree;
+    await act(async () => {
+      tree = create(
+        <I18nProvider initialLang="fa">
+          <AppStateProvider>
+            <AssessmentRestoreProbe />
+          </AppStateProvider>
+        </I18nProvider>,
+      );
+      for (let index = 0; index < 8; index += 1) await Promise.resolve();
+    });
+
+    expect(JSON.stringify(tree.toJSON())).toContain('false:32');
+    await act(async () => tree.unmount());
+    await clearAll();
+  });
+
   it('renders the home screen with the trust badge and calls to action', () => {
     const tree = renderWithProviders(<HomeScreen navigation={navigation} />);
     const text = JSON.stringify(tree.toJSON());
@@ -101,6 +163,42 @@ describe('Visayar app', () => {
     expect(text).toContain('تاریخ بازبینی ثبت‌شدهٔ داده‌ها');
     expect(text).toContain('هدف شما چیست؟');
     expect(text).toContain('ادامه ارزیابی من');
+  });
+
+  it('does not apply the Cafe Bazaar consent gate to the direct/Myket build', () => {
+    const tree = renderWithProviders(<WizardScreen navigation={navigation} />, { privacyConsent: false });
+    expect(tree.root.findAllByType(GoalTile)).toHaveLength(5);
+  });
+
+  it('lets users choose an assessment goal before checking payment at calculation time', () => {
+    const tree = renderWithProviders(<HomeScreen navigation={navigation} />, { profile: engine.emptyProfile() });
+    const workGoal = tree.root.findAllByType(GoalTile).find((tile) => tile.props.goalId === 'work');
+
+    act(() => {
+      workGoal.props.onPress();
+    });
+
+    expect(navigation.navigate).toHaveBeenCalledWith('Wizard', { from: 'home', goal: 'work' });
+    expect(navigation.navigate).not.toHaveBeenCalledWith('Payments');
+  });
+
+  it('renders the curated migration-source library in Persian and English', () => {
+    const persian = renderWithProviders(<ResearchSourcesScreen navigation={navigation} />);
+    expect(JSON.stringify(persian.toJSON())).toContain('منابع معتبر مهاجرت');
+    expect(JSON.stringify(persian.toJSON())).toContain('آمار مهاجرت، کمبود نیروی کار و قوانین ویزا سه نوع داده متفاوت‌اند');
+
+    let english;
+    act(() => {
+      english = create(
+        <I18nProvider initialLang="en">
+          <AppStateProvider initialProfile={baseProfile}>
+            <ResearchSourcesScreen navigation={navigation} />
+          </AppStateProvider>
+        </I18nProvider>,
+      );
+    });
+    expect(JSON.stringify(english.toJSON())).toContain('Trusted migration sources');
+    expect(JSON.stringify(english.toJSON())).toContain('IOM Global Migration Data Portal');
   });
 
   it('renders every tab screen without crashing', () => {
@@ -116,6 +214,12 @@ describe('Visayar app', () => {
     const text = JSON.stringify(tree.toJSON());
     expect(text).toContain('اعتبار ارزیابی');
     expect(text).toContain('۶۰۰٬۰۰۰ تومان');
+    expect(text).toContain('۱٬۲۰۰٬۰۰۰ تومان');
+    expect(text).toContain('۲٬۵۰۰٬۰۰۰ تومان');
+    expect(text).toContain('۴٬۵۰۰٬۰۰۰ تومان');
+    expect(text).toContain('تخفیف ۳۳٫۳٪');
+    expect(text).toContain('تخفیف ۳۰٫۶٪');
+    expect(text).toContain('تخفیف ۳۷٫۵٪');
     expect(text).toContain('دوازده ارزیابی');
     expect(text).toContain('بارگذاری فیش واریزی');
     expect(text).toContain('تصویر فیش را از فایل‌های دستگاه انتخاب کنید');
@@ -124,15 +228,13 @@ describe('Visayar app', () => {
     expect(text).not.toContain('پیام‌رسان');
   });
 
-  it('includes an offline-safe admin panel preview inside the app', () => {
+  it('does not expose a mock admin panel preview or fabricated receipts', () => {
     const tree = renderWithProviders(<AdminScreen navigation={navigation} />);
-    const previewButton = tree.root.findAllByType(Button).find((button) => button.props.label === 'دیدن پیش‌نمایش پنل');
-    expect(previewButton).toBeTruthy();
-    act(() => previewButton.props.onPress());
     const text = JSON.stringify(tree.toJSON());
-    expect(text).toContain('این پیش‌نمایش فقط داده‌های ساختگی دارد');
-    expect(text).toContain('دیدن نمونه رسید');
-    expect(text).not.toContain('تأیید و افزودن اعتبار');
+    expect(text).not.toContain('دیدن پیش‌نمایش پنل');
+    expect(text).not.toContain('پیگیری آزمایشی');
+    expect(text).not.toContain('دیدن نمونه رسید');
+    expect(text).toContain('ورود امن');
   });
 
   it('walks through all eight wizard steps', () => {
@@ -140,13 +242,14 @@ describe('Visayar app', () => {
     act(() => {
       tree = create(
         <I18nProvider initialLang="fa">
-          <AppStateProvider initialProfile={baseProfile}>
+          <AppStateProvider initialProfile={baseProfile} initialPrivacyConsent>
             <WizardScreen navigation={navigation} />
           </AppStateProvider>
         </I18nProvider>,
       );
     });
-    for (let step = 0; step < 6; step += 1) {
+    expect(navigation.replace).not.toHaveBeenCalledWith('Payments');
+    for (let step = 0; step < 7; step += 1) {
       const buttons = tree.root.findAllByType(Button);
       const next = buttons[buttons.length - 1];
       act(() => {
@@ -155,6 +258,29 @@ describe('Visayar app', () => {
     }
     const text = JSON.stringify(tree.toJSON());
     expect(text).toContain('محاسبه شانس قبولی');
+  });
+
+  it('opens a distinct goal-specific form without repeating the goal picker or mixing unrelated fields', () => {
+    const cases = [
+      { goal: 'work', heading: 'مسیر کاری', includes: 'شغل استاندارد', excludes: ['پذیرش قطعی دانشگاه دارم', 'سرمایه اولیه کسب‌وکار', 'درآمد ماهانه دورکاری'] },
+      { goal: 'study', heading: 'مسیر تحصیلی', includes: 'پذیرش قطعی دانشگاه دارم', excludes: ['شغل استاندارد', 'سرمایه قابل سرمایه‌گذاری', 'درآمد ماهانه دورکاری'] },
+      { goal: 'startup', heading: 'استارتاپ و کسب‌وکار', includes: 'سرمایه اولیه کسب‌وکار', excludes: ['پذیرش قطعی دانشگاه دارم', 'شغل استاندارد', 'درآمد ماهانه دورکاری'] },
+      { goal: 'investment', heading: 'سرمایه‌گذاری', includes: 'سرمایه قابل سرمایه‌گذاری', excludes: ['پذیرش قطعی دانشگاه دارم', 'شغل استاندارد', 'درآمد ماهانه دورکاری'] },
+      { goal: 'selfsponsored', heading: 'درآمد دورکاری', includes: 'درآمد ماهانه دورکاری', excludes: ['پذیرش قطعی دانشگاه دارم', 'شغل استاندارد', 'سرمایه قابل سرمایه‌گذاری'] },
+    ];
+
+    cases.forEach(({ goal, heading, includes, excludes }) => {
+      const tree = renderWithProviders(
+        <WizardScreen navigation={navigation} route={{ params: { from: 'home', goal } }} />,
+        { profile: { ...engine.emptyProfile(), goal } },
+      );
+      const text = JSON.stringify(tree.toJSON());
+      expect(text).toContain(heading);
+      expect(text).toContain(includes);
+      expect(text).not.toContain('هدف مهاجرت');
+      excludes.forEach((label) => expect(text).not.toContain(label));
+      act(() => tree.unmount());
+    });
   });
 
   it('renders the results screen with a radar chart and country ranking', () => {
@@ -166,6 +292,10 @@ describe('Visayar app', () => {
     expect(text).toContain('نتیجه ارزیابی');
     expect(text).toContain('نمودار قوت و ضعف پرونده');
     expect(text).toContain('کانادا');
+
+    const advisorCard = tree.root.findAllByType(PressableScale).at(-1);
+    act(() => advisorCard.props.onPress());
+    expect(navigation.navigate).toHaveBeenCalledWith('Tabs', { screen: 'Advisor' });
   });
 
   it('renders the country detail for every destination', () => {

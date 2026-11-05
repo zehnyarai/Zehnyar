@@ -4,9 +4,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
+import { useAppState } from '../core/appState';
+import { isBazaarIabBuild } from '../core/bazaarBilling';
 import { getCountries } from '../core/data';
 import { deleteExperience, getApiBase, listExperiences, reportExperience, submitExperience } from '../core/paymentApi';
-import { Button, Card, Chip, Pill, PressableScale, ScrollScreen, SectionTitle, Text } from '../components/ui';
+import { Button, Card, Chip, Pill, PressableScale, ScrollScreen, SectionTitle, Text, ToggleRow } from '../components/ui';
 
 const STAGES = ['planning', 'applied', 'approved', 'refused', 'moved', 'living'];
 const REPORT_REASONS = ['privacy', 'misleading', 'abuse', 'spam'];
@@ -19,6 +21,8 @@ function whenLabel(value, lang) {
 
 export default function ExperiencesScreen() {
   const { t, lang, pick } = useI18n();
+  const { privacyConsent, acceptPrivacyConsent } = useAppState();
+  const bazaarIab = isBazaarIabBuild();
   const countries = getCountries();
   const dir = useDirection();
   const [items, setItems] = useState([]);
@@ -29,6 +33,7 @@ export default function ExperiencesScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [reportTarget, setReportTarget] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [publicationConsent, setPublicationConsent] = useState(false);
   const [destinationFilter, setDestinationFilter] = useState('');
   const [stageFilter, setStageFilter] = useState('');
   const [form, setForm] = useState({ title: '', body: '', destination: '', visaRoute: '', stage: 'planning', displayName: '' });
@@ -36,6 +41,13 @@ export default function ExperiencesScreen() {
   const destination = useMemo(() => countries.find((item) => item.code === form.destination), [countries, form.destination]);
 
   const refresh = useCallback(async () => {
+    if (bazaarIab && !privacyConsent) {
+      setLoading(false);
+      setLoadError(false);
+      setItems([]);
+      setCount(0);
+      return;
+    }
     setLoading(true);
     setLoadError(false);
     try {
@@ -49,7 +61,7 @@ export default function ExperiencesScreen() {
     } finally {
       setLoading(false);
     }
-  }, [destinationFilter, stageFilter]);
+  }, [destinationFilter, stageFilter, privacyConsent]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
@@ -69,6 +81,14 @@ export default function ExperiencesScreen() {
   const updateForm = (patch) => setForm((current) => ({ ...current, ...patch }));
 
   const send = async () => {
+    if (bazaarIab && !privacyConsent) {
+      Alert.alert(t('common.dismiss'), t('profile.acceptForOnline'));
+      return;
+    }
+    if (bazaarIab && !publicationConsent) {
+      Alert.alert(t('common.dismiss'), t('experiences.publicConsentRequired'));
+      return;
+    }
     if (form.title.trim().length < 8 || form.body.trim().length < 80 || !form.destination) {
       Alert.alert(t('common.dismiss'), t('experiences.formValidation'));
       return;
@@ -77,6 +97,7 @@ export default function ExperiencesScreen() {
     try {
       await submitExperience({ ...form, title: form.title.trim(), body: form.body.trim(), visaRoute: form.visaRoute.trim(), displayName: form.displayName.trim() });
       setForm({ title: '', body: '', destination: '', visaRoute: '', stage: 'planning', displayName: '' });
+      setPublicationConsent(false);
       setShowForm(false);
       await refresh();
       Alert.alert(t('experiences.submittedTitle'), t('experiences.submittedBody'));
@@ -104,6 +125,11 @@ export default function ExperiencesScreen() {
     { text: t('common.delete'), style: 'destructive', onPress: () => deleteExperience(item.id).then(refresh).catch(() => Alert.alert(t('common.dismiss'), t('experiences.deleteError'))) },
   ]);
 
+  const acceptOnlinePrivacy = async () => {
+    const saved = await acceptPrivacyConsent();
+    if (!saved) Alert.alert(t('common.dismiss'), t('profile.consentSaveError'));
+  };
+
   const countryName = (code) => {
     const match = countries.find((item) => item.code === code);
     return match ? pick(match.nameFa, match.nameEn) : code;
@@ -120,7 +146,7 @@ export default function ExperiencesScreen() {
             <Text variant="small" style={{ color: 'rgba(255,255,255,0.8)', marginTop: 4, textAlign: dir.text }}>{t('experiences.subtitle')}</Text>
           </View>
         </View>
-        <Button label={showForm ? t('experiences.closeForm') : t('experiences.share')} icon={showForm ? 'close-outline' : 'create-outline'} variant="light" onPress={() => setShowForm((value) => !value)} style={{ marginTop: spacing.md }} />
+        <Button label={showForm ? t('experiences.closeForm') : t('experiences.share')} icon={showForm ? 'close-outline' : 'create-outline'} variant="light" onPress={() => { setPublicationConsent(false); setShowForm((value) => !value); }} style={{ marginTop: spacing.md }} />
       </LinearGradient>
 
       <View style={{ padding: spacing.md, gap: spacing.md }}>
@@ -131,7 +157,17 @@ export default function ExperiencesScreen() {
           </View>
         </Card>
 
-        {!getApiBase() ? (
+        {bazaarIab && !privacyConsent ? (
+          <Card>
+            <SectionTitle title={t('profile.consentTitle')} />
+            <Text variant="small" color={colors.ink70} style={{ textAlign: dir.text, marginTop: spacing.sm }}>
+              {t(bazaarIab ? 'profile.privacyBodyBazaar' : 'profile.privacyBody')}
+            </Text>
+            <Button label={t('profile.acceptForOnline')} onPress={acceptOnlinePrivacy} style={{ marginTop: spacing.md }} />
+          </Card>
+        ) : null}
+
+        {(!bazaarIab || privacyConsent) && !getApiBase() ? (
           <Card><Text variant="small" color={colors.warn} style={{ textAlign: dir.text }}>{t('experiences.serverUnavailable')}</Text></Card>
         ) : null}
 
@@ -152,7 +188,15 @@ export default function ExperiencesScreen() {
             <Text variant="micro" color={colors.ink50} style={{ textAlign: dir.text }}>{form.body.length}/3000</Text>
             <TextInput value={form.displayName} onChangeText={(displayName) => updateForm({ displayName })} maxLength={32} placeholder={t('experiences.namePlaceholder')} placeholderTextColor={colors.ink35} style={[styles.input, { textAlign: dir.text, writingDirection: dir.writing }]} />
             <Text variant="micro" color={colors.ink50} style={{ textAlign: dir.text }}>{t('experiences.anonymousNote')}</Text>
-            <Button label={t('experiences.submit')} icon="send-outline" loading={submitting} disabled={!destination || submitting} onPress={send} style={{ marginTop: spacing.md }} />
+            {bazaarIab ? (
+              <ToggleRow
+                label={t('experiences.publicConsent')}
+                hint={t('experiences.publicConsentHint')}
+                value={publicationConsent}
+                onValueChange={setPublicationConsent}
+              />
+            ) : null}
+            <Button label={t('experiences.submit')} icon="send-outline" loading={submitting} disabled={!destination || (bazaarIab && (!privacyConsent || !publicationConsent)) || submitting} onPress={send} style={{ marginTop: spacing.md }} />
           </Card>
         ) : null}
 
