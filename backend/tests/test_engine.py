@@ -34,17 +34,19 @@ def base_profile(**overrides):
 
 
 def test_dataset_shape():
-    assert len(DATASET["countries"]) == 15
-    assert sum(len(c["visas"]) for c in DATASET["countries"]) >= 50
+    assert len(DATASET["countries"]) == 25
+    assert sum(len(c["visas"]) for c in DATASET["countries"]) == 100
     assert len(DATASET["occupations"]) >= 40
     ids = [v["id"] for c in DATASET["countries"] for v in c["visas"]]
     assert len(ids) == len(set(ids))
 
 
 def test_every_country_has_official_portal_and_date():
+    expanded = {"IE", "PT", "FI", "BE", "CN", "QA", "JP", "KR", "MY", "SG"}
     for country in DATASET["countries"]:
-        assert country["official"]["portal"].startswith("http")
-        assert country["official"]["lastVerified"] == "2026-10-25"
+        assert country["official"]["portal"].startswith("https://")
+        expected = "2026-11-01" if country["code"] in expanded else "2026-10-25"
+        assert country["official"]["lastVerified"] == expected
 
 
 def test_persian_fields_have_no_latin_letters():
@@ -157,7 +159,7 @@ def test_chance_is_bounded():
 def test_api_health_and_meta():
     assert client.get("/health").json()["status"] == "ok"
     meta = client.get("/api/meta").json()
-    assert meta["counts"]["countries"] == 15
+    assert meta["counts"]["countries"] == 25
     assert meta["counts"]["visas"] >= 50
 
 
@@ -166,7 +168,7 @@ def test_api_assess_endpoint():
     response = client.post("/api/assess", json=payload)
     assert response.status_code == 200
     body = response.json()
-    assert body["summary"]["countries"] == 15
+    assert body["summary"]["countries"] == 25
     assert body["countries"][0]["best"]["chance"] > 0
 
 
@@ -193,5 +195,5 @@ def test_root_keeps_json_for_api_clients_and_redirects_browsers():
 def test_health_reports_dataset_shape():
     health = client.get("/health").json()
     assert health["status"] == "ok"
-    assert health["countries"] == 15
-    assert health["visas"] == 58
+    assert health["countries"] == 25
+    assert health["visas"] == 100

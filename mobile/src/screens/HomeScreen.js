@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Image, ScrollView, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
 import { colors, fonts, gradients, radius, shadow, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
@@ -21,11 +22,11 @@ const REASONS = [
 export default function HomeScreen({ navigation }) {
   const { t, lang, pick, toggleLanguage } = useI18n();
   const dir = useDirection();
-  const { profile, updateProfile, hasAssessment, result, canStartAssessment } = useAppState();
-  const [checkingAccess, setCheckingAccess] = useState(false);
+  const { profile, updateProfile, hasAssessment, result, datasetSync } = useAppState();
   const countries = getCountries();
   const totals = getTotals();
   const dataMeta = getMeta();
+  const testBuild = Constants.expoConfig?.extra?.testBuild === true;
   const verifiedDate = formatVerifiedDate(dataMeta.lastVerified, lang);
   const freshness = getDatasetFreshness();
   const freshnessMessage = freshness.status === 'stale' || freshness.status === 'invalid'
@@ -36,20 +37,9 @@ export default function HomeScreen({ navigation }) {
   const best = result ? result.countries[0] : null;
   const featured = [...countries].sort((a, b) => a.priority - b.priority).slice(0, 6);
 
-  const startAssessment = async (goal) => {
-    if (checkingAccess) return;
-    setCheckingAccess(true);
-    try {
-      const allowed = await canStartAssessment();
-      if (!allowed) {
-        navigation.navigate('Payments');
-        return;
-      }
-      if (goal) updateProfile({ goal });
-      navigation.navigate('Wizard', { from: 'home' });
-    } finally {
-      setCheckingAccess(false);
-    }
+  const startAssessment = (goal) => {
+    if (goal) updateProfile({ goal });
+    navigation.navigate('Wizard', { from: 'home', ...(goal ? { goal } : {}) });
   };
 
   return (
@@ -88,6 +78,13 @@ export default function HomeScreen({ navigation }) {
         <Text variant="small" style={{ color: 'rgba(255,255,255,0.82)', marginTop: spacing.xs, textAlign: dir.text }}>
           {t('home.heroSubtitle')}
         </Text>
+        {testBuild ? (
+          <View style={{ marginTop: spacing.sm, padding: spacing.sm, borderRadius: radius.md, backgroundColor: 'rgba(255,255,255,0.16)' }}>
+            <Text variant="micro" style={{ color: colors.goldSoft, textAlign: dir.text, fontFamily: fonts.bold }}>
+              {t('home.testBuildNotice')}
+            </Text>
+          </View>
+        ) : null}
 
         <View style={{ marginTop: spacing.md }}>
           <View style={styles.glassBadge}>
@@ -101,13 +98,19 @@ export default function HomeScreen({ navigation }) {
             {freshnessMessage}
           </Text>
         ) : null}
+        {datasetSync.status === 'updated' ? (
+          <View style={{ marginTop: spacing.xs, padding: spacing.sm, borderRadius: radius.md, backgroundColor: 'rgba(255,255,255,0.14)' }}>
+            <Text variant="micro" style={{ color: colors.white, textAlign: dir.text }}>
+              {t('profile.dataSyncUpdated')}
+            </Text>
+          </View>
+        ) : null}
 
         <View style={{ marginTop: spacing.lg, gap: spacing.xs }}>
           <Button
             label={hasAssessment ? t('home.ctaResult') : draft ? t('home.ctaContinue') : t('home.ctaStart')}
             icon={hasAssessment ? 'analytics-outline' : 'sparkles-outline'}
             onPress={() => (hasAssessment ? navigation.navigate('Results') : startAssessment())}
-            loading={checkingAccess && !hasAssessment}
             variant="light"
           />
           <View style={{ flexDirection: dir.row, alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 2 }}>
@@ -172,7 +175,7 @@ export default function HomeScreen({ navigation }) {
                   {t('nav.explore')}
                 </Text>
                 <Text variant="micro" color={colors.ink50} style={{ textAlign: dir.text, marginTop: 2 }}>
-                  {pick('۱۵ مقصد با درگاه رسمی', '15 destinations with official portals')}
+                  {pick('۲۵ مقصد با درگاه رسمی', '25 destinations with official portals')}
                 </Text>
               </View>
             </PressableScale>

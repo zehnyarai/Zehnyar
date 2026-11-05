@@ -13,6 +13,7 @@ import { colors, fonts, radius, shadow, spacing } from './src/theme';
 import { I18nProvider, useDirection, useI18n } from './src/i18n';
 import { AppStateProvider } from './src/core/appState';
 import { loadCachedDataset, syncDataset } from './src/core/data';
+import { isBazaarIabBuild } from './src/core/bazaarBilling';
 import { Text } from './src/components/ui';
 
 import HomeScreen from './src/screens/HomeScreen';
@@ -25,6 +26,7 @@ import AdminScreen from './src/screens/AdminScreen';
 import WizardScreen from './src/screens/WizardScreen';
 import ResultsScreen from './src/screens/ResultsScreen';
 import CountryDetailScreen from './src/screens/CountryDetailScreen';
+import ResearchSourcesScreen from './src/screens/ResearchSourcesScreen';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -113,6 +115,7 @@ function Root() {
       <Stack.Screen name="Wizard" component={WizardScreen} options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="Results" component={ResultsScreen} />
       <Stack.Screen name="CountryDetail" component={CountryDetailScreen} />
+      <Stack.Screen name="ResearchSources" component={ResearchSourcesScreen} />
       <Stack.Screen name="Payments" component={PaymentsScreen} options={{ animation: 'slide_from_right' }} />
       <Stack.Screen name="Admin" component={AdminScreen} options={{ animation: 'slide_from_right' }} />
     </Stack.Navigator>
@@ -134,9 +137,9 @@ export default function App() {
     let timer;
     loadCachedDataset().finally(() => {
       if (!mounted) return;
-      // Remote validation runs in the background; it must never hold the splash
-      // screen or prevent offline startup.
-      syncDataset();
+      // Keep the existing direct/Myket behavior. Bazaar waits for explicit
+      // privacy consent before it starts network synchronization.
+      if (!isBazaarIabBuild()) syncDataset();
       timer = setTimeout(() => {
         SplashScreen.hideAsync().catch(() => {});
         setReady(true);

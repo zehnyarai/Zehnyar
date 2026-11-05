@@ -30,12 +30,12 @@ def test_payment_prices_and_free_quota(monkeypatch, tmp_path):
     assert config["freeAssessments"] == 2
     assert {p["sku"]: p["priceToman"] for p in config["packages"]} == {
         "assessment_1": 600_000,
-        "assessment_3": 1_500_000,
-        "assessment_6": 2_700_000,
-        "assessment_12": 4_800_000,
+        "assessment_3": 1_200_000,
+        "assessment_6": 2_500_000,
+        "assessment_12": 4_500_000,
     }
     assert {p["sku"]: p["discountPercent"] for p in config["packages"]} == {
-        "assessment_1": 0, "assessment_3": 17, "assessment_6": 25, "assessment_12": 33,
+        "assessment_1": 0, "assessment_3": 33.3, "assessment_6": 30.6, "assessment_12": 37.5,
     }
     assert client.get(f"/api/payments/credits/{INSTALL}").json() == {"freeRemaining": 2, "paidCredits": 0}
     assert client.post(f"/api/payments/consume/{INSTALL}").json()["consumed"] == "free"
@@ -52,7 +52,7 @@ def test_manual_receipt_admin_approval_grants_credits_once(monkeypatch, tmp_path
     )
     assert response.status_code == 200, response.text
     request_id = response.json()["requestId"]
-    assert response.json()["priceToman"] == 1_500_000
+    assert response.json()["priceToman"] == 1_200_000
     stored_receipts = list((tmp_path / "receipts").glob("*"))
     assert len(stored_receipts) == 1
     assert b"fake-png" not in stored_receipts[0].read_bytes()
@@ -145,3 +145,103 @@ def test_payment_is_disabled_without_owner_configuration(monkeypatch):
         files={"receipt": ("receipt.png", b"fake-png", "image/png")},
     )
     assert response.status_code == 503
+
+
+def _bazaar_signed_request(private_key, install_id=INSTALL, sku="assessment_3", order_id="bazaar-order-1"):
+    import base64
+    import json
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.asymmetric import padding
+
+    purchase = {
+        "orderId": order_id,
+        "purchaseToken": f"token-{order_id}",
+        "developerPayload": install_id,
+        "packageName": "ai.visayar.app",
+        "purchaseState": 0,
+        "purchaseTime": 1_798_000_000_000,
+        "productId": sku,
+    }
+    purchase_data = json.dumps(purchase, separators=(",", ":"))
+    signature = private_key.sign(purchase_data.encode(), padding.PKCS1v15(), hashes.SHA1())
+    return {
+        "installId": install_id,
+        "purchaseData": purchase_data,
+        "dataSignature": base64.b64encode(signature).decode(),
+    }
+
+
+def test_bazaar_signed_purchase_grants_credits_idempotently(monkeypatch, tmp_path):
+    import base64
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    from backend.app import payments
+
+    configure(monkeypatch, tmp_path)
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    public_der = private_key.public_key().public_bytes(
+        serialization.Encoding.DER,
+        serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+    monkeypatch.setattr(payments, "BAZAAR_RSA_PUBLIC_KEY", base64.b64encode(public_der).decode())
+    body = _bazaar_signed_request(private_key)
+
+    invalid = {**body, "dataSignature": base64.b64encode(b"not-a-valid-rsa-signature").decode()}
+    assert client.post("/api/payments/bazaar/purchases", json=invalid).status_code == 403
+    assert client.get(f"/api/payments/credits/{INSTALL}").json()["paidCredits"] == 0
+
+    first = client.post("/api/payments/bazaar/purchases", json=body)
+    assert first.status_code == 200, first.text
+    assert first.json() == {
+        "status": "granted",
+        "creditsAdded": 3,
+        "freeRemaining": 2,
+        "paidCredits": 3,
+        "orderId": "bazaar-order-1",
+    }
+    retry = client.post("/api/payments/bazaar/purchases", json=body)
+    assert retry.status_code == 200, retry.text
+    assert retry.json()["status"] == "already_granted"
+    assert retry.json()["creditsAdded"] == 0
+    assert retry.json()["paidCredits"] == 3
+
+    assert client.post(f"/api/payments/consume/{INSTALL}").json()["consumed"] == "free"
+    assert client.post(f"/api/payments/consume/{INSTALL}").json()["consumed"] == "free"
+    assert client.post(f"/api/payments/consume/{INSTALL}").json()["consumed"] == "paid"
+    assert client.get(f"/api/payments/credits/{INSTALL}").json()["paidCredits"] == 2
+
+
+def test_bazaar_purchase_requires_matching_app_install_and_known_sku(monkeypatch, tmp_path):
+    import base64
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    from backend.app import payments
+
+    configure(monkeypatch, tmp_path)
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    public_der = private_key.public_key().public_bytes(
+        serialization.Encoding.DER,
+        serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+    monkeypatch.setattr(payments, "BAZAAR_RSA_PUBLIC_KEY", base64.b64encode(public_der).decode())
+
+    another_install = "ea355b30-302c-4604-bdca-3bd798ad618b"
+    mismatched = _bazaar_signed_request(private_key, install_id=another_install)
+    mismatched["installId"] = INSTALL
+    assert client.post("/api/payments/bazaar/purchases", json=mismatched).status_code == 403
+    assert client.get(f"/api/payments/credits/{INSTALL}").json()["paidCredits"] == 0
+
+    unknown = _bazaar_signed_request(private_key, sku="assessment_unlisted", order_id="bazaar-order-unknown")
+    assert client.post("/api/payments/bazaar/purchases", json=unknown).status_code == 422
+    assert client.get(f"/api/payments/credits/{INSTALL}").json()["paidCredits"] == 0
+
+
+def test_configured_bazaar_public_key_is_valid_rsa_der():
+    import base64
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
+    from backend.app.payments import BAZAAR_RSA_PUBLIC_KEY
+
+    key = serialization.load_der_public_key(base64.b64decode(BAZAAR_RSA_PUBLIC_KEY, validate=True))
+    assert isinstance(key, RSAPublicKey)
+    assert key.key_size >= 1024
