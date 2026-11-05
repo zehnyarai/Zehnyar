@@ -81,7 +81,7 @@ jobs:
           if-no-files-found: error
 
       - name: Publish latest prerelease
-        if: github.event_name == 'workflow_dispatch' && inputs.publish_release == true
+        if: github.event_name != 'workflow_dispatch' || inputs.publish_release == true
         uses: softprops/action-gh-release@v2
         with:
           tag_name: mobile-latest
