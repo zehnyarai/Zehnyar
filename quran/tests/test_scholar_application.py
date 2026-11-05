@@ -5,6 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 APP = json.loads((ROOT / "static" / "scholar-application.json").read_text(encoding="utf-8"))
+DOSSIERS = json.loads((ROOT / "static" / "verse-dossiers.json").read_text(encoding="utf-8"))
 BANK = json.loads((ROOT / "static" / "scholar-bank.json").read_text(encoding="utf-8"))
 CORPUS = json.loads((ROOT / "static" / "offline-corpus.json").read_text(encoding="utf-8"))["verses"]
 
@@ -74,20 +75,26 @@ def test_every_v2_use_carries_text_evidence_citation_and_guard():
             assert len(use["guard"].split()) >= 8, f"{vid}: مرزِ سوءاستفاده کوتاه است"
 
 
-def test_no_verse_exceeds_four_applications():
+def test_historical_verses_keep_four_applications_and_later_surahs_use_five():
     for vid, entry in APP["verses"].items():
         if "uses" in entry:
-            assert len(entry["uses"]) <= 4, f"{vid}: بیش از چهار کاربست"
+            surah = int(vid.split(":",1)[0])
+            assert len(entry["uses"]) == (5 if surah >= 4 else 4), f"{vid}: شمارِ کاربست‌ها با استانداردِ بازه نمی‌خواند"
 
 
-def test_revised_batch_has_exactly_four_documented_uses():
+def test_revised_batch_has_four_historical_uses_and_five_from_nisa_onward():
     revised = APP["revision"]
-    assert revised["standard"] == "v2"
+    assert revised["standard"] == "v3"
     covered = [vid for vid, entry in APP["verses"].items() if "uses" in entry]
-    assert len(covered) == revised["count"], f"پوششِ بازنویسی‌شده {len(covered)} ≠ {revised['count']}"
+    assert len(covered) == revised["count"] == 1412, f"پوششِ بازنویسی‌شده {len(covered)} ≠ {revised['count']}"
+    assert revised["range"] == "۱:۱–۷ و ۲:۱–۲۸۶ و ۳:۱–۲۰۰ و ۴:۱–۱۷۶ و ۵:۱–۱۲۰ و ۶:۱–۱۶۵ و ۷:۱–۲۰۶ و ۸:۱–۷۵ و ۹:۱–۱۲۹ و ۱۰:۱–۴۸"
+    assert revised["previousRevision"]["count"] == 1364
+    assert revised["previousRevision"]["previousRevision"]["count"] == 1235
+    assert revised["previousRevision"]["previousRevision"]["previousRevision"]["count"] == 1160
     for vid, entry in APP["verses"].items():
         if "uses" in entry:
-            assert len(entry["uses"]) == 4, f"{vid}: کاربست‌ها چهارتا نیستند"
+            expected = 5 if int(vid.split(":", 1)[0]) >= 4 else 4
+            assert len(entry["uses"]) == expected, f"{vid}: کاربست‌ها با استانداردِ تاریخی/نساءِ این بسته نمی‌خوانند"
 
 
 def test_use_texts_are_unique_and_fields_vary():
@@ -122,12 +129,257 @@ def test_fields_cover_more_than_one_domain():
     assert len(fields) >= 40, f"تنوعِ میدان‌ها کم است: {len(fields)}"
 
 
-def test_al_imran_range_is_exactly_four_guarded_editorial_uses_per_verse():
-    al_imran_ids = {f"3:{ayah}" for ayah in range(1, 201)}
-    assert al_imran_ids <= set(APP["verses"])
-    assert len(APP["revision"]["ranges"]) == len(set(APP["revision"]["ranges"]))
-    for vid in al_imran_ids:
-        uses = APP["verses"][vid]["uses"]
-        assert len(uses) == 4, vid
-        assert all(use["kind"] == "editorial-application" for use in uses)
-        assert all("آل‌عمران" in use["cite"] and "آل‌عمران" in use["guard"] for use in uses)
+def test_opening_review_applications_are_quran_study_not_generic_advice():
+    reviewed = [f"1:{n}" for n in range(1, 8)] + [f"2:{n}" for n in range(1, 9)]
+    unrelated_sources = ("Bourdieu", "Kahneman", "Tufekci", "Gadamer", "Hirsch", "Goldziher", "Nöldeke")
+    for verse_id in reviewed:
+        uses = APP["verses"][verse_id]["uses"]
+        assert len(uses) == 4, verse_id
+        for use in uses:
+            assert any(source in use["cite"] for source in ("قرآن", "طبری", "قرطبی", "المیزان", "QuranEnc", "Izutsu", "Neuwirth", "Sells", "Sinai", "Rahman")), verse_id
+            assert not any(source in use["cite"] for source in unrelated_sources), (verse_id, use["cite"])
+    assert "فهم" in APP["notice"] and "قرآن" in APP["notice"]
+
+
+def test_opening_translation_and_tafsir_tasks_name_source_types_accurately():
+    samples = {
+        "1:2": APP["verses"]["1:2"]["uses"][3],
+        "1:4": APP["verses"]["1:4"]["uses"][3],
+        "1:6": APP["verses"]["1:6"]["uses"][0],
+        "1:7": APP["verses"]["1:7"]["uses"][2],
+        "2:3a": APP["verses"]["2:3"]["uses"][1],
+        "2:3b": APP["verses"]["2:3"]["uses"][2],
+        "2:5": APP["verses"]["2:5"]["uses"][1],
+        "2:6": APP["verses"]["2:6"]["uses"][2],
+    }
+    assert "سه ترجمهٔ فارسی" not in samples["1:2"]["text"]
+    assert "شرحِ عربیِ التفسير الميسر" in samples["1:2"]["text"]
+    assert not samples["1:4"]["cite"].lstrip().startswith("و ")
+    assert "قرائت‌های" in samples["1:4"]["text"]
+    assert "ضمیرِ جمع" in samples["1:6"]["text"]
+    assert "مصداق" in samples["1:7"]["text"]
+    assert "مِن" in samples["2:3b"]["text"]
+    assert "QuranEnc" in samples["2:5"]["cite"] and "نسخهٔ 1.0.0" in samples["2:5"]["cite"]
+    assert "دو تفسیرِ معاصر" not in samples["2:6"]["text"]
+    assert all("Furqan Apps" in item["cite"] and "قطعهٔ" in item["cite"] for item in samples.values())
+
+
+def test_baqarah_9_to_286_applications_are_four_source_bound_quran_study_tasks():
+    expected_fields = ["واژه‌کاوی و ساخت", "سیاق و پیوند قرآنی", "مقایسهٔ اقوال تفسیری", "تمرین ترجمه و دلالت"]
+    tangential_sources = ("Bourdieu", "Kahneman", "Goffman", "Bandura", "Rothstein", "Turkle", "Sunstein")
+
+    corpus_by_id = {f"{row[0]}:{row[1]}": row for row in CORPUS if isinstance(row, list)}
+    for ayah in range(9, 287):
+        verse_id = f"2:{ayah}"
+        uses = APP["verses"][verse_id]["uses"]
+        assert len(uses) == 4, verse_id
+        assert [use["field"] for use in uses] == expected_fields, verse_id
+        verse_text = corpus_by_id[verse_id][2]
+        for use in uses:
+            assert use["basis"] in verse_text, (verse_id, use["basis"])
+            assert use["cite"].strip() and len(use["guard"].split()) >= 8
+            assert not any(source in use["cite"] for source in tangential_sources), (verse_id, use["cite"])
+        assert any("طبری" in uses[0]["cite"] and "قرطبی" in uses[0]["cite"] for _ in (0,))
+        assert "قرآن" in uses[1]["cite"]
+        assert "QuranEnc" in uses[3]["cite"]
+
+
+def test_al_imran_3_1_to_200_has_exactly_four_source_bound_study_uses():
+    expected_fields = ["واژه‌کاوی و ساخت", "سیاق و پیوند قرآنی", "مقایسهٔ اقوال تفسیری", "تمرین ترجمه و دلالت"]
+    corpus_by_id = {f"{row[0]}:{row[1]}": row for row in CORPUS if isinstance(row, list)}
+    batch = next(batch for batch in APP["batches"] if batch["id"] == "batch-9")
+    assert batch["segments"] == [["3:1", "3:200"]]
+    assert batch["count"] == 200
+    assert APP["revision"]["count"] == 1412
+    assert "۳:۱–۲۰۰" in APP["revision"]["ranges"]
+
+    for ayah in range(1, 201):
+        verse_id = f"3:{ayah}"
+        uses = APP["verses"][verse_id]["uses"]
+        assert len(uses) == 4, verse_id
+        assert [use["field"] for use in uses] == expected_fields, verse_id
+        verse_text = corpus_by_id[verse_id][2]
+        for use in uses:
+            assert use["basis"] in verse_text, (verse_id, use["basis"])
+            assert use["cite"].strip() and len(use["guard"].split()) >= 8
+        assert "طبری" in uses[0]["cite"] and "قرطبی" in uses[0]["cite"]
+        assert "قرآن" in uses[1]["cite"]
+        assert "التفسير الميسر" in uses[2]["cite"] and "QuranEnc" in uses[2]["cite"]
+        assert "fa.fooladvand" in uses[3]["cite"] and "Tanzil" in uses[3]["cite"]
+        assert "اجماع" not in uses[1]["text"]
+
+
+def test_nisa_4_1_to_176_has_five_source_bound_study_uses():
+    expected_fields = ["واژه‌کاوی و ساخت", "سیاق و پیوند قرآنی", "مقایسهٔ اقوال تفسیری", "تمرین ترجمه و دلالت", "آزمون میان‌رشته‌ای و مرزِ کاربرد"]
+    corpus_by_id = {f"{row[0]}:{row[1]}": row for row in CORPUS if isinstance(row, list)}
+    batch = next(batch for batch in APP["batches"] if batch["id"] == "batch-10")
+    assert batch["segments"] == [["4:1", "4:176"]]
+    assert batch["count"] == 176
+    for ayah in range(1, 177):
+        verse_id = f"4:{ayah}"
+        uses = APP["verses"][verse_id]["uses"]
+        assert len(uses) == 5, verse_id
+        assert [use["field"] for use in uses] == expected_fields, verse_id
+        verse_text = corpus_by_id[verse_id][2]
+        for use in uses:
+            assert use["basis"] in verse_text, (verse_id, use["basis"])
+            assert use["cite"].strip() and len(use["text"].split()) >= 15 and len(use["guard"].split()) >= 8, verse_id
+        assert "طبری" in uses[0]["cite"] and "قرطبی" in uses[0]["cite"]
+        assert "قرآن" in uses[1]["cite"]
+        assert "التفسير الميسر" in uses[2]["cite"]
+        assert "fa.fooladvand" in uses[3]["cite"] and "Tanzil" in uses[3]["cite"]
+        assert "اجماع" not in uses[1]["text"]
+
+
+
+def test_maida_5_1_to_120_has_five_source_bound_study_uses():
+    expected_fields = ["واژه‌کاوی و ساخت", "سیاق و پیوند قرآنی", "مقایسهٔ اقوال تفسیری", "تمرین ترجمه و دلالت", "آزمون میان‌رشته‌ای و مرزِ کاربرد"]
+    corpus_by_id = {f"{row[0]}:{row[1]}": row for row in CORPUS if isinstance(row, list)}
+    batch = next(batch for batch in APP["batches"] if batch["id"] == "batch-11")
+    assert batch["segments"] == [["5:1", "5:120"]]
+    assert batch["count"] == 120
+    assert APP["revision"]["count"] == 1412
+    assert "۵:۱–۱۲۰" in APP["revision"]["ranges"]
+    for ayah in range(1, 121):
+        verse_id = f"5:{ayah}"
+        uses = APP["verses"][verse_id]["uses"]
+        assert len(uses) == 5, verse_id
+        assert [use["field"] for use in uses] == expected_fields, verse_id
+        verse_text = corpus_by_id[verse_id][2]
+        for use in uses:
+            assert use["basis"] in verse_text, (verse_id, use["basis"])
+            assert use["cite"].strip() and len(use["text"].split()) >= 15 and len(use["guard"].split()) >= 8, verse_id
+        assert "طبری" in uses[0]["cite"] and "قرطبی" in uses[0]["cite"]
+        assert "قرآن" in uses[1]["cite"]
+        assert "التفسير الميسر" in uses[2]["cite"]
+        assert "fa.fooladvand" in uses[3]["cite"] and "Tanzil" in uses[3]["cite"]
+        assert "اجماع" not in uses[1]["text"]
+    missing_record = APP["verses"]["5:36"]["uses"][2]
+    assert "تهی از تفسیر" in missing_record["text"]
+    assert "لا يوجد تفسير" in missing_record["cite"]
+
+
+def test_al_anam_6_1_to_165_has_five_source_bound_study_uses():
+    expected_fields = ["واژه‌کاوی و ساخت", "سیاق و پیوند قرآنی", "مقایسهٔ اقوال تفسیری", "تمرین ترجمه و دلالت", "آزمون میان‌رشته‌ای و مرزِ کاربرد"]
+    corpus_by_id = {f"{row[0]}:{row[1]}": row for row in CORPUS if isinstance(row, list)}
+    batch = next(batch for batch in APP["batches"] if batch["id"] == "batch-12")
+    assert batch["segments"] == [["6:1", "6:165"]]
+    assert batch["count"] == 165
+    assert APP["revision"]["count"] == 1412
+    assert "۶:۱–۱۶۵" in APP["revision"]["ranges"]
+    assert APP["revision"]["previousRevision"]["count"] == 1364
+    assert APP["revision"]["previousRevision"]["previousRevision"]["count"] == 1235
+    assert "resolution 70/186" in APP["verses"]["6:152"]["uses"][4]["cite"]
+    assert "para. 32" in APP["verses"]["6:152"]["uses"][4]["cite"]
+    assert "بندِ ۳۲" in APP["verses"]["6:152"]["uses"][4]["guard"]
+    for ayah in range(1, 166):
+        verse_id = f"6:{ayah}"
+        uses = APP["verses"][verse_id]["uses"]
+        assert len(uses) == 5, verse_id
+        assert [use["field"] for use in uses] == expected_fields, verse_id
+        verse_text = corpus_by_id[verse_id][2]
+        for use in uses:
+            assert use["basis"] in verse_text, (verse_id, use["basis"])
+            assert use["cite"].strip() and len(use["text"].split()) >= 15 and len(use["guard"].split()) >= 8, verse_id
+        assert "طبری" in uses[0]["cite"] and "قرطبی" in uses[0]["cite"]
+        assert "قرآن" in uses[1]["cite"]
+        assert "التفسير الميسر" in uses[2]["cite"]
+        assert "fa.fooladvand" in uses[3]["cite"] and "Tanzil" in uses[3]["cite"]
+        assert "اجماع" not in uses[1]["text"]
+
+
+def test_araf_7_1_to_206_has_five_source_bound_applications():
+    expected_fields = ["واژه‌کاوی و ساخت", "سیاق و پیوند قرآنی", "مقایسهٔ اقوال تفسیری", "تمرین ترجمه و دلالت", "آزمون میان‌رشته‌ای و مرزِ کاربرد"]
+    corpus_by_id = {f"{row[0]}:{row[1]}": row for row in CORPUS if isinstance(row, list)}
+    batch = next(batch for batch in APP["batches"] if batch["id"] == "batch-13")
+    assert batch["segments"] == [["7:1", "7:206"]] and batch["count"] == 206
+    assert APP["revision"]["count"] == 1412
+    assert "۷:۱–۲۰۶" in APP["revision"]["ranges"]
+    for ayah in range(1, 207):
+        verse_id = f"7:{ayah}"
+        uses = APP["verses"][verse_id]["uses"]
+        assert len(uses) == 5 and [use["field"] for use in uses] == expected_fields, verse_id
+        for use in uses:
+            assert use["basis"] in corpus_by_id[verse_id][2], (verse_id, use["basis"])
+            assert use["cite"].strip() and len(use["guard"].split()) >= 8, verse_id
+    for ayah in (96, 97, 98, 120):
+        uses = APP["verses"][f"7:{ayah}"]["uses"]
+        assert "رکوردِ طبری شرحِ جداگانه ندارد" in uses[0]["text"]
+        assert "رکوردِ طبری شرحِ جداگانه ندارد" in uses[2]["text"]
+
+
+def test_anfal_8_1_to_75_has_five_source_bound_applications():
+    expected_fields = ["واژه‌کاوی و ساخت", "سیاق و پیوند قرآنی", "مقایسهٔ اقوال تفسیری", "تمرین ترجمه و دلالت", "آزمون میان‌رشته‌ای و مرزِ کاربرد"]
+    corpus_by_id = {f"{row[0]}:{row[1]}": row for row in CORPUS if isinstance(row, list)}
+    batch = next(batch for batch in APP["batches"] if batch["id"] == "batch-14")
+    assert batch["segments"] == [["8:1", "8:75"]] and batch["count"] == 75
+    assert APP["revision"]["count"] == 1412
+    assert "۸:۱–۷۵" in APP["revision"]["ranges"]
+    for ayah in range(1, 76):
+        verse_id = f"8:{ayah}"
+        uses = APP["verses"][verse_id]["uses"]
+        assert len(uses) == 5 and [use["field"] for use in uses] == expected_fields, verse_id
+        for use in uses:
+            assert use["basis"] in corpus_by_id[verse_id][2], (verse_id, use["basis"])
+            assert use["cite"].strip() and len(use["guard"].split()) >= 8, verse_id
+
+
+def test_tawbah_9_1_to_129_has_five_source_bound_study_uses():
+    expected_fields = ["واژه‌کاوی و ساخت", "سیاق و پیوند قرآنی", "مقایسهٔ اقوال تفسیری", "تمرین ترجمه و دلالت", "آزمون میان‌رشته‌ای و مرزِ کاربرد"]
+    corpus_by_id = {f"{row[0]}:{row[1]}": row for row in CORPUS if isinstance(row, list)}
+    batch = next(batch for batch in APP["batches"] if batch["id"] == "batch-15")
+    assert batch["segments"] == [["9:1", "9:129"]] and batch["count"] == 129
+    assert APP["revision"]["count"] == 1412
+    assert "۹:۱–۱۲۹" in APP["revision"]["ranges"]
+    assert "۱۰:۱–۴۸" in APP["revision"]["ranges"]
+    for ayah in range(1, 130):
+        verse_id = f"9:{ayah}"
+        uses = APP["verses"][verse_id]["uses"]
+        assert len(uses) == 5 and [use["field"] for use in uses] == expected_fields, verse_id
+        for use in uses:
+            assert use["basis"] in corpus_by_id[verse_id][2], (verse_id, use["basis"])
+            assert use["cite"].strip() and len(use["text"].split()) >= 15 and len(use["guard"].split()) >= 8, verse_id
+        assert "طبری" in uses[0]["cite"] and "قرطبی" in uses[0]["cite"]
+        assert "قرآن" in uses[1]["cite"]
+        assert "التفسير الميسر" in uses[2]["cite"]
+        assert "fa.fooladvand" in uses[3]["cite"] and "Tanzil" in uses[3]["cite"]
+        assert "اجماع" not in uses[1]["text"]
+    comparison = APP["verses"]["9:6"]["uses"][4]
+    assert "art. 18" in comparison["cite"] and "resolution 2200A (XXI)" in comparison["cite"]
+    assert "آزادیِ دین و وجدان" in comparison["text"]
+    assert "دو نظام را همسان ندان" in comparison["text"]
+
+
+def test_yunus_10_1_to_48_has_five_source_bound_uses_in_four_registered_packs():
+    expected_fields = ["واژه‌کاوی و ساخت", "سیاق و پیوند قرآنی", "مقایسهٔ اقوال تفسیری", "تمرین ترجمه و دلالت", "آزمون میان‌رشته‌ای و مرزِ کاربرد"]
+    corpus_by_id = {f"{row[0]}:{row[1]}": row for row in CORPUS if isinstance(row, list)}
+    batch = next(batch for batch in APP["batches"] if batch["id"] == "batch-16")
+    assert batch["segments"] == [
+        ["10:1", "10:12"], ["10:13", "10:24"],
+        ["10:25", "10:36"], ["10:37", "10:48"],
+    ]
+    assert batch["count"] == 48
+    assert APP["revision"]["count"] == 1412
+    assert APP["revision"]["previousRevision"]["count"] == 1364
+    assert "۱۰:۱–۴۸" in APP["revision"]["ranges"]
+    direct_mizan = 0
+    for ayah in range(1, 49):
+        verse_id = f"10:{ayah}"
+        uses = APP["verses"][verse_id]["uses"]
+        assert len(uses) == 5 and [use["field"] for use in uses] == expected_fields, verse_id
+        verse_text, translation = corpus_by_id[verse_id][2:4]
+        for use in uses:
+            assert use["basis"] in verse_text, (verse_id, use["basis"])
+            assert use["cite"].strip() and len(use["text"].split()) >= 15 and len(use["guard"].split()) >= 8, verse_id
+            assert use["text"].strip() != translation.strip(), verse_id
+        assert "طبری" in uses[0]["cite"] and "قرطبی" in uses[0]["cite"]
+        assert "قرآن" in uses[1]["cite"]
+        assert "QuranEnc" in uses[2]["cite"]
+        assert "Tanzil" in uses[3]["cite"]
+        assert "Fillmore" in uses[4]["cite"] and "Sinai" in uses[4]["cite"]
+        dossier_entry = DOSSIERS["verses"][verse_id]
+        if any(source.get("sourceId") == "fa_mizan_furqan" for source in dossier_entry["modern"]):
+            direct_mizan += 1
+    assert direct_mizan == 14
+    assert "الٓر" in APP["verses"]["10:1"]["uses"][0]["basis"]
+    assert "بِسْمِ" not in APP["verses"]["10:1"]["uses"][0]["basis"]

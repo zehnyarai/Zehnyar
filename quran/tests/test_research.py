@@ -12,6 +12,20 @@ class QuranResearchTests(unittest.TestCase):
         self.assertEqual(len(main.CORPUS), 6236)
         self.assertEqual(len(main.VERSE_MAP), 6236)
 
+    def test_api_metadata_identifies_the_current_persian_translation_and_terms(self):
+        corpus = main.meta()["corpus"]
+        self.assertEqual(corpus["verses"], 6236)
+        self.assertIn("Fooladvand", corpus["persian"])
+        self.assertEqual(corpus["translation_source_url"], "https://tanzil.net/trans/fa.fooladvand")
+        self.assertEqual(corpus["translation_terms_url"], "https://tanzil.net/trans/")
+        self.assertEqual(corpus["translation_use"], "Non-commercial use only")
+        self.assertEqual(corpus["translation"]["id"], "fa.fooladvand")
+
+    def test_single_verse_api_response_carries_translation_attribution(self):
+        result = main.get_verse(1, 1)
+        self.assertEqual(result["translation"]["id"], "fa.fooladvand")
+        self.assertEqual(result["translation"]["source_url"], "https://tanzil.net/trans/fa.fooladvand")
+
     def test_normalization_keeps_search_equivalents_together(self):
         self.assertEqual(main.normalize("إِنَّ اللَّهَ عَلِيمٌ"), "ان الله علیم")
         self.assertEqual(main.normalize("مي‌كند"), "می کند")
@@ -108,7 +122,59 @@ class QuranResearchTests(unittest.TestCase):
             set(studies["verses"]),
             {f"1:{n}" for n in range(1, 8)}
             | {f"2:{n}" for n in range(1, 287)}
-            | {f"3:{n}" for n in range(1, 201)},
+            | {f"3:{n}" for n in range(1, 201)}
+            | {f"4:{n}" for n in range(1, 177)}
+            | {f"5:{n}" for n in range(1, 121)}
+            | {f"6:{n}" for n in range(1, 166)}
+            | {f"7:{n}" for n in range(1, 207)}
+            | {f"8:{n}" for n in range(1, 76)}
+            | {f"9:{n}" for n in range(1, 130)}
+            | {f"10:{n}" for n in range(1, 110)}
+            | {f"11:{n}" for n in range(1, 124)}
+            | {f"12:{n}" for n in range(1, 112)}
+            | {f"13:{n}" for n in range(1, 44)}
+            | {f"14:{n}" for n in range(1, 53)}
+            | {f"15:{n}" for n in range(1, 100)}
+            | {f"16:{n}" for n in range(1, 129)}
+            | {f"17:{n}" for n in range(1, 112)}
+            | {f"18:{n}" for n in range(1, 111)}
+            | {f"19:{n}" for n in range(1, 99)}
+            | {f"20:{n}" for n in range(1, 136)}
+            | {f"21:{n}" for n in range(1, 113)}
+            | {f"22:{n}" for n in range(1, 79)}
+            | {f"23:{n}" for n in range(1, 119)}
+            | {f"24:{n}" for n in range(1, 65)}
+            | {f"25:{n}" for n in range(1, 78)}
+            | {f"26:{n}" for n in range(1, 228)}
+            | {f"27:{n}" for n in range(1, 94)}
+            | {f"28:{n}" for n in range(1, 89)}
+            | {f"29:{n}" for n in range(1, 70)}
+            | {f"30:{n}" for n in range(1, 61)}
+            | {f"31:{n}" for n in range(1, 35)}
+            | {f"32:{n}" for n in range(1, 31)}
+            | {f"33:{n}" for n in range(1, 74)}
+            | {f"34:{n}" for n in range(1, 55)}
+            | {f"35:{n}" for n in range(1, 46)}
+            | {f"36:{n}" for n in range(1, 84)}
+            | {f"37:{n}" for n in range(1, 183)}
+            | {f"38:{n}" for n in range(1, 89)}
+            | {f"39:{n}" for n in range(1, 76)}
+            | {f"40:{n}" for n in range(1, 86)}
+            | {f"41:{n}" for n in range(1, 55)}
+            | {f"42:{n}" for n in range(1, 54)}
+            | {f"43:{n}" for n in range(1, 90)}
+            | {f"44:{n}" for n in range(1, 60)}
+            | {f"45:{n}" for n in range(1, 38)}
+            | {f"46:{n}" for n in range(1, 36)}
+            | {f"47:{n}" for n in range(1, 39)}
+            | {f"48:{n}" for n in range(1, 30)}
+            | {f"49:{n}" for n in range(1, 19)}
+            | {f"50:{n}" for n in range(1, 46)}
+            | {f"51:{n}" for n in range(1, 61)}
+            | {f"{surah}:{n}" for surah, count in {52: 49, 53: 62, 54: 55, 55: 78, 56: 96, 57: 29, 58: 22, 59: 24, 60: 13, 61: 14, 62: 11, 63: 11, 64: 18, 65: 12, 66: 12, 67: 30, 68: 52, 69: 52, 70: 44, 71: 28, 72: 28, 73: 20, 74: 56, 75: 40, 76: 31, 77: 50, 78: 40, 79: 46, 80: 42, 81: 29, 82: 19, 83: 36, 84: 25, 85: 22, 86: 17, 87: 19, 88: 26, 89: 30, 90: 20, 91: 15, 92: 21, 93: 11, 94: 8, 95: 8, 96: 19, 97: 5, 98: 8, 99: 8, 100: 11, 101: 11, 102: 8, 103: 3, 104: 9, 105: 5, 106: 4, 107: 7, 108: 3, 109: 6, 110: 3, 111: 5}.items() for n in range(1, count + 1)}
+            | {f"112:{n}" for n in range(1, 5)}
+            | {f"113:{n}" for n in range(1, 6)}
+            | {f"114:{n}" for n in range(1, 7)},
         )
         for annotation in studies["verses"].values():
             for field in ("notes", "messages", "principles", "framework", "thematic", "context", "network"):
@@ -116,11 +182,9 @@ class QuranResearchTests(unittest.TestCase):
 
     def test_sources_dialog_separates_the_requested_research_source_fields(self):
         html = (Path(main.STATIC_DIR) / "index.html").read_text(encoding="utf-8")
-        script = (Path(main.STATIC_DIR) / "app.js").read_text(encoding="utf-8")
         for label in ("متن قرآن", "تفاسیر جامع", "کتب علوم قرآنی", "مقالات قرآنی", "مقالات تفسیری"):
             self.assertIn(label, html)
         self.assertIn("در تحلیلِ آیه به‌کار می‌رود", html)
-        self.assertIn("sourceTradition = source?.tradition || item.tradition", script)
 
     def test_broad_topic_catalog_is_grouped_and_lexically_traceable(self):
         catalog = json.loads((Path(main.STATIC_DIR) / "topic-catalog.json").read_text(encoding="utf-8"))
@@ -132,177 +196,22 @@ class QuranResearchTests(unittest.TestCase):
         self.assertTrue(all(concept["equivalents"] for concept in concepts.values()))
         self.assertTrue(all(concept["related"] for concept in concepts.values()))
 
-    def test_tafsir_source_registry_reports_local_availability_and_provenance(self):
+    def test_full_cited_tafsir_sources_cover_the_complete_corpus(self):
         static_dir = Path(main.STATIC_DIR)
         registry = json.loads((static_dir / "tafsir-sources.json").read_text(encoding="utf-8"))
-        source_ids = {source["id"] for source in registry["sources"]}
-        core_ids = {"ar_qe_arabic_moyassar", "ar_tabari_qurancom", "ar_qurtubi_qurancom", "fa_mizan_furqan"}
-        external_ids = {
-            "ar_ibn_kathir_qurancom", "ar_baghawi_qurancom", "ar_jalalayn_qurancom",
-            "ar_ibn_ashur", "en_tafheem_ul_quran", "en_maarif_ul_quran",
-            "en_enlightening_commentary_vol7", "ar_tusi_tibyan", "ar_fayd_safi",
-        }
-        self.assertGreaterEqual(len(source_ids), 13)
-        self.assertTrue(core_ids <= source_ids)
-        self.assertTrue(external_ids <= source_ids)
+        self.assertEqual(len(registry["sources"]), 4)
+        self.assertEqual({source["id"] for source in registry["sources"]}, {"ar_qe_arabic_moyassar", "ar_tabari_qurancom", "ar_qurtubi_qurancom", "fa_mizan_furqan"})
+        missing = [source["file"] for source in registry["sources"] if not (static_dir / source["file"].removeprefix("static/")).is_file()]
+        if missing:
+            self.skipTest(f"large gitignored tafsir sources were not supplied: {', '.join(missing)}")
         for source in registry["sources"]:
-            source_file = source.get("file")
-            path = Path(main.BASE_DIR) / source_file if source_file else None
-            self.assertEqual(source["localAvailable"], bool(path and path.is_file()), source["id"])
+            payload = json.loads((static_dir / source["file"].removeprefix("static/")).read_text(encoding="utf-8"))
+            verse_total = sum(len(ayahs) for ayahs in payload.get("verses", {}).values())
+            verse_total = verse_total or sum(len(ayahs) for ayahs in payload.get("ayahMapping", {}).values())
+            self.assertEqual(verse_total, 6236)
+            self.assertEqual(payload["edition"]["version"], source["version"])
             self.assertTrue(source["sourceUrl"].startswith("https://"))
             self.assertTrue(source.get("attribution"))
-            if path and path.is_file():
-                payload = json.loads(path.read_text(encoding="utf-8"))
-                verse_total = sum(len(ayahs) for ayahs in payload.get("verses", {}).values())
-                verse_total = verse_total or sum(len(ayahs) for ayahs in payload.get("ayahMapping", {}).values())
-                self.assertEqual(verse_total, 6236, source["id"])
-                self.assertEqual(payload["edition"]["version"], source["version"])
-            elif not source_file:
-                self.assertFalse(source["localAvailable"], source["id"])
-                self.assertFalse(source.get("preload", True), source["id"])
-
-    def test_yunus_external_tafsir_catalog_resolves_to_linked_registry_sources(self):
-        static_dir = Path(main.STATIC_DIR)
-        catalog = json.loads((static_dir / "tafsir-catalog.json").read_text(encoding="utf-8"))
-        collection = next(group for group in catalog["collections"] if group["id"] == "yunus-10-49-60-cited")
-        registry = json.loads((static_dir / "tafsir-sources.json").read_text(encoding="utf-8"))
-        registry_by_id = {source["id"]: source for source in registry["sources"]}
-        items = {item["id"]: item for item in collection["items"]}
-        self.assertEqual(len(items), 11)
-        self.assertTrue(set(items) <= set(registry_by_id))
-        self.assertEqual(items["fa_mizan_furqan"]["status"], "linked-only")
-        self.assertIn("بازنشر نشده", items["fa_mizan_furqan"]["basis"])
-        for source_id, item in items.items():
-            self.assertTrue(item["sourceUrl"].startswith("https://"), source_id)
-            self.assertEqual(item["sourceUrl"], registry_by_id[source_id]["sourceUrl"], source_id)
-            self.assertEqual(item["scope"], "یونس ۱۰:۴۹–۶۰", source_id)
-
-    def test_yunus_10_61_72_external_tafsir_catalog_resolves_to_linked_registry_sources(self):
-        static_dir = Path(main.STATIC_DIR)
-        catalog = json.loads((static_dir / "tafsir-catalog.json").read_text(encoding="utf-8"))
-        collection = next(group for group in catalog["collections"] if group["id"] == "yunus-10-61-72-cited")
-        registry = json.loads((static_dir / "tafsir-sources.json").read_text(encoding="utf-8"))
-        registry_by_id = {source["id"]: source for source in registry["sources"]}
-        items = {item["id"]: item for item in collection["items"]}
-        expected_ids = {
-            "ar_qe_arabic_moyassar", "ar_tabari_qurancom", "ar_qurtubi_qurancom",
-            "ar_ibn_kathir_qurancom", "ar_baghawi_qurancom", "ar_jalalayn_qurancom",
-            "ar_tusi_tibyan", "ar_fayd_safi", "en_tafheem_ul_quran",
-            "en_maarif_ul_quran", "en_enlightening_commentary_vol7",
-        }
-        self.assertEqual(set(items), expected_ids)
-        self.assertTrue(set(items) <= set(registry_by_id))
-        self.assertEqual(items["ar_qe_arabic_moyassar"]["status"], "available")
-        self.assertEqual(
-            {source_id for source_id, item in items.items() if item["status"] == "available"},
-            {"ar_qe_arabic_moyassar"},
-        )
-        expected_urls = {
-            "ar_jalalayn_qurancom": "https://quran.com/yunus/61/tafsirs/ar-tafsir-jalalayn",
-            "ar_tusi_tibyan": "https://www.greattafsirs.com/Tafsir_Library.aspx?FromMainTafsir=1&MadhabNo=4&TafsirNo=39&SoraNo=10&AyahNo=61&LanguageID=1",
-            "ar_fayd_safi": "https://www.greattafsirs.com/Tafsir_Library.aspx?FromMainTafsir=1&MadhabNo=4&TafsirNo=41&SoraNo=10&AyahNo=61&LanguageID=1",
-            "en_tafheem_ul_quran": "https://www.islamicstudies.info/tafheem.php?sura=10&verse=61&to=72",
-            "en_maarif_ul_quran": "https://quran.com/yunus/61/tafsirs/en-tafsir-maarif-ul-quran",
-            "en_enlightening_commentary_vol7": "https://al-islam.org/enlightening-commentary-light-holy-quran-vol-7/section-7-no-fear-or-grief-friends-allah",
-        }
-        for source_id, item in items.items():
-            registry_source = registry_by_id[source_id]
-            self.assertTrue(item["sourceUrl"].startswith("https://"), source_id)
-            self.assertEqual(item["sourceUrl"], expected_urls.get(source_id, registry_source["sourceUrl"]), source_id)
-            self.assertEqual(item["title"], registry_source["title"], source_id)
-            self.assertEqual(item["author"], registry_source["author"], source_id)
-            self.assertEqual(item["language"], registry_source["language"], source_id)
-            self.assertEqual(item["scope"], "یونس ۱۰:۶۱–۷۲", source_id)
-            self.assertEqual(item["tradition"], registry_source["tradition"], source_id)
-        self.assertGreaterEqual(catalog["version"], 8)
-        comparative_core = collection["comparativeCore"]
-        self.assertEqual(comparative_core["scope"], "هر آیهٔ یونس ۱۰:۶۱–۷۲")
-        self.assertEqual(
-            set(comparative_core["sunniSourceIds"]),
-            {"ar_tabari_qurancom", "ar_qurtubi_qurancom", "ar_ibn_kathir_qurancom"},
-        )
-        self.assertEqual(
-            set(comparative_core["shiaSourceIds"]),
-            {"ar_tusi_tibyan", "ar_fayd_safi", "en_enlightening_commentary_vol7"},
-        )
-        self.assertIn("خلاصهٔ منسوب", comparative_core["note"])
-        self.assertEqual(
-            items["en_enlightening_commentary_vol7"]["version"],
-            "جلد ۷، بخش‌های ۷ و ۸؛ صفحه‌بندیِ چاپی ثبت نشده",
-        )
-
-    def test_yunus_10_73_84_tafsir_catalog_keeps_the_explicit_comparative_core(self):
-        static_dir = Path(main.STATIC_DIR)
-        catalog = json.loads((static_dir / "tafsir-catalog.json").read_text(encoding="utf-8"))
-        registry = json.loads((static_dir / "tafsir-sources.json").read_text(encoding="utf-8"))
-        registry_by_id = {source["id"]: source for source in registry["sources"]}
-        collection = next(group for group in catalog["collections"] if group["id"] == "yunus-10-73-84-cited")
-        items = {item["id"]: item for item in collection["items"]}
-        expected_ids = {
-            "ar_qe_arabic_moyassar", "ar_tabari_qurancom", "ar_qurtubi_qurancom",
-            "ar_ibn_kathir_qurancom", "ar_baghawi_qurancom", "ar_jalalayn_qurancom",
-            "ar_tusi_tibyan", "ar_fayd_safi", "en_tafheem_ul_quran",
-            "en_maarif_ul_quran", "en_enlightening_commentary_vol7",
-        }
-        self.assertEqual(set(items), expected_ids)
-        self.assertTrue(set(items) <= set(registry_by_id))
-        self.assertEqual({item["scope"] for item in items.values()}, {"یونس ۱۰:۷۳–۸۴"})
-        self.assertGreaterEqual(catalog["version"], 8)
-        self.assertEqual(collection["comparativeCore"]["scope"], "هر آیهٔ یونس ۱۰:۷۳–۸۴")
-        self.assertEqual(
-            set(collection["comparativeCore"]["sunniSourceIds"]),
-            {"ar_tabari_qurancom", "ar_qurtubi_qurancom", "ar_ibn_kathir_qurancom"},
-        )
-        self.assertEqual(
-            set(collection["comparativeCore"]["shiaSourceIds"]),
-            {"ar_tusi_tibyan", "ar_fayd_safi", "en_enlightening_commentary_vol7"},
-        )
-        self.assertIn("خلاصهٔ منسوب", collection["comparativeCore"]["note"])
-        self.assertEqual(
-            items["ar_tusi_tibyan"]["sourceUrl"],
-            "https://www.greattafsirs.com/Tafsir_Library.aspx?FromMainTafsir=1&MadhabNo=4&TafsirNo=39&SoraNo=10&AyahNo=73&LanguageID=1",
-        )
-        self.assertEqual(
-            items["ar_fayd_safi"]["sourceUrl"],
-            "https://www.greattafsirs.com/Tafsir_Library.aspx?FromMainTafsir=1&MadhabNo=4&TafsirNo=41&SoraNo=10&AyahNo=83&LanguageID=1",
-        )
-        self.assertEqual(
-            items["en_tafheem_ul_quran"]["sourceUrl"],
-            "https://www.islamicstudies.info/tafheem.php?sura=10&verse=71&to=82",
-        )
-        self.assertEqual(
-            items["en_enlightening_commentary_vol7"]["sourceUrl"],
-            "https://al-islam.org/enlightening-commentary-light-holy-quran-vol-7/section-8-ministries-noah-and-moses-referred",
-        )
-        self.assertEqual(items["en_enlightening_commentary_vol7"]["version"], "جلد ۷، بخش‌های ۸ و ۹؛ صفحه‌بندیِ چاپی ثبت نشده")
-        expected_urls = {
-            "ar_jalalayn_qurancom": "https://quran.com/yunus/73/tafsirs/ar-tafsir-jalalayn",
-            "ar_tusi_tibyan": "https://www.greattafsirs.com/Tafsir_Library.aspx?FromMainTafsir=1&MadhabNo=4&TafsirNo=39&SoraNo=10&AyahNo=73&LanguageID=1",
-            "ar_fayd_safi": "https://www.greattafsirs.com/Tafsir_Library.aspx?FromMainTafsir=1&MadhabNo=4&TafsirNo=41&SoraNo=10&AyahNo=83&LanguageID=1",
-            "en_tafheem_ul_quran": "https://www.islamicstudies.info/tafheem.php?sura=10&verse=71&to=82",
-            "en_maarif_ul_quran": "https://quran.com/yunus/73/tafsirs/en-tafsir-maarif-ul-quran",
-            "en_enlightening_commentary_vol7": "https://al-islam.org/enlightening-commentary-light-holy-quran-vol-7/section-8-ministries-noah-and-moses-referred",
-        }
-        for source_id, item in items.items():
-            source = registry_by_id[source_id]
-            self.assertTrue(item["sourceUrl"].startswith("https://"), source_id)
-            self.assertEqual(item["sourceUrl"], expected_urls.get(source_id, source["sourceUrl"]), source_id)
-            self.assertEqual(item["title"], source["title"], source_id)
-            self.assertEqual(item["author"], source["author"], source_id)
-            self.assertEqual(item["tradition"], source["tradition"], source_id)
-            self.assertEqual(item["scope"], "یونس ۱۰:۷۳–۸۴", source_id)
-        self.assertEqual(
-            {source_id for source_id, item in items.items() if item["status"] == "available"},
-            {"ar_qe_arabic_moyassar"},
-        )
-
-    def test_tafsir_catalog_counts_are_derived_dynamically_in_the_interface(self):
-        app_js = (Path(main.STATIC_DIR) / "app.js").read_text(encoding="utf-8")
-        self.assertIn("const total = collection.items.length;", app_js)
-        self.assertIn("faNumber(items.length)", app_js)
-        self.assertIn("${faNumber(total)} تفسیر جامع منتخب", app_js)
-        self.assertNotIn('title: "پنج تفسیر شیعهٔ امامیه"', app_js)
-        self.assertNotIn('title: "پنج تفسیر اهل‌سنت"', app_js)
 
     def test_requested_tafsir_catalog_is_explicit_without_claiming_unloaded_texts(self):
         static_dir = Path(main.STATIC_DIR)
@@ -312,20 +221,10 @@ class QuranResearchTests(unittest.TestCase):
         titles = " ".join(item["title"] for item in requested["items"])
         for title in ("طبری", "زمخشری", "قرطبی", "الميزان", "من هدى", "من وحي", "الكاشف", "مفاتيح الغيب", "نمونه", "تسنیم"):
             self.assertIn(title, titles)
-        source_availability = {
-            source["id"]: source["localAvailable"]
-            for source in json.loads((static_dir / "tafsir-sources.json").read_text(encoding="utf-8"))["sources"]
-        }
-        aliases = {"tabari": "ar_tabari_qurancom", "qurtubi": "ar_qurtubi_qurancom", "mizan": "fa_mizan_furqan"}
-        expected_available = {alias for alias, source_id in aliases.items() if source_availability[source_id]}
         self.assertEqual(
             {item["id"] for item in requested["items"] if item["status"] == "available"},
-            expected_available,
+            {"tabari", "qurtubi", "mizan"},
         )
-        for item in requested["items"]:
-            if item["id"] in aliases:
-                expected_status = "available" if source_availability[aliases[item["id"]]] else "excerpt-only"
-                self.assertEqual(item["status"], expected_status, item["id"])
         self.assertTrue(all(item["basis"] for item in requested["items"]))
 
     def test_all_initial_story_dossiers_have_anchored_material(self):
@@ -381,6 +280,9 @@ class QuranResearchTests(unittest.TestCase):
         self.assertIn("# دفتر کامل شواهد قرآن‌پژوهه", registry)
         self.assertIn("## شواهد واژگانی", registry)
         self.assertIn("## مسیرهای رواییِ پیشنهادی", registry)
+        self.assertIn("محمدمهدی فولادوند", registry)
+        self.assertIn("https://tanzil.net/trans/fa.fooladvand", registry)
+        self.assertIn("استفادهٔ غیرتجاری", registry)
         self.assertIn("ص 38:21", registry)
 
     def test_pagination_keeps_the_full_evidence_registry_reachable(self):

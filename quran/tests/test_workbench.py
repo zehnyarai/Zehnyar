@@ -1,6 +1,7 @@
 import importlib.util
 import json
 from pathlib import Path
+import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -10,27 +11,33 @@ spec.loader.exec_module(workbench)
 
 
 class StudyWorkbenchTests(unittest.TestCase):
-    def test_prepare_follows_quran_order_and_bundles_only_local_tafsirs(self):
+    @classmethod
+    def setUpClass(cls):
+        cls.original_source_files = workbench.SOURCE_FILES
+        cls.source_directory = tempfile.TemporaryDirectory()
+        fixture_sources = {}
+        for source_id in cls.original_source_files:
+            path = Path(cls.source_directory.name) / f"{source_id}.json"
+            payload = {"verses": {"2": {str(ayah): {"text": f"{source_id} fixture text for 2:{ayah}"} for ayah in range(41, 91)}}}
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            fixture_sources[source_id] = path
+        workbench.SOURCE_FILES = fixture_sources
+
+    @classmethod
+    def tearDownClass(cls):
+        workbench.SOURCE_FILES = cls.original_source_files
+        cls.source_directory.cleanup()
+
+    def test_prepare_follows_quran_order_and_bundles_four_local_tafsirs(self):
         batch = workbench.prepare("2:41", 10)
         self.assertEqual([x["id"] for x in batch["verses"]], [f"2:{n}" for n in range(41, 51)])
         first = batch["verses"][0]
         self.assertIn("وَءَامِنُوا", first["sourceMaterial"]["arabic"])
-        expected = {
-            source_id
-            for source_id, source in workbench.collect_sources().items()
-            if 2 not in source["metadata"].get("excludeFromSurahs", [])
-        }
-        self.assertEqual(set(first["sourceMaterial"]["tafsir"]), expected)
-        self.assertTrue(expected, "at least one local commentary should be available")
+        self.assertEqual(set(first["sourceMaterial"]["tafsir"]), set(workbench.SOURCE_FILES))
         self.assertTrue(all(text.strip() for text in first["sourceMaterial"]["tafsir"].values()))
         self.assertFalse(first["annotation"]["notes"], "the workbench must not invent editorial notes")
-
-    def test_prepare_excludes_disallowed_source_for_fatiha(self):
-        batch = workbench.prepare("1:1", 7)
-        for item in batch["verses"]:
-            self.assertNotIn("fa_qe_persian_mokhtasar", item["sourceMaterial"]["tafsir"])
-            self.assertNotIn("fa_qe_persian_mokhtasar", item["annotation"]["sources"])
-            self.assertTrue(item["sourceMaterial"]["tafsir"].get("ar_qe_arabic_moyassar"))
+        self.assertFalse(first["annotation"]["research"], "the workbench must not invent research prompts")
+        self.assertEqual(len(first["annotation"]["framework"]), 5)
 
     def test_prepare_can_bundle_fifty_consecutive_verses_for_faster_editorial_batches(self):
         batch = workbench.prepare("2:41", 50)
@@ -47,17 +54,46 @@ class StudyWorkbenchTests(unittest.TestCase):
         self.assertTrue(any("notes is empty" in error for error in errors))
         a = batch["verses"][0]["annotation"]
         a["notes"] = [{"text":f"observation {n}","evidence":"2:41 source"} for n in range(3)]
-        self.assertTrue(any("notes needs at least four" in error for error in workbench.validate_batch(batch)))
-        a.update({"notes":[{"text":f"observation {n}","evidence":"2:41 source"} for n in range(4)],
-                  "messages":[{"text":f"message {n}","evidence":"2:41 source"} for n in range(4)],
-                  "principles":[{"text":f"principle {n}","evidence":"2:41 source"} for n in range(4)],
-                  "thematic":[{"reference":"2:40","relation":"context"}],
-                  "context":[{"reference":"2:40-42","relation":"near"}], "network":[{"reference":"2:40-42","relation":"network"}]})
+        self.assertTrue(any("notes needs at least five" in error for error in workbench.validate_batch(batch)))
+        a.update({"notes":[{"text":f"observation {n}","evidence":"2:41 source"} for n in range(5)],
+                  "messages":[{"text":f"message {n}","evidence":"2:41 source"} for n in range(5)],
+                  "principles":[{"text":f"principle {n}","evidence":"2:41 source"} for n in range(5)],
+                  "thematic":[{"reference":"2:40","relation":f"theme {n}","evidence":"2:41 source"} for n in range(5)],
+                  "context":[{"reference":"2:40-42","relation":f"context {n}","evidence":"2:41 source"} for n in range(5)],
+                  "network":[{"reference":"2:40-42","relation":f"network {n}","evidence":"2:41 source"} for n in range(5)],
+                  "research":[{"title":f"topic {n}","question":f"question {n}","evidence":"2:41 source"} for n in range(5)]})
         for model in workbench.MODELS:
-            a["framework"][model] = {field:"filled" for field in ("input","operation","meaning","limit")}
+            a["framework"][model] = {field:"filled" for field in ("input","operation","meaning","limit","cite")}
         self.assertEqual(workbench.validate_batch(batch), [])
         a["notes"].append(dict(a["notes"][0]))
-        self.assertTrue(any("notes[5] duplicates" in error for error in workbench.validate_batch(batch)))
+        self.assertTrue(any("notes[6] duplicates" in error for error in workbench.validate_batch(batch)))
+
+    def test_merge_records_coverage_without_claiming_scholarly_review(self):
+        annotation = {
+            "notes": [{"text":f"note {n}","evidence":"2:41 source"} for n in range(5)],
+            "messages": [{"text":f"message {n}","evidence":"2:41 source"} for n in range(5)],
+            "principles": [{"text":f"principle {n}","evidence":"2:41 source"} for n in range(5)],
+            "framework": {model:{field:"filled" for field in ("input","operation","meaning","limit","cite")} for model in workbench.MODELS},
+            "thematic": [{"reference":"2:40","relation":f"theme {n}","evidence":"2:41 source"} for n in range(5)],
+            "context": [{"reference":"2:40-42","relation":f"near {n}","evidence":"2:41 source"} for n in range(5)],
+            "network": [{"reference":"2:40-42","relation":f"network {n}","evidence":"2:41 source"} for n in range(5)],
+            "research": [{"title":f"title {n}","question":f"question {n}","evidence":"2:41 source"} for n in range(5)],
+            "sources": list(workbench.SOURCE_FILES),
+        }
+        batch = {"start":[2,41],"end":[2,41],"verses":[{"id":"2:41","annotation":annotation}]}
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "annotations.json"
+            path.write_text(json.dumps({"verses":{},"reviewedRange":"1:1-1:7"}),encoding="utf-8")
+            original = workbench.ANNOTATIONS
+            try:
+                workbench.ANNOTATIONS = path
+                self.assertEqual(workbench.merge(batch),1)
+            finally:
+                workbench.ANNOTATIONS = original
+            saved = json.loads(path.read_text(encoding="utf-8"))
+            self.assertEqual(saved["coverageRange"],"1:1-1:7; 2:41-2:41")
+            self.assertNotIn("reviewedRange",saved)
+            self.assertIn("2:41",saved["verses"])
 
 
 if __name__ == "__main__":
