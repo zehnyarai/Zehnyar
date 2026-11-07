@@ -24,7 +24,7 @@ EXPECTED_FIELDS = {
     "balaghaNazm",
 }
 BASE_FIELDS = ("notes", "context", "classical", "modern", "critical", "research")
-TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 105)}
+TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 106)}
 
 
 def test_standard3_schema_declares_all_requested_fields_and_thresholds():
@@ -1111,12 +1111,12 @@ def test_tawbah_65_has_sourced_dossier_and_explicit_gaps():
 
 def test_scope_frontier_tracks_current_records():
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
-    assert "overlay اکنون تا ۹:۱۰۴ می‌رسد (۱۲۹ رکورد" in scope["9:1–129"]
-    assert "۹:۱۰۵–۱۲۹ هنوز وارد نشده" in scope["9:1–129"]
+    assert "overlay اکنون تا ۹:۱۰۵ می‌رسد (۱۳۰ رکورد" in scope["9:1–129"]
+    assert "۹:۱۰۶–۱۲۹ هنوز وارد نشده" in scope["9:1–129"]
     assert "به‌طورِ کامل واردِ overlay شده" in scope["9:32–81"]
     assert "۹:۷۵–۸۱ در سطحِ core" in scope["9:32–81"]
-    assert "۹:۴۲–۱۰۴" in scope["9:42–129"]
-    assert "۹:۴۷–۱۰۴" in scope["9:42–46"]
+    assert "۹:۴۲–۱۰۵" in scope["9:42–129"]
+    assert "۹:۴۷–۱۰۵" in scope["9:42–46"]
     assert "توبه ۹:۶۵ ثبت شد" in scope["9:65"]
     assert "توبه ۹:۶۶ ثبت شد" in scope["9:66"]
     assert "۹:۶۷ با شش فیلدِ پایهٔ پنج‌مدخلی" in scope["9:67"]
@@ -1327,7 +1327,7 @@ def test_tawbah_70_and_71_record_reviewed_sources_and_explicit_partial_coverage(
     assert "توبه ۹:۷۰ ثبت شد" in scope["9:70"]
     assert "توبه ۹:۷۱ ثبت شد" in scope["9:71"]
     assert "۹:۷۰–۷۱" in scope["9:70–71"]
-    assert "overlay اکنون تا ۹:۱۰۴" in scope["9:1–129"]
+    assert "overlay اکنون تا ۹:۱۰۵" in scope["9:1–129"]
 
 
 def test_tawbah_72_and_73_are_field_specific_and_sourced():
@@ -1366,7 +1366,7 @@ def test_tawbah_72_and_73_are_field_specific_and_sourced():
     assert "توبه ۹:۷۲ ثبت شد" in scope["9:72"]
     assert "توبه ۹:۷۳ ثبت شد" in scope["9:73"]
     assert "۹:۷۲–۷۳" in scope["9:72–73"]
-    assert "overlay اکنون تا ۹:۱۰۴" in scope["9:1–129"]
+    assert "overlay اکنون تا ۹:۱۰۵" in scope["9:1–129"]
 
 
 def test_tawbah_74_records_competing_occasions_and_fiqh_difference():
@@ -1479,7 +1479,7 @@ def test_scope_records_the_policy_v2_batch():
     assert "9:90–92" in scope
     assert "سیاستِ تنوعِ منابعِ v2" in scope["9:90–92"]
     assert "المیسّر" in scope["9:90–92"]
-    assert "۹:۱۰۵ به بعد باقی است" in scope["9:42–46"]
+    assert "۹:۱۰۶ به بعد باقی است" in scope["9:42–46"]
 
 
 def test_tawbah_93_blames_the_able_bodied_and_cites_four_works():
@@ -1624,7 +1624,7 @@ def test_tawbah_98_and_99_carry_real_qiraat_and_scope_frontier():
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
     assert "۹:۹۸" in scope["9:90–92"] and "۹:۹۹" in scope["9:90–92"]
     assert "قُرْبة/قُرُبة" in scope["9:90–92"]
-    assert "۹:۱۰۵–۱۲۹" in scope["9:1–129"]
+    assert "۹:۱۰۶–۱۲۹" in scope["9:1–129"]
 
 
 def test_tawbah_100_101_record_forerunners_and_hardened_hypocrites():
@@ -1697,7 +1697,7 @@ def test_tawbah_102_records_confession_and_grammatical_dispute():
     assert "ادعای اجماعِ" in qiraat["entries"][0]["text"]
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
     assert "۹:۱۰۲" in scope["9:100–102"] and "۹:۱۰۳" in scope["9:100–102"]
-    assert "۹:۱۰۴" in scope["9:1–129"]
+    assert "۹:۱۰۵" in scope["9:1–129"]
 
 
 def test_previous_fields_are_kept_alongside_the_ten_new_fields():
@@ -1777,3 +1777,29 @@ def test_tawbah_103_104_alms_reading_dispute_and_divine_acceptance():
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
     assert "۹:۱۰۳" in scope["9:103–104"] and "۹:۱۰۴" in scope["9:103–104"]
     assert "صلى‌واتك" in scope["9:103–104"] or "صلواتك" in scope["9:103–104"]
+
+
+def test_tawbah_105_records_addressee_disagreement_without_choosing():
+    verse = DATA["verses"]["9:105"]
+    assert verse["tier"] == "core" and verse["sourcePolicyVersion"] == 2
+    assert "پیش‌نویسِ منبع‌محور" in verse["reviewStatus"]
+    for field_id in BASE_FIELDS:
+        assert len(verse[field_id]) == 3, field_id
+        for item in verse[field_id]:
+            assert len(item["text"].split()) >= 14, field_id
+            assert item["cite"].strip(), field_id
+    notes = " ".join(item["text"] for item in verse["notes"])
+    assert "المتخلفين" in notes or "المتخلفين عن الجهاد" in notes
+    modern = " ".join(item["text"] for item in verse["modern"])
+    assert "لا بد أن يتبين" in modern
+    assert "هؤلاء المنافقين" in " ".join(item["text"] for item in verse["context"])
+    critical = " ".join(item["text"] for item in verse["critical"])
+    assert "عن رجل" in critical
+    context = " ".join(item["text"] for item in verse["context"])
+    assert "وعيد" in context
+    qiraat = verse["extendedFields"]["qiraat"]
+    assert qiraat["entries"][0]["kind"] == "source-coverage-note"
+    works = {item["work"] for item in verse["sourceMix"]}
+    assert {"جامع البيان", "تيسير الكريم الرحمن"} <= works
+    scope = {item["range"]: item["status"] for item in DATA["scope"]}
+    assert "۹:۱۰۵" in scope["9:105"] and "وعيد" in scope["9:105"]
