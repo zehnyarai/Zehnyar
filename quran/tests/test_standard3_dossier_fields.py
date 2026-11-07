@@ -24,7 +24,11 @@ EXPECTED_FIELDS = {
     "balaghaNazm",
 }
 BASE_FIELDS = ("notes", "context", "classical", "modern", "critical", "research")
-TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 109)} | {"10:1", "10:2", "10:3"}
+TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 109)} | {"10:1", "10:2", "10:3", "11:1"}
+
+
+def _fa(number: int) -> str:
+    return str(number).translate(str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹"))
 
 
 def test_standard3_schema_declares_all_requested_fields_and_thresholds():
@@ -372,7 +376,7 @@ def test_tawbah_30_has_source_bounded_material_and_preserves_disagreements():
     assert "۹:۳۷–۴۱" in scope["9:30–36"]
     assert "9:42–129" in scope
     assert "بازهٔ ۹:۳۲–۸۱" in scope["9:32–81"] and "همچنان پژوهش" in scope["9:32–81"]
-    assert "سوره کامل نیست" in scope["9:1–129"]
+    assert "کامل نیستند" in scope["9:1–129"]
 
 
 def test_tawbah_31_has_source_bounded_sixteen_field_dossier():
@@ -1111,9 +1115,9 @@ def test_tawbah_65_has_sourced_dossier_and_explicit_gaps():
 
 def test_scope_frontier_tracks_current_records():
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
-    assert "overlay اکنون تا ۹:۱۰۸ و نخستین آیهٔ يونس" in scope["9:1–129"]
-    assert "۱۳۴ رکورد" in scope["9:1–129"]
-    assert "۹:۱۰۹–۱۲۹ هنوز وارد نشده" in scope["9:1–129"]
+    assert "overlay اکنون تا ۹:۱۰۸ و آیاتِ آغازینِ يونس" in scope["9:1–129"]
+    assert f"{_fa(len(DATA['verses']))} رکورد" in scope["9:1–129"]
+    assert "۹:۱۰۹–۱۲۹" in scope["9:1–129"] and "هنوز وارد نشده" in scope["9:1–129"]
     assert "به‌طورِ کامل واردِ overlay شده" in scope["9:32–81"]
     assert "۹:۷۵–۸۱ در سطحِ core" in scope["9:32–81"]
     assert "۹:۴۲–۱۰۸" in scope["9:42–129"]
@@ -1709,14 +1713,22 @@ def test_previous_fields_are_kept_alongside_the_ten_new_fields():
     for verse_id in sorted(TARGET_VERSES):
         record = DATA["verses"][verse_id]
         assert set(record["extendedFields"]) == EXPECTED_FIELDS, verse_id
-        assert verse_id in dossiers, verse_id
-        base = dossiers[verse_id]
-        for field_id in BASE_FIELDS:
-            assert isinstance(base.get(field_id), list) and base[field_id], (verse_id, field_id)
+        # verse-dossiers.json فعلاً تا ۱۰:۴۸ را پوشش می‌دهد؛ برای آیاتِ پس از آن فقط لایهٔ
+        # مطالعه (verse-study-annotations.json) موجود است و باید دست‌نخورده بماند.
+        if verse_id in dossiers:
+            base = dossiers[verse_id]
+            for field_id in BASE_FIELDS:
+                assert isinstance(base.get(field_id), list) and base[field_id], (verse_id, field_id)
+        else:
+            assert verse_id in {"11:1"}, verse_id
         annotation = annotations[verse_id]
-        for field_id in previous_fields:
-            assert field_id in annotation, (verse_id, field_id)
         assert annotation["status"].strip()
+        for field_id in previous_fields:
+            if verse_id not in dossiers and field_id == "research":
+                # یازده:۱ در لایهٔ مطالعه فیلدِ research ندارد؛ این خلأ ثبت می‌شود و پنهان نمی‌گردد.
+                assert field_id not in annotation, verse_id
+                continue
+            assert field_id in annotation, (verse_id, field_id)
 
     assert "data-legacy-study-panel" in APP
     assert "legacyStudyGroups(verse)" in APP
@@ -1871,7 +1883,7 @@ def test_yunus_10_1_opening_letters_and_wisdom_epithet():
                    if any(entry["kind"] == "analysis" for entry in field["entries"]))
     assert analysed >= 8, analysed
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
-    assert "۱۰:۲" in scope["10:1"] and "۱۳۴" in scope["9:1–129"]
+    assert "۱۰:۲" in scope["10:1"] and f"{_fa(len(DATA['verses']))}" in scope["9:1–129"]
 
 
 def test_tawbah_108_two_mosque_identifications_kept_side_by_side():
@@ -1898,7 +1910,7 @@ def test_tawbah_108_two_mosque_identifications_kept_side_by_side():
     assert verse["extendedFields"]["qiraat"]["entries"][0]["kind"] == "source-coverage-note"
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
     assert "۹:۱۰۸" in scope["9:108"]
-    assert "۱۳۴ رکورد" in scope["9:1–129"]
+    assert f"{_fa(len(DATA['verses']))} رکورد" in scope["9:1–129"]
 
 
 def test_yunus_10_2_qiraat_and_qudum_sidq_views():
@@ -1944,3 +1956,27 @@ def test_yunus_10_3_creation_intercession_and_open_question():
     assert verse["extendedFields"]["modernSciences"]["entries"][0]["kind"] == "source-coverage-note"
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
     assert "۱۰:۳" in scope["10:3"]
+
+
+def test_hud_11_1_two_opposite_hasan_reports_kept_apart():
+    verse = DATA["verses"]["11:1"]
+    assert verse["tier"] == "core" and verse["sourcePolicyVersion"] == 2
+    assert "پیش‌نویسِ منبع‌محور" in verse["reviewStatus"]
+    for field in BASE_FIELDS:
+        assert len(verse[field]) >= 3, field
+        for item in verse[field]:
+            assert len(item["text"].split()) >= 14, field
+            assert item["cite"].strip(), field
+    notes = " ".join(item["text"] for item in verse["notes"])
+    assert "هذا كتاب" in notes
+    classical = " ".join(item["text"] for item in verse["classical"])
+    assert "أحكمت بالأمر والنهي" in classical
+    assert "أحكمت بالثواب والعقاب ثم فصلت بالأمر والنهي" in classical
+    assert "فُسّرت" in classical
+    modern = " ".join(item["text"] for item in verse["modern"])
+    assert "يضع الأشياء مواضعها" in modern and "مطلع على الظواهر والبواطن" in modern
+    critical = " ".join(item["text"] for item in verse["critical"])
+    assert "لم أعلم من يكون" in critical and "الجرجاني" in critical
+    assert verse["extendedFields"]["qiraat"]["entries"][0]["kind"] == "source-coverage-note"
+    scope = {item["range"]: item["status"] for item in DATA["scope"]}
+    assert "هود" in scope["11:1"] and "تعارض" in scope["11:1"]
