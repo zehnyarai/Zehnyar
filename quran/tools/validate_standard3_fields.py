@@ -22,6 +22,8 @@ def validate(path: Path = DATA_PATH) -> tuple[list[str], dict[str, int]]:
     required = int(criteria["requiredEntriesPerField"])
     minimum_words = int(criteria["minimumWordsPerEntry"])
     field_ids = {field["id"] for field in data["fields"]}
+
+
     errors: list[str] = []
     counts = {
         "verses": len(data["verses"]),
@@ -32,6 +34,19 @@ def validate(path: Path = DATA_PATH) -> tuple[list[str], dict[str, int]]:
         "needs-research": 0,
     }
     global_seen: dict[str, str] = {}
+
+    design_errors: list[str] = []
+    for field in data["fields"]:
+        for key in ("question", "acceptance", "rejection"):
+            if not str(field.get(key, "")).strip():
+                design_errors.append(f"field {field.get('id')!r}: missing design key {key}")
+        if field.get("allowedKinds") != ["analysis", "source-coverage-note"]:
+            design_errors.append(f"field {field.get('id')!r}: allowedKinds drifted")
+        if field.get("minEntries") != {"core": 1, "full": 5}:
+            design_errors.append(f"field {field.get('id')!r}: minEntries drifted")
+        if field.get("evidenceKeys") != ["text", "cite", "evidence", "limit"]:
+            design_errors.append(f"field {field.get('id')!r}: evidenceKeys drifted")
+    errors.extend(design_errors)
 
     def check_text(verse_id: str, field_id: str, index: int, entry: object, *, base: bool) -> None:
         if not isinstance(entry, dict):
@@ -81,6 +96,17 @@ def validate(path: Path = DATA_PATH) -> tuple[list[str], dict[str, int]]:
         if not isinstance(extended, dict) or set(extended) != field_ids:
             errors.append(f"{verse_id}: Standard 3 fields do not match schema")
             continue
+
+        if int(dossier.get("sourcePolicyVersion", 1)) >= 2:
+            analysed = 0
+            for field_id, field in (dossier.get("extendedFields") or {}).items():
+                kinds = [entry.get("kind") for entry in field.get("entries", [])]
+                analysed += 1 if "analysis" in kinds else 0
+                for kind in kinds:
+                    if kind not in ("analysis", "source-coverage-note"):
+                        errors.append(f"{verse_id}:{field_id}: unknown entry kind {kind!r}")
+            if analysed < 8:
+                errors.append(f"{verse_id}: only {analysed}/10 fields carry a researched entry")
 
         # --- source-diversity policy v2 (see criteria.policyNote)
         if int(dossier.get("sourcePolicyVersion", 1)) >= 2:

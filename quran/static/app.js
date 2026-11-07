@@ -1190,14 +1190,38 @@ function completeDossierPanel(verse) {
   const fieldDefinitions = state.standard3Dossier?.fields?.length ? state.standard3Dossier.fields : STANDARD3_FIELD_FALLBACKS;
   const legacy = LEGACY_DOSSIER_ORDER.map((field) => allLegacyFieldSection(verse, field)).join("");
   const extended = fieldDefinitions.map((field) => standard3FieldSection(verse, field)).join("");
-  return `<section class="complete-dossier"><section class="detail-panel complete-dossier-intro"><p class="eyebrow">پروندهٔ کاملِ آیه</p><h3>همهٔ فیلدها زیرِ همین آیه</h3><p class="reading-notice">این نمای یکپارچه شش فیلدِ پایه و ده فیلدِ افزوده را همگی زیرِ ${escapeHTML(verse.reference)} می‌آورد. هر فیلد وضعیتِ مستقل دارد؛ خالی‌بودن یعنی داده هنوز گردآوری نشده، نه اینکه موضوع بی‌اهمیت است.</p><p class="dossier-review-status"><b>وضعیتِ دادهٔ پایه:</b> ${escapeHTML(review)}</p>${sourceMixBlock(verse)}<p class="reading-notice">معیارِ هر فیلدِ افزوده: پنج بندِ مستقل، دست‌کم ۱۴ واژه در هر بند، ارجاعِ مقابله‌شده، شاهدِ دقیق و حدّ خوانش. تا وقتی این معیارها تأمین نشده‌اند، وضعیت و یادداشتِ پیگیری آشکار می‌ماند.</p></section><section class="all-dossier-group"><h3>شش فیلدِ پایه</h3><div class="all-dossier-grid legacy-dossier-grid">${legacy}</div></section><section class="all-dossier-group"><h3>ده فیلدِ افزوده</h3><div class="all-dossier-grid standard3-grid">${extended}</div></section></section>`;
+  return `<section class="complete-dossier"><section class="detail-panel complete-dossier-intro"><p class="eyebrow">پروندهٔ کاملِ آیه</p><h3>همهٔ فیلدها زیرِ همین آیه</h3><p class="reading-notice">این نمای یکپارچه شش فیلدِ پایه و ده فیلدِ افزوده را همگی زیرِ ${escapeHTML(verse.reference)} می‌آورد. هر فیلد وضعیتِ مستقل دارد؛ خالی‌بودن یعنی داده هنوز گردآوری نشده، نه اینکه موضوع بی‌اهمیت است.</p><p class="dossier-review-status"><b>وضعیتِ دادهٔ پایه:</b> ${escapeHTML(review)}</p>${sourceMixBlock(verse)}${fieldDesignOverview()}<p class="reading-notice">معیارِ هر فیلدِ افزوده: پنج بندِ مستقل، دست‌کم ۱۴ واژه در هر بند، ارجاعِ مقابله‌شده، شاهدِ دقیق و حدّ خوانش. تا وقتی این معیارها تأمین نشده‌اند، وضعیت و یادداشتِ پیگیری آشکار می‌ماند.</p></section><section class="all-dossier-group"><h3>شش فیلدِ پایه</h3><div class="all-dossier-grid legacy-dossier-grid">${legacy}</div></section><section class="all-dossier-group"><h3>ده فیلدِ افزوده</h3><div class="all-dossier-grid standard3-grid">${extended}</div></section></section>`;
+}
+
+function standard3FieldDefinitions() {
+  const definitions = state.standard3Dossier?.fields?.length ? state.standard3Dossier.fields : STANDARD3_FIELD_FALLBACKS;
+  return definitions;
+}
+
+function fieldDesignBlock(definition) {
+  if (!definition || !definition.question) return "";
+  const core = Number(definition.minEntries?.core ?? 1);
+  const full = Number(definition.minEntries?.full ?? 5);
+  return `<div class="field-design"><p><b>پرسشِ پژوهشیِ این فیلد:</b> ${escapeHTML(definition.question)}</p>
+    <p><b>شرطِ پذیرشِ مدخل:</b> ${escapeHTML(definition.acceptance || "")}</p>
+    <p><b>آنچه پذیرفته نمی‌شود:</b> ${escapeHTML(definition.rejection || "")}</p>
+    <p class="reading-notice">آستانهٔ سطحِ core: ${core} مدخلِ مستند · آستانهٔ سطحِ full: ${full} مدخل · هر مدخل باید متن، ارجاع، شاهد و حدِ استنباط را با هم داشته باشد.</p></div>`;
+}
+
+function fieldDesignOverview() {
+  const design = state.standard3Dossier?.criteria?.extendedFieldStandard;
+  const definitions = standard3FieldDefinitions();
+  if (!Array.isArray(definitions) || !definitions.some((field) => field.question)) return "";
+  const rows = definitions.map((field) => `<li class="dossier-item"><b>${escapeHTML(field.label)}</b><span>${escapeHTML(field.question || "")}</span></li>`).join("");
+  const note = design?.note ? `<p class="reading-notice">${escapeHTML(design.note)}</p>` : "";
+  return `<section class="detail-panel field-design-panel"><p class="eyebrow">طراحیِ ده فیلدِ ذیلِ آیه</p><h3>هر فیلد چه پرسشی را پاسخ می‌دهد؟</h3>${note}<ol class="dossier-list field-design-list">${rows}</ol></section>`;
 }
 
 function standard3FieldPanel(verse, fieldId) {
   const definitions = state.standard3Dossier?.fields?.length ? state.standard3Dossier.fields : STANDARD3_FIELD_FALLBACKS;
   const definition = definitions.find((field) => field.id === fieldId) || STANDARD3_FIELD_FALLBACKS.find((field) => field.id === fieldId);
   if (!definition) return completeDossierPanel(verse);
-  return `<section class="detail-panel standard3-field-page"><p class="eyebrow">فیلدِ آیه‌محور · ${escapeHTML(verse.reference)}</p><h3>${escapeHTML(definition.label)}</h3><p class="reading-notice">محتوا باید به همین آیه مربوط، مستند و از ادعاهایِ بیرون از شاهد جدا باشد. وضعیتِ منبع، شمارِ بندها و پیگیریِ همین فیلد را ببینید.</p>${sourceMixBlock(verse)}${standard3FieldSection(verse, definition)}</section>`;
+  return `<section class="detail-panel standard3-field-page"><p class="eyebrow">فیلدِ آیه‌محور · ${escapeHTML(verse.reference)}</p><h3>${escapeHTML(definition.label)}</h3><p class="reading-notice">محتوا باید به همین آیه مربوط، مستند و از ادعاهایِ بیرون از شاهد جدا باشد. وضعیتِ منبع، شمارِ بندها و پیگیریِ همین فیلد را ببینید.</p>${fieldDesignBlock(definition)}${sourceMixBlock(verse)}${standard3FieldSection(verse, definition)}</section>`;
 }
 
 function dossierAnchors(verse, kind) {

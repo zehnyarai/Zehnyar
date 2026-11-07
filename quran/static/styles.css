@@ -310,3 +310,10 @@ h1, h2, h3, p { margin-top: 0; } h1 { max-width: 740px; margin: 21px auto 15px; 
 .source-mix-list .dossier-item { display: flex; justify-content: space-between; gap: .75rem; padding: .3rem .5rem; background: rgba(0,0,0,.03); border-radius: 6px; }
 .source-mix-list .dossier-item span { color: #555; font-size: .9em; }
 .source-mix-list .dossier-item small { color: #777; font-size: .85em; white-space: nowrap; }
+
+.field-design { margin: .6rem 0 .9rem; padding: .6rem .75rem; border: 1px solid rgba(0,0,0,.12); border-radius: 8px; background: rgba(138,109,59,.06); }
+.field-design p { margin: .3rem 0; line-height: 1.85; }
+.field-design-panel { border-inline-start: 3px solid var(--accent, #8a6d3b); }
+.field-design-list { display: grid; gap: .4rem; }
+.field-design-list .dossier-item { display: grid; gap: .15rem; padding: .35rem .5rem; background: rgba(0,0,0,.03); border-radius: 6px; }
+.field-design-list .dossier-item span { color: #444; font-size: .92em; line-height: 1.8; }
