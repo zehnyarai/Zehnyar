@@ -1050,7 +1050,27 @@ function dossierFor(verse) {
   const base = (state.verseDossiers && state.verseDossiers[id]) || {};
   const supplementary = (state.standard3Dossier && state.standard3Dossier.verses && state.standard3Dossier.verses[id]) || {};
   if (!Object.keys(base).length && !Object.keys(supplementary).length) return null;
-  return { ...supplementary, ...base, extendedFields: supplementary.extendedFields || base.extendedFields || {} };
+  // رکوردهای سیاستِ v2 بر پایهٔ پنج‌مدخلیِ قدیمی مقدم‌اند؛ محتوای قدیمی حذف نمی‌شود و در
+  // بخشِ «بایگانیِ نسخهٔ پیشین» همان پرونده نمایش داده می‌شود.
+  const policyV2 = Number(supplementary.sourcePolicyVersion || 0) >= 2;
+  const merged = policyV2 ? { ...base, ...supplementary } : { ...supplementary, ...base };
+  merged.extendedFields = supplementary.extendedFields || base.extendedFields || {};
+  return merged;
+}
+
+function archivedBaseSection(verse) {
+  const id = typeof verse === "string" ? verse : verse?.id;
+  const base = id ? state.verseDossiers?.[id] : null;
+  const supplementary = id ? state.standard3Dossier?.verses?.[id] : null;
+  if (!base || !supplementary || Number(supplementary.sourcePolicyVersion || 0) < 2) return "";
+  const labels = { notes: "نکات", context: "سیاق", classical: "تفسیر کهن", modern: "تفسیر معاصر", critical: "خوانش انتقادی", research: "پژوهش" };
+  const groups = LEGACY_DOSSIER_ORDER.map((fieldId) => {
+    const entries = Array.isArray(base[fieldId]) ? base[fieldId] : [];
+    if (!entries.length) return "";
+    return `<div class="archive-field"><h4>${escapeHTML(labels[fieldId] || fieldId)}</h4><ol>${entries.map((item) => `<li><p>${escapeHTML(item.text || "")}</p><small>${escapeHTML(item.cite || "")}</small></li>`).join("")}</ol></div>`;
+  }).join("");
+  if (!groups) return "";
+  return `<details class="archive-base"><summary>بایگانیِ نسخهٔ پیشینِ شش فیلدِ پایه (حفظ‌شده، نمایشِ ثانویه)</summary><p class="reading-notice">این بندها از پروندهٔ پنج‌مدخلیِ پیشین می‌آیند و حذف نشده‌اند؛ چون با سیاستِ تنوعِ منابعِ v2 هم‌خوان نیستند، پس از نسخهٔ بازبینی‌شده و در حالتِ بسته نمایش داده می‌شوند.</p>${groups}</details>`;
 }
 
 function dossierSource(sourceId) {
@@ -1184,13 +1204,36 @@ function sourceMixBlock(verse) {
   return `<section class="detail-panel source-mix-panel"><p class="eyebrow">شفافیتِ منابع</p><h3>منابعِ همین آیه</h3><p class="reading-notice">${escapeHTML(tier)} · ${escapeHTML(policy)}</p><ol class="dossier-list source-mix-list">${rows}</ol>${coverage}</section>`;
 }
 
+const LEGACY_STUDY_FIELDS = [
+  ["notes", "نکات مهم آیه"],
+  ["messages", "پیام‌های آیه"],
+  ["principles", "اصول زندگی و مبانی"],
+  ["framework", "چارچوب معنایی"],
+  ["thematic", "تفسیر موضوعی"],
+  ["network", "نظم شبکه‌ای"],
+  ["context", "سیاق و جایگاه"],
+  ["research", "پژوهش در آیه"],
+];
+
+function legacyStudyGroups(verse) {
+  const annotation = reviewedStudyFor(verse);
+  if (!annotation) return "";
+  const groups = LEGACY_STUDY_FIELDS.map(([fieldId, label]) => {
+    const body = reviewedStudyField(verse, fieldId);
+    if (!body) return "";
+    return `<section class="all-dossier-group legacy-study-group" data-legacy-study="${fieldId}"><h3>${escapeHTML(label)}</h3>${body}</section>`;
+  }).join("");
+  if (!groups) return "";
+  return `<section class="detail-panel legacy-study-panel" data-legacy-study-panel="true"><p class="eyebrow">فیلدهای پیشینِ همین آیه</p><h3>هشت فیلدِ تحریری، در کنارِ شش فیلدِ پایه و ده فیلدِ افزوده</h3><p class="reading-notice">این بندها پیش از افزودنِ ده فیلدِ تازه نوشته شده‌اند و حذف نمی‌شوند؛ هر مدخل شاهد یا پرسشِ خود را دارد و پیش‌نویسِ نیازمندِ بازبینی است. برای دیدنِ هر فیلد در نمای کامل هم می‌توانید از زبانه‌های بالا استفاده کنید.</p><p class="dossier-review-status"><b>وضعیتِ لایهٔ پیشین:</b> ${escapeHTML(annotation.status || "ثبت نشده")}</p></section>${groups}`;
+}
+
 function completeDossierPanel(verse) {
   const dossier = dossierFor(verse);
   const review = dossier?.reviewStatus || dossier?.status || "وضعیتِ داوری برای این آیه ثبت نشده است.";
   const fieldDefinitions = state.standard3Dossier?.fields?.length ? state.standard3Dossier.fields : STANDARD3_FIELD_FALLBACKS;
   const legacy = LEGACY_DOSSIER_ORDER.map((field) => allLegacyFieldSection(verse, field)).join("");
   const extended = fieldDefinitions.map((field) => standard3FieldSection(verse, field)).join("");
-  return `<section class="complete-dossier"><section class="detail-panel complete-dossier-intro"><p class="eyebrow">پروندهٔ کاملِ آیه</p><h3>همهٔ فیلدها زیرِ همین آیه</h3><p class="reading-notice">این نمای یکپارچه شش فیلدِ پایه و ده فیلدِ افزوده را همگی زیرِ ${escapeHTML(verse.reference)} می‌آورد. هر فیلد وضعیتِ مستقل دارد؛ خالی‌بودن یعنی داده هنوز گردآوری نشده، نه اینکه موضوع بی‌اهمیت است.</p><p class="dossier-review-status"><b>وضعیتِ دادهٔ پایه:</b> ${escapeHTML(review)}</p>${sourceMixBlock(verse)}${fieldDesignOverview()}<p class="reading-notice">معیارِ هر فیلدِ افزوده: پنج بندِ مستقل، دست‌کم ۱۴ واژه در هر بند، ارجاعِ مقابله‌شده، شاهدِ دقیق و حدّ خوانش. تا وقتی این معیارها تأمین نشده‌اند، وضعیت و یادداشتِ پیگیری آشکار می‌ماند.</p></section><section class="all-dossier-group"><h3>شش فیلدِ پایه</h3><div class="all-dossier-grid legacy-dossier-grid">${legacy}</div></section><section class="all-dossier-group"><h3>ده فیلدِ افزوده</h3><div class="all-dossier-grid standard3-grid">${extended}</div></section></section>`;
+  return `<section class="complete-dossier"><section class="detail-panel complete-dossier-intro"><p class="eyebrow">پروندهٔ کاملِ آیه</p><h3>همهٔ فیلدها زیرِ همین آیه</h3><p class="reading-notice">این نمای یکپارچه شش فیلدِ پایه، هشت فیلدِ پیشین (نکات، پیام‌ها، اصول، چارچوب معنایی، تفسیر موضوعی، نظم شبکه‌ای، سیاق و پژوهش) و ده فیلدِ افزوده را همگی زیرِ ${escapeHTML(verse.reference)} می‌آورد. هر فیلد وضعیتِ مستقل دارد؛ خالی‌بودن یعنی داده هنوز گردآوری نشده، نه اینکه موضوع بی‌اهمیت است.</p><p class="dossier-review-status"><b>وضعیتِ دادهٔ پایه:</b> ${escapeHTML(review)}</p>${sourceMixBlock(verse)}${fieldDesignOverview()}<p class="reading-notice">معیارِ هر فیلدِ افزوده: پنج بندِ مستقل، دست‌کم ۱۴ واژه در هر بند، ارجاعِ مقابله‌شده، شاهدِ دقیق و حدّ خوانش. تا وقتی این معیارها تأمین نشده‌اند، وضعیت و یادداشتِ پیگیری آشکار می‌ماند.</p></section><section class="all-dossier-group"><h3>شش فیلدِ پایه</h3><div class="all-dossier-grid legacy-dossier-grid">${legacy}</div></section>${archivedBaseSection(verse)}${legacyStudyGroups(verse)}<section class="all-dossier-group"><h3>ده فیلدِ افزوده</h3><div class="all-dossier-grid standard3-grid">${extended}</div></section></section>`;
 }
 
 function standard3FieldDefinitions() {

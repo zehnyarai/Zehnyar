@@ -317,3 +317,16 @@ h1, h2, h3, p { margin-top: 0; } h1 { max-width: 740px; margin: 21px auto 15px; 
 .field-design-list { display: grid; gap: .4rem; }
 .field-design-list .dossier-item { display: grid; gap: .15rem; padding: .35rem .5rem; background: rgba(0,0,0,.03); border-radius: 6px; }
 .field-design-list .dossier-item span { color: #444; font-size: .92em; line-height: 1.8; }
+
+.legacy-study-panel { border-inline-start: 3px solid var(--accent, #8a6d3b); }
+.legacy-study-group { margin-block: .5rem; }
+.legacy-study-group h3 { margin-block-end: .35rem; }
+.legacy-study-group .inline-study-list li { background: rgba(0,0,0,.03); border-radius: 6px; padding: .4rem .55rem; margin-block: .3rem; }
+
+.archive-base { margin: .6rem 0; padding: .55rem .7rem; border: 1px dashed rgba(0,0,0,.25); border-radius: 8px; background: rgba(0,0,0,.02); }
+.archive-base summary { cursor: pointer; font-weight: 700; }
+.archive-field h4 { margin: .5rem 0 .2rem; font-size: .95em; }
+.archive-field ol { margin: 0; padding-inline-start: 1.1rem; }
+.archive-field li { margin-block: .25rem; }
+.archive-field p { margin: 0; font-size: .95em; }
+.archive-field small { color: #555; }
