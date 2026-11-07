@@ -24,7 +24,7 @@ EXPECTED_FIELDS = {
     "balaghaNazm",
 }
 BASE_FIELDS = ("notes", "context", "classical", "modern", "critical", "research")
-TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 109)} | {"10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "10:7", "10:8", "10:9", "10:10", "10:11", "10:12", "10:13", "10:14", "10:15", "10:16", "10:17", "10:18", "10:19", "10:20", "10:21", "10:22", "10:23", "10:24", "10:25", "11:1"}
+TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 109)} | {"10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "10:7", "10:8", "10:9", "10:10", "10:11", "10:12", "10:13", "10:14", "10:15", "10:16", "10:17", "10:18", "10:19", "10:20", "10:21", "10:22", "10:23", "10:24", "10:25", "10:26", "10:27", "10:28", "10:29", "11:1"}
 
 
 def _fa(number: int) -> str:
@@ -1992,13 +1992,13 @@ def test_shia_sources_and_peer_reviewed_articles_are_enforced():
     assert "قرآن" in criteria["diversityScope"]
     assert "شیعی" in criteria["diversityPolicyNote"] and "سنّی" in criteria["diversityPolicyNote"]
 
-    for verse_id in ("10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "10:7", "10:8", "10:9", "10:10", "10:11", "10:12", "10:13", "10:14", "10:15", "10:16", "10:17", "10:18", "10:19", "10:20", "10:21", "10:22", "10:23", "10:24", "10:25", "11:1"):
+    for verse_id in ("10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "10:7", "10:8", "10:9", "10:10", "10:11", "10:12", "10:13", "10:14", "10:15", "10:16", "10:17", "10:18", "10:19", "10:20", "10:21", "10:22", "10:23", "10:24", "10:25", "10:26", "10:27", "10:28", "10:29", "11:1"):
         record = DATA["verses"][verse_id]
         assert record["requiresDiverseSources"] is True, verse_id
         roles = {item["role"] for item in record["sourceMix"]}
         assert any(role.startswith("shia") for role in roles), (verse_id, roles)
         assert "journal" in roles, (verse_id, roles)
-    for verse_id in ("10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "10:7", "10:8", "10:9", "10:10", "10:11", "10:12", "10:13", "10:14", "10:15", "10:16", "10:17", "10:18", "10:19", "10:20", "10:21", "10:22", "10:23", "10:24", "10:25", "11:1"):
+    for verse_id in ("10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "10:7", "10:8", "10:9", "10:10", "10:11", "10:12", "10:13", "10:14", "10:15", "10:16", "10:17", "10:18", "10:19", "10:20", "10:21", "10:22", "10:23", "10:24", "10:25", "10:26", "10:27", "10:28", "10:29", "11:1"):
         roles = {item["role"] for item in DATA["verses"][verse_id]["sourceMix"]}
         assert any(role in {"classical"} for role in roles), verse_id
         assert any(role in {"modern", "shia-modern"} for role in roles), verse_id
@@ -2476,3 +2476,58 @@ def test_yunus_10_25_dar_al_salam_and_guided_will():
     assert verse["extendedFields"]["qiraat"]["entries"][0]["kind"] == "source-coverage-note"
     journals = [item["work"] for item in verse["sourceMix"] if item["role"] == "journal"]
     assert len(journals) >= 2, journals
+
+
+def _check_verse(verse_id):
+    verse = DATA["verses"][verse_id]
+    assert verse["requiresDiverseSources"] is True
+    for field in BASE_FIELDS:
+        assert len(verse[field]) >= 3, (verse_id, field)
+        for item in verse[field]:
+            assert len(item["text"].split()) >= 14, (verse_id, field)
+    roles = {item["role"] for item in verse["sourceMix"]}
+    assert {"classical", "modern", "shia-modern", "journal"} <= roles, (verse_id, roles)
+    return verse
+
+
+def _joined(verse, field):
+    return " ".join(item["text"] for item in verse[field])
+
+
+def _ext_text(verse, field):
+    entries = verse["extendedFields"][field]["entries"]
+    return " ".join(item["text"] + " " + item["evidence"] for item in entries)
+
+
+def test_yunus_10_26_al_husna_and_the_extra():
+    verse = _check_verse("10:26")
+    assert "فأطاعوه فيما أمر ونَهَى" in _joined(verse, "notes")
+    assert "يتجلى لهم" in _joined(verse, "classical")
+    assert "الجنة الكاملة في حسنها" in _joined(verse, "modern")
+    assert "هالك الإسناد" in _joined(verse, "critical")
+    assert verse["extendedFields"]["qiraat"]["entries"][0]["kind"] == "source-coverage-note"
+
+
+def test_yunus_10_27_like_for_like_and_darkness():
+    verse = _check_verse("10:27")
+    assert "أشبهُ بالكلام" in _joined(verse, "context")
+    assert "قطعةٌ من سواد الليل" in _joined(verse, "classical")
+    assert "لا يجوز خلافها" in _joined(verse, "critical")
+    assert "قِطْعًا" in _ext_text(verse, "qiraat")
+    assert verse["extendedFields"]["modernSciences"]["entries"][0]["kind"] == "source-coverage-note"
+
+
+def test_yunus_10_28_place_of_you_and_your_partners():
+    verse = _check_verse("10:28")
+    assert "امكثوا مكانكم" in _joined(verse, "notes")
+    assert "غير كائن في القبر" in _joined(verse, "classical")
+    assert "دروغى وجود ندارد" in _joined(verse, "critical")
+    assert "فَزَايَلْنَا" in _ext_text(verse, "qiraat")
+
+
+def test_yunus_10_29_god_suffices_as_witness():
+    verse = _check_verse("10:29")
+    assert "لا نشعر به ولا نعلم" in _joined(verse, "notes")
+    assert "حسبُنا الله شاهدًا" in _joined(verse, "classical")
+    assert "مفید ثبوت" in _joined(verse, "research")
+    assert verse["extendedFields"]["qiraat"]["entries"][0]["kind"] == "source-coverage-note"
