@@ -2257,7 +2257,7 @@ def test_yunus_10_14_succession_and_testing():
             assert len(item["text"].split()) >= 14, field
     classical = " ".join(item["text"] for item in verse["classical"])
     assert "متروك" in classical and "بإسناد حسن" in classical
-    assert "جمعِ خليفه" in classical
+    assert "«الخلائف» را" in classical and "منصبِ خلافتِ سیاسی" in classical
     context = " ".join(item["text"] for item in verse["context"])
     assert "ما جعلنا خُلفاء إلا لينظر كيف أعمالنا" in context
     modern = " ".join(item["text"] for item in verse["modern"])
