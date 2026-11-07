@@ -24,7 +24,7 @@ EXPECTED_FIELDS = {
     "balaghaNazm",
 }
 BASE_FIELDS = ("notes", "context", "classical", "modern", "critical", "research")
-TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 109)} | {"10:1"}
+TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 109)} | {"10:1", "10:2", "10:3"}
 
 
 def test_standard3_schema_declares_all_requested_fields_and_thresholds():
@@ -1871,7 +1871,7 @@ def test_yunus_10_1_opening_letters_and_wisdom_epithet():
                    if any(entry["kind"] == "analysis" for entry in field["entries"]))
     assert analysed >= 8, analysed
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
-    assert "۱۰:۱" in scope["10:1"] and "۱۳۴" in scope["9:1–129"]
+    assert "۱۰:۲" in scope["10:1"] and "۱۳۴" in scope["9:1–129"]
 
 
 def test_tawbah_108_two_mosque_identifications_kept_side_by_side():
@@ -1899,3 +1899,48 @@ def test_tawbah_108_two_mosque_identifications_kept_side_by_side():
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
     assert "۹:۱۰۸" in scope["9:108"]
     assert "۱۳۴ رکورد" in scope["9:1–129"]
+
+
+def test_yunus_10_2_qiraat_and_qudum_sidq_views():
+    verse = DATA["verses"]["10:2"]
+    assert verse["tier"] == "core" and verse["sourcePolicyVersion"] == 2
+    for field in BASE_FIELDS:
+        assert len(verse[field]) >= 3, field
+        for item in verse[field]:
+            assert len(item["text"].split()) >= 14, field
+            assert item["cite"].strip(), field
+    notes = " ".join(item["text"] for item in verse["notes"])
+    assert "أعمالًا صالحة عند الله" in notes
+    classical = " ".join(item["text"] for item in verse["classical"])
+    assert "لسحر مبين" in classical and "لساحر مبين" in classical
+    assert "مسروق" in classical and "سعید بن جبیر" in classical
+    assert "الذكر الأول" in classical
+    critical = " ".join(item["text"] for item in verse["critical"])
+    assert "زيد بن حباب" in critical and "إبراهيم بن يزيد الخوزي" in critical
+    assert "فضيل بن عمرو بن الجون" in critical
+    qiraat = verse["extendedFields"]["qiraat"]
+    assert len(qiraat["entries"]) == 2 and qiraat["entries"][0]["kind"] == "analysis"
+    assert verse["extendedFields"]["modernSciences"]["entries"][0]["kind"] == "source-coverage-note"
+    works = {item["work"] for item in verse["sourceMix"]}
+    assert {"جامع البيان", "تيسير الكريم الرحمن"} <= works, works
+
+
+def test_yunus_10_3_creation_intercession_and_open_question():
+    verse = DATA["verses"]["10:3"]
+    assert verse["tier"] == "core" and verse["sourcePolicyVersion"] == 2
+    for field in BASE_FIELDS:
+        assert len(verse[field]) >= 3, field
+        for item in verse[field]:
+            assert len(item["text"].split()) >= 14, field
+    notes = " ".join(item["text"] for item in verse["notes"])
+    assert "بغير شريك ولا ظهير" in notes
+    classical = " ".join(item["text"] for item in verse["classical"])
+    assert "يقضيه وحده" in classical and "لا يسمع ولا يبصر" in classical
+    modern = " ".join(item["text"] for item in verse["modern"])
+    assert "رفيق في أفعاله" in modern and "ولو كان أفضل الخلق" in modern
+    critical = " ".join(item["text"] for item in verse["critical"])
+    assert "استواء يليق بعظمته" in critical
+    assert verse["extendedFields"]["qiraat"]["entries"][0]["kind"] == "source-coverage-note"
+    assert verse["extendedFields"]["modernSciences"]["entries"][0]["kind"] == "source-coverage-note"
+    scope = {item["range"]: item["status"] for item in DATA["scope"]}
+    assert "۱۰:۳" in scope["10:3"]
