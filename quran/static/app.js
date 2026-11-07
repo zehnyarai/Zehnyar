@@ -1197,7 +1197,7 @@ function sourceMixBlock(verse) {
     : "سطحِ full: پنج مدخل در هر فیلدِ پایه";
   const policyVersion = Number(dossier?.sourcePolicyVersion || 1);
   const diverse = dossier?.requiresDiverseSources
-    ? " · سیاستِ v3: دست‌کم یک منبعِ شیعی (مجمع البيان/التبيان/الميزان/نمونه) و یک مقالهٔ داوری‌شده"
+    ? " · سیاستِ v3: دست‌کم یک منبعِ شیعی (مجمع البيان/التبيان/الميزان/نمونه)، یک منبعِ سنّی و یک مقالهٔ داوری‌شده"
     : "";
   const policy = policyVersion >= 2
     ? "سیاستِ تنوعِ منابع v2: دست‌کم سه اثرِ متمایز، یک تفسیرِ کهن و یک منبعِ معاصر؛ حداکثر یک مدخل از التفسیر المیسّر" + diverse

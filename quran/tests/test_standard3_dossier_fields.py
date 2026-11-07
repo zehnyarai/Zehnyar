@@ -1987,15 +1987,27 @@ def test_shia_sources_and_peer_reviewed_articles_are_enforced():
     assert criteria["diversityPolicyVersion"] == 3
     assert criteria["minShiaWorksPerRecord"] == 1
     assert criteria["minPeerReviewedArticlesPerRecord"] == 1
-    assert "شیعی" in criteria["diversityPolicyNote"]
+    assert criteria["requiresBothTraditions"] is True
+    assert criteria["minSunniWorksPerRecord"] == 1
+    assert "قرآن" in criteria["diversityScope"]
+    assert "شیعی" in criteria["diversityPolicyNote"] and "سنّی" in criteria["diversityPolicyNote"]
 
-    for verse_id in ("10:1", "10:2", "11:1"):
+    for verse_id in ("10:1", "10:2", "10:3", "11:1"):
         record = DATA["verses"][verse_id]
         assert record["requiresDiverseSources"] is True, verse_id
         roles = {item["role"] for item in record["sourceMix"]}
         assert any(role.startswith("shia") for role in roles), (verse_id, roles)
         assert "journal" in roles, (verse_id, roles)
-    assert DATA["verses"]["10:3"].get("requiresDiverseSources") is not True
+    for verse_id in ("10:1", "10:2", "10:3", "11:1"):
+        roles = {item["role"] for item in DATA["verses"][verse_id]["sourceMix"]}
+        assert any(role in {"classical"} for role in roles), verse_id
+        assert any(role in {"modern", "shia-modern"} for role in roles), verse_id
+    nem_10_3 = " ".join(item["text"] for item in DATA["verses"]["10:3"]["modern"])
+    assert "قدرت" in nem_10_3 and "دُبُر" in nem_10_3
+    critics_10_3 = " ".join(item["text"] for item in DATA["verses"]["10:3"]["critical"])
+    assert "استواء يليق بعظمته" in critics_10_3
+    res_10_3 = " ".join(item["text"] for item in DATA["verses"]["10:3"]["research"])
+    assert "خوش‌فر" in res_10_3
 
     nem_10_2 = " ".join(item["text"] for item in DATA["verses"]["10:2"]["modern"])
     assert "تفسیر البرهان" in nem_10_2 and "ولایتِ علی" in nem_10_2
