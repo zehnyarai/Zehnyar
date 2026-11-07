@@ -24,7 +24,7 @@ EXPECTED_FIELDS = {
     "balaghaNazm",
 }
 BASE_FIELDS = ("notes", "context", "classical", "modern", "critical", "research")
-TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 109)} | {"10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "11:1"}
+TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 109)} | {"10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "10:7", "10:8", "11:1"}
 
 
 def _fa(number: int) -> str:
@@ -1992,13 +1992,13 @@ def test_shia_sources_and_peer_reviewed_articles_are_enforced():
     assert "قرآن" in criteria["diversityScope"]
     assert "شیعی" in criteria["diversityPolicyNote"] and "سنّی" in criteria["diversityPolicyNote"]
 
-    for verse_id in ("10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "11:1"):
+    for verse_id in ("10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "10:7", "10:8", "11:1"):
         record = DATA["verses"][verse_id]
         assert record["requiresDiverseSources"] is True, verse_id
         roles = {item["role"] for item in record["sourceMix"]}
         assert any(role.startswith("shia") for role in roles), (verse_id, roles)
         assert "journal" in roles, (verse_id, roles)
-    for verse_id in ("10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "11:1"):
+    for verse_id in ("10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "10:7", "10:8", "11:1"):
         roles = {item["role"] for item in DATA["verses"][verse_id]["sourceMix"]}
         assert any(role in {"classical"} for role in roles), verse_id
         assert any(role in {"modern", "shia-modern"} for role in roles), verse_id
@@ -2098,3 +2098,51 @@ def test_yunus_10_6_night_day_alternation_and_taqwa_audience():
     assert {"جامع البيان", "تيسير الكريم الرحمن", "تفسير نمونه"} <= works, works
     journals = [item["work"] for item in verse["sourceMix"] if item["role"] == "journal"]
     assert len(journals) >= 2, journals
+
+
+def test_yunus_10_7_rajah_as_fear_and_the_four_descriptions():
+    verse = DATA["verses"]["10:7"]
+    assert verse["tier"] == "core" and verse["sourcePolicyVersion"] == 2
+    assert verse["requiresDiverseSources"] is True
+    for field in BASE_FIELDS:
+        assert len(verse[field]) >= 3, field
+        for item in verse[field]:
+            assert len(item["text"].split()) >= 14, field
+            assert item["cite"].strip(), field
+    notes = " ".join(item["text"] for item in verse["notes"])
+    assert "لا يخافون لقاءنا" in notes and "لم يُرجَ لسعتُها" in notes
+    context = " ".join(item["text"] for item in verse["context"])
+    assert "باء سببيت" in context and "زين الدنيا" in context
+    classical = " ".join(item["text"] for item in verse["classical"])
+    assert "لها يفرح" in classical and "أهل الكفر" in classical
+    modern = " ".join(item["text"] for item in verse["modern"])
+    assert "دار ممر" in modern and "احساس مسئولیت" in modern
+    critical = " ".join(item["text"] for item in verse["critical"])
+    assert "معادل‌انگاری رجاء با تصدیق" in critical and "رؤیتِ خدا" in critical
+    assert verse["extendedFields"]["qiraat"]["entries"][0]["kind"] == "source-coverage-note"
+    assert verse["extendedFields"]["modernSciences"]["entries"][0]["kind"] == "source-coverage-note"
+    works = {item["work"] for item in verse["sourceMix"]}
+    assert {"جامع البيان", "تيسير الكريم الرحمن", "الميزان", "تفسير نمونه"} <= works, works
+    journals = [item["work"] for item in verse["sourceMix"] if item["role"] == "journal"]
+    assert len(journals) >= 2, journals
+
+
+def test_yunus_10_8_refuge_and_earning():
+    verse = DATA["verses"]["10:8"]
+    assert verse["tier"] == "core" and verse["sourcePolicyVersion"] == 2
+    assert verse["requiresDiverseSources"] is True
+    for field in BASE_FIELDS:
+        assert len(verse[field]) >= 3, field
+        for item in verse[field]:
+            assert len(item["text"].split()) >= 14, field
+            assert item["cite"].strip(), field
+    notes = " ".join(item["text"] for item in verse["notes"])
+    assert "مصيرهم" in notes and "الآثام والأجرام" in notes
+    modern = " ".join(item["text"] for item in verse["modern"])
+    assert "لا يرحلون عنها" in modern and "آرامشی کاذب" in modern
+    critical = " ".join(item["text"] for item in verse["critical"])
+    assert "صیغهٔ معلوم" in critical and "خلود" in critical
+    assert verse["extendedFields"]["modernSciences"]["entries"][0]["kind"] == "source-coverage-note"
+    assert "Matthew 16:27" in verse["extendedFields"]["bibleComparison"]["entries"][0]["cite"]
+    roles = {item["role"] for item in verse["sourceMix"]}
+    assert {"classical", "modern", "shia-modern", "journal"} <= roles, roles
