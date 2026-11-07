@@ -24,7 +24,7 @@ EXPECTED_FIELDS = {
     "balaghaNazm",
 }
 BASE_FIELDS = ("notes", "context", "classical", "modern", "critical", "research")
-TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 109)} | {"10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "10:7", "10:8", "10:9", "10:10", "10:11", "10:12", "10:13", "10:14", "10:15", "10:16", "10:17", "10:18", "10:19", "10:20", "10:21", "10:22", "10:23", "10:24", "10:25", "10:26", "10:27", "10:28", "10:29", "10:30", "10:31", "10:32", "10:33", "10:34", "10:35", "10:36", "11:1"}
+TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 109)} | {"10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "10:7", "10:8", "10:9", "10:10", "10:11", "10:12", "10:13", "10:14", "10:15", "10:16", "10:17", "10:18", "10:19", "10:20", "10:21", "10:22", "10:23", "10:24", "10:25", "10:26", "10:27", "10:28", "10:29", "10:30", "10:31", "10:32", "10:33", "10:34", "10:35", "10:36", "10:37", "10:38", "10:39", "11:1"}
 
 
 def _fa(number: int) -> str:
@@ -1992,13 +1992,13 @@ def test_shia_sources_and_peer_reviewed_articles_are_enforced():
     assert "قرآن" in criteria["diversityScope"]
     assert "شیعی" in criteria["diversityPolicyNote"] and "سنّی" in criteria["diversityPolicyNote"]
 
-    for verse_id in ("10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "10:7", "10:8", "10:9", "10:10", "10:11", "10:12", "10:13", "10:14", "10:15", "10:16", "10:17", "10:18", "10:19", "10:20", "10:21", "10:22", "10:23", "10:24", "10:25", "10:26", "10:27", "10:28", "10:29", "10:30", "10:31", "10:32", "10:33", "10:34", "10:35", "10:36", "11:1"):
+    for verse_id in ("10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "10:7", "10:8", "10:9", "10:10", "10:11", "10:12", "10:13", "10:14", "10:15", "10:16", "10:17", "10:18", "10:19", "10:20", "10:21", "10:22", "10:23", "10:24", "10:25", "10:26", "10:27", "10:28", "10:29", "10:30", "10:31", "10:32", "10:33", "10:34", "10:35", "10:36", "10:37", "10:38", "10:39", "11:1"):
         record = DATA["verses"][verse_id]
         assert record["requiresDiverseSources"] is True, verse_id
         roles = {item["role"] for item in record["sourceMix"]}
         assert any(role.startswith("shia") for role in roles), (verse_id, roles)
         assert "journal" in roles, (verse_id, roles)
-    for verse_id in ("10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "10:7", "10:8", "10:9", "10:10", "10:11", "10:12", "10:13", "10:14", "10:15", "10:16", "10:17", "10:18", "10:19", "10:20", "10:21", "10:22", "10:23", "10:24", "10:25", "10:26", "10:27", "10:28", "10:29", "10:30", "10:31", "10:32", "10:33", "10:34", "10:35", "10:36", "11:1"):
+    for verse_id in ("10:1", "10:2", "10:3", "10:4", "10:5", "10:6", "10:7", "10:8", "10:9", "10:10", "10:11", "10:12", "10:13", "10:14", "10:15", "10:16", "10:17", "10:18", "10:19", "10:20", "10:21", "10:22", "10:23", "10:24", "10:25", "10:26", "10:27", "10:28", "10:29", "10:30", "10:31", "10:32", "10:33", "10:34", "10:35", "10:36", "10:37", "10:38", "10:39", "11:1"):
         roles = {item["role"] for item in DATA["verses"][verse_id]["sourceMix"]}
         assert any(role in {"classical"} for role in roles), verse_id
         assert any(role in {"modern", "shia-modern"} for role in roles), verse_id
@@ -2593,3 +2593,29 @@ def test_yunus_10_36_conjecture_and_truth():
     assert "تقلید كوركورانه" in _joined(verse, "critical")
     assert "تعليل" in _joined(verse, "research")
     assert "Proverbs 14:12" in _ext_text(verse, "bibleComparison")
+
+
+def test_yunus_10_37_not_fabricated():
+    verse = _check_verse("10:37")
+    assert "ما ينبغي" in _joined(verse, "notes")
+    assert "تفصيل الكتاب" in _joined(verse, "classical")
+    assert "لعظمة المتكلم" in _joined(verse, "modern")
+    assert "يحنّس" in _joined(verse, "critical")
+    assert "اجمال و تفصيل" in _joined(verse, "critical")
+
+
+def test_yunus_10_38_challenge_of_a_surah():
+    verse = _check_verse("10:38")
+    assert "منقطعه" in _joined(verse, "notes")
+    assert "مثل سورته" in _joined(verse, "classical")
+    assert "عنادًا وبغيًا" in _joined(verse, "modern")
+    assert "همه خصوصيات قرآن" in _joined(verse, "critical")
+
+
+def test_yunus_10_39_tafsir_of_tawil():
+    verse = _check_verse("10:39")
+    assert "ولما يأتهم بعدُ" in _joined(verse, "notes")
+    assert "بالرجفة" in _joined(verse, "context")
+    assert "التثبت" in _joined(verse, "modern")
+    assert "حقيقتى است" in _joined(verse, "critical")
+    assert "صرف توهّم" in _joined(verse, "critical")
