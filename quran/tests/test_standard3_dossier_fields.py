@@ -21,7 +21,7 @@ EXPECTED_FIELDS = {
     "balaghaNazm",
 }
 BASE_FIELDS = ("notes", "context", "classical", "modern", "critical", "research")
-TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 70)}
+TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 72)}
 
 
 def test_standard3_schema_declares_all_requested_fields_and_thresholds():
@@ -1105,12 +1105,12 @@ def test_tawbah_65_has_sourced_dossier_and_explicit_gaps():
 
 def test_scope_frontier_tracks_current_records():
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
-    assert "overlay اکنون تا ۹:۶۹ می‌رسد (۹۴ رکورد" in scope["9:1–129"]
-    assert "۹:۷۰–۱۲۹ هنوز وارد نشده" in scope["9:1–129"]
-    assert "۹:۳۲–۶۹ با منابعِ ثبت‌شده" in scope["9:32–81"]
-    assert "۹:۷۰–۸۱ همچنان پژوهش" in scope["9:32–81"]
-    assert "۹:۴۲–۶۹" in scope["9:42–129"]
-    assert "۹:۴۷–۶۹" in scope["9:42–46"]
+    assert "overlay اکنون تا ۹:۷۱ می‌رسد (۹۶ رکورد" in scope["9:1–129"]
+    assert "۹:۷۲–۱۲۹ هنوز وارد نشده" in scope["9:1–129"]
+    assert "۹:۳۲–۷۱ با منابعِ ثبت‌شده" in scope["9:32–81"]
+    assert "۹:۷۲–۸۱ همچنان پژوهش" in scope["9:32–81"]
+    assert "۹:۴۲–۷۱" in scope["9:42–129"]
+    assert "۹:۴۷–۷۱" in scope["9:42–46"]
     assert "توبه ۹:۶۵ ثبت شد" in scope["9:65"]
     assert "توبه ۹:۶۶ ثبت شد" in scope["9:66"]
     assert "۹:۶۷ با شش فیلدِ پایهٔ پنج‌مدخلی" in scope["9:67"]
@@ -1118,7 +1118,7 @@ def test_scope_frontier_tracks_current_records():
     assert "۹:۶۸ با شش فیلدِ پایهٔ پنج‌مدخلی" in scope["9:68"]
     assert "۹:۶۹ با شش فیلدِ پایهٔ پنج‌مدخلی" in scope["9:69"]
     assert "زوجِ ۹:۶۸–۶۹ پیوسته ثبت شده‌اند" in scope["9:68–69"]
-    assert "هنوز واردِ overlay نشده" in scope["9:70–81"]
+    assert "۹:۷۲–۸۱ هنوز واردِ overlay نشده" in scope["9:70–81"]
 
 
 def test_tawbah_66_has_complete_sourced_dossier():
@@ -1275,3 +1275,50 @@ def test_tawbah_68_and_69_have_sourced_dossiers_with_honest_gaps():
     assert "را ضعیف می‌شمارد" in " ".join(item["text"] for item in v69["classical"])
     assert "qiraat-almawsoah/9/68" in v68["extendedFields"]["qiraat"]["entries"][0]["cite"]
     assert "qiraat-almawsoah/9/69" in v69["extendedFields"]["qiraat"]["entries"][0]["cite"]
+
+
+def test_tawbah_70_and_71_record_reviewed_sources_and_explicit_partial_coverage():
+    for verse_id in ("9:70", "9:71"):
+        verse = DATA["verses"][verse_id]
+        assert "پیش‌نویسِ منبع‌محور" in verse["reviewStatus"]
+        assert "partial" in verse["fieldCoverageStatus"]
+
+        seen_texts = set()
+        for field_id in BASE_FIELDS:
+            assert len(verse[field_id]) >= 5, (verse_id, field_id)
+            for item in verse[field_id]:
+                assert len(item["text"].split()) >= 14, (verse_id, field_id)
+                assert item.get("cite", "").strip(), (verse_id, field_id)
+                normalized = " ".join(item["text"].split())
+                assert normalized not in seen_texts, (verse_id, field_id)
+                seen_texts.add(normalized)
+
+        extended = verse["extendedFields"]
+        assert set(extended) == EXPECTED_FIELDS
+        for field_id, field in extended.items():
+            assert field["entries"], (verse_id, field_id)
+            for entry in field["entries"]:
+                assert len(entry["text"].split()) >= 14, (verse_id, field_id)
+                assert entry["cite"].strip() and entry["evidence"].strip() and entry["limit"].strip()
+                normalized = " ".join(entry["text"].split())
+                assert normalized not in seen_texts, (verse_id, field_id)
+                seen_texts.add(normalized)
+            assert field["coverage"]["completed"] == len(field["entries"]), field_id
+            assert field["status"] == "partial", (verse_id, field_id)
+            assert field["sourceCoverageNote"].strip() and field["followUp"].strip()
+
+    classical70 = " ".join(item["cite"] for item in DATA["verses"]["9:70"]["classical"])
+    for token in ("البغوي", "ابن كثير"):
+        assert token in classical70, token
+    classical71 = " ".join(item["cite"] for item in DATA["verses"]["9:71"]["classical"])
+    for token in ("البغوي", "القرطبي"):
+        assert token in classical71, token
+    qiraat70 = DATA["verses"]["9:70"]["extendedFields"]["qiraat"]
+    assert qiraat70["status"] == "partial"
+    assert qiraat70["entries"][0]["kind"] == "source-coverage-note"
+
+    scope = {item["range"]: item["status"] for item in DATA["scope"]}
+    assert "توبه ۹:۷۰ ثبت شد" in scope["9:70"]
+    assert "توبه ۹:۷۱ ثبت شد" in scope["9:71"]
+    assert "۹:۷۰–۷۱" in scope["9:70–71"]
+    assert "overlay اکنون تا ۹:۷۱" in scope["9:1–129"]
