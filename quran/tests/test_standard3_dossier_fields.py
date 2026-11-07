@@ -24,7 +24,7 @@ EXPECTED_FIELDS = {
     "balaghaNazm",
 }
 BASE_FIELDS = ("notes", "context", "classical", "modern", "critical", "research")
-TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 108)}
+TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 108)} | {"10:1"}
 
 
 def test_standard3_schema_declares_all_requested_fields_and_thresholds():
@@ -1111,7 +1111,8 @@ def test_tawbah_65_has_sourced_dossier_and_explicit_gaps():
 
 def test_scope_frontier_tracks_current_records():
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
-    assert "overlay اکنون تا ۹:۱۰۷ می‌رسد (۱۳۲ رکورد" in scope["9:1–129"]
+    assert "overlay اکنون تا ۹:۱۰۷ می‌رسد و پس از آن نخستین آیهٔ يونس" in scope["9:1–129"]
+    assert "۱۳۳ رکورد" in scope["9:1–129"]
     assert "۹:۱۰۸–۱۲۹ هنوز وارد نشده" in scope["9:1–129"]
     assert "به‌طورِ کامل واردِ overlay شده" in scope["9:32–81"]
     assert "۹:۷۵–۸۱ در سطحِ core" in scope["9:32–81"]
@@ -1841,3 +1842,33 @@ def test_tawbah_106_107_suspense_and_dirar_mosque():
     assert v107["extendedFields"]["qiraat"]["entries"][0]["kind"] == "source-coverage-note"
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
     assert "۹:۱۰۶" in scope["9:106–107"] and "۹:۱۰۷" in scope["9:106–107"]
+
+
+def test_yunus_10_1_opening_letters_and_wisdom_epithet():
+    verse = DATA["verses"]["10:1"]
+    assert verse["tier"] == "core" and verse["sourcePolicyVersion"] == 2
+    assert "پیش‌نویسِ منبع‌محور" in verse["reviewStatus"]
+    for field in BASE_FIELDS:
+        assert len(verse[field]) == 3, field
+        for item in verse[field]:
+            assert len(item["text"].split()) >= 14, field
+            assert item["cite"].strip(), field
+    works = {item["work"] for item in verse["sourceMix"]}
+    assert {"جامع البيان", "تيسير الكريم الرحمن"} <= works, works
+    classical = " ".join(item["text"] for item in verse["classical"])
+    assert "أنا الله أرى" in classical and "الرحمن" in classical
+    assert "اسمٌ من أسماء القرآن" in classical
+    notes = " ".join(item["text"] for item in verse["notes"])
+    assert "الأعلام" in notes and "اسمٌ من أسماء القرآن" in notes
+    modern = " ".join(item["text"] for item in verse["modern"])
+    assert "بالرضا والقبول والانقياد" in modern
+    critical = " ".join(item["text"] for item in verse["critical"])
+    assert "فأغنى ذلك عن إعادته في هذا الموضع" in critical
+    qiraat = verse["extendedFields"]["qiraat"]
+    assert qiraat["entries"][0]["kind"] == "source-coverage-note"
+    assert verse["extendedFields"]["linguistics"]["entries"][0]["text"].find("تلك") != -1
+    analysed = sum(1 for field in verse["extendedFields"].values()
+                   if any(entry["kind"] == "analysis" for entry in field["entries"]))
+    assert analysed >= 8, analysed
+    scope = {item["range"]: item["status"] for item in DATA["scope"]}
+    assert "۱۰:۱" in scope["10:1"] and "۱۳۳" in scope["9:1–129"]
