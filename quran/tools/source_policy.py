@@ -26,6 +26,35 @@ MODERN = {
     "السعدي": ("تيسير الكريم الرحمن", "modern"),
     "أيسر التفاسير": ("أيسر التفاسير", "modern"),
 }
+SHIA = {
+    "الطبرسي": ("مجمع البيان", "shia-classical"),
+    "الطوسي": ("التبيان", "shia-classical"),
+    "الفيض الكاشاني": ("الصافي", "shia-classical"),
+    "الحويزي": ("نور الثقلين", "shia-classical"),
+    "البحراني": ("البرهان", "shia-classical"),
+    "القمي": ("تفسير القمي", "shia-classical"),
+    "الميزان": ("الميزان", "shia-modern"),
+    "الطباطبائي": ("الميزان", "shia-modern"),
+    "الطباطبائی": ("الميزان", "shia-modern"),
+    "مكارم الشيرازي": ("تفسير نمونه", "shia-modern"),
+    "مکارم شیرازی": ("تفسیر نمونه", "shia-modern"),
+    "الأمثل": ("الأمثل", "shia-modern"),
+    "من وحي القرآن": ("من وحي القرآن", "shia-modern"),
+}
+JOURNAL_HINTS = (
+    "Journal of Qur'anic Studies",
+    "Journal of the International Qur",
+    "Bulletin of the School of Oriental",
+    "Arabica",
+    "Der Islam",
+    "پژوهشهای",
+    "پژوهش‌های",
+    "مطالعات قرآن",
+    "پژوهشنامه",
+    "تحقیقات علوم قرآن",
+    "قرآن‌شناخت",
+    "doi.org/10.",
+)
 LATIN_RE = re.compile(r"[A-Za-z]{3}")
 
 POLICY = {
@@ -34,6 +63,14 @@ POLICY = {
     "requiredSourceRoles": ["classical", "modern"],
     "maxShareOfContemporaryEntriesFromSingleWork": 0.6,
     "maxMuyassarEntriesPerRecord": 1,
+    "diversityPolicyVersion": 3,
+    "minShiaWorksPerRecord": 1,
+    "minPeerReviewedArticlesPerRecord": 1,
+    "diversityPolicyNote": (
+        "از يونس ۱۰:۱ به بعد هر رکورد باید دست‌کم یک منبعِ شیعی (تفسیرِ کهن مانند مجمع البيان و التبيان یا "
+        "تفسیرِ معاصر مانند الميزان و نمونه) و دست‌کم یک مقالهٔ پژوهشیِ داوری‌شده از مجله‌های معتبرِ داخلی یا "
+        "خارجی داشته باشد؛ رکوردهایِ پیشین به‌تدریج و با مقابلهٔ متن پر می‌شوند و ادعای کامل‌بودن نمی‌شود."
+    ),
     "contemporaryRoles": ["modern", "academic"],
     "sourceMixRequired": True,
     "policyNote": (
@@ -51,6 +88,12 @@ def work_of(cite: str) -> tuple[str, str]:
             return name, role
     if cite.startswith("قرآن") or "ترجمهٔ فولادوند" in cite:
         return "متن و ترجمهٔ قرآن", "primary"
+    for token, (name, role) in SHIA.items():
+        if cite.startswith(token) or token in cite.split("؛")[0]:
+            return name, role
+    if any(hint in cite for hint in JOURNAL_HINTS):
+        title = cite.split("«")[1].split("»")[0].strip() if "«" in cite and "»" in cite else cite.split("؛")[0]
+        return title[:60], "journal"
     if LATIN_RE.search(cite):
         head = cite.split(",")[0].strip()
         return head[:60], "academic"

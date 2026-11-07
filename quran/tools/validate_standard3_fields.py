@@ -73,6 +73,14 @@ def validate(path: Path = DATA_PATH) -> tuple[list[str], dict[str, int]]:
             errors.append(f"{verse_id}: dossier must be an object")
             continue
 
+        if dossier.get("requiresDiverseSources"):
+            mix = dossier.get("sourceMix")
+            roles = {str(item.get("role", "")) for item in mix} if isinstance(mix, list) else set()
+            if not any(role.startswith("shia") for role in roles):
+                errors.append(f"{verse_id}: diversity policy needs at least one Shia source")
+            if "journal" not in roles:
+                errors.append(f"{verse_id}: diversity policy needs at least one peer-reviewed article")
+
         for field_id in BASE_FIELDS:
             entries = dossier.get(field_id)
             if not isinstance(entries, list):

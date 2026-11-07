@@ -1179,8 +1179,11 @@ function standard3FieldSection(verse, definition) {
 
 const SOURCE_ROLE_LABELS = {
   classical: "تفسیرِ کهن",
+  "shia-classical": "تفسیرِ کهنِ شیعی",
   modern: "تفسیرِ معاصر",
+  "shia-modern": "تفسیرِ معاصرِ شیعی",
   academic: "پژوهشِ دانشگاهی",
+  journal: "مقالهٔ داوری‌شده",
   primary: "متن و ترجمه",
   other: "منبعِ دیگر",
 };
@@ -1193,8 +1196,11 @@ function sourceMixBlock(verse) {
     ? "سطحِ core: سه مدخل در هر فیلدِ پایه"
     : "سطحِ full: پنج مدخل در هر فیلدِ پایه";
   const policyVersion = Number(dossier?.sourcePolicyVersion || 1);
+  const diverse = dossier?.requiresDiverseSources
+    ? " · سیاستِ v3: دست‌کم یک منبعِ شیعی (مجمع البيان/التبيان/الميزان/نمونه) و یک مقالهٔ داوری‌شده"
+    : "";
   const policy = policyVersion >= 2
-    ? "سیاستِ تنوعِ منابع v2: دست‌کم سه اثرِ متمایز، یک تفسیرِ کهن و یک منبعِ معاصر؛ حداکثر یک مدخل از التفسیر المیسّر"
+    ? "سیاستِ تنوعِ منابع v2: دست‌کم سه اثرِ متمایز، یک تفسیرِ کهن و یک منبعِ معاصر؛ حداکثر یک مدخل از التفسیر المیسّر" + diverse
     : "سیاستِ پیشین (v1): تنوعِ منابع هنوز به معیار v2 نرسیده است";
   const rows = mix.map((item) => {
     const role = SOURCE_ROLE_LABELS[item.role] || SOURCE_ROLE_LABELS.other;

@@ -1861,7 +1861,7 @@ def test_yunus_10_1_opening_letters_and_wisdom_epithet():
     assert verse["tier"] == "core" and verse["sourcePolicyVersion"] == 2
     assert "پیش‌نویسِ منبع‌محور" in verse["reviewStatus"]
     for field in BASE_FIELDS:
-        assert len(verse[field]) == 3, field
+        assert len(verse[field]) >= 3, field
         for item in verse[field]:
             assert len(item["text"].split()) >= 14, field
             assert item["cite"].strip(), field
@@ -1883,7 +1883,7 @@ def test_yunus_10_1_opening_letters_and_wisdom_epithet():
                    if any(entry["kind"] == "analysis" for entry in field["entries"]))
     assert analysed >= 8, analysed
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
-    assert "۱۰:۲" in scope["10:1"] and f"{_fa(len(DATA['verses']))}" in scope["9:1–129"]
+    assert "تفسیر نمونه" in scope["10:1"] and f"{_fa(len(DATA['verses']))}" in scope["9:1–129"]
 
 
 def test_tawbah_108_two_mosque_identifications_kept_side_by_side():
@@ -1980,3 +1980,32 @@ def test_hud_11_1_two_opposite_hasan_reports_kept_apart():
     assert verse["extendedFields"]["qiraat"]["entries"][0]["kind"] == "source-coverage-note"
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
     assert "هود" in scope["11:1"] and "تعارض" in scope["11:1"]
+
+
+def test_shia_sources_and_peer_reviewed_articles_are_enforced():
+    criteria = DATA["criteria"]
+    assert criteria["diversityPolicyVersion"] == 3
+    assert criteria["minShiaWorksPerRecord"] == 1
+    assert criteria["minPeerReviewedArticlesPerRecord"] == 1
+    assert "شیعی" in criteria["diversityPolicyNote"]
+
+    for verse_id in ("10:1", "10:2", "11:1"):
+        record = DATA["verses"][verse_id]
+        assert record["requiresDiverseSources"] is True, verse_id
+        roles = {item["role"] for item in record["sourceMix"]}
+        assert any(role.startswith("shia") for role in roles), (verse_id, roles)
+        assert "journal" in roles, (verse_id, roles)
+    assert DATA["verses"]["10:3"].get("requiresDiverseSources") is not True
+
+    nem_10_2 = " ".join(item["text"] for item in DATA["verses"]["10:2"]["modern"])
+    assert "تفسیر البرهان" in nem_10_2 and "ولایتِ علی" in nem_10_2
+    tabarsi = " ".join(item["text"] for item in DATA["verses"]["11:1"]["classical"])
+    assert "مجمع البيان" in tabarsi and "غلط" in tabarsi
+    nem_11_1 = " ".join(item["text"] for item in DATA["verses"]["11:1"]["modern"])
+    assert "در وحدت، متعدد و در تعدد، واحد" in nem_11_1
+    sarraf = " ".join(item["text"] for item in DATA["verses"]["10:1"]["research"])
+    assert "حروف مقطّعه" in sarraf
+    haleem = " ".join(item["text"] for item in DATA["verses"]["10:2"]["research"])
+    assert "سیاق" in haleem and "عبدالحلیم" in haleem
+    assert "SOURCE_ROLE_LABELS" in APP and "مقالهٔ داوری‌شده" in APP
+    assert "سیاستِ v3" in APP
