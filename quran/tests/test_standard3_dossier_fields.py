@@ -2583,4 +2583,4 @@ def test_yunus_10_35_guidance_and_readings():
     assert "بإلهامه وتوفيقه" in _joined(verse, "modern")
     assert "مرتكزات فطرى" in _joined(verse, "research")
     qiraat = _ext_text(verse, "qiraat")
-    assert "يَهَدّي" in qiraat and "يهدى" in qiraat
+    assert "أمّن لا يهدّي" in qiraat and "تخفیفِ دال" in qiraat
