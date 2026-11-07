@@ -82,6 +82,33 @@ def validate(path: Path = DATA_PATH) -> tuple[list[str], dict[str, int]]:
             errors.append(f"{verse_id}: Standard 3 fields do not match schema")
             continue
 
+        # --- source-diversity policy v2 (see criteria.policyNote)
+        if int(dossier.get("sourcePolicyVersion", 1)) >= 2:
+            mix = dossier.get("sourceMix")
+            if not isinstance(mix, list) or not mix:
+                errors.append(f"{verse_id}: policy v2 requires a non-empty sourceMix")
+            else:
+                named = [item for item in mix if item.get("role") in ("classical", "modern", "academic")]
+                roles = {item.get("role") for item in named}
+                if len(named) < 3:
+                    errors.append(f"{verse_id}: policy v2 needs at least three distinct works, found {len(named)}")
+                if "classical" not in roles or "modern" not in roles:
+                    errors.append(f"{verse_id}: policy v2 needs at least one classical and one modern work")
+                contemporary = [item for item in named if item.get("role") in ("modern", "academic")]
+                contemporary_entries = sum(int(item.get("entries", 0)) for item in contemporary)
+                for item in contemporary:
+                    if int(item.get("entries", 0)) == 0:
+                        continue
+                    share = int(item.get("entries", 0)) / max(contemporary_entries, 1)
+                    if share > 0.6:
+                        errors.append(
+                            f"{verse_id}: policy v2 caps one contemporary work at 60% of contemporary entries; "
+                            f"{item.get('work')} holds {share:.0%}"
+                        )
+                for item in named:
+                    if item.get("work") == "التفسير الميسر" and int(item.get("entries", 0)) > 1:
+                        errors.append(f"{verse_id}: policy v2 allows at most one Muyassar entry per record")
+
         for field_id, field in extended.items():
             counts["fields"] += 1
             if not isinstance(field, dict):

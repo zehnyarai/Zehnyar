@@ -1157,20 +1157,47 @@ function standard3FieldSection(verse, definition) {
   return `<article class="all-dossier-field standard3-field"><header><h4>${escapeHTML(definition.label)}</h4><span class="standard3-status ${statusClass}">${faNumber(entries.length)} از ${faNumber(required)} · ${statusLabel}</span></header><p class="standard3-description">${escapeHTML(definition.description || "")}</p>${entryMarkup ? `<ol class="standard3-entry-list">${entryMarkup}</ol>` : `<p class="field-gap-note">برای این آیه هنوز بندِ مستند در این فیلد ثبت نشده است. وضعیت: صفر از پنج؛ محتوای پژوهشی عمداً ساخته نشده.</p>`}<p class="standard3-source-coverage"><b>وضعیتِ مقابلهٔ منبع:</b> ${escapeHTML(coverageNote)}</p><p class="standard3-follow-up"><b>پیگیری:</b> ${escapeHTML(followUp)}</p></article>`;
 }
 
+const SOURCE_ROLE_LABELS = {
+  classical: "تفسیرِ کهن",
+  modern: "تفسیرِ معاصر",
+  academic: "پژوهشِ دانشگاهی",
+  primary: "متن و ترجمه",
+  other: "منبعِ دیگر",
+};
+
+function sourceMixBlock(verse) {
+  const dossier = dossierFor(verse);
+  const mix = Array.isArray(dossier?.sourceMix) ? dossier.sourceMix : [];
+  if (!mix.length) return "";
+  const tier = dossier?.tier === "core"
+    ? "سطحِ core: سه مدخل در هر فیلدِ پایه"
+    : "سطحِ full: پنج مدخل در هر فیلدِ پایه";
+  const policyVersion = Number(dossier?.sourcePolicyVersion || 1);
+  const policy = policyVersion >= 2
+    ? "سیاستِ تنوعِ منابع v2: دست‌کم سه اثرِ متمایز، یک تفسیرِ کهن و یک منبعِ معاصر؛ حداکثر یک مدخل از التفسیر المیسّر"
+    : "سیاستِ پیشین (v1): تنوعِ منابع هنوز به معیار v2 نرسیده است";
+  const rows = mix.map((item) => {
+    const role = SOURCE_ROLE_LABELS[item.role] || SOURCE_ROLE_LABELS.other;
+    return `<li class="dossier-item"><b>${escapeHTML(item.work)}</b><span>${escapeHTML(role)}</span><small>${Number(item.entries) || 0} مدخل</small></li>`;
+  }).join("");
+  const coverage = dossier?.coverageNote ? `<p class="reading-notice">${escapeHTML(dossier.coverageNote)}</p>` : "";
+  return `<section class="detail-panel source-mix-panel"><p class="eyebrow">شفافیتِ منابع</p><h3>منابعِ همین آیه</h3><p class="reading-notice">${escapeHTML(tier)} · ${escapeHTML(policy)}</p><ol class="dossier-list source-mix-list">${rows}</ol>${coverage}</section>`;
+}
+
 function completeDossierPanel(verse) {
   const dossier = dossierFor(verse);
   const review = dossier?.reviewStatus || dossier?.status || "وضعیتِ داوری برای این آیه ثبت نشده است.";
   const fieldDefinitions = state.standard3Dossier?.fields?.length ? state.standard3Dossier.fields : STANDARD3_FIELD_FALLBACKS;
   const legacy = LEGACY_DOSSIER_ORDER.map((field) => allLegacyFieldSection(verse, field)).join("");
   const extended = fieldDefinitions.map((field) => standard3FieldSection(verse, field)).join("");
-  return `<section class="complete-dossier"><section class="detail-panel complete-dossier-intro"><p class="eyebrow">پروندهٔ کاملِ آیه</p><h3>همهٔ فیلدها زیرِ همین آیه</h3><p class="reading-notice">این نمای یکپارچه شش فیلدِ پایه و ده فیلدِ افزوده را همگی زیرِ ${escapeHTML(verse.reference)} می‌آورد. هر فیلد وضعیتِ مستقل دارد؛ خالی‌بودن یعنی داده هنوز گردآوری نشده، نه اینکه موضوع بی‌اهمیت است.</p><p class="dossier-review-status"><b>وضعیتِ دادهٔ پایه:</b> ${escapeHTML(review)}</p><p class="reading-notice">معیارِ هر فیلدِ افزوده: پنج بندِ مستقل، دست‌کم ۱۴ واژه در هر بند، ارجاعِ مقابله‌شده، شاهدِ دقیق و حدّ خوانش. تا وقتی این معیارها تأمین نشده‌اند، وضعیت و یادداشتِ پیگیری آشکار می‌ماند.</p></section><section class="all-dossier-group"><h3>شش فیلدِ پایه</h3><div class="all-dossier-grid legacy-dossier-grid">${legacy}</div></section><section class="all-dossier-group"><h3>ده فیلدِ افزوده</h3><div class="all-dossier-grid standard3-grid">${extended}</div></section></section>`;
+  return `<section class="complete-dossier"><section class="detail-panel complete-dossier-intro"><p class="eyebrow">پروندهٔ کاملِ آیه</p><h3>همهٔ فیلدها زیرِ همین آیه</h3><p class="reading-notice">این نمای یکپارچه شش فیلدِ پایه و ده فیلدِ افزوده را همگی زیرِ ${escapeHTML(verse.reference)} می‌آورد. هر فیلد وضعیتِ مستقل دارد؛ خالی‌بودن یعنی داده هنوز گردآوری نشده، نه اینکه موضوع بی‌اهمیت است.</p><p class="dossier-review-status"><b>وضعیتِ دادهٔ پایه:</b> ${escapeHTML(review)}</p>${sourceMixBlock(verse)}<p class="reading-notice">معیارِ هر فیلدِ افزوده: پنج بندِ مستقل، دست‌کم ۱۴ واژه در هر بند، ارجاعِ مقابله‌شده، شاهدِ دقیق و حدّ خوانش. تا وقتی این معیارها تأمین نشده‌اند، وضعیت و یادداشتِ پیگیری آشکار می‌ماند.</p></section><section class="all-dossier-group"><h3>شش فیلدِ پایه</h3><div class="all-dossier-grid legacy-dossier-grid">${legacy}</div></section><section class="all-dossier-group"><h3>ده فیلدِ افزوده</h3><div class="all-dossier-grid standard3-grid">${extended}</div></section></section>`;
 }
 
 function standard3FieldPanel(verse, fieldId) {
   const definitions = state.standard3Dossier?.fields?.length ? state.standard3Dossier.fields : STANDARD3_FIELD_FALLBACKS;
   const definition = definitions.find((field) => field.id === fieldId) || STANDARD3_FIELD_FALLBACKS.find((field) => field.id === fieldId);
   if (!definition) return completeDossierPanel(verse);
-  return `<section class="detail-panel standard3-field-page"><p class="eyebrow">فیلدِ آیه‌محور · ${escapeHTML(verse.reference)}</p><h3>${escapeHTML(definition.label)}</h3><p class="reading-notice">محتوا باید به همین آیه مربوط، مستند و از ادعاهایِ بیرون از شاهد جدا باشد. وضعیتِ منبع، شمارِ بندها و پیگیریِ همین فیلد را ببینید.</p>${standard3FieldSection(verse, definition)}</section>`;
+  return `<section class="detail-panel standard3-field-page"><p class="eyebrow">فیلدِ آیه‌محور · ${escapeHTML(verse.reference)}</p><h3>${escapeHTML(definition.label)}</h3><p class="reading-notice">محتوا باید به همین آیه مربوط، مستند و از ادعاهایِ بیرون از شاهد جدا باشد. وضعیتِ منبع، شمارِ بندها و پیگیریِ همین فیلد را ببینید.</p>${sourceMixBlock(verse)}${standard3FieldSection(verse, definition)}</section>`;
 }
 
 function dossierAnchors(verse, kind) {

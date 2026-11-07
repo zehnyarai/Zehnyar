@@ -21,7 +21,7 @@ EXPECTED_FIELDS = {
     "balaghaNazm",
 }
 BASE_FIELDS = ("notes", "context", "classical", "modern", "critical", "research")
-TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 90)}
+TARGET_VERSES = {f"8:{ayah}" for ayah in range(51, 76)} | {f"9:{ayah}" for ayah in range(1, 91)}
 
 
 def test_standard3_schema_declares_all_requested_fields_and_thresholds():
@@ -1108,12 +1108,12 @@ def test_tawbah_65_has_sourced_dossier_and_explicit_gaps():
 
 def test_scope_frontier_tracks_current_records():
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
-    assert "overlay اکنون تا ۹:۸۹ می‌رسد (۱۱۴ رکورد" in scope["9:1–129"]
-    assert "۹:۹۰–۱۲۹ هنوز وارد نشده" in scope["9:1–129"]
+    assert "overlay اکنون تا ۹:۹۰ می‌رسد (۱۱۵ رکورد" in scope["9:1–129"]
+    assert "۹:۹۱–۱۲۹ هنوز وارد نشده" in scope["9:1–129"]
     assert "به‌طورِ کامل واردِ overlay شده" in scope["9:32–81"]
     assert "۹:۷۵–۸۱ در سطحِ core" in scope["9:32–81"]
-    assert "۹:۴۲–۸۹" in scope["9:42–129"]
-    assert "۹:۴۷–۸۹" in scope["9:42–46"]
+    assert "۹:۴۲–۹۰" in scope["9:42–129"]
+    assert "۹:۴۷–۹۰" in scope["9:42–46"]
     assert "توبه ۹:۶۵ ثبت شد" in scope["9:65"]
     assert "توبه ۹:۶۶ ثبت شد" in scope["9:66"]
     assert "۹:۶۷ با شش فیلدِ پایهٔ پنج‌مدخلی" in scope["9:67"]
@@ -1324,7 +1324,7 @@ def test_tawbah_70_and_71_record_reviewed_sources_and_explicit_partial_coverage(
     assert "توبه ۹:۷۰ ثبت شد" in scope["9:70"]
     assert "توبه ۹:۷۱ ثبت شد" in scope["9:71"]
     assert "۹:۷۰–۷۱" in scope["9:70–71"]
-    assert "overlay اکنون تا ۹:۸۹" in scope["9:1–129"]
+    assert "overlay اکنون تا ۹:۹۰" in scope["9:1–129"]
 
 
 def test_tawbah_72_and_73_are_field_specific_and_sourced():
@@ -1363,7 +1363,7 @@ def test_tawbah_72_and_73_are_field_specific_and_sourced():
     assert "توبه ۹:۷۲ ثبت شد" in scope["9:72"]
     assert "توبه ۹:۷۳ ثبت شد" in scope["9:73"]
     assert "۹:۷۲–۷۳" in scope["9:72–73"]
-    assert "overlay اکنون تا ۹:۸۹" in scope["9:1–129"]
+    assert "overlay اکنون تا ۹:۹۰" in scope["9:1–129"]
 
 
 def test_tawbah_74_records_competing_occasions_and_fiqh_difference():
@@ -1393,3 +1393,57 @@ def test_tawbah_74_records_competing_occasions_and_fiqh_difference():
 
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
     assert "توبه ۹:۷۴ ثبت شد" in scope["9:74"]
+
+
+def test_source_diversity_policy_v2_is_declared_and_applied():
+    criteria = DATA["criteria"]
+    assert criteria["sourcePolicyVersion"] == 2
+    assert criteria["minimumDistinctWorksPerRecord"] == 3
+    assert criteria["maxShareOfContemporaryEntriesFromSingleWork"] == 0.6
+    assert criteria["maxMuyassarEntriesPerRecord"] == 1
+    assert "sourceMixRequired" in criteria and criteria["sourceMixRequired"] is True
+    assert "المیسّر" in criteria["policyNote"]
+
+    for verse_id, dossier in DATA["verses"].items():
+        mix = dossier.get("sourceMix")
+        assert isinstance(mix, list) and mix, verse_id
+        assert all({"work", "role", "entries"} <= set(item) for item in mix), verse_id
+        if int(dossier.get("sourcePolicyVersion", 1)) < 2:
+            continue
+        named = [item for item in mix if item["role"] in ("classical", "modern", "academic")]
+        assert len(named) >= 3, (verse_id, named)
+        roles = {item["role"] for item in named}
+        assert {"classical", "modern"} <= roles, (verse_id, roles)
+        contemporary = [item for item in named if item["role"] in ("modern", "academic")]
+        total = sum(item["entries"] for item in contemporary) or 1
+        assert all(item["entries"] / total <= 0.6 for item in contemporary), (verse_id, contemporary)
+        muyassar = [item for item in named if item["work"] == "التفسير الميسر"]
+        assert sum(item["entries"] for item in muyassar) <= 1, (verse_id, muyassar)
+
+
+def test_tawbah_90_diversifies_away_from_muyassar_and_records_qiraat():
+    verse = DATA["verses"]["9:90"]
+    assert verse["sourcePolicyVersion"] == 2
+    works = {item["work"] for item in verse["sourceMix"]}
+    assert {"جامع البيان", "معالم التنزيل", "الجامع لأحكام القرآن"} <= works
+    assert any(item["role"] == "academic" for item in verse["sourceMix"])
+
+    classical = " ".join(item["cite"] for item in verse["classical"])
+    assert "البغوي" in classical and "القرطبي" in classical
+    qiraat_cites = " ".join(entry["cite"] for entry in verse["extendedFields"]["qiraat"]["entries"])
+    assert "القرطبي" in qiraat_cites and "قرائت" in verse["extendedFields"]["qiraat"]["entries"][0]["text"]
+
+    qiraat = verse["extendedFields"]["qiraat"]
+    assert qiraat["status"] == "partial"
+    assert len(qiraat["entries"]) == 2
+    assert all(entry["kind"] == "analysis" for entry in qiraat["entries"])
+    joined = " ".join(entry["text"] for entry in qiraat["entries"])
+    assert "المُعذِرون" in joined and "المُعذِّرون" in joined
+    assert "ابن عباس" in joined
+
+
+def test_app_renders_per_verse_source_mix():
+    assert "sourceMixBlock" in APP
+    assert "source-mix-panel" in APP
+    assert "شفافیتِ منابع" in APP
+    assert "sourcePolicyVersion" in APP

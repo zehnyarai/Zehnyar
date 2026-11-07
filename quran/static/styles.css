@@ -304,3 +304,9 @@ h1, h2, h3, p { margin-top: 0; } h1 { max-width: 740px; margin: 21px auto 15px; 
 .standard3-source-coverage { margin: 7px 0 0; padding: 7px 8px; border-radius: 7px; background: #fffaf5; color: #83654f; font-size: 9px; line-height: 1.8; }
 .more-tabs-heading { flex: 0 0 100%; margin: 3px 0 0; color: #2c6d7f; font-size: 10px; font-weight: 900; }
 .standard3-kind { width: fit-content; padding: 2px 6px; border-radius: 6px; background: #eef7f7; color: #3a7784 !important; }
+
+.source-mix-panel { border-inline-start: 3px solid var(--accent, #8a6d3b); }
+.source-mix-list { display: grid; gap: .35rem; }
+.source-mix-list .dossier-item { display: flex; justify-content: space-between; gap: .75rem; padding: .3rem .5rem; background: rgba(0,0,0,.03); border-radius: 6px; }
+.source-mix-list .dossier-item span { color: #555; font-size: .9em; }
+.source-mix-list .dossier-item small { color: #777; font-size: .85em; white-space: nowrap; }
