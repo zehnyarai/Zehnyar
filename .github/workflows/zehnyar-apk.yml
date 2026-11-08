@@ -55,17 +55,29 @@ jobs:
 
       - name: Set up Gradle
         run: |
-          set -euo pipefail
-          for attempt in 1 2 3 4 5; do
-            if curl -fsSL --retry 3 --retry-delay 10 -o /tmp/gradle-8.7-bin.zip https://services.gradle.org/distributions/gradle-8.7-bin.zip; then
-              break
-            fi
-            echo "Gradle download attempt $attempt failed; retrying..." >&2
-            sleep 20
+          set -uo pipefail
+          ok=""
+          for url in \
+            "https://services.gradle.org/distributions/gradle-8.7-bin.zip" \
+            "https://downloads.gradle.org/distributions/gradle-8.7-bin.zip"; do
+            for attempt in 1 2 3; do
+              if curl -fsSL --retry 2 --retry-delay 5 -o /tmp/gradle-8.7-bin.zip "$url"; then ok=1; break; fi
+              echo "download failed ($url, attempt $attempt); retrying..." >&2
+              sleep 15
+            done
+            [ -n "$ok" ] && break
           done
-          unzip -q /tmp/gradle-8.7-bin.zip -d "$HOME"
-          echo "$HOME/gradle-8.7/bin" >> "$GITHUB_PATH"
-          "$HOME/gradle-8.7/bin/gradle" --version | head -n 3
+          if [ -n "$ok" ]; then
+            unzip -q /tmp/gradle-8.7-bin.zip -d "$HOME"
+            echo "$HOME/gradle-8.7/bin" >> "$GITHUB_PATH"
+            "$HOME/gradle-8.7/bin/gradle" --version | head -n 3
+          elif command -v gradle >/dev/null 2>&1; then
+            echo "Falling back to the runner preinstalled Gradle:" >&2
+            gradle --version | head -n 3
+          else
+            echo "No Gradle available" >&2
+            exit 1
+          fi
 
       - name: Verify Quran Pajoohe app identity
         run: grep -Fq 'android:label="قرآن‌پژوهه"' quran/mobile/android/app/src/main/AndroidManifest.xml
