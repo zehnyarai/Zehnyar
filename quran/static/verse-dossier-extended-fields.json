@@ -89892,7 +89892,8 @@
      "role": "primary",
      "entries": 1
     }
-   ]
+   ],
+   "requiresDiverseSources": true
   },
   "10:90": {
    "tier": "core",
@@ -90262,7 +90263,8 @@
      "role": "primary",
      "entries": 1
     }
-   ]
+   ],
+   "requiresDiverseSources": true
   },
   "10:91": {
    "tier": "core",
@@ -90632,7 +90634,8 @@
      "role": "primary",
      "entries": 1
     }
-   ]
+   ],
+   "requiresDiverseSources": true
   },
   "10:92": {
    "tier": "core",
@@ -91007,7 +91010,8 @@
      "role": "primary",
      "entries": 1
     }
-   ]
+   ],
+   "requiresDiverseSources": true
   },
   "10:93": {
    "tier": "core",
@@ -91382,7 +91386,8 @@
      "role": "primary",
      "entries": 1
     }
-   ]
+   ],
+   "requiresDiverseSources": true
   },
   "11:1": {
    "tier": "core",

@@ -411,7 +411,10 @@ dossiers = {"10:89": {
 }
 
 for vid, spec in dossiers.items():
-    DATA["verses"][vid] = build(vid, spec)
+    rec = build(vid, spec)
+    rec["requiresDiverseSources"] = True
+    rec["sourceMix"] = collect(rec)
+    DATA["verses"][vid] = rec
 total = len(DATA["verses"])
 for item in DATA["scope"]:
     if item["range"] == "10:41-60":
