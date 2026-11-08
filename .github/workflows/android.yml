@@ -28,6 +28,7 @@ on:
       - 'arena/96fa3fb8-zehnyar'
       - 'arena/5ee93ac8-zehnyar'
       - 'arena/fe5d970d-zehnyar'
+      - 'arena/44d5574b-zehnyar'
       - 'main'
     tags:
       - 'v*'
@@ -70,6 +71,10 @@ jobs:
           fi
           if [[ "$GITHUB_EVENT_NAME" == "push" && "$GITHUB_REF" == "refs/heads/arena/fe5d970d-zehnyar" ]]; then
             BAZAAR_DRAFT=true
+          fi
+          if [[ "$GITHUB_EVENT_NAME" == "push" && "$GITHUB_REF" == "refs/heads/arena/44d5574b-zehnyar" ]]; then
+            BAZAAR_IAB=true
+            BAZAAR_DRAFT=false
           fi
           if [[ "${{ inputs.bazaar_iab }}" == "true" ]]; then
             BAZAAR_IAB=true
@@ -386,7 +391,7 @@ jobs:
           AAPT="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name aapt | sort -V | tail -n 1)"
           APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           BADGING="$($AAPT dump badging "$APK")"
-          printf '%s\n' "$BADGING" | grep -F "package: name='ai.visayar.app' versionCode='47' versionName='2.3.22'"
+          printf '%s\n' "$BADGING" | grep -F "package: name='ai.visayar.app' versionCode='48' versionName='2.3.23'"
           PERMISSIONS="$($AAPT dump permissions "$APK")"
           if printf '%s\n' "$PERMISSIONS" | grep -E 'com\.farsitel\.bazaar\.permission\.PAY_THROUGH_BAZAAR|android\.permission\.SYSTEM_ALERT_WINDOW'; then
             echo '::error::The Myket APK contains a prohibited Cafe Bazaar or overlay permission.'
@@ -394,7 +399,7 @@ jobs:
           fi
           "$APKSIGNER" verify --verbose "$APK"
           python3 tools/verify_android_apk_signature.py "$APKSIGNER" "$APK"
-          echo 'Myket APK uses ai.visayar.app, version 2.3.22 (47), and contains neither prohibited permission.'
+          echo 'Myket APK uses ai.visayar.app, version 2.3.23 (48), and contains neither prohibited permission.'
 
       - name: Scan release APKs with ClamAV
         run: |
