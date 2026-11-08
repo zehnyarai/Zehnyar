@@ -2847,7 +2847,7 @@ def test_yunus_10_70_a_brief_enjoyment_then_return():
 
 def test_yunus_10_71_noahs_defiance_and_trust():
     verse = _check_verse("10:71")
-    assert "فعلى الله توكلت" in _joined(verse, "notes")
+    assert "فعلى الله اعتمادي" in _joined(verse, "notes")
     assert "تصميم‌گيرى و عزم" in _joined(verse, "critical")
     assert "تعجيزى" in _joined(verse, "critical")
 
