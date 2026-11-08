@@ -195,6 +195,7 @@ def test_bazaar_signed_purchase_grants_credits_idempotently(monkeypatch, tmp_pat
     assert first.json() == {
         "status": "granted",
         "creditsAdded": 3,
+        "serverCredited": True,
         "freeRemaining": 2,
         "paidCredits": 3,
         "orderId": "bazaar-order-1",
@@ -203,12 +204,59 @@ def test_bazaar_signed_purchase_grants_credits_idempotently(monkeypatch, tmp_pat
     assert retry.status_code == 200, retry.text
     assert retry.json()["status"] == "already_granted"
     assert retry.json()["creditsAdded"] == 0
+    assert retry.json()["serverCredited"] is True
     assert retry.json()["paidCredits"] == 3
 
     assert client.post(f"/api/payments/consume/{INSTALL}").json()["consumed"] == "free"
     assert client.post(f"/api/payments/consume/{INSTALL}").json()["consumed"] == "free"
     assert client.post(f"/api/payments/consume/{INSTALL}").json()["consumed"] == "paid"
     assert client.get(f"/api/payments/credits/{INSTALL}").json()["paidCredits"] == 2
+
+
+def test_bazaar_client_credited_purchase_is_recorded_without_granting(monkeypatch, tmp_path):
+    """App-credited purchases (Bazaar guide flow) must never touch the server ledger."""
+    import base64
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    from backend.app import payments
+
+    configure(monkeypatch, tmp_path)
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    public_der = private_key.public_key().public_bytes(
+        serialization.Encoding.DER,
+        serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+    monkeypatch.setattr(payments, "BAZAAR_RSA_PUBLIC_KEY", base64.b64encode(public_der).decode())
+
+    body = _bazaar_signed_request(private_key, order_id="bazaar-order-local")
+    body["clientCredited"] = True
+    first = client.post("/api/payments/bazaar/purchases", json=body)
+    assert first.status_code == 200, first.text
+    assert first.json() == {
+        "status": "recorded",
+        "creditsAdded": 0,
+        "serverCredited": False,
+        "freeRemaining": 2,
+        "paidCredits": 0,
+        "orderId": "bazaar-order-local",
+    }
+    assert client.get(f"/api/payments/credits/{INSTALL}").json()["paidCredits"] == 0
+
+    retry = client.post("/api/payments/bazaar/purchases", json=body)
+    assert retry.status_code == 200, retry.text
+    assert retry.json()["status"] == "already_granted"
+    assert retry.json()["creditsAdded"] == 0
+    assert retry.json()["serverCredited"] is False
+    assert client.get(f"/api/payments/credits/{INSTALL}").json()["paidCredits"] == 0
+
+    # A legacy registration (no clientCredited flag) for a different order still
+    # grants once and reports the server ledger as the owner.
+    legacy = _bazaar_signed_request(private_key, order_id="bazaar-order-legacy")
+    legacy_first = client.post("/api/payments/bazaar/purchases", json=legacy)
+    assert legacy_first.status_code == 200, legacy_first.text
+    assert legacy_first.json()["status"] == "granted"
+    assert legacy_first.json()["serverCredited"] is True
+    assert client.get(f"/api/payments/credits/{INSTALL}").json()["paidCredits"] == 3
 
 
 def test_bazaar_purchase_requires_matching_app_install_and_known_sku(monkeypatch, tmp_path):

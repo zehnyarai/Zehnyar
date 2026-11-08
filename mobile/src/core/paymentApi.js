@@ -10,6 +10,7 @@ const LOCAL_FREE_KEY = 'visayar.free.assessments.used.v1';
 const SERVER_FREE_SYNCED_KEY = 'visayar.free.assessments.server-synced.v1';
 const LAST_REQUEST_KEY = 'visayar.payment.request.v1';
 const OFFLINE_PAID_STATE_KEY = 'visayar.offline-paid-state.v1';
+const BAZAAR_RECORD_QUEUE_KEY = 'visayar.bazaar.records.pending.v1';
 const ADMIN_TOKEN_KEY = 'visayar.admin.session.v1';
 const EXPERIENCE_CLIENT_TOKEN_KEY = 'visayar.experiences.client-token.v1';
 
@@ -60,16 +61,28 @@ async function readOfflinePaidState() {
     return {
       credits: Math.max(0, Number(state.credits) || 0),
       voucherIds: Array.isArray(state.voucherIds) ? state.voucherIds : [],
+      // Bazaar purchase tokens already granted on-device (never grant twice).
+      bazaarGrantIds: Array.isArray(state.bazaarGrantIds) ? state.bazaarGrantIds : [],
+      // Bazaar purchase tokens whose credits live in the server ledger instead.
+      bazaarServerIds: Array.isArray(state.bazaarServerIds) ? state.bazaarServerIds : [],
     };
   } catch (error) {
-    return { credits: 0, voucherIds: [] };
+    return { credits: 0, voucherIds: [], bazaarGrantIds: [], bazaarServerIds: [] };
   }
+}
+
+async function writeOfflinePaidState(state) {
+  await AsyncStorage.setItem(OFFLINE_PAID_STATE_KEY, JSON.stringify(state));
 }
 
 async function localBalance() {
   const used = Number(await AsyncStorage.getItem(LOCAL_FREE_KEY) || 0);
   const paid = await readOfflinePaidState();
   return { freeRemaining: Math.max(0, 2 - used), paidCredits: paid.credits };
+}
+
+export async function localCreditBalance() {
+  return localBalance();
 }
 
 async function api(path, options = {}) {
@@ -248,10 +261,14 @@ export async function loadPaymentPanel() {
 
 export async function loadCreditBalance() {
   const installId = await getInstallId();
-  return api(`/api/payments/credits/${installId}`);
+  const balance = await api(`/api/payments/credits/${installId}`);
+  // Merge the on-device paid ledger after the network call resolves so credits
+  // granted while the request was in flight are not lost from the display.
+  const local = await readOfflinePaidState();
+  return { ...balance, paidCredits: balance.paidCredits + local.credits };
 }
 
-export async function registerBazaarPurchase(purchase) {
+export async function registerBazaarPurchase(purchase, options = {}) {
   if (!purchase || typeof purchase.originalJson !== 'string' || typeof purchase.dataSignature !== 'string') {
     throw new Error('INVALID_BAZAAR_PURCHASE_PROOF');
   }
@@ -263,8 +280,90 @@ export async function registerBazaarPurchase(purchase) {
       installId,
       purchaseData: purchase.originalJson,
       dataSignature: purchase.dataSignature,
+      // The credits are granted on-device (Bazaar guide flow: purchase ->
+      // consume in the app); the server keeps the record for support/refunds
+      // without granting them a second time.
+      clientCredited: options.clientCredited === true,
     }),
   });
+}
+
+export async function grantBazaarPurchaseLocally(purchase, credits) {
+  const token = String(purchase?.purchaseToken || '');
+  const state = await readOfflinePaidState();
+  if (!token || !(credits > 0)) return { creditsAdded: 0, paidCredits: state.credits };
+  if (state.bazaarGrantIds.includes(token) || state.bazaarServerIds.includes(token)) {
+    return { creditsAdded: 0, paidCredits: state.credits };
+  }
+  state.credits += credits;
+  state.bazaarGrantIds = [...state.bazaarGrantIds, token];
+  await writeOfflinePaidState(state);
+  return { creditsAdded: credits, paidCredits: state.credits };
+}
+
+async function moveBazaarGrantToServerLedger(purchase, credits) {
+  // The server ledger already owns this purchase's credits; release the local
+  // grant so the two ledgers never double-count the same order.
+  const token = String(purchase?.purchaseToken || '');
+  const state = await readOfflinePaidState();
+  if (!token || state.bazaarServerIds.includes(token)) return;
+  if (state.bazaarGrantIds.includes(token)) {
+    state.credits = Math.max(0, state.credits - (credits > 0 ? credits : 0));
+    state.bazaarGrantIds = state.bazaarGrantIds.filter((id) => id !== token);
+  }
+  state.bazaarServerIds = [...state.bazaarServerIds, token];
+  await writeOfflinePaidState(state);
+}
+
+async function recordBazaarPurchase(purchase, credits) {
+  // Single best-effort attempt; returns true when the server has the record.
+  try {
+    const result = await registerBazaarPurchase(purchase, { clientCredited: true });
+    // Legacy servers (without the clientCredited flag) always credit their own
+    // ledger, so an absent flag counts as server-owned credits.
+    const serverCredited = typeof result?.serverCredited === 'boolean' ? result.serverCredited : true;
+    if (serverCredited) await moveBazaarGrantToServerLedger(purchase, credits);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+export async function queueBazaarPurchaseRecord(purchase, credits) {
+  const token = String(purchase?.purchaseToken || '');
+  if (!token) return;
+  if (await recordBazaarPurchase(purchase, credits)) return;
+  try {
+    const raw = await AsyncStorage.getItem(BAZAAR_RECORD_QUEUE_KEY);
+    const queue = raw ? JSON.parse(raw) : [];
+    if (!queue.some((item) => item.token === token)) {
+      queue.push({
+        token,
+        credits,
+        purchase: { purchaseToken: token, originalJson: purchase.originalJson, dataSignature: purchase.dataSignature },
+      });
+      await AsyncStorage.setItem(BAZAAR_RECORD_QUEUE_KEY, JSON.stringify(queue));
+    }
+  } catch (error) {
+    // The on-device credit grant already happened; the server record is
+    // bookkeeping only and may be retried on a later settle.
+  }
+}
+
+export async function flushBazaarPurchaseRecords() {
+  try {
+    const raw = await AsyncStorage.getItem(BAZAAR_RECORD_QUEUE_KEY);
+    const queue = raw ? JSON.parse(raw) : [];
+    if (!queue.length) return;
+    const remaining = [];
+    for (const item of queue) {
+      const recorded = await recordBazaarPurchase(item.purchase, item.credits);
+      if (!recorded) remaining.push(item);
+    }
+    await AsyncStorage.setItem(BAZAAR_RECORD_QUEUE_KEY, JSON.stringify(remaining));
+  } catch (error) {
+    // Best-effort background bookkeeping; never surfaces to the user.
+  }
 }
 
 export async function submitReceipt({ sku, transferDate, trackingCode, phone = '', receipt }) {

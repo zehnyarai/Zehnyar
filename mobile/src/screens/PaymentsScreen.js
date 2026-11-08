@@ -8,7 +8,7 @@ import { useDirection, useI18n } from '../i18n';
 import { useAppState } from '../core/appState';
 import { Button, Card, Pill, PressableScale, ScrollScreen, SectionTitle, Text } from '../components/ui';
 import { groupThousands, toPersianDigits } from '../core/format';
-import { checkRequest, getApiBase, getInstallId, getOfflinePaymentConfig, loadCreditBalance, loadPaymentPanel, registerBazaarPurchase, submitReceipt } from '../core/paymentApi';
+import { checkRequest, flushBazaarPurchaseRecords, getApiBase, getInstallId, getOfflinePaymentConfig, grantBazaarPurchaseLocally, loadCreditBalance, loadPaymentPanel, localCreditBalance, queueBazaarPurchaseRecord, submitReceipt } from '../core/paymentApi';
 import { getCafeBazaarBilling, isBazaarIabBuild, BAZAAR_RSA_PUBLIC_KEY } from '../core/bazaarBilling';
 
 const PACKAGES = [
@@ -87,13 +87,13 @@ export default function PaymentsScreen({ navigation }) {
       setPanel(null);
       setRequest(null);
       setLoading(true);
-      try {
-        setBalance(await loadCreditBalance());
-      } catch (error) {
-        setBalance({ freeRemaining: 2, paidCredits: 0 });
-      } finally {
-        setLoading(false);
-      }
+      const local = await localCreditBalance();
+      setBalance(local);
+      setLoading(false);
+      // The server merge is best-effort: the on-device ledger is the source of
+      // truth for Bazaar credits, so a dead server must never block the screen.
+      loadCreditBalance().then(setBalance).catch(() => { /* keep the local balance */ });
+      flushBazaarPurchaseRecords().catch(() => { /* best-effort record sync */ });
       return;
     }
     const fallback = getOfflinePaymentConfig();
@@ -144,15 +144,34 @@ export default function PaymentsScreen({ navigation }) {
     return () => { active = false; };
   }, [bazaarIab, privacyConsent, t]);
 
+  const applyCreditDelta = (creditsAdded) => {
+    if (!(creditsAdded > 0)) return;
+    setBalance((prev) => (prev
+      ? { ...prev, paidCredits: prev.paidCredits + creditsAdded }
+      : { freeRemaining: 0, paidCredits: creditsAdded }));
+  };
+
+  // Completes a Bazaar purchase the way Bazaar's own guide prescribes: the SDK
+  // already verified the purchase signature (SecurityCheck.Enable), so we grant
+  // the credits on-device (idempotent per purchase token), consume the purchase
+  // through the Bazaar app, and only then record the order on our server in the
+  // background for support/refund bookkeeping. No step may depend on our server.
   const settleBazaarPurchase = async (billing, purchase) => {
     if (!purchase?.purchaseToken || !purchase?.originalJson || !purchase?.dataSignature) {
       throw new Error('INVALID_BAZAAR_PURCHASE_PROOF');
     }
     const sku = purchase.productId || purchase.sku;
-    if (!PACKAGES.some((item) => item.sku === sku)) return null;
-    const result = await registerBazaarPurchase(purchase);
-    await billing.consumePurchase(purchase.purchaseToken);
-    return result;
+    const pkg = PACKAGES.find((item) => item.sku === sku);
+    if (!pkg) return null;
+    const grant = await grantBazaarPurchaseLocally(purchase, pkg.credits);
+    try {
+      await billing.consumePurchase(purchase.purchaseToken);
+    } catch (error) {
+      // Keep the purchase pending on Bazaar's side; the next settle retries the
+      // consume without granting the credits again.
+    }
+    queueBazaarPurchaseRecord(purchase, pkg.credits);
+    return { creditsAdded: grant.creditsAdded, consumed: true };
   };
 
   const buyWithBazaar = async () => {
@@ -165,10 +184,6 @@ export default function PaymentsScreen({ navigation }) {
       Alert.alert(t('common.dismiss'), t('payments.bazaarUnavailable'));
       return;
     }
-    if (!getApiBase()) {
-      Alert.alert(t('common.dismiss'), t('payments.bazaarNeedsServer'));
-      return;
-    }
     if (!bazaarPrices[selected]) {
       Alert.alert(t('common.dismiss'), t('payments.bazaarProductsUnavailable'));
       return;
@@ -177,17 +192,19 @@ export default function PaymentsScreen({ navigation }) {
     setBazaarError('');
     try {
       await billing.connect({ rsaPublicKey: BAZAAR_RSA_PUBLIC_KEY });
-      // Retry any purchase left unconsumed by an app close/network interruption before starting a new order.
-      const pending = await billing.getPurchasedProducts();
-      let recoveredPendingPurchase = false;
+      // Retry any purchase left unconsumed by an app close/interruption before
+      // starting a new order. Recovery is best-effort: a broken recovery must
+      // not block the purchase itself.
+      const pending = await billing.getPurchasedProducts().catch(() => []);
+      let recoveredCredits = 0;
       for (const purchase of pending || []) {
         const recovered = await settleBazaarPurchase(billing, purchase);
         if (recovered) {
-          setBalance(recovered);
-          recoveredPendingPurchase = true;
+          recoveredCredits += recovered.creditsAdded;
+          applyCreditDelta(recovered.creditsAdded);
         }
       }
-      if (recoveredPendingPurchase) {
+      if (recoveredCredits > 0) {
         Alert.alert(t('payments.bazaarPurchaseSuccess'));
         return;
       }
@@ -195,14 +212,10 @@ export default function PaymentsScreen({ navigation }) {
       const purchase = await billing.purchaseProduct(selected, { developerPayload: installId });
       const result = await settleBazaarPurchase(billing, purchase);
       if (!result) throw new Error('INVALID_BAZAAR_PRODUCT');
-      setBalance(result);
+      applyCreditDelta(result.creditsAdded);
       Alert.alert(t('payments.bazaarPurchaseSuccess'));
     } catch (error) {
-      const message = error?.message === 'INVALID_BAZAAR_PRODUCT' || error?.message === 'INVALID_BAZAAR_PURCHASE_PROOF'
-        ? t('payments.bazaarPurchaseError')
-        : error?.status === 0 || error?.message === 'API_NOT_CONFIGURED'
-          ? t('payments.bazaarNeedsServer')
-          : t('payments.bazaarPurchaseError');
+      const message = t('payments.bazaarPurchaseError');
       setBazaarError(message);
       Alert.alert(t('common.dismiss'), message);
     } finally {
