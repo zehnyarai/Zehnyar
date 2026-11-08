@@ -3017,7 +3017,7 @@ def test_yunus_10_95_not_among_the_deniers():
     verse = _check_verse("10:95")
     assert "بهرهٔ خود را باختند" in _joined(verse, "notes")
     assert "سرمایهٔ آدمی" in _joined(verse, "modern")
-    assert "خود را در معرضِ نابودی" in _joined(verse, "modern")
+    assert "خود را در معرضِ نابودی نهادند" in _joined(verse, "notes")
 
 
 def test_yunus_10_96_the_word_has_come_true():
