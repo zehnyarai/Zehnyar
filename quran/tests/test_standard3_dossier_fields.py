@@ -3052,7 +3052,7 @@ def test_yunus_10_100_faith_only_by_gods_leave():
     verse = _check_verse("10:100")
     assert "قضا و قدر و مشیت" in _joined(verse, "notes")
     assert "قادر نیستی مردم را مجبور" in _joined(verse, "modern") or "تعقل نمى‏كنند" in _joined(verse, "modern") or "تعقل نمی‌کنند" in _joined(verse, "modern")
-    assert "خودت را نابود نکن" in _joined(verse, "notes")
+    assert "از افسوس بر آنان نابود مکن" in _joined(verse, "notes")
 
 
 def test_yunus_10_101_look_at_the_heavens_and_earth():
