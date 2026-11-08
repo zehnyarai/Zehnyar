@@ -144,7 +144,7 @@ HAB2 = ("Habakkuk 2:4 (King James Version)؛ "
 
 def build(vid, spec):
     b = spec['base']
-    return build_kw(title=f"یونس {vid}", review=spec['note'],
+    return build_kw(title=f"یونس {vid}", review='پیش‌نویسِ منبع‌محور؛ '+spec['note'],
                     notes=b['notes'], context=b['context'], classical=b['classical'],
                     modern=b['modern'], critical=b['critical'], research=b['research'], ext=spec['ext'])
 
