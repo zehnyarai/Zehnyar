@@ -2940,7 +2940,7 @@ def test_yunus_10_84_trust_conditional_on_faith_and_submission():
     verse = _check_verse("10:84")
     assert "بتفويض الأمر" in _joined(verse, "notes")
     assert "كمال ايمان" in _joined(verse, "critical") or "مراتب كمال ايمان" in _joined(verse, "critical")
-    assert "تفويض" in _joined(verse, "classical")
+    assert "در تفویض می‌نشاند" in _joined(verse, "classical")
 
 
 def test_yunus_10_85_make_us_not_a_trial():
