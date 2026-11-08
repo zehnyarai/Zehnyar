@@ -2938,7 +2938,7 @@ def test_yunus_10_83_only_a_few_youths_believed_in_fear():
 
 def test_yunus_10_84_trust_conditional_on_faith_and_submission():
     verse = _check_verse("10:84")
-    assert "كرر الشرط تأكيدا" in _joined(verse, "notes")
+    assert "بتفويض الأمر" in _joined(verse, "notes")
     assert "كمال ايمان" in _joined(verse, "critical") or "مراتب كمال ايمان" in _joined(verse, "critical")
     assert "تفويض" in _joined(verse, "classical")
 
