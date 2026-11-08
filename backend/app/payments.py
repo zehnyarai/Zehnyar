@@ -62,6 +62,10 @@ class BazaarPurchasePayload(BaseModel):
     installId: str = Field(min_length=1, max_length=80)
     purchaseData: str = Field(min_length=2, max_length=16_384)
     dataSignature: str = Field(min_length=16, max_length=4_096)
+    # Set when the app already granted the credits on-device (Bazaar guide flow:
+    # purchase -> verify -> consume in the app). The server then keeps the row
+    # for support/refund bookkeeping without touching the server credit ledger.
+    clientCredited: bool = False
 
 
 PACKAGES = {
@@ -116,6 +120,7 @@ def _db() -> sqlite3.Connection:
             credits INTEGER NOT NULL,
             purchase_data_hash TEXT NOT NULL,
             created_at TEXT NOT NULL,
+            client_credited INTEGER NOT NULL DEFAULT 0,
             FOREIGN KEY(install_id) REFERENCES customers(install_id)
         );
         CREATE TABLE IF NOT EXISTS admin_sessions (
@@ -135,6 +140,9 @@ def _db() -> sqlite3.Connection:
         db.execute("ALTER TABLE payment_requests ADD COLUMN transfer_date TEXT NOT NULL DEFAULT ''")
     if "rejection_reason" not in columns:
         db.execute("ALTER TABLE payment_requests ADD COLUMN rejection_reason TEXT NOT NULL DEFAULT ''")
+    bazaar_columns = {row["name"] for row in db.execute("PRAGMA table_info(bazaar_purchases)")}
+    if "client_credited" not in bazaar_columns:
+        db.execute("ALTER TABLE bazaar_purchases ADD COLUMN client_credited INTEGER NOT NULL DEFAULT 0")
     return db
 
 
@@ -568,7 +576,15 @@ def _verified_bazaar_purchase(purchase_data: str, data_signature: str, install_i
 
 @router.post("/bazaar/purchases")
 def register_bazaar_purchase(payload: BazaarPurchasePayload):
-    """Validate the signed Cafe Bazaar purchase, grant credits once, and return balance."""
+    """Record a signed Cafe Bazaar purchase once and return the server balance.
+
+    By default the credits are granted in the server ledger (legacy clients).
+    When ``clientCredited`` is set, the app has already granted the credits on
+    device per Bazaar's purchase -> consume guide; the row is then kept only for
+    support/refund bookkeeping and the server ledger is left untouched. The
+    response's ``serverCredited`` flag tells the client which ledger owns the
+    purchase so the two never double-count the same order.
+    """
     install_id = _install_id(payload.installId)
     facts = _verified_bazaar_purchase(payload.purchaseData, payload.dataSignature, install_id)
     package = PACKAGES[facts["sku"]]
@@ -578,7 +594,7 @@ def register_bazaar_purchase(payload: BazaarPurchasePayload):
         db.execute("BEGIN IMMEDIATE")
         _ensure_customer(db, install_id)
         existing = db.execute(
-            "SELECT install_id,sku,purchase_data_hash FROM bazaar_purchases WHERE order_id=?",
+            "SELECT install_id,sku,purchase_data_hash,client_credited FROM bazaar_purchases WHERE order_id=?",
             (facts["orderId"],),
         ).fetchone()
         if existing:
@@ -587,21 +603,32 @@ def register_bazaar_purchase(payload: BazaarPurchasePayload):
                 db.rollback()
                 raise HTTPException(409, "Bazaar order has already been used")
             credits_added = 0
+            server_credited = existing["client_credited"] == 0
+            status = "already_granted"
         else:
+            client_credited = 1 if payload.clientCredited else 0
             db.execute(
-                "INSERT INTO bazaar_purchases(order_id,install_id,sku,credits,purchase_data_hash,created_at) VALUES(?,?,?,?,?,?)",
-                (facts["orderId"], install_id, facts["sku"], package["credits"], purchase_hash, _now()),
+                "INSERT INTO bazaar_purchases(order_id,install_id,sku,credits,purchase_data_hash,created_at,client_credited)"
+                " VALUES(?,?,?,?,?,?,?)",
+                (facts["orderId"], install_id, facts["sku"], package["credits"], purchase_hash, _now(), client_credited),
             )
-            db.execute(
-                "UPDATE customers SET credits=credits+?,updated_at=? WHERE install_id=?",
-                (package["credits"], _now(), install_id),
-            )
-            credits_added = package["credits"]
+            if client_credited:
+                credits_added = 0
+                status = "recorded"
+            else:
+                db.execute(
+                    "UPDATE customers SET credits=credits+?,updated_at=? WHERE install_id=?",
+                    (package["credits"], _now(), install_id),
+                )
+                credits_added = package["credits"]
+                status = "granted"
+            server_credited = not bool(client_credited)
         db.commit()
         balance = db.execute("SELECT free_used,credits FROM customers WHERE install_id=?", (install_id,)).fetchone()
         return {
-            "status": "granted" if credits_added else "already_granted",
+            "status": status,
             "creditsAdded": credits_added,
+            "serverCredited": server_credited,
             "freeRemaining": max(0, 2 - balance["free_used"]),
             "paidCredits": balance["credits"],
             "orderId": facts["orderId"],
