@@ -3121,7 +3121,7 @@ def test_yunus_10_109_follow_revelation_and_be_patient():
 def test_hud_11_2_worship_none_but_god():
     verse = _check_verse("11:2")
     assert "بألا تعبدوا" in _joined(verse, "notes")
-    assert "یک غرض" in _joined(verse, "modern")
+    assert "یک غرض را می‌رسانند" in _joined(verse, "context")
     assert "مفسرِ محکم و مفصل‌بودن" in _joined(verse, "modern")
 
 
