@@ -3283,7 +3283,7 @@ def test_hud_11_25_noah_sent_as_warner():
     verse = _check_verse("11:25")
     assert "بیم‌رسانی روشن" in _joined(verse, "modern")
     assert "بر ملازمتِ صبر" in _joined(verse, "notes")
-    assert "شرحِ همین انذار" in _joined(verse, "critical")
+    assert "یک چهره پیدا می‌کنند" in _joined(verse, "critical")
 
 
 def test_hud_11_26_worship_god_alone_noah_fear():
