@@ -3163,7 +3163,7 @@ def test_hud_11_7_creation_throne_and_trial():
 def test_hud_11_8_delayed_punishment_mocked():
     verse = _check_verse("11:8")
     assert "لامِ «لئن» را قسم" in _joined(verse, "notes")
-    assert "هیچ بازدارنده‌ای نخ" in _joined(verse, "notes")
+    assert "بازدارنده‌ای ندارد" in _joined(verse, "notes")
     assert "بدونِ واسطه" in _joined(verse, "classical") or "احاطهٔ همان چیزی" in _joined(verse, "notes")
 
 
