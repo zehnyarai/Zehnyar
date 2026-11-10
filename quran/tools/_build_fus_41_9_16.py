@@ -14,6 +14,8 @@ ROOT = Path(__file__).resolve().parents[1]
 PATH = ROOT / "static" / "verse-dossier-extended-fields.json"
 TR = json.loads((ROOT / "data" / "quran-fa-fooladvand.json").read_text(encoding="utf-8"))
 DATA = json.loads(PATH.read_text(encoding="utf-8"))
+PATH2 = ROOT / "static" / "verse-dossier-extended-fields-2.json"
+DATA["verses"].update(json.loads(PATH2.read_text(encoding="utf-8"))["verses"])
 
 FIELDS = ["bibleComparison", "guidanceDiscourse", "shubuhat", "modernSciences", "qiraat",
           "philosophicalFoundations", "linguistics", "criticalDiscourseAnalysis",
@@ -527,5 +529,8 @@ for vid, spec in dossiers.items():
     rec["sourceMix"] = collect(rec)
     DATA["verses"][vid] = rec
 DATA["verses"] = dict(sorted(DATA["verses"].items(), key=lambda kv: tuple(int(x) if x.isdigit() else 0 for x in kv[0].split(':'))))
-PATH.write_text(json.dumps(DATA, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+_main = dict(DATA); _part = {"verses": {k: v for k, v in DATA["verses"].items() if int(k.split(":")[0]) >= 30}}
+_main["verses"] = {k: v for k, v in DATA["verses"].items() if int(k.split(":")[0]) < 30}
+PATH.write_text(json.dumps(_main, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+PATH2.write_text(json.dumps(_part, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
 print("records:", len(DATA["verses"]))
