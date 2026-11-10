@@ -21828,7 +21828,7 @@ def test_duk_44_11_verse():
 def test_duk_44_12_verse():
     verse = _check_verse('44:12')
     assert 'دفع کن' in _joined(verse, 'notes')
-    assert 'وعدهٔ ایمان' in _joined(verse, 'classical')
+    assert 'پیمان' in _joined(verse, 'classical')
     assert 'اثری ندارد' in _joined(verse, 'modern')
     assert verse['extendedFields']['qiraat']['entries'][0]['kind'] == 'source-coverage-note'
 
