@@ -21976,7 +21976,7 @@ def test_duk_44_31_verse():
 def test_duk_44_41_verse():
     verse = _check_verse('44:41')
     assert 'نمی‌تواند حمایتی کند' in _joined(verse, 'notes')
-    assert 'مولى' in _joined(verse, 'classical')
+    assert 'اغناء' in _joined(verse, 'classical')
     assert 'تنها' in _joined(verse, 'modern')
     assert verse['extendedFields']['qiraat']['entries'][0]['kind'] == 'source-coverage-note'
 
