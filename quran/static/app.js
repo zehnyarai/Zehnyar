@@ -12,6 +12,7 @@ const SCHOLAR_PILOT_URL = "static/scholar-pilot.json";
 const SCHOLAR_APPLICATION_URL = "static/scholar-application.json";
 const VERSE_DOSSIER_URL = "static/verse-dossiers.json";
 const STANDARD3_DOSSIER_URL = "static/verse-dossier-extended-fields.json";
+const STANDARD3_DOSSIER_URL_2 = "static/verse-dossier-extended-fields-2.json";
 const SURAH_DOSSIERS_URL = "static/surah-dossiers.json";
 const NOTEBOOK_KEY = "zehnyar-verse-notebook-v2";
 const FIELD_NOTES_KEY = "quran-pazhuheh-field-notes-v1";
