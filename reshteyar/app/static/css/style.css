@@ -401,3 +401,10 @@ table.simple th { background: var(--sky-100); color: #0b3a57; font-weight: 800; 
 /* دکمه‌ی نصب PWA */
 .install-btn { position: fixed; bottom: 16px; left: 16px; z-index: 50; border: 0; border-radius: 999px; padding: 10px 16px; background: #0ea5e9; color: #fff; font: inherit; box-shadow: 0 8px 24px rgba(14,165,233,.35); cursor: pointer; }
 .install-btn[hidden] { display: none; }
+
+/* پذیرش ۱۴۰۵ — فهرست دفترچه */
+.bk-h { margin: 18px 0 8px; font-size: 1.05rem; }
+.bk-list { list-style: none; padding: 0; margin: 0; columns: 2; column-gap: 18px; max-height: 480px; overflow: auto; }
+.bk-list li { break-inside: avoid; padding: 6px 4px; border-bottom: 1px solid var(--line, #d9e8f5); font-size: .94rem; }
+.bk-list li[hidden] { display: none; }
+@media (max-width: 640px) { .bk-list { columns: 1; } }

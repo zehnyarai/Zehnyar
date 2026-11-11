@@ -15,7 +15,7 @@ from pathlib import Path
 ANDROID = Path(__file__).resolve().parents[1]
 PROJECT = ANDROID.parent  # پوشه‌ی reshteyar
 WWW = ANDROID / "app" / "src" / "main" / "assets" / "www"
-DATA_FILES = ["groups", "factors", "universities", "fields", "meta"]
+DATA_FILES = ["groups", "factors", "universities", "fields", "meta", "booklets_1405"]
 
 
 def main() -> None:

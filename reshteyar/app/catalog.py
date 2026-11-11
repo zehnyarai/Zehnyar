@@ -29,6 +29,8 @@ class Catalog:
         self.factors: list[dict] = _load(data_dir / "factors.json")
         self.plans: list[dict] = _load(data_dir / "plans.json")
         self.meta: dict = _load(data_dir / "meta.json")
+        booklet_path = data_dir / "booklets_1405.json"
+        self.booklet: dict = _load(booklet_path) if booklet_path.exists() else {"groups": {}}
 
         self._field_index = [(f, norm(f["name"]), norm(f["category"])) for f in self.fields]
         self._uni_index = [(u, norm(u["name"]), norm(u["city"])) for u in self.universities]
@@ -132,6 +134,10 @@ class Catalog:
         page = items[offset:offset + limit]
         return {"total": len(items), "offset": offset, "limit": limit,
                 "items": [self.uni_view(u) for u in page]}
+
+    def booklet_for(self, slug: str) -> dict | None:
+        """فهرست دانشگاه‌ها و رشته‌های دفترچه ۱۴۰۵ برای یک گروه (اگر موجود باشد)."""
+        return self.booklet.get("groups", {}).get(slug)
 
     def group_stats(self, group_key: str) -> dict:
         fields = sum(1 for f in self.fields if group_key in f["groups"])

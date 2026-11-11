@@ -190,7 +190,8 @@ def group_page(request: Request, slug: str):
         raise HTTPException(status_code=404, detail="گروه پیدا نشد.")
     ctx = base_ctx(request, active="groups", group=group, stats=catalog.group_stats(group["data_key"]),
                    quotas=QUOTAS, provinces=catalog.provinces, uni_types=catalog.uni_types,
-                   degrees=DEGREE_CHOICES, factors=catalog.factors, has_cutoffs=bool(catalog.cutoffs))
+                   degrees=DEGREE_CHOICES, factors=catalog.factors, has_cutoffs=bool(catalog.cutoffs),
+                   booklet=catalog.booklet_for(group["slug"]), booklet_note=catalog.booklet.get("note", ""))
     return render(request, "group.html", ctx)
 
 

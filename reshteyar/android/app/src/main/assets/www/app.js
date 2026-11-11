@@ -166,6 +166,8 @@
       (related.length > LIST_LIMIT ? '<p class="muted">' + faDigits(LIST_LIMIT) + ' مورد اول نمایش داده شد.</p>' : '') +
       '</section>' +
 
+      bookletCard(key, slug) +
+
       '<section class="card"><h2>رشته‌های این گروه (' + faDigits(relFields.length) + ')</h2>' +
       '<input id="field-filter" class="search" placeholder="جستجوی رشته…" aria-label="جستجوی رشته">' +
       '<ul class="list" id="group-fields">' + relFields.slice(0, 400).map(fieldItem).join('') + '</ul>' +
@@ -173,6 +175,18 @@
       '</section>';
 
     bindGroup(g, relFields);
+  }
+
+  function bookletCard(key, slug) {
+    var bk = DATA.booklets_1405 && DATA.booklets_1405.groups ? DATA.booklets_1405.groups[slug] : null;
+    if (!bk) return '';
+    var unis = bk.universities.slice(0, 200).map(function (u) { return '<li>' + esc(u.name) + '</li>'; }).join('');
+    var flds = bk.fields.map(function (f) { return '<li>' + esc(f.name) + '</li>'; }).join('');
+    return '<section class="card"><h2>پذیرش ۱۴۰۵ (دفترچه)</h2>' +
+      '<p class="muted">' + faDigits(bk.fields.length) + ' رشته و ' + faDigits(bk.universities.length) + ' دانشگاه/پردیس با کدرشته‌محل در این گروه.</p>' +
+      '<h3>دانشگاه‌ها (' + faDigits(Math.min(200, bk.universities.length)) + ' مورد اول)</h3><ul class="list">' + unis + '</ul>' +
+      '<h3>رشته‌ها</h3><ul class="list">' + flds + '</ul>' +
+      '<p class="muted">' + esc(DATA.booklets_1405.note || '') + '</p></section>';
   }
 
   function bindGroup(g, relFields) {

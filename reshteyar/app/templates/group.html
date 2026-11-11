@@ -33,6 +33,7 @@
     <button class="tab" role="tab" type="button" aria-selected="true" data-tab="calc">{{ icon('calculator') }} ماشین‌حساب و پیشنهاد</button>
     <button class="tab" role="tab" type="button" aria-selected="false" data-tab="fields">{{ icon('file-text') }} رشته‌های گروه ({{ stats.fields|num }})</button>
     <button class="tab" role="tab" type="button" aria-selected="false" data-tab="unis">{{ icon('landmark') }} دانشگاه‌های مرتبط</button>
+    {% if booklet %}<button class="tab" role="tab" type="button" aria-selected="false" data-tab="booklet">{{ icon('book-open') }} پذیرش ۱۴۰۵ ({{ booklet.universities|length|fa }} دانشگاه)</button>{% endif %}
     <button class="tab" role="tab" type="button" aria-selected="false" data-tab="factors">{{ icon('layers') }} عوامل مؤثر</button>
   </nav>
 
@@ -202,6 +203,32 @@
   </section>
 
   <!-- عوامل مؤثر -->
+  <!-- پذیرش ۱۴۰۵ (از دفترچه‌های سازمان سنجش) -->
+  {% if booklet %}
+  <section class="panel" data-panel="booklet" role="tabpanel" hidden>
+    <div class="card">
+      <p class="lead">فهرست رشته‌ها و دانشگاه‌هایی که در دفترچه‌ی راهنمای انتخاب رشته‌ی ۱۴۰۵ گروه {{ group.title }} کدرشته‌محل دارند.</p>
+      <div class="list-tools two">
+        <label>جستجو در رشته‌ها
+          <span class="input-wrap"><input type="text" id="bk-f-q" data-filter="bk-fields" placeholder="مثلاً مهندسی برق"></span>
+        </label>
+        <label>جستجو در دانشگاه‌ها
+          <span class="input-wrap"><input type="text" id="bk-u-q" data-filter="bk-unis" placeholder="نام دانشگاه یا شهر"></span>
+        </label>
+      </div>
+      <h3 class="bk-h">رشته‌ها ({{ booklet.fields|length|fa }})</h3>
+      <ul class="bk-list" id="bk-fields">
+        {% for f in booklet.fields %}<li>{{ f.name }} <span class="muted">· {{ f.rows|num }} کدرشته‌محل</span></li>{% endfor %}
+      </ul>
+      <h3 class="bk-h">دانشگاه‌ها و پردیس‌ها ({{ booklet.universities|length|fa }})</h3>
+      <ul class="bk-list" id="bk-unis">
+        {% for u in booklet.universities %}<li>{{ u.name }} <span class="muted">· {{ u.rows|num }}</span></li>{% endfor %}
+      </ul>
+      <p class="hint">{{ booklet_note }}</p>
+    </div>
+  </section>
+  {% endif %}
+
   <section class="panel" data-panel="factors" role="tabpanel" hidden>
     <div class="grid grid-2">
       <div class="card">
@@ -225,4 +252,4 @@
   </section>
 </div>
 {% endblock %}
-{% block scripts %}<script src="/static/js/group.js" defer></script>{% endblock %}
+{% block scripts %}<script src="/static/js/group.js" defer></script><script src="/static/js/booklet.js" defer></script>{% endblock %}
