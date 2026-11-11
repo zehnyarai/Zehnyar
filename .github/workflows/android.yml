@@ -17,6 +17,11 @@ on:
         required: false
         type: boolean
         default: false
+      myket_iab:
+        description: 'Build Myket in-app billing APK (requires the Myket products and HTTPS API to be configured)'
+        required: false
+        type: boolean
+        default: false
       publish_release:
         description: 'Publish a public GitHub release (leave off for a test build)'
         required: false
@@ -29,6 +34,7 @@ on:
       - 'arena/5ee93ac8-zehnyar'
       - 'arena/fe5d970d-zehnyar'
       - 'arena/44d5574b-zehnyar'
+      - 'arena/2e1bd3bb-zehnyar'
       - 'main'
     tags:
       - 'v*'
@@ -63,6 +69,7 @@ jobs:
           RAW="${{ github.event.inputs.version }}"
           BAZAAR_DRAFT=false
           BAZAAR_IAB=false
+          MYKET_IAB=false
           if [[ "$RAW" == draft-* ]]; then
             BAZAAR_DRAFT=true
             RAW="${RAW#draft-}"
@@ -76,8 +83,16 @@ jobs:
             BAZAAR_IAB=true
             BAZAAR_DRAFT=false
           fi
+          if [[ "$GITHUB_EVENT_NAME" == "push" && "$GITHUB_REF" == "refs/heads/arena/2e1bd3bb-zehnyar" ]]; then
+            MYKET_IAB=true
+            BAZAAR_DRAFT=false
+          fi
           if [[ "${{ inputs.bazaar_iab }}" == "true" ]]; then
             BAZAAR_IAB=true
+            BAZAAR_DRAFT=false
+          fi
+          if [[ "${{ inputs.myket_iab }}" == "true" ]]; then
+            MYKET_IAB=true
             BAZAAR_DRAFT=false
           fi
           if [ -z "$RAW" ] && [ "${GITHUB_REF_TYPE}" = "tag" ]; then
@@ -94,6 +109,7 @@ jobs:
           echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "bazaar_draft=$BAZAAR_DRAFT" >> "$GITHUB_OUTPUT"
           echo "bazaar_iab=$BAZAAR_IAB" >> "$GITHUB_OUTPUT"
+          echo "myket_iab=$MYKET_IAB" >> "$GITHUB_OUTPUT"
           echo "Resolved release version: $VERSION"
           if [ "$BAZAAR_DRAFT" = true ]; then echo 'Building non-public Cafe Bazaar registration draft; payments remain disabled.'; fi
           if [ "$BAZAAR_IAB" = true ]; then echo 'Building Cafe Bazaar in-app billing APK with signed purchase verification and server-side credit grants.'; fi
@@ -151,7 +167,7 @@ jobs:
           echo "Stable non-debug release signing key validated; key data hidden."
 
       - name: Validate payment configuration without exposing card data
-        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' && steps.resolve-release.outputs.bazaar_iab != 'true' }}
+        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' && steps.resolve-release.outputs.bazaar_iab != 'true' && steps.resolve-release.outputs.myket_iab != 'true' }}
         working-directory: mobile
         env:
           VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
@@ -193,7 +209,7 @@ jobs:
           echo "HTTPS purchase-verification backend configured; URL omitted."
 
       - name: Embed an optional static card fallback for Android runtime
-        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' && steps.resolve-release.outputs.bazaar_iab != 'true' }}
+        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' && steps.resolve-release.outputs.bazaar_iab != 'true' && steps.resolve-release.outputs.myket_iab != 'true' }}
         working-directory: mobile
         env:
           VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
@@ -203,7 +219,7 @@ jobs:
         run: node ../tools/write_mobile_payment_card.js
 
       - name: Prebuild Android project
-        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' && steps.resolve-release.outputs.bazaar_iab != 'true' }}
+        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' && steps.resolve-release.outputs.bazaar_iab != 'true' && steps.resolve-release.outputs.myket_iab != 'true' }}
         working-directory: mobile
         env:
           VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
@@ -236,6 +252,20 @@ jobs:
           VISAYAR_PAYMENT_CARD_HOLDER: ''
           VISAYAR_PAYMENT_BANK_NAME: ''
           VISAYAR_CAFEBAZAAR_IAB: '1'
+        run: npx expo prebuild -p android --clean --no-install
+
+      - name: Prebuild Myket IAB APK
+        if: ${{ steps.resolve-release.outputs.myket_iab == 'true' }}
+        working-directory: mobile
+        env:
+          VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
+          EXPO_PUBLIC_VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
+          VISAYAR_PAYMENT_CARD_NUMBER: ''
+          VISAYAR_PAYMENT_CARD_HOLDER: ''
+          VISAYAR_PAYMENT_BANK_NAME: ''
+          VISAYAR_STORE: myket
+          VISAYAR_MYKET_IAB: '1'
+          VISAYAR_CAFEBAZAAR_IAB: '0'
         run: npx expo prebuild -p android --clean --no-install
 
       - name: Configure release signing
@@ -281,6 +311,22 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleRelease --no-daemon
 
+      - name: Build Myket IAB APK
+        if: ${{ steps.resolve-release.outputs.myket_iab == 'true' }}
+        working-directory: mobile/android
+        env:
+          VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
+          EXPO_PUBLIC_VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
+          VISAYAR_PAYMENT_CARD_NUMBER: ''
+          VISAYAR_PAYMENT_CARD_HOLDER: ''
+          VISAYAR_PAYMENT_BANK_NAME: ''
+          VISAYAR_STORE: myket
+          VISAYAR_MYKET_IAB: '1'
+          VISAYAR_CAFEBAZAAR_IAB: '0'
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease --no-daemon
+
       - name: Verify APK uses the configured non-debug release key
         run: |
           set -euo pipefail
@@ -290,7 +336,7 @@ jobs:
           python3 tools/verify_android_apk_signature.py "$APKSIGNER" "$APK"
 
       - name: Verify card fallback or server-backed payments in the Android JS bundle
-        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' && steps.resolve-release.outputs.bazaar_iab != 'true' }}
+        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' && steps.resolve-release.outputs.bazaar_iab != 'true' && steps.resolve-release.outputs.myket_iab != 'true' }}
         env:
           VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
           VISAYAR_PAYMENT_CARD_NUMBER: ${{ secrets.VISAYAR_PAYMENT_CARD_NUMBER }}
@@ -300,7 +346,7 @@ jobs:
         run: git show HEAD:mobile/src/core/paymentCard.generated.js > mobile/src/core/paymentCard.generated.js
 
       - name: Verify Cafe Bazaar registration package and embedded app bundle
-        if: ${{ steps.resolve-release.outputs.bazaar_draft == 'true' || steps.resolve-release.outputs.bazaar_iab == 'true' }}
+        if: ${{ steps.resolve-release.outputs.bazaar_draft == 'true' || steps.resolve-release.outputs.bazaar_iab == 'true' || steps.resolve-release.outputs.myket_iab == 'true' }}
         run: |
           set -euo pipefail
           APK=mobile/android/app/build/outputs/apk/release/app-release.apk
@@ -309,7 +355,11 @@ jobs:
           "$AAPT" dump badging "$APK" | grep -F "package: name='ai.visayar.app'"
           "$AAPT" dump permissions "$APK" | grep -F 'android.permission.INTERNET'
           if "$AAPT" dump permissions "$APK" | grep -F 'android.permission.SYSTEM_ALERT_WINDOW'; then
-            echo "::error::Bazaar APK still declares SYSTEM_ALERT_WINDOW; refusing to package it."
+            echo "::error::APK still declares SYSTEM_ALERT_WINDOW; refusing to package it."
+            exit 1
+          fi
+          if "$AAPT" dump permissions "$APK" | grep -E 'android.permission.USE_BIOMETRIC|android.permission.USE_FINGERPRINT'; then
+            echo "::error::APK still declares biometric/fingerprint permissions; refusing to package it."
             exit 1
           fi
           "$APKSIGNER" verify --verbose "$APK"
@@ -320,12 +370,17 @@ jobs:
           assert 'AndroidManifest.xml' in names, 'APK has no Android manifest'
           assert any(n.rsplit('/', 1)[-1].startswith('classes') and n.endswith('.dex') for n in names), 'APK has no dex payload'
           assert any(n.endswith(('.bundle', '.hbc')) for n in names), 'APK has no embedded JavaScript bundle'
-          print('Production package and embedded app bundle verified for Cafe Bazaar.')
+          print('Production package and embedded app bundle verified.')
           PY
           if [ "${{ steps.resolve-release.outputs.bazaar_iab }}" = 'true' ]; then
             unzip -p "$APK" assets/index.android.bundle > /tmp/visayar-iab-bundle
             grep -a -q 'CafeBazaarBilling' /tmp/visayar-iab-bundle
             echo 'Cafe Bazaar billing module is present in the IAB JavaScript bundle.'
+          fi
+          if [ "${{ steps.resolve-release.outputs.myket_iab }}" = 'true' ]; then
+            unzip -p "$APK" assets/index.android.bundle > /tmp/visayar-myket-iab-bundle
+            grep -a -q 'MyketBilling' /tmp/visayar-myket-iab-bundle
+            echo 'Myket billing module is present in the IAB JavaScript bundle.'
           fi
 
       - name: Preserve signed Cafe Bazaar registration draft
@@ -391,15 +446,15 @@ jobs:
           AAPT="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name aapt | sort -V | tail -n 1)"
           APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           BADGING="$($AAPT dump badging "$APK")"
-          printf '%s\n' "$BADGING" | grep -F "package: name='ai.visayar.app' versionCode='48' versionName='2.3.23'"
+          printf '%s\n' "$BADGING" | grep -F "package: name='ai.visayar.app' versionCode='49' versionName='2.3.24'"
           PERMISSIONS="$($AAPT dump permissions "$APK")"
-          if printf '%s\n' "$PERMISSIONS" | grep -E 'com\.farsitel\.bazaar\.permission\.PAY_THROUGH_BAZAAR|android\.permission\.SYSTEM_ALERT_WINDOW'; then
-            echo '::error::The Myket APK contains a prohibited Cafe Bazaar or overlay permission.'
+          if printf '%s\n' "$PERMISSIONS" | grep -E 'com\.farsitel\.bazaar\.permission\.PAY_THROUGH_BAZAAR|android\.permission\.SYSTEM_ALERT_WINDOW|android\.permission\.USE_BIOMETRIC|android\.permission\.USE_FINGERPRINT'; then
+            echo '::error::The Myket APK contains a prohibited Cafe Bazaar, overlay, or biometric permission.'
             exit 1
           fi
           "$APKSIGNER" verify --verbose "$APK"
           python3 tools/verify_android_apk_signature.py "$APKSIGNER" "$APK"
-          echo 'Myket APK uses ai.visayar.app, version 2.3.23 (48), and contains neither prohibited permission.'
+          echo 'Myket APK uses ai.visayar.app, version 2.3.24 (49), and contains neither prohibited permission.'
 
       - name: Scan release APKs with ClamAV
         run: |
@@ -426,6 +481,9 @@ jobs:
           if [ "${{ steps.resolve-release.outputs.bazaar_iab }}" = 'true' ]; then
             APK_NAME="Visayar-${RELEASE_VERSION}-CafeBazaar-IAB-universal.apk"
             cp mobile/android/app/build/outputs/apk/release/app-release.apk "release/$APK_NAME"
+          elif [ "${{ steps.resolve-release.outputs.myket_iab }}" = 'true' ]; then
+            APK_NAME="Visayar-${RELEASE_VERSION}-Myket-IAB-universal.apk"
+            cp mobile/android/app/build/outputs/apk/release/app-release.apk "release/$APK_NAME"
           elif [ "${{ steps.resolve-release.outputs.bazaar_draft }}" = 'true' ]; then
             APK_NAME="Visayar-${RELEASE_VERSION}-Myket-Draft-universal.apk"
             cp mobile/android/app/build/outputs/apk/release/app-release.apk "release/$APK_NAME"
@@ -439,14 +497,14 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.resolve-release.outputs.bazaar_iab == 'true' && 'visayar-cafebazaar-iab-apk' || (steps.resolve-release.outputs.bazaar_draft == 'true' && 'visayar-marketplace-registration-drafts' || 'zehnyar-release-apk') }}
+          name: ${{ steps.resolve-release.outputs.bazaar_iab == 'true' && 'visayar-cafebazaar-iab-apk' || (steps.resolve-release.outputs.myket_iab == 'true' && 'visayar-myket-iab-apk' || (steps.resolve-release.outputs.bazaar_draft == 'true' && 'visayar-marketplace-registration-drafts' || 'zehnyar-release-apk')) }}
           path: |
             release/Visayar-*-universal.apk
             release/SHA256SUMS.txt
-          retention-days: ${{ (steps.resolve-release.outputs.bazaar_draft == 'true' || steps.resolve-release.outputs.bazaar_iab == 'true') && 14 || 90 }}
+          retention-days: ${{ (steps.resolve-release.outputs.bazaar_draft == 'true' || steps.resolve-release.outputs.bazaar_iab == 'true' || steps.resolve-release.outputs.myket_iab == 'true') && 14 || 90 }}
 
       - name: Publish GitHub release
-        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' && steps.resolve-release.outputs.bazaar_iab != 'true' && (github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.publish_release)) }}
+        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' && steps.resolve-release.outputs.bazaar_iab != 'true' && steps.resolve-release.outputs.myket_iab != 'true' && (github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.publish_release)) }}
         env:
           GH_TOKEN: ${{ github.token }}
           VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}

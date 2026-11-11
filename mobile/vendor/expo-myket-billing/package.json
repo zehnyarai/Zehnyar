@@ -1,0 +1,29 @@
+{
+  "name": "expo-myket-billing",
+  "version": "1.0.0",
+  "description": "Myket In-App Billing v2.2 vendored module for Visayar",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "scripts": {},
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zehnyarai/Zehnyar.git"
+  },
+  "keywords": [
+    "expo",
+    "myket",
+    "billing",
+    "in-app-purchase",
+    "android"
+  ],
+  "expoModule": {
+    "ios": false,
+    "android": true,
+    "stableCompatibility": true
+  },
+  "peerDependencies": {
+    "expo": "*",
+    "react-native": "*"
+  }
+}

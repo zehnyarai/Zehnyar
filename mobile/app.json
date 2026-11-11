@@ -3,7 +3,7 @@
     "name": "ویزایار",
     "slug": "visayar",
     "scheme": "visayar",
-    "version": "2.3.23",
+    "version": "2.3.24",
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",
     "userInterfaceStyle": "light",
@@ -31,7 +31,9 @@
       "permissions": [],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO",
-        "android.permission.SYSTEM_ALERT_WINDOW"
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
       ]
     },
     "web": {
