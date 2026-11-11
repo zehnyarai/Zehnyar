@@ -1,4 +1,5 @@
 const expo = require('./app.json').expo;
+const withMyKitRepository = require('./plugins/withMyKitRepository');
 const testBuild = process.env.VISAYAR_TEST_BUILD === '1';
 const bazaarIab = !testBuild && process.env.VISAYAR_CAFEBAZAAR_IAB === '1';
 const myketBuild = !testBuild && String(process.env.VISAYAR_STORE || '').toLowerCase() === 'myket';
@@ -28,8 +29,14 @@ const paymentCard = {
   bank: String(process.env.VISAYAR_PAYMENT_BANK_NAME || 'سامان').trim(),
 };
 
+const basePlugins = Array.isArray(expo.plugins) ? [...expo.plugins] : [];
+if (myketIab && !basePlugins.includes('./plugins/withMyKitRepository')) {
+  basePlugins.push('./plugins/withMyKitRepository');
+}
+
 module.exports = {
   ...expo,
+  plugins: basePlugins,
   name: testBuild ? 'ویزایار آزمایشی' : expo.name,
   android: {
     ...expo.android,
