@@ -218,7 +218,7 @@
       </div>
       <h3 class="bk-h">رشته‌ها ({{ booklet.fields|length|fa }})</h3>
       <ul class="bk-list" id="bk-fields">
-        {% for f in booklet.fields %}<li>{{ f.name }} <span class="muted">· {{ f.rows|num }} کدرشته‌محل</span></li>{% endfor %}
+        {% for f in booklet.fields %}<li>{{ f.name }} <span class="muted">{% if f.catalogue_only %}· در فهرست رشته‌ها؛ کدرشته‌محل در این دفترچه ندارد{% else %}· {{ f.rows|num }} کدرشته‌محل{% endif %}</span></li>{% endfor %}
       </ul>
       <h3 class="bk-h">دانشگاه‌ها و پردیس‌ها ({{ booklet.universities|length|fa }})</h3>
       <ul class="bk-list" id="bk-unis">
