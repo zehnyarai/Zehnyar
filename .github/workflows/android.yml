@@ -269,6 +269,21 @@ jobs:
           VISAYAR_CAFEBAZAAR_IAB: '0'
         run: |
           test -n "$VISAYAR_MYKET_RSA_PUBLIC_KEY" || { echo '::error::Missing VISAYAR_MYKET_RSA_PUBLIC_KEY'; exit 1; }
+          # The Bazaar and Myket SDKs both contain IInAppBillingService. Only
+          # link the Myket native module into this APK (no lockfile changes).
+          node <<'NODE'
+          const fs = require('fs');
+          const file = 'package.json';
+          const pkg = JSON.parse(fs.readFileSync(file, 'utf8'));
+          pkg.expo = pkg.expo || {};
+          pkg.expo.autolinking = pkg.expo.autolinking || {};
+          pkg.expo.autolinking.android = pkg.expo.autolinking.android || {};
+          pkg.expo.autolinking.android.exclude = [
+            ...new Set([...(pkg.expo.autolinking.android.exclude || []), 'expo-cafebazaar-billing']),
+          ];
+          fs.writeFileSync(file, JSON.stringify(pkg, null, 2) + '\n');
+          NODE
+          npx expo-modules-autolinking resolve --platform android --json | node -e "let raw='';process.stdin.on('data',x=>raw+=x);process.stdin.on('end',()=>{const names=JSON.parse(raw).modules.map(m=>m.packageName);if(names.includes('expo-cafebazaar-billing')||!names.includes('expo-myket-billing')){console.error('Incorrect Myket native module selection');process.exit(1)}console.log('Only Myket billing native module selected')})"
           npx expo prebuild -p android --clean --no-install
           grep -Fq 'maven.myket.ir' android/settings.gradle || { echo '::error::Myket Maven repository missing from settings.gradle'; exit 1; }
           grep -Fq 'maven.myket.ir' android/build.gradle || { echo '::error::Myket Maven repository missing from root build.gradle'; exit 1; }
@@ -316,12 +331,12 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleRelease --no-daemon
 
-      - name: Compile Myket billing module before the full APK build
+      - name: Validate Myket native module and APK dependency classpath
         if: ${{ steps.resolve-release.outputs.myket_iab == 'true' }}
         working-directory: mobile/android
         run: |
           chmod +x ./gradlew
-          ./gradlew :expo-myket-billing:compileReleaseKotlin --no-daemon
+          ./gradlew :expo-myket-billing:compileReleaseKotlin :app:checkReleaseDuplicateClasses --no-daemon
 
       - name: Build Myket IAB APK
         if: ${{ steps.resolve-release.outputs.myket_iab == 'true' }}
