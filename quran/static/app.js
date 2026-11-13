@@ -1161,7 +1161,23 @@ function allLegacyFieldSection(verse, field) {
   return `<article class="all-dossier-field"><header><h4>${escapeHTML(meta.title)}</h4><span>${items ? "دادهٔ ثبت‌شده" : "نیازمند ثبت"}</span></header>${list}</article>`;
 }
 
-function standard3FieldSection(verse, definition) {
+function verseLexicalBlock(verse) {
+  // واژگانِ همین آیه که در بحثِ لغویِ منابع آمده‌اند؛ گزیده، متنِ خودِ منبع است و
+  // معنای تک‌واژه‌ایِ ساخته‌شده ارائه نمی‌شود.
+  const dossier = state.surahDossiers[String(verse.surah)] || null;
+  if (!dossier || !Array.isArray(dossier.vocabulary)) return "";
+  const items = [];
+  for (const item of dossier.vocabulary) {
+    for (const w of Array.isArray(item.words) ? item.words : []) {
+      if (surahSingleReference(w.reference) !== verse.id) continue;
+      items.push(`<details class="surah-vocabulary-entry verse-lexical-entry"><summary><b lang="ar" dir="rtl">${escapeHTML(w.surface || w.word || "")}</b><span>${escapeHTML(w.word || "")} · بسامدِ صورت در کل قرآن: ${faNumber(w.frequency || 0)} بار</span></summary><div class="surah-vocabulary-context">${item.focus ? `<p><b>محورِ بحثِ منبع:</b> ${escapeHTML(item.focus)}</p>` : ""}${item.excerpt ? `<blockquote lang="ar" dir="rtl">${escapeHTML(item.excerpt)}</blockquote>` : ""}<small>گزیدهٔ بالا متنِ بحثِ لغویِ ${escapeHTML(surahSourceTitle(item.sourceId))} است؛ شرحِ واژه از همان منبع نقل شده، نه از فرهنگِ بیرونی.</small></div></details>`);
+    }
+  }
+  if (!items.length) return "";
+  return `<div class="verse-lexical-block"><p class="eyebrow">واژگانِ دشوارِ همین آیه</p>${items.join("")}</div>`;
+}
+
+function standard3FieldSection(verse, definition, compact = false) {
   const dossier = dossierFor(verse);
   const record = dossier?.extendedFields?.[definition.id] || null;
   const entries = Array.isArray(record?.entries) ? record.entries : [];
@@ -1182,7 +1198,12 @@ function standard3FieldSection(verse, definition) {
   }).join("");
   const coverageNote = record?.sourceCoverageNote || "برای این فیلد هنوز مقابلهٔ مستقلِ منبع انجام نشده است؛ این یادداشت ادعای نبودِ منبع نیست.";
   const followUp = record?.followUp || `برای ${verse.reference}، پنج بندِ مستقلِ دست‌کم ۱۴واژه‌ای با ارجاعِ مقابله‌شده، شاهدِ دقیق و حدّ خوانش گردآوری شود؛ تا آن زمان این فیلد ناتمام است.`;
-  return `<article class="all-dossier-field standard3-field"><header><h4>${escapeHTML(definition.label)}</h4><span class="standard3-status ${statusClass}">${faNumber(entries.length)} از ${faNumber(required)} · ${statusLabel}</span></header><p class="standard3-description">${escapeHTML(definition.description || "")}</p>${entryMarkup ? `<ol class="standard3-entry-list">${entryMarkup}</ol>` : `<p class="field-gap-note">برای این آیه هنوز بندِ مستند در این فیلد ثبت نشده است. وضعیت: صفر از پنج؛ محتوای پژوهشی عمداً ساخته نشده.</p>`}<p class="standard3-source-coverage"><b>وضعیتِ مقابلهٔ منبع:</b> ${escapeHTML(coverageNote)}</p><p class="standard3-follow-up"><b>پیگیری:</b> ${escapeHTML(followUp)}</p></article>`;
+  const lexical = definition.id === "linguistics" ? verseLexicalBlock(verse) : "";
+  if (compact && !entries.length && !lexical) return "";
+  if (compact) {
+    return `<article class="all-dossier-field standard3-field"><header><h4>${escapeHTML(definition.label)}</h4><span class="standard3-status ${statusClass}">${faNumber(entries.length)} از ${faNumber(required)} · ${statusLabel}</span></header>${lexical}${entryMarkup ? `<ol class="standard3-entry-list">${entryMarkup}</ol>` : ""}${record ? `<p class="standard3-source-coverage"><b>وضعیتِ مقابلهٔ منبع:</b> ${escapeHTML(coverageNote)}</p>` : ""}</article>`;
+  }
+  return `<article class="all-dossier-field standard3-field"><header><h4>${escapeHTML(definition.label)}</h4><span class="standard3-status ${statusClass}">${faNumber(entries.length)} از ${faNumber(required)} · ${statusLabel}</span></header><p class="standard3-description">${escapeHTML(definition.description || "")}</p>${lexical}${entryMarkup ? `<ol class="standard3-entry-list">${entryMarkup}</ol>` : `<p class="field-gap-note">برای این آیه هنوز بندِ مستند در این فیلد ثبت نشده است. وضعیت: صفر از پنج؛ محتوای پژوهشی عمداً ساخته نشده.</p>`}<p class="standard3-source-coverage"><b>وضعیتِ مقابلهٔ منبع:</b> ${escapeHTML(coverageNote)}</p><p class="standard3-follow-up"><b>پیگیری:</b> ${escapeHTML(followUp)}</p></article>`;
 }
 
 const SOURCE_ROLE_LABELS = {
@@ -1246,8 +1267,11 @@ function completeDossierPanel(verse) {
   const review = dossier?.reviewStatus || dossier?.status || "وضعیتِ داوری برای این آیه ثبت نشده است.";
   const fieldDefinitions = state.standard3Dossier?.fields?.length ? state.standard3Dossier.fields : STANDARD3_FIELD_FALLBACKS;
   const legacy = LEGACY_DOSSIER_ORDER.map((field) => allLegacyFieldSection(verse, field)).join("");
-  const extended = fieldDefinitions.map((field) => standard3FieldSection(verse, field)).join("");
-  return `<section class="complete-dossier"><section class="detail-panel complete-dossier-intro"><p class="eyebrow">پروندهٔ کاملِ آیه</p><h3>همهٔ فیلدها زیرِ همین آیه</h3><p class="reading-notice">این نمای یکپارچه شش فیلدِ پایه، هشت فیلدِ پیشین (نکات، پیام‌ها، اصول، چارچوب معنایی، تفسیر موضوعی، نظم شبکه‌ای، سیاق و پژوهش) و ده فیلدِ افزوده را همگی زیرِ ${escapeHTML(verse.reference)} می‌آورد. هر فیلد وضعیتِ مستقل دارد؛ خالی‌بودن یعنی داده هنوز گردآوری نشده، نه اینکه موضوع بی‌اهمیت است.</p><p class="dossier-review-status"><b>وضعیتِ دادهٔ پایه:</b> ${escapeHTML(review)}</p>${sourceMixBlock(verse)}</section><section class="all-dossier-group"><h3>شش فیلدِ پایه</h3><div class="all-dossier-grid legacy-dossier-grid">${legacy}</div></section>${archivedBaseSection(verse)}${legacyStudyGroups(verse)}<section class="all-dossier-group"><h3>ده فیلدِ افزوده</h3><div class="all-dossier-grid standard3-grid">${extended}</div></section></section>`;
+  const extendedParts = fieldDefinitions.map((field) => ({ field, html: standard3FieldSection(verse, field, true) }));
+  const extended = extendedParts.filter((part) => part.html).map((part) => part.html).join("");
+  const pendingLabels = extendedParts.filter((part) => !part.html).map((part) => part.field.label);
+  const pending = pendingLabels.length ? `<article class="all-dossier-field standard3-pending"><header><h4>فیلدهای نیازمندِ پژوهش برای این آیه</h4><span class="standard3-status pending">${faNumber(pendingLabels.length)} فیلد</span></header><p class="standard3-pending-list">${pendingLabels.map((label) => escapeHTML(label)).join(" · ")}</p><p class="field-gap-note">برای این فیلدها هنوز بندِ مستند و برگرفته از همین آیه ثبت نشده است؛ به‌جای متنِ تکراری و قالبی، خلأ صادقانه نشان داده می‌شود.</p></article>` : "";
+  return `<section class="complete-dossier"><section class="detail-panel complete-dossier-intro"><p class="eyebrow">پروندهٔ کاملِ آیه</p><h3>همهٔ فیلدها زیرِ همین آیه</h3><p class="reading-notice">این نمای یکپارچه شش فیلدِ پایه، هشت فیلدِ پیشین (نکات، پیام‌ها، اصول، چارچوب معنایی، تفسیر موضوعی، نظم شبکه‌ای، سیاق و پژوهش) و ده فیلدِ افزوده را همگی زیرِ ${escapeHTML(verse.reference)} می‌آورد. هر فیلد وضعیتِ مستقل دارد؛ خالی‌بودن یعنی داده هنوز گردآوری نشده، نه اینکه موضوع بی‌اهمیت است.</p><p class="dossier-review-status"><b>وضعیتِ دادهٔ پایه:</b> ${escapeHTML(review)}</p>${sourceMixBlock(verse)}</section><section class="all-dossier-group"><h3>شش فیلدِ پایه</h3><div class="all-dossier-grid legacy-dossier-grid">${legacy}</div></section>${archivedBaseSection(verse)}${legacyStudyGroups(verse)}<section class="all-dossier-group"><h3>ده فیلدِ افزوده</h3><div class="all-dossier-grid standard3-grid">${extended}${pending}</div></section></section>`;
 }
 
 function standard3FieldDefinitions() {
@@ -1661,7 +1685,33 @@ function renderSurahOverview(surah, dossier) {
   return `<section class="detail-panel surah-overview-panel"><p class="eyebrow">نمای کلی سوره</p><h3>ایستگاه‌های تفسیریِ سوره در منابع</h3><p class="reading-notice">عنوان‌های زیر سرخط‌های خودِ منابعِ تفسیریِ سوره‌اند و برای هر ایستگاه، بازهٔ آیات و منبع مشخص است؛ این فهرست اجماعِ مفسران یا داوریِ نهایی دربارهٔ مقصد سوره نیست.</p><div class="surah-overview-grid">${points || `<p class="study-unavailable">ایستگاهِ تفسیری برای این سوره در دسترس نیست.</p>`}</div></section>`;
 }
 
-function renderSurahThemes(dossier) {
+function renderSurahThemes(dossier, surah) {
+  // موضوعاتِ کلیدی از واژه‌های شاهدِ خودِ آیه‌های این سوره به دست می‌آیند، نه از
+  // سرخطِ یک تفسیرِ واحد؛ هر موضوع با شمارِ آیه‌ها و مواضعش نشان داده می‌شود.
+  const records = surahRecords(surah.number);
+  const topics = [];
+  for (const concept of state.concepts || []) {
+    const equivalents = Array.isArray(concept.equivalents) ? concept.equivalents : [];
+    const hits = [];
+    const witnesses = [];
+    for (const record of records) {
+      const text = normalize(record.arabic);
+      for (const [form, gloss] of equivalents) {
+        const needle = normalize(String(form || ""));
+        if (needle.length >= 3 && text.includes(needle)) {
+          hits.push(record.id);
+          witnesses.push(`${form}${gloss ? ` (${gloss})` : ""}`);
+          break;
+        }
+      }
+    }
+    if (hits.length) topics.push({ title: concept.title, hits, witnesses: [...new Set(witnesses)].slice(0, 4), prompt: (concept.prompts || [])[0] || "" });
+  }
+  topics.sort((a, b) => b.hits.length - a.hits.length);
+  const cards = topics.slice(0, 8).map((topic) => `<article class="surah-theme-card"><header><h4>${escapeHTML(topic.title)}</h4><span>${faNumber(topic.hits.length)} آیه</span></header><p class="surah-theme-witnesses"><b>واژه‌های شاهد در این سوره:</b> ${topic.witnesses.map(escapeHTML).join("، ")}</p>${topic.prompt ? `<p class="surah-theme-prompt"><b>پرسشِ خوانش و پیوند با زندگی:</b> ${escapeHTML(topic.prompt)}</p>` : ""}<div class="surah-reference-list"><span>مواضع:</span>${topic.hits.slice(0, 8).map((reference) => surahVerseButton(reference)).join("")}</div></article>`).join("");
+  if (cards) {
+    return `<section class="detail-panel surah-themes-panel"><p class="eyebrow">موضوعات محوری و کلیدی</p><h3>موضوعاتی که از آیه‌های خودِ این سوره فهمیده می‌شود</h3><p class="reading-notice">هر موضوع بر پایهٔ واژه‌های شاهدِ صریح در آیه‌های همین سوره و شمارِ مواضعش آمده است؛ پرسشِ خوانش، پیوندِ موضوع با زندگیِ خواننده را باز می‌کند و تفسیرِ قطعیِ سوره نیست.</p><div class="surah-theme-grid">${cards}</div></section>`;
+  }
   const themes = (Array.isArray(dossier.themes) ? dossier.themes : []).map((theme) => {
     const refs = (Array.isArray(theme.references) ? theme.references : []).map((reference) => surahVerseButton(reference)).join("");
     return `<article class="surah-theme-card"><header><h4>${escapeHTML(theme.title || "")}</h4></header><small>${escapeHTML(surahSourceTitle(theme.sourceId))}</small>${refs ? `<div class="surah-reference-list"><span>مواضع:</span>${refs}</div>` : ""}</article>`;
@@ -1679,12 +1729,39 @@ function renderSurahVocabulary(surah, dossier) {
   return `<section class="detail-panel surah-vocabulary-panel"><p class="eyebrow">مفردات و لغات دشوار</p><h3>واژه‌های کلیدیِ سوره در بحثِ منابع</h3><p class="reading-notice">واژه‌ها همراهِ صورتِ دقیقِ قرآنی و بحثِ منبع دربارهٔ آن‌ها آمده‌اند؛ گزیدهٔ عربی، متنِ خودِ منبعِ تفسیری است.</p><div class="surah-vocabulary-list">${entries || `<p class="study-unavailable">واژه‌ای برای نمایش در این فهرست نیست.</p>`}</div><p class="surah-source-note">متن عربی: Tanzil Uthmani · ترجمهٔ فارسی: فولادوند (fa.fooladvand)؛ انتساب و مشخصات منبع در پروندهٔ منابع برنامه آمده است.</p></section>`;
 }
 
+function reflectionDomain(text) {
+  const domains = [
+    ["عقیده و ایمان", /ایمان|عقید|توحید|شرک|نفاق|کفر|هدایت|ضلال/],
+    ["سرنوشت و آخرت", /آخرت|قیامت|حساب|جزا|عذاب|بهشت|جهنم|مرگ|اجل/],
+    ["اخلاق و رفتار", /تقوا|صبر|عدل|ظلم|صدق|کذب|رحمت|غضب|حلم|شکر/],
+    ["عبادت و رابطه با خدا", /عبادت|صلاة|نماز|دعا|ذکر|توبه|استغفار|قرب/],
+    ["زندگی اجتماعی", /ناس|قوم|اهل|مال|یتیم|فقیر|حقوق|امانت/],
+  ];
+  for (const [label, pattern] of domains) if (pattern.test(text)) return label;
+  return "اندیشه و زندگی";
+}
+
+function reflectionKeySentence(quote) {
+  const sentences = String(quote || "").split(/(?<=[.!؟?؛。])\s+/).map((x) => x.trim()).filter(Boolean);
+  if (!sentences.length) return "";
+  const scored = sentences.map((sentence) => {
+    const words = sentence.split(/\s+/).filter(Boolean).length;
+    let score = words >= 6 && words <= 30 ? 2 : 0;
+    if (/من |إن |لا |ما |قد |لن |لم |علی|على|یجب|ينبغي|حقیقة|حق/.test(sentence)) score += 1;
+    return { sentence, score, words };
+  }).sort((a, b) => b.score - a.score || a.words - b.words);
+  const best = scored[0].sentence;
+  return best.length > 220 ? `${best.slice(0, 220)}…` : best;
+}
+
 function renderSurahReflections(surah, dossier) {
   const quotes = (Array.isArray(dossier.reflections) ? dossier.reflections : []).map((item) => {
     if (!item.quote) return "";
-    return `<article class="surah-reflection-card"><header><div><h4>نقل تفسیری</h4><small>${escapeHTML(surahSourceTitle(item.sourceId))} · ذیل ${escapeHTML(surahReferenceLabel(item.reference || ""))}</small></div>${item.reference ? surahVerseButton(item.reference) : ""}</header>${item.focus ? `<p><b>محورِ نقل:</b> ${escapeHTML(item.focus)}</p>` : ""}<blockquote lang="ar" dir="rtl">${escapeHTML(item.quote)}</blockquote>${item.quoteTruncated ? `<small>گزیده؛ پایانِ عبارت با نشانِ حذف مشخص شده است.</small>` : ""}</article>`;
+    const domain = reflectionDomain(`${item.focus || ""} ${item.quote}`);
+    const key = reflectionKeySentence(item.quote);
+    return `<article class="surah-reflection-card"><header><div><h4>قولِ اثرگذار</h4><small>${escapeHTML(surahSourceTitle(item.sourceId))} · ذیل ${escapeHTML(surahReferenceLabel(item.reference || ""))}</small></div>${item.reference ? surahVerseButton(item.reference) : ""}</header><p class="reflection-domain"><b>محورِ اثر بر زندگی و اندیشه:</b> ${escapeHTML(domain)}</p>${item.focus ? `<p><b>محورِ نقل:</b> ${escapeHTML(item.focus)}</p>` : ""}<blockquote lang="ar" dir="rtl">${escapeHTML(item.quote)}</blockquote>${key ? `<p class="reflection-key"><b>عبارتِ کلیدیِ این قول (از خودِ متنِ نقل):</b> ${escapeHTML(key)}</p>` : ""}${item.quoteTruncated ? `<small>گزیده؛ پایانِ عبارت با نشانِ حذف مشخص شده است.</small>` : ""}</article>`;
   }).filter(Boolean).join("");
-  return `<section class="detail-panel surah-reflections-panel"><p class="eyebrow">اقوال مهم و تأمل‌برانگیز</p><h3>نقل‌های قابل پیگیری از منابعِ سوره</h3><p class="reading-notice">نقل‌های زیر متنِ خودِ منبعِ درج‌شده در هر کارت‌اند؛ گزیده‌هایی از تفسیرند، نه اجماعِ مفسران یا تفسیرِ نهاییِ سوره.</p><div class="surah-reflection-list">${quotes || `<p class="study-unavailable">نقلِ تفسیری برای این سوره در دسترس نیست.</p>`}</div></section>`;
+  return `<section class="detail-panel surah-reflections-panel"><p class="eyebrow">اقوال مهم و تأثیرگذار</p><h3>قول‌هایی که بر عقیده، سرنوشت و زندگیِ مخاطب اثر می‌گذارند</h3><p class="reading-notice">این بخش نقلِ صرف از چند تفسیر نیست؛ هر قول با محورِ اثرش بر زندگی و اندیشه و عبارتِ کلیدیِ خودش ارائه می‌شود تا خواننده ببیند این سخن چه چیزی را در باور یا رفتار رقم می‌زند. متنِ کاملِ هر قول، سخنِ منبعِ درج‌شده در کارت است.</p><div class="surah-reflection-list">${quotes || `<p class="study-unavailable">قولِ اثرگذاری برای این سوره در دسترس نیست.</p>`}</div></section>`;
 }
 
 function renderSurah() {
@@ -1706,7 +1783,7 @@ function renderSurah() {
   }
   const renderers = {
     overview: () => renderSurahOverview(surah, dossier),
-    themes: () => renderSurahThemes(dossier),
+    themes: () => renderSurahThemes(dossier, surah),
     vocabulary: () => renderSurahVocabulary(surah, dossier),
     reflections: () => renderSurahReflections(surah, dossier),
   };
