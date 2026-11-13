@@ -206,10 +206,17 @@ function recordFromTuple(tuple) {
 
 async function loadScholarLayer() {
   try {
-    const [bankResponse, layerResponse, pilotResponse, applicationResponse, dossierResponse, standard3Response] = await Promise.all([
-      fetch(SCHOLAR_BANK_URL), fetch(SCHOLAR_LAYER_URL), fetch(SCHOLAR_PILOT_URL), fetch(SCHOLAR_APPLICATION_URL), fetch(VERSE_DOSSIER_URL), fetch(STANDARD3_DOSSIER_URL),
+    const [bankResponse, layerResponse, pilotResponse, applicationResponse, dossierResponse, standard3Response, standard3Response2] = await Promise.all([
+      fetch(SCHOLAR_BANK_URL), fetch(SCHOLAR_LAYER_URL), fetch(SCHOLAR_PILOT_URL), fetch(SCHOLAR_APPLICATION_URL), fetch(VERSE_DOSSIER_URL), fetch(STANDARD3_DOSSIER_URL), fetch(STANDARD3_DOSSIER_URL_2),
     ]);
-    if (standard3Response.ok) state.standard3Dossier = await standard3Response.json();
+    if (standard3Response.ok) {
+      state.standard3Dossier = await standard3Response.json();
+      if (standard3Response2.ok) {
+        // هر دو شاردِ پرونده‌های افزوده خوانده می‌شوند؛ آیاتِ سوره‌های ۴۰ به بعد در شارد دوم‌اند.
+        const shard2 = await standard3Response2.json();
+        state.standard3Dossier.verses = { ...(state.standard3Dossier.verses || {}), ...(shard2.verses || {}) };
+      }
+    }
     if (!bankResponse.ok || !layerResponse.ok) return;
     const bank = await bankResponse.json();
     const layer = await layerResponse.json();
@@ -1628,46 +1635,56 @@ function surahReferenceLabel(reference) {
   return `${faNumber(surahNumber)}:${faNumber(ayahNumber)}`;
 }
 
+function surahSingleReference(reference) {
+  // بازه‌هایی مانند «2:1-5» به نخستین آیهٔ بازه نگاشت می‌شوند تا دکمه همیشه باز شود.
+  const match = String(reference || "").match(/^(\d+):(\d+)/);
+  return match ? `${match[1]}:${match[2]}` : String(reference || "");
+}
+
 function surahVerseButton(reference, label = "") {
+  const single = surahSingleReference(reference);
   const referenceLabel = surahReferenceLabel(reference);
-  return `<button class="surah-reference-button" type="button" data-open-surah-verse="${escapeHTML(reference)}" aria-label="باز کردن آیهٔ ${escapeHTML(referenceLabel)}"><bdi dir="ltr">${escapeHTML(referenceLabel)}</bdi>${label ? `<span>${escapeHTML(label)}</span>` : ""}</button>`;
+  return `<button class="surah-reference-button" type="button" data-open-surah-verse="${escapeHTML(single)}" aria-label="باز کردن آیهٔ ${escapeHTML(referenceLabel)}"><bdi dir="ltr">${escapeHTML(referenceLabel)}</bdi>${label ? `<span>${escapeHTML(label)}</span>` : ""}</button>`;
+}
+
+function surahSourceTitle(sourceId) {
+  const source = state.tafsirSources.find((item) => item.id === sourceId) || (state.tafsirRegistry || []).find((item) => item.id === sourceId);
+  return source ? `${source.title}${source.version ? ` · نسخهٔ ${source.version}` : ""}` : "منبعِ ثبت‌شده در پروندهٔ سوره";
 }
 
 function renderSurahOverview(surah, dossier) {
-  const points = (dossier.overview || []).map((point) => {
-    const source = state.tafsirSources.find((item) => item.id === point.sourceId);
-    if (!source || !point.text) return "";
-    const sourceUrl = /^https?:\/\//i.test(String(source.sourceUrl || "")) ? source.sourceUrl : "";
-    return `<article class="surah-overview-point"><header><b>${escapeHTML(point.stage)}</b>${surahVerseButton(point.reference)}<span class="surah-review-status">نقلِ منبع</span></header><small>${escapeHTML(source.title)} · نسخهٔ ${escapeHTML(source.version)} · ذیلِ ${escapeHTML(surahReferenceLabel(point.reference))}</small><blockquote lang="${escapeHTML(source.language || "ar")}" dir="rtl">${escapeHTML(point.text)}</blockquote>${point.truncated ? `<small>گزیده؛ پایانِ عبارت با نشانِ حذف مشخص شده است.</small>` : ""}${sourceUrl ? `<a class="surah-source-link" href="${escapeHTML(sourceUrl)}" target="_blank" rel="noopener noreferrer">صفحهٔ منبع و نسخه ↗</a>` : ""}</article>`;
-  }).filter(Boolean).join("");
-  return `<section class="detail-panel surah-overview-panel"><p class="eyebrow">نمای کلی سوره</p><h3>سه ایستگاه برای دیدن حرکت متن</h3><p class="reading-notice">این بخش سه نقلِ مشخص از التفسير الميسر را کنار هم می‌گذارد؛ نقل‌ها خلاصهٔ برنامه، اجماعِ مفسران یا داوریِ نهایی دربارهٔ مقصد سوره نیستند.</p><div class="surah-overview-grid">${points || `<p class="study-unavailable">نقلِ منبع برای این سوره در دسترس نیست.</p>`}</div></section>`;
+  const points = (Array.isArray(dossier.overview) ? dossier.overview : []).map((point) => {
+    const headings = (Array.isArray(point.headings) ? point.headings : []).filter(Boolean);
+    const list = headings.length ? `<ul class="surah-heading-list">${headings.map((heading) => `<li>${escapeHTML(heading)}</li>`).join("")}</ul>` : "";
+    return `<article class="surah-overview-point"><header><b>${escapeHTML(point.title || "ایستگاهِ تفسیری")}</b>${point.reference ? surahVerseButton(point.reference) : ""}</header><small>${escapeHTML(surahSourceTitle(point.sourceId))}${point.reference ? ` · ذیلِ ${escapeHTML(surahReferenceLabel(point.reference))}` : ""}</small>${list}</article>`;
+  }).join("");
+  return `<section class="detail-panel surah-overview-panel"><p class="eyebrow">نمای کلی سوره</p><h3>ایستگاه‌های تفسیریِ سوره در منابع</h3><p class="reading-notice">عنوان‌های زیر سرخط‌های خودِ منابعِ تفسیریِ سوره‌اند و برای هر ایستگاه، بازهٔ آیات و منبع مشخص است؛ این فهرست اجماعِ مفسران یا داوریِ نهایی دربارهٔ مقصد سوره نیست.</p><div class="surah-overview-grid">${points || `<p class="study-unavailable">ایستگاهِ تفسیری برای این سوره در دسترس نیست.</p>`}</div></section>`;
 }
 
 function renderSurahThemes(dossier) {
-  const themes = (dossier.themes || []).map((theme) => `<article class="surah-theme-card"><header><h4>${escapeHTML(theme.title)}</h4><span>${faNumber(theme.count)} آیه</span></header><p class="surah-theme-witnesses"><b>واژه‌های شاهد:</b> ${theme.witnesses.map(escapeHTML).join("، ")}</p><div class="surah-reference-list"><span>نمونهٔ مواضع:</span>${theme.references.map((reference) => surahVerseButton(reference)).join("")}</div></article>`).join("");
-  return `<section class="detail-panel surah-themes-panel"><p class="eyebrow">موضوعات محوری و کلیدی</p><h3>محورهای واژگانیِ دارای شاهد در سوره</h3><p class="reading-notice">این فهرست بر پایهٔ واژه‌های صریح و مواضعِ قابل بازبینی ساخته شده است؛ هم‌نشینیِ واژه‌ها به‌تنهایی تفسیر یا محور قطعیِ سوره را ثابت نمی‌کند.</p><div class="surah-theme-grid">${themes || `<p class="study-unavailable">برای این سوره موضوعِ واژگانیِ کافی ثبت نشده است.</p>`}</div></section>`;
+  const themes = (Array.isArray(dossier.themes) ? dossier.themes : []).map((theme) => {
+    const refs = (Array.isArray(theme.references) ? theme.references : []).map((reference) => surahVerseButton(reference)).join("");
+    return `<article class="surah-theme-card"><header><h4>${escapeHTML(theme.title || "")}</h4></header><small>${escapeHTML(surahSourceTitle(theme.sourceId))}</small>${refs ? `<div class="surah-reference-list"><span>مواضع:</span>${refs}</div>` : ""}</article>`;
+  }).join("");
+  return `<section class="detail-panel surah-themes-panel"><p class="eyebrow">موضوعات محوری و کلیدی</p><h3>محورهای سوره در سرخط‌های منابع</h3><p class="reading-notice">هر محور، عنوانِ بخشِ مربوط در منبعِ تفسیریِ ذکرشده است؛ برای خواندنِ متنِ کامل، از دکمهٔ بازهٔ آیات به پروندهٔ آیه بروید.</p><div class="surah-theme-grid">${themes || `<p class="study-unavailable">برای این سوره محورِ ثبت‌شده‌ای در دسترس نیست.</p>`}</div></section>`;
 }
 
 function renderSurahVocabulary(surah, dossier) {
-  const entries = (dossier.vocabulary || []).map((item) => {
-    const record = state.recordById.get(item.reference);
-    if (!record) return "";
-    return `<details class="surah-vocabulary-entry"><summary><b lang="ar" dir="rtl">${escapeHTML(item.word)}</b><span>صورتِ واژه در پیکره: ${faNumber(item.frequency)} بار · ${escapeHTML(surahReferenceLabel(item.reference))}</span></summary><div class="surah-vocabulary-context"><p><b>ترجمهٔ همان آیه در بافت</b>${escapeHTML(record.persian)}</p><small>این برگردان، ترجمهٔ کل آیه است؛ معادلِ تک‌واژه‌ای یا حکمِ لغویِ قطعی نیست.</small>${surahVerseButton(item.reference, "بازکردن پروندهٔ آیه")}</div></details>`
+  const entries = (Array.isArray(dossier.vocabulary) ? dossier.vocabulary : []).map((item) => {
+    const words = (Array.isArray(item.words) ? item.words : []).map((w) => {
+      return `<details class="surah-vocabulary-entry"><summary><b lang="ar" dir="rtl">${escapeHTML(w.surface || w.word || "")}</b><span>${escapeHTML(w.word || "")} · صورتِ واژه در پیکره: ${faNumber(w.frequency || 0)} بار · ${escapeHTML(surahReferenceLabel(w.reference || ""))}</span></summary><div class="surah-vocabulary-context">${item.focus ? `<p><b>محورِ بحثِ منبع:</b> ${escapeHTML(item.focus)}</p>` : ""}${item.excerpt ? `<blockquote lang="ar" dir="rtl">${escapeHTML(item.excerpt)}</blockquote>` : ""}${w.reference ? surahVerseButton(w.reference, "بازکردن پروندهٔ آیه") : ""}</div></details>`;
+    }).join("");
+    return words;
   }).filter(Boolean).join("");
-  return `<section class="detail-panel surah-vocabulary-panel"><p class="eyebrow">مفردات و لغات دشوار</p><h3>سه صورتِ کم‌تکرار برای بررسی در سیاق</h3><p class="reading-notice">واژه‌ها بر اساس بسامدِ صورتِ دقیق در متن انتخاب شده‌اند؛ کم‌تکراری لزوماً به معنای دشواری نیست. برای دیدنِ برگردانِ سیاقی، هر مدخل را باز کنید.</p><div class="surah-vocabulary-list">${entries || `<p class="study-unavailable">واژه‌ای برای نمایش در این فهرست نیست.</p>`}</div><p class="surah-source-note">متن عربی: Tanzil Uthmani · ترجمهٔ فارسی: فولادوند (fa.fooladvand)؛ انتساب و مشخصات منبع در پروندهٔ منابع برنامه آمده است.</p></section>`;
+  return `<section class="detail-panel surah-vocabulary-panel"><p class="eyebrow">مفردات و لغات دشوار</p><h3>واژه‌های کلیدیِ سوره در بحثِ منابع</h3><p class="reading-notice">واژه‌ها همراهِ صورتِ دقیقِ قرآنی و بحثِ منبع دربارهٔ آن‌ها آمده‌اند؛ گزیدهٔ عربی، متنِ خودِ منبعِ تفسیری است.</p><div class="surah-vocabulary-list">${entries || `<p class="study-unavailable">واژه‌ای برای نمایش در این فهرست نیست.</p>`}</div><p class="surah-source-note">متن عربی: Tanzil Uthmani · ترجمهٔ فارسی: فولادوند (fa.fooladvand)؛ انتساب و مشخصات منبع در پروندهٔ منابع برنامه آمده است.</p></section>`;
 }
 
 function renderSurahReflections(surah, dossier) {
-  const sourceId = dossier.reflections?.[0]?.sourceId;
-  const source = state.tafsirSources.find((item) => item.id === sourceId);
-  const quotes = (dossier.reflections || []).map((item) => {
-    const [surahNumber, ayahNumber] = item.reference.split(":").map(Number);
-    const entry = source?.verses?.[String(surahNumber)]?.[String(ayahNumber)];
-    if (!entry?.text || !item.text) return `<article class="surah-reflection-card"><p class="study-unavailable">نقلِ منبع برای آیهٔ ${escapeHTML(surahReferenceLabel(item.reference))} در این نسخه بارگیری نشد.</p></article>`;
-    const sourceUrl = /^https?:\/\//i.test(String(source.sourceUrl || "")) ? source.sourceUrl : "";
-    return `<article class="surah-reflection-card"><header><div><h4>نقل تفسیری</h4><small>${escapeHTML(source.title)} · ${escapeHTML(source.source)} · نسخهٔ ${escapeHTML(source.version)} · ذیل ${escapeHTML(surahReferenceLabel(item.reference))}</small></div>${surahVerseButton(item.reference)}</header><blockquote lang="${escapeHTML(source.language || "ar")}" dir="rtl">${escapeHTML(item.text)}</blockquote>${item.truncated ? `<small>گزیده؛ پایانِ عبارت با نشانِ حذف مشخص شده است.</small>` : ""}${sourceUrl ? `<a class="surah-source-link" href="${escapeHTML(sourceUrl)}" target="_blank" rel="noopener noreferrer">صفحهٔ منبع و نسخه ↗</a>` : ""}</article>`
-  }).join("");
-  return `<section class="detail-panel surah-reflections-panel"><p class="eyebrow">اقوال مهم و تأمل‌برانگیز</p><h3>دو نقلِ قابل پیگیری از یک منبع</h3><p class="reading-notice">نقل‌های زیر متنِ خودِ منبعِ درج‌شده در هر کارت‌اند؛ گزیده‌هایی از یک تفسیرند، نه اجماعِ مفسران یا تفسیرِ نهاییِ سوره.</p><div class="surah-reflection-list">${quotes || `<p class="study-unavailable">نقلِ تفسیری برای این سوره در دسترس نیست.</p>`}</div></section>`;
+  const quotes = (Array.isArray(dossier.reflections) ? dossier.reflections : []).map((item) => {
+    if (!item.quote) return "";
+    return `<article class="surah-reflection-card"><header><div><h4>نقل تفسیری</h4><small>${escapeHTML(surahSourceTitle(item.sourceId))} · ذیل ${escapeHTML(surahReferenceLabel(item.reference || ""))}</small></div>${item.reference ? surahVerseButton(item.reference) : ""}</header>${item.focus ? `<p><b>محورِ نقل:</b> ${escapeHTML(item.focus)}</p>` : ""}<blockquote lang="ar" dir="rtl">${escapeHTML(item.quote)}</blockquote>${item.quoteTruncated ? `<small>گزیده؛ پایانِ عبارت با نشانِ حذف مشخص شده است.</small>` : ""}</article>`;
+  }).filter(Boolean).join("");
+  return `<section class="detail-panel surah-reflections-panel"><p class="eyebrow">اقوال مهم و تأمل‌برانگیز</p><h3>نقل‌های قابل پیگیری از منابعِ سوره</h3><p class="reading-notice">نقل‌های زیر متنِ خودِ منبعِ درج‌شده در هر کارت‌اند؛ گزیده‌هایی از تفسیرند، نه اجماعِ مفسران یا تفسیرِ نهاییِ سوره.</p><div class="surah-reflection-list">${quotes || `<p class="study-unavailable">نقلِ تفسیری برای این سوره در دسترس نیست.</p>`}</div></section>`;
 }
 
 function renderSurah() {
@@ -1687,13 +1704,19 @@ function renderSurah() {
     $("#surah-panels").innerHTML = `<section class="detail-panel"><p class="study-unavailable">پروندهٔ سوره بارگیری نشد؛ لطفاً داده‌های آفلاین برنامه را به‌روز کنید.</p></section>`;
     return;
   }
-  const panels = {
-    overview: renderSurahOverview(surah, dossier),
-    themes: renderSurahThemes(dossier),
-    vocabulary: renderSurahVocabulary(surah, dossier),
-    reflections: renderSurahReflections(surah, dossier),
+  const renderers = {
+    overview: () => renderSurahOverview(surah, dossier),
+    themes: () => renderSurahThemes(dossier),
+    vocabulary: () => renderSurahVocabulary(surah, dossier),
+    reflections: () => renderSurahReflections(surah, dossier),
   };
-  $("#surah-panels").innerHTML = panels[state.surahTab] || panels.overview;
+  const render = renderers[state.surahTab] || renderers.overview;
+  try {
+    $("#surah-panels").innerHTML = render();
+  } catch (error) {
+    // خطای یک بخش نباید کلِ صفحهٔ سوره را از کار بیندازد.
+    $("#surah-panels").innerHTML = `<section class="detail-panel"><p class="study-unavailable">نمایشِ این بخشِ پروندهٔ سوره ممکن نشد؛ بخش‌های دیگر از زبانه‌های بالا در دسترس‌اند.</p></section>`;
+  }
 }
 
 function resultVerse(record, evidence, type = "exact") {

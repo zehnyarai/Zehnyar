@@ -210,8 +210,10 @@ def test_surah_ui_uses_source_excerpts_and_does_not_use_a_translation_as_a_gloss
     for label in ("نمای کلی سوره", "موضوعات محوری و کلیدی", "مفردات و لغات دشوار", "اقوال مهم و تأمل‌برانگیز"):
         assert label in html or label in app
     assert 'appPath("/static/surah-dossiers.json")' in service_worker
-    assert "zehnyar-shell-v83" in service_worker
-    assert "surahDossierMeta" in app
+    assert "zehnyar-shell-v84" in service_worker
+    assert "state.surahDossiers" in app
+    assert "function renderSurahReflections" in app
+    assert "function renderSurahVocabulary" in app
     assert "ayahMapping" in (ROOT / "tools" / "build_surah_dossiers.py").read_text(encoding="utf-8")
     assert "--sources-dir" in (ROOT / "tools" / "build_surah_dossiers.py").read_text(encoding="utf-8")
     dossier_renderer = app.split("function renderSurahOverview", 1)[1].split("function renderSurah()", 1)[0]
