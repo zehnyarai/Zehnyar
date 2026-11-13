@@ -86,11 +86,12 @@ def test_revised_batch_has_four_historical_uses_and_five_from_nisa_onward():
     revised = APP["revision"]
     assert revised["standard"] == "v3"
     covered = [vid for vid, entry in APP["verses"].items() if "uses" in entry]
-    assert len(covered) == revised["count"] == 1412, f"پوششِ بازنویسی‌شده {len(covered)} ≠ {revised['count']}"
-    assert revised["range"] == "۱:۱–۷ و ۲:۱–۲۸۶ و ۳:۱–۲۰۰ و ۴:۱–۱۷۶ و ۵:۱–۱۲۰ و ۶:۱–۱۶۵ و ۷:۱–۲۰۶ و ۸:۱–۷۵ و ۹:۱–۱۲۹ و ۱۰:۱–۴۸"
-    assert revised["previousRevision"]["count"] == 1364
-    assert revised["previousRevision"]["previousRevision"]["count"] == 1235
-    assert revised["previousRevision"]["previousRevision"]["previousRevision"]["count"] == 1160
+    assert len(covered) == revised["count"] == 6236, f"پوششِ بازنویسی‌شده {len(covered)} ≠ {revised['count']}"
+    assert revised["range"] == "۱:۱–۷ و ۲:۱–۲۸۶ و ۳:۱–۲۰۰ و ۴:۱–۱۷۶ و ۵:۱–۱۲۰ و ۶:۱–۱۶۵ و ۷:۱–۲۰۶ و ۸:۱–۷۵ و ۹:۱–۱۲۹ و ۱۰:۱–۴۸ و پرونده‌های افزوده تا ۱۱۴:۶"
+    assert revised["previousRevision"]["count"] == 1412
+    assert revised["previousRevision"]["previousRevision"]["count"] == 1364
+    assert revised["previousRevision"]["previousRevision"]["previousRevision"]["count"] == 1235
+    assert revised["previousRevision"]["previousRevision"]["previousRevision"]["previousRevision"]["count"] == 1160
     for vid, entry in APP["verses"].items():
         if "uses" in entry:
             expected = 5 if int(vid.split(":", 1)[0]) >= 4 else 4
@@ -190,7 +191,7 @@ def test_al_imran_3_1_to_200_has_exactly_four_source_bound_study_uses():
     batch = next(batch for batch in APP["batches"] if batch["id"] == "batch-9")
     assert batch["segments"] == [["3:1", "3:200"]]
     assert batch["count"] == 200
-    assert APP["revision"]["count"] == 1412
+    assert APP["revision"]["count"] == 6236
     assert "۳:۱–۲۰۰" in APP["revision"]["ranges"]
 
     for ayah in range(1, 201):
@@ -238,7 +239,7 @@ def test_maida_5_1_to_120_has_five_source_bound_study_uses():
     batch = next(batch for batch in APP["batches"] if batch["id"] == "batch-11")
     assert batch["segments"] == [["5:1", "5:120"]]
     assert batch["count"] == 120
-    assert APP["revision"]["count"] == 1412
+    assert APP["revision"]["count"] == 6236
     assert "۵:۱–۱۲۰" in APP["revision"]["ranges"]
     for ayah in range(1, 121):
         verse_id = f"5:{ayah}"
@@ -265,10 +266,10 @@ def test_al_anam_6_1_to_165_has_five_source_bound_study_uses():
     batch = next(batch for batch in APP["batches"] if batch["id"] == "batch-12")
     assert batch["segments"] == [["6:1", "6:165"]]
     assert batch["count"] == 165
-    assert APP["revision"]["count"] == 1412
+    assert APP["revision"]["count"] == 6236
     assert "۶:۱–۱۶۵" in APP["revision"]["ranges"]
-    assert APP["revision"]["previousRevision"]["count"] == 1364
-    assert APP["revision"]["previousRevision"]["previousRevision"]["count"] == 1235
+    assert APP["revision"]["previousRevision"]["count"] == 1412
+    assert APP["revision"]["previousRevision"]["previousRevision"]["count"] == 1364
     assert "resolution 70/186" in APP["verses"]["6:152"]["uses"][4]["cite"]
     assert "para. 32" in APP["verses"]["6:152"]["uses"][4]["cite"]
     assert "بندِ ۳۲" in APP["verses"]["6:152"]["uses"][4]["guard"]
@@ -293,7 +294,7 @@ def test_araf_7_1_to_206_has_five_source_bound_applications():
     corpus_by_id = {f"{row[0]}:{row[1]}": row for row in CORPUS if isinstance(row, list)}
     batch = next(batch for batch in APP["batches"] if batch["id"] == "batch-13")
     assert batch["segments"] == [["7:1", "7:206"]] and batch["count"] == 206
-    assert APP["revision"]["count"] == 1412
+    assert APP["revision"]["count"] == 6236
     assert "۷:۱–۲۰۶" in APP["revision"]["ranges"]
     for ayah in range(1, 207):
         verse_id = f"7:{ayah}"
@@ -313,7 +314,7 @@ def test_anfal_8_1_to_75_has_five_source_bound_applications():
     corpus_by_id = {f"{row[0]}:{row[1]}": row for row in CORPUS if isinstance(row, list)}
     batch = next(batch for batch in APP["batches"] if batch["id"] == "batch-14")
     assert batch["segments"] == [["8:1", "8:75"]] and batch["count"] == 75
-    assert APP["revision"]["count"] == 1412
+    assert APP["revision"]["count"] == 6236
     assert "۸:۱–۷۵" in APP["revision"]["ranges"]
     for ayah in range(1, 76):
         verse_id = f"8:{ayah}"
@@ -329,7 +330,7 @@ def test_tawbah_9_1_to_129_has_five_source_bound_study_uses():
     corpus_by_id = {f"{row[0]}:{row[1]}": row for row in CORPUS if isinstance(row, list)}
     batch = next(batch for batch in APP["batches"] if batch["id"] == "batch-15")
     assert batch["segments"] == [["9:1", "9:129"]] and batch["count"] == 129
-    assert APP["revision"]["count"] == 1412
+    assert APP["revision"]["count"] == 6236
     assert "۹:۱–۱۲۹" in APP["revision"]["ranges"]
     assert "۱۰:۱–۴۸" in APP["revision"]["ranges"]
     for ayah in range(1, 130):
@@ -359,8 +360,8 @@ def test_yunus_10_1_to_48_has_five_source_bound_uses_in_four_registered_packs():
         ["10:25", "10:36"], ["10:37", "10:48"],
     ]
     assert batch["count"] == 48
-    assert APP["revision"]["count"] == 1412
-    assert APP["revision"]["previousRevision"]["count"] == 1364
+    assert APP["revision"]["count"] == 6236
+    assert APP["revision"]["previousRevision"]["count"] == 1412
     assert "۱۰:۱–۴۸" in APP["revision"]["ranges"]
     direct_mizan = 0
     for ayah in range(1, 49):

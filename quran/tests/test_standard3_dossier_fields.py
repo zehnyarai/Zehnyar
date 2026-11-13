@@ -24308,3 +24308,27 @@ def test_extended_entries_carry_cite_evidence_and_limit():
             for entry in field["entries"]:
                 assert entry.get("kind", "").strip(), (verse_id, field_id)
                 assert all(entry.get(k, "").strip() for k in ("cite", "evidence", "limit")), (verse_id, field_id)
+
+
+def test_critical_and_research_fields_carry_verse_derived_questions():
+    crit_hits = 0
+    res_hits = 0
+    for verse_id, verse in DATA["verses"].items():
+        if any(e["text"].startswith("پرسشِ انتقادی دربارهٔ") for e in verse["critical"]):
+            crit_hits += 1
+        if any(e["text"].startswith("مسئلهٔ پژوهشِ معاصر دربارهٔ") for e in verse["research"]):
+            res_hits += 1
+    assert crit_hits >= 1800, crit_hits
+    assert res_hits >= 1700, res_hits
+
+
+def test_bible_comparison_names_the_biblical_parallel_domain():
+    hits = 0
+    for verse_id, verse in DATA["verses"].items():
+        ents = verse["extendedFields"]["bibleComparison"].get("entries") or []
+        if not ents:
+            continue
+        e = ents[0]
+        if "شباهت:" in e["text"] and "تفاوت:" in e["text"]:
+            hits += 1
+    assert hits >= 500, hits
