@@ -288,6 +288,7 @@ jobs:
           grep -Fq 'maven.myket.ir' android/settings.gradle || { echo '::error::Myket Maven repository missing from settings.gradle'; exit 1; }
           grep -Fq 'maven.myket.ir' android/build.gradle || { echo '::error::Myket Maven repository missing from root build.gradle'; exit 1; }
           grep -Fq "marketApplicationId: 'ir.mservices.market'" android/app/build.gradle || { echo '::error::Myket app manifest placeholders missing'; exit 1; }
+          grep -Fq "excludes += 'META-INF/versions/9/OSGI-INF/MANIFEST.MF'" android/app/build.gradle || { echo '::error::Myket OSGi metadata packaging exclusion missing'; exit 1; }
 
       - name: Configure release signing
         run: node tools/android_prepare.js

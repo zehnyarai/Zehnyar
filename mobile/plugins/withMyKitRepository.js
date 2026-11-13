@@ -48,6 +48,15 @@ const withMyketRepositories = (config) => withProjectBuildGradle(withSettingsRep
 // Placeholders from the Myket SDK's AAR manifest must be supplied by the app;
 // setting them in the library module does not satisfy the app's manifest merge.
 const withMyketManifestPlaceholders = (config) => withAppBuildGradle(config, (mod) => {
+  // logging-interceptor and jspecify both ship this OSGi metadata file.
+  // It is not an Android runtime resource; exclude only this exact path.
+  const osgiMetadata = 'META-INF/versions/9/OSGI-INF/MANIFEST.MF';
+  if (!mod.modResults.contents.includes("excludes += '" + osgiMetadata + "'")) {
+    const packaging = /packagingOptions\s*\{/;
+    if (!packaging.test(mod.modResults.contents)) throw new Error('Cannot find Android app packagingOptions for Myket');
+    mod.modResults.contents = mod.modResults.contents.replace(packaging, `packagingOptions {
+        resources { excludes += '${osgiMetadata}' }`);
+  }
   const contents = mod.modResults.contents;
   if (contents.includes("marketApplicationId: 'ir.mservices.market'")) return mod;
   const defaultConfig = /defaultConfig\s*\{/;
