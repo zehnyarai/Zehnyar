@@ -352,8 +352,10 @@ jobs:
           VISAYAR_PAYMENT_BANK_NAME: ''
           VISAYAR_STORE: myket
           VISAYAR_MYKET_IAB: '1'
+          VISAYAR_MYKET_RSA_PUBLIC_KEY: ${{ secrets.VISAYAR_MYKET_RSA_PUBLIC_KEY }}
           VISAYAR_CAFEBAZAAR_IAB: '0'
         run: |
+          test -n "$VISAYAR_MYKET_RSA_PUBLIC_KEY" || { echo '::error::Missing Myket public key during JS bundling'; exit 1; }
           chmod +x ./gradlew
           ./gradlew assembleRelease --no-daemon
 
