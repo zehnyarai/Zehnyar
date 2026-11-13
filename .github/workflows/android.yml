@@ -471,7 +471,7 @@ jobs:
           ./gradlew assembleRelease --no-daemon
 
       - name: Verify Myket APK package, version, and permissions
-        if: ${{ steps.resolve-release.outputs.bazaar_draft == 'true' && steps.resolve-release.outputs.bazaar_iab != 'true' }}
+        if: ${{ steps.resolve-release.outputs.myket_iab == 'true' }}
         run: |
           set -euo pipefail
           APK=mobile/android/app/build/outputs/apk/release/app-release.apk
