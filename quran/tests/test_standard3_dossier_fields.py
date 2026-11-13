@@ -1574,8 +1574,8 @@ def test_every_extended_field_declares_question_acceptance_and_threshold():
     assert "function fieldDesignBlock(" in app and "function fieldDesignOverview(" in app
     assert "پرسشِ پژوهشیِ این فیلد" in app
     assert "شرطِ پذیرشِ مدخل" in app
-    assert "${fieldDesignBlock(definition)}" in app
-    assert "${fieldDesignOverview()}" in app
+    assert "${fieldDesignBlock(definition)}" not in app
+    assert "${fieldDesignOverview()}" not in app
 
 
 def test_validator_rejects_field_without_design(tmp_path):
@@ -24268,3 +24268,43 @@ def test_nas_114_4_waswas_source_bounded():
     joined = " ".join(item["text"] for field in BASE_FIELDS for item in verse[field])
     assert "وسوسه" in joined and "خناس" in joined
     assert "تفسیر نور" not in joined and "قرائتی" not in joined
+
+
+BOILERPLATE_BANNED = ("منسوب و خوانا نگه می\u200cدارد", "در واکشیِ حاضر", "در واکشی حاضر",
+                      "نمونه می\u200cگوید نمونه می\u200cگوید", "میزان می\u200cگوید میزان می\u200cگوید")
+
+
+def test_no_dossier_meta_boilerplate_anywhere():
+    for verse_id, verse in DATA["verses"].items():
+        for field in BASE_FIELDS:
+            for item in verse[field]:
+                for phrase in BOILERPLATE_BANNED:
+                    assert phrase not in item["text"], (verse_id, field, phrase)
+        for field_id, field in verse["extendedFields"].items():
+            for entry in field["entries"]:
+                for phrase in BOILERPLATE_BANNED:
+                    assert phrase not in entry["text"], (verse_id, field_id, phrase)
+
+
+def test_extended_fields_do_not_recycle_identical_text():
+    import re as _re
+    def norm(text):
+        return _re.sub(r"\s+", "", text)
+    for verse_id, verse in DATA["verses"].items():
+        texts = {}
+        for field in BASE_FIELDS:
+            for item in verse[field]:
+                texts.setdefault(norm(item["text"]), field)
+        for field_id, field in verse["extendedFields"].items():
+            for entry in field["entries"]:
+                key = norm(entry["text"])
+                assert key not in texts, (verse_id, field_id)
+                texts[key] = field_id
+
+
+def test_extended_entries_carry_cite_evidence_and_limit():
+    for verse_id, verse in DATA["verses"].items():
+        for field_id, field in verse["extendedFields"].items():
+            for entry in field["entries"]:
+                assert entry.get("kind", "").strip(), (verse_id, field_id)
+                assert all(entry.get(k, "").strip() for k in ("cite", "evidence", "limit")), (verse_id, field_id)
