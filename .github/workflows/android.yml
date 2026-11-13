@@ -277,7 +277,7 @@ jobs:
         run: node tools/android_prepare.js
 
       - name: Build release APK
-        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' && steps.resolve-release.outputs.bazaar_iab != 'true' }}
+        if: ${{ steps.resolve-release.outputs.bazaar_draft != 'true' && steps.resolve-release.outputs.bazaar_iab != 'true' && steps.resolve-release.outputs.myket_iab != 'true' }}
         working-directory: mobile/android
         env:
           VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
@@ -315,6 +315,13 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew assembleRelease --no-daemon
+
+      - name: Compile Myket billing module before the full APK build
+        if: ${{ steps.resolve-release.outputs.myket_iab == 'true' }}
+        working-directory: mobile/android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :expo-myket-billing:compileReleaseKotlin --no-daemon
 
       - name: Build Myket IAB APK
         if: ${{ steps.resolve-release.outputs.myket_iab == 'true' }}

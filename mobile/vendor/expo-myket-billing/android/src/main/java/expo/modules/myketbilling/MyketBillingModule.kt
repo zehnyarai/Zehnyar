@@ -91,31 +91,31 @@ class MyketBillingModule : Module() {
           val products = mutableListOf<Map<String, Any>>()
           val purchases = mutableListOf<Map<String, Any>>()
 
-          inventory.mSkuMap?.forEach { sku, details ->
+          inventory.getAllProducts().forEach { details ->
             val map = mutableMapOf<String, Any>()
-            map["sku"] = details.mSku
-            map["title"] = details.mTitle
-            map["price"] = details.mPrice
-            map["description"] = details.mDescription
-            map["type"] = details.mType
-            map["itemType"] = details.mItemType
-            map["json"] = details.mJson
+            map["sku"] = details.getSku()
+            map["title"] = details.getTitle()
+            map["price"] = details.getPrice()
+            map["description"] = details.getDescription()
+            map["type"] = details.getType()
+            map["itemType"] = details.getType()
+            map["json"] = details.toJson().toString()
             products.add(map)
           }
 
-          inventory.mPurchaseMap?.forEach { sku, purchase ->
+          inventory.getAllPurchases().forEach { purchase ->
             val map = mutableMapOf<String, Any>()
-            map["sku"] = purchase.mSku
-            map["orderId"] = purchase.mOrderId
-            map["packageName"] = purchase.mPackageName
-            map["purchaseTime"] = purchase.mPurchaseTime
-            map["purchaseState"] = purchase.mPurchaseState
-            map["developerPayload"] = purchase.mDeveloperPayload
-            map["token"] = purchase.mToken
-            map["originalJson"] = purchase.mOriginalJson
-            map["signature"] = purchase.mSignature
+            map["sku"] = purchase.getSku()
+            map["orderId"] = purchase.getOrderId()
+            map["packageName"] = purchase.getPackageName()
+            map["purchaseTime"] = purchase.getPurchaseTime()
+            map["purchaseState"] = purchase.getPurchaseState()
+            map["developerPayload"] = purchase.getDeveloperPayload()
+            map["token"] = purchase.getToken()
+            map["originalJson"] = purchase.getOriginalJson()
+            map["signature"] = purchase.getSignature()
             purchases.add(map)
-            purchaseCache[purchase.mToken] = purchase
+            purchaseCache[purchase.getToken()] = purchase
           }
 
           settleOnce(true, "", "", mapOf(
@@ -149,26 +149,26 @@ class MyketBillingModule : Module() {
         helper.launchPurchaseFlow(
           activity,
           sku,
-          developerPayload,
           { result, purchase ->
             if (result.isFailure || purchase == null) {
               settleOnce(false, "ERR_PURCHASE", result.message ?: "Purchase failed or canceled", null)
               return@launchPurchaseFlow
             }
-            purchaseCache[purchase.mToken] = purchase
+            purchaseCache[purchase.getToken()] = purchase
             settleOnce(true, "", "", mapOf(
-              "sku" to purchase.mSku,
-              "orderId" to purchase.mOrderId,
-              "packageName" to purchase.mPackageName,
-              "purchaseTime" to purchase.mPurchaseTime,
-              "purchaseState" to purchase.mPurchaseState,
-              "developerPayload" to purchase.mDeveloperPayload,
-              "token" to purchase.mToken,
-              "originalJson" to purchase.mOriginalJson,
-              "signature" to purchase.mSignature,
+              "sku" to purchase.getSku(),
+              "orderId" to purchase.getOrderId(),
+              "packageName" to purchase.getPackageName(),
+              "purchaseTime" to purchase.getPurchaseTime(),
+              "purchaseState" to purchase.getPurchaseState(),
+              "developerPayload" to purchase.getDeveloperPayload(),
+              "token" to purchase.getToken(),
+              "originalJson" to purchase.getOriginalJson(),
+              "signature" to purchase.getSignature(),
               "responseCode" to result.response
             ))
-          }
+          },
+          developerPayload ?: ""
         )
       }
     }
@@ -221,18 +221,18 @@ class MyketBillingModule : Module() {
             return@queryInventoryAsync
           }
           val list = mutableListOf<Map<String, Any>>()
-          inventory.mPurchaseMap?.forEach { sku, purchase ->
-            purchaseCache[purchase.mToken] = purchase
+          inventory.getAllPurchases().forEach { purchase ->
+            purchaseCache[purchase.getToken()] = purchase
             list.add(mapOf(
-              "sku" to purchase.mSku,
-              "orderId" to purchase.mOrderId,
-              "packageName" to purchase.mPackageName,
-              "purchaseTime" to purchase.mPurchaseTime,
-              "purchaseState" to purchase.mPurchaseState,
-              "developerPayload" to purchase.mDeveloperPayload,
-              "token" to purchase.mToken,
-              "originalJson" to purchase.mOriginalJson,
-              "signature" to purchase.mSignature
+              "sku" to purchase.getSku(),
+              "orderId" to purchase.getOrderId(),
+              "packageName" to purchase.getPackageName(),
+              "purchaseTime" to purchase.getPurchaseTime(),
+              "purchaseState" to purchase.getPurchaseState(),
+              "developerPayload" to purchase.getDeveloperPayload(),
+              "token" to purchase.getToken(),
+              "originalJson" to purchase.getOriginalJson(),
+              "signature" to purchase.getSignature()
             ))
           }
           settleOnce(true, "", "", list)
@@ -259,15 +259,15 @@ class MyketBillingModule : Module() {
             return@queryInventoryAsync
           }
           val list = mutableListOf<Map<String, Any>>()
-          inventory.mSkuMap?.forEach { sku, details ->
+          inventory.getAllProducts().forEach { details ->
             list.add(mapOf(
-              "sku" to details.mSku,
-              "title" to details.mTitle,
-              "price" to details.mPrice,
-              "description" to details.mDescription,
-              "type" to details.mType,
-              "itemType" to details.mItemType,
-              "json" to details.mJson
+              "sku" to details.getSku(),
+              "title" to details.getTitle(),
+              "price" to details.getPrice(),
+              "description" to details.getDescription(),
+              "type" to details.getType(),
+              "itemType" to details.getType(),
+              "json" to details.toJson().toString()
             ))
           }
           settleOnce(true, "", "", list)
