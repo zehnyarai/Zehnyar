@@ -1161,6 +1161,18 @@ function allLegacyFieldSection(verse, field) {
   return `<article class="all-dossier-field"><header><h4>${escapeHTML(meta.title)}</h4><span>${items ? "دادهٔ ثبت‌شده" : "نیازمند ثبت"}</span></header>${list}</article>`;
 }
 
+function lexicalItemsForVerse(verse) {
+  const dossier = state.surahDossiers[String(verse.surah)] || null;
+  if (!dossier || !Array.isArray(dossier.vocabulary)) return [];
+  const items = [];
+  for (const item of dossier.vocabulary) {
+    for (const w of Array.isArray(item.words) ? item.words : []) {
+      if (surahSingleReference(w.reference) === verse.id) items.push(w);
+    }
+  }
+  return items;
+}
+
 function verseLexicalBlock(verse) {
   // واژگانِ همین آیه که در بحثِ لغویِ منابع آمده‌اند؛ گزیده، متنِ خودِ منبع است و
   // معنای تک‌واژه‌ایِ ساخته‌شده ارائه نمی‌شود.
@@ -1262,16 +1274,43 @@ function legacyStudyGroups(verse) {
   return `<section class="detail-panel legacy-study-panel" data-legacy-study-panel="true"><p class="eyebrow">فیلدهای پیشینِ همین آیه</p><h3>هشت فیلدِ تحریری، در کنارِ شش فیلدِ پایه و ده فیلدِ افزوده</h3><p class="reading-notice">این بندها پیش از افزودنِ ده فیلدِ تازه نوشته شده‌اند و حذف نمی‌شوند؛ هر مدخل شاهد یا پرسشِ خود را دارد و پیش‌نویسِ نیازمندِ بازبینی است. برای دیدنِ هر فیلد در نمای کامل هم می‌توانید از زبانه‌های بالا استفاده کنید.</p><p class="dossier-review-status"><b>وضعیتِ لایهٔ پیشین:</b> ${escapeHTML(annotation.status || "ثبت نشده")}</p></section>${groups}`;
 }
 
+function fieldIndexItem(tab, label, count) {
+  const has = Number(count) > 0;
+  return `<button class="field-index-item ${has ? "has-content" : "pending"}" type="button" data-goto-tab="${tab}"><span class="field-index-label">${escapeHTML(label)}</span><span class="field-index-status">${has ? `${faNumber(count)} بند` : "نیازمند پژوهش"}</span><i aria-hidden="true">←</i></button>`;
+}
+
 function completeDossierPanel(verse) {
+  // چیدمانِ درخواستی: متن و ترجمهٔ آیه در بالای صفحه است؛ این‌جا فقط عنوانِ
+  // فیلدها یکجا می‌آید و کاربر با زدن روی هر عنوان وارد محتوای همان فیلد می‌شود.
   const dossier = dossierFor(verse);
   const review = dossier?.reviewStatus || dossier?.status || "وضعیتِ داوری برای این آیه ثبت نشده است.";
-  const fieldDefinitions = state.standard3Dossier?.fields?.length ? state.standard3Dossier.fields : STANDARD3_FIELD_FALLBACKS;
-  const legacy = LEGACY_DOSSIER_ORDER.map((field) => allLegacyFieldSection(verse, field)).join("");
-  const extendedParts = fieldDefinitions.map((field) => ({ field, html: standard3FieldSection(verse, field, true) }));
-  const extended = extendedParts.filter((part) => part.html).map((part) => part.html).join("");
-  const pendingLabels = extendedParts.filter((part) => !part.html).map((part) => part.field.label);
-  const pending = pendingLabels.length ? `<article class="all-dossier-field standard3-pending"><header><h4>فیلدهای نیازمندِ پژوهش برای این آیه</h4><span class="standard3-status pending">${faNumber(pendingLabels.length)} فیلد</span></header><p class="standard3-pending-list">${pendingLabels.map((label) => escapeHTML(label)).join(" · ")}</p><p class="field-gap-note">برای این فیلدها هنوز بندِ مستند و برگرفته از همین آیه ثبت نشده است؛ به‌جای متنِ تکراری و قالبی، خلأ صادقانه نشان داده می‌شود.</p></article>` : "";
-  return `<section class="complete-dossier"><section class="detail-panel complete-dossier-intro"><p class="eyebrow">پروندهٔ کاملِ آیه</p><h3>همهٔ فیلدها زیرِ همین آیه</h3><p class="reading-notice">این نمای یکپارچه شش فیلدِ پایه، هشت فیلدِ پیشین (نکات، پیام‌ها، اصول، چارچوب معنایی، تفسیر موضوعی، نظم شبکه‌ای، سیاق و پژوهش) و ده فیلدِ افزوده را همگی زیرِ ${escapeHTML(verse.reference)} می‌آورد. هر فیلد وضعیتِ مستقل دارد؛ خالی‌بودن یعنی داده هنوز گردآوری نشده، نه اینکه موضوع بی‌اهمیت است.</p><p class="dossier-review-status"><b>وضعیتِ دادهٔ پایه:</b> ${escapeHTML(review)}</p>${sourceMixBlock(verse)}</section><section class="all-dossier-group"><h3>شش فیلدِ پایه</h3><div class="all-dossier-grid legacy-dossier-grid">${legacy}</div></section>${archivedBaseSection(verse)}${legacyStudyGroups(verse)}<section class="all-dossier-group"><h3>ده فیلدِ افزوده</h3><div class="all-dossier-grid standard3-grid">${extended}${pending}</div></section></section>`;
+  const definitions = standard3FieldDefinitions();
+  const baseItems = [
+    ["notes", "نکات مهم آیه", (dossier?.notes || []).length],
+    ["context", "سیاق و جایگاه", (dossier?.context || []).length],
+    ["tafsir", "خوانش‌های کهن و منابع تفسیری", (dossier?.classical || []).length],
+    ["modern", "مطالعات معاصر", (dossier?.modern || []).length],
+    ["critical", "خوانش انتقادی", (dossier?.critical || []).length],
+    ["research", "پژوهش در آیه", (dossier?.research || []).length],
+  ].map(([tab, label, count]) => fieldIndexItem(tab, label, count)).join("");
+  const annotation = reviewedStudyFor(verse);
+  const studyItems = [
+    ["messages", "پیام‌های آیه"], ["foundations", "اصول زندگی و مبانی"], ["framework", "چارچوب معنایی"],
+    ["thematic", "تفسیر موضوعی"], ["network", "نظم شبکه‌ای"],
+  ].map(([tab, label]) => {
+    const fieldId = tab === "foundations" ? "principles" : tab;
+    const value = annotation?.[fieldId];
+    const count = Array.isArray(value) ? value.length : value ? 1 : 0;
+    return fieldIndexItem(tab, label, count);
+  }).join("");
+  const applicationCount = (state.scholarApplication?.[verse.id]?.uses || []).length;
+  const extendedItems = definitions.map((definition) => {
+    const entries = dossier?.extendedFields?.[definition.id]?.entries || [];
+    let count = entries.length;
+    if (definition.id === "linguistics") count += lexicalItemsForVerse(verse).length;
+    return fieldIndexItem(`standard3_${definition.id}`, definition.label, count);
+  }).join("");
+  return `<section class="complete-dossier"><section class="detail-panel complete-dossier-intro"><p class="eyebrow">پروندهٔ آیه</p><h3>فیلدهای ${escapeHTML(verse.reference)}؛ روی هر عنوان بزنید</h3><p class="reading-notice">متن و ترجمهٔ آیه در بالای همین صفحه است. هر عنوان، فیلدِ مستقلِ همین آیه است و فقط مطالبی را نشان می‌دهد که برگرفته از مضمون و محتوای همین آیه و با ارجاعِ منبع‌اند؛ فیلدِ بی‌ماده «نیازمند پژوهش» می‌ماند و با متنِ تکراری پر نمی‌شود.</p><p class="dossier-review-status"><b>وضعیتِ دادهٔ پایه:</b> ${escapeHTML(review)}</p>${sourceMixBlock(verse)}</section><section class="all-dossier-group"><h3>شش فیلدِ پایه</h3><div class="field-index-grid">${baseItems}</div></section><section class="all-dossier-group"><h3>هشت فیلدِ پیشین و کاربست</h3><div class="field-index-grid">${studyItems}${fieldIndexItem("application", "کاربست امروز", applicationCount)}</div></section><section class="all-dossier-group"><h3>ده فیلدِ افزودهٔ پژوهشی</h3><div class="field-index-grid">${extendedItems}</div></section></section>`;
 }
 
 function standard3FieldDefinitions() {
@@ -2096,6 +2135,12 @@ $$(".result-filters button").forEach((button) => button.addEventListener("click"
   renderResults();
 }));
 
+$("#detail-panels").addEventListener("click", (event) => {
+  const item = event.target.closest("[data-goto-tab]");
+  if (!item) return;
+  state.detailTab = item.dataset.gotoTab;
+  renderDetail();
+});
 $$("#detail-screen [data-detail-tab]").forEach((button) => button.addEventListener("click", () => {
   state.detailTab = button.dataset.detailTab;
   renderDetail();

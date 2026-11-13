@@ -330,3 +330,12 @@ h1, h2, h3, p { margin-top: 0; } h1 { max-width: 740px; margin: 21px auto 15px; 
 .archive-field li { margin-block: .25rem; }
 .archive-field p { margin: 0; font-size: .95em; }
 .archive-field small { color: #555; }
+
+/* فهرستِ عنوانِ فیلدهای آیه؛ کلیک روی هر عنوان وارد همان فیلد می‌شود */
+.field-index-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+.field-index-item { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--line, #d8d2c4); border-radius: 10px; background: var(--card, #fff); cursor: pointer; text-align: right; font: inherit; }
+.field-index-item:hover { border-color: var(--accent, #8a6d3b); }
+.field-index-item .field-index-label { flex: 1; font-weight: 600; }
+.field-index-item .field-index-status { font-size: 12px; opacity: .75; white-space: nowrap; }
+.field-index-item.pending { opacity: .62; }
+.field-index-item i { font-style: normal; }
