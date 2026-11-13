@@ -155,18 +155,23 @@ export default function PaymentsScreen({ navigation }) {
     const loadMyketCatalog = async () => {
       const billing = getMyketBilling();
       if (!billing) {
-        setMyketError(t('payments.myketUnavailable'));
+        setMyketError(`${t('payments.myketUnavailable')} (MODULE_MISSING)`);
         return;
       }
       setMyketCatalogLoading(true);
       setMyketError('');
+      let stage = 'CONNECT';
       try {
-        await billing.connect({ rsaPublicKey: getMyketRsaPublicKey() });
+        const rsaPublicKey = getMyketRsaPublicKey();
+        if (!rsaPublicKey) throw new Error('RSA_KEY_MISSING');
+        await billing.connect({ rsaPublicKey });
+        stage = 'PRODUCTS';
         const details = await billing.getInAppSkuDetails(PACKAGES.map((item) => item.sku));
         if (!active) return;
         const prices = Object.fromEntries((details || []).map((item) => [item.sku, item.price]).filter(([sku, price]) => sku && price));
         setMyketPrices(prices);
         // Recover purchases on screen entry, not only before another purchase.
+        stage = 'RECOVERY';
         const pending = await billing.getPurchasedProducts();
         for (const purchase of pending || []) {
           if (!active) break;
@@ -175,7 +180,11 @@ export default function PaymentsScreen({ navigation }) {
         if (active) setBalance(await localCreditBalance());
         if (Object.keys(prices).length < PACKAGES.length) setMyketError(t('payments.myketProductsUnavailable'));
       } catch (error) {
-        if (active) setMyketError(t('payments.myketUnavailable'));
+        if (active) {
+          // Diagnostic for internal APK testing: never print the RSA key or purchase data.
+          const code = String(error?.code || error?.message || 'UNKNOWN').slice(0, 100);
+          setMyketError(`${t('payments.myketUnavailable')} [${stage}: ${code}]`);
+        }
       } finally {
         try { await billing.disconnect(); } catch (error) { /* no active connection to release */ }
         if (active) setMyketCatalogLoading(false);
