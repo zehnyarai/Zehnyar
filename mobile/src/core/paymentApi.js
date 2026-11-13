@@ -11,6 +11,7 @@ const SERVER_FREE_SYNCED_KEY = 'visayar.free.assessments.server-synced.v1';
 const LAST_REQUEST_KEY = 'visayar.payment.request.v1';
 const OFFLINE_PAID_STATE_KEY = 'visayar.offline-paid-state.v1';
 const BAZAAR_RECORD_QUEUE_KEY = 'visayar.bazaar.records.pending.v1';
+const MYKET_RECORD_QUEUE_KEY = 'visayar.myket.records.pending.v1';
 const ADMIN_TOKEN_KEY = 'visayar.admin.session.v1';
 const EXPERIENCE_CLIENT_TOKEN_KEY = 'visayar.experiences.client-token.v1';
 
@@ -65,9 +66,20 @@ async function readOfflinePaidState() {
       bazaarGrantIds: Array.isArray(state.bazaarGrantIds) ? state.bazaarGrantIds : [],
       // Bazaar purchase tokens whose credits live in the server ledger instead.
       bazaarServerIds: Array.isArray(state.bazaarServerIds) ? state.bazaarServerIds : [],
+      // Myket purchase tokens already granted on-device (never grant twice).
+      myketGrantIds: Array.isArray(state.myketGrantIds) ? state.myketGrantIds : [],
+      // Myket purchase tokens whose credits live in the server ledger instead.
+      myketServerIds: Array.isArray(state.myketServerIds) ? state.myketServerIds : [],
     };
   } catch (error) {
-    return { credits: 0, voucherIds: [], bazaarGrantIds: [], bazaarServerIds: [] };
+    return {
+      credits: 0,
+      voucherIds: [],
+      bazaarGrantIds: [],
+      bazaarServerIds: [],
+      myketGrantIds: [],
+      myketServerIds: [],
+    };
   }
 }
 
@@ -364,6 +376,110 @@ export async function flushBazaarPurchaseRecords() {
   } catch (error) {
     // Best-effort background bookkeeping; never surfaces to the user.
   }
+}
+
+// --- Myket In-App Billing (mirrors Bazaar ledger contract) ---
+
+let myketGrantLock = Promise.resolve();
+
+export function grantMyketPurchaseLocally(purchase, credits) {
+  const result = myketGrantLock.then(() => grantMyketPurchaseUnlocked(purchase, credits));
+  myketGrantLock = result.catch(() => {});
+  return result;
+}
+
+async function grantMyketPurchaseUnlocked(purchase, credits) {
+  const token = String(purchase?.token || purchase?.purchaseToken || '');
+  const state = await readOfflinePaidState();
+  if (!token || !(credits > 0)) return { creditsAdded: 0, paidCredits: state.credits };
+  if (state.myketGrantIds.includes(token) || state.myketServerIds.includes(token)) {
+    return { creditsAdded: 0, paidCredits: state.credits };
+  }
+  state.credits += credits;
+  state.myketGrantIds = [...state.myketGrantIds, token];
+  await AsyncStorage.setItem(OFFLINE_PAID_STATE_KEY, JSON.stringify(state));
+  return { creditsAdded: credits, paidCredits: state.credits };
+}
+
+async function moveMyketGrantToServerLedger(purchase, credits) {
+  const token = String(purchase?.token || purchase?.purchaseToken || '');
+  const state = await readOfflinePaidState();
+  if (!token || state.myketServerIds.includes(token)) return;
+  if (state.myketGrantIds.includes(token)) {
+    state.credits = Math.max(0, state.credits - (credits > 0 ? credits : 0));
+    state.myketGrantIds = state.myketGrantIds.filter((id) => id !== token);
+  }
+  state.myketServerIds = [...state.myketServerIds, token];
+  await AsyncStorage.setItem(OFFLINE_PAID_STATE_KEY, JSON.stringify(state));
+}
+
+async function recordMyketPurchase(purchase, credits) {
+  try {
+    const result = await registerMyketPurchase(purchase, { clientCredited: true });
+    const serverCredited = typeof result?.serverCredited === 'boolean' ? result.serverCredited : true;
+    if (serverCredited) await moveMyketGrantToServerLedger(purchase, credits);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+export async function queueMyketPurchaseRecord(purchase, credits) {
+  const token = String(purchase?.token || purchase?.purchaseToken || '');
+  if (!token) return;
+  if (await recordMyketPurchase(purchase, credits)) return;
+  try {
+    const raw = await AsyncStorage.getItem(MYKET_RECORD_QUEUE_KEY);
+    const queue = raw ? JSON.parse(raw) : [];
+    if (!queue.some((item) => item.token === token)) {
+      queue.push({
+        token,
+        credits,
+        purchase: {
+          purchaseToken: token,
+          originalJson: purchase.originalJson || '',
+          signature: purchase.signature || '',
+        },
+      });
+      await AsyncStorage.setItem(MYKET_RECORD_QUEUE_KEY, JSON.stringify(queue));
+    }
+  } catch (error) {
+    // The on-device credit grant already happened; the server record is
+    // bookkeeping only and may be retried on a later settle.
+  }
+}
+
+export async function flushMyketPurchaseRecords() {
+  try {
+    const raw = await AsyncStorage.getItem(MYKET_RECORD_QUEUE_KEY);
+    const queue = raw ? JSON.parse(raw) : [];
+    if (!queue.length) return;
+    const remaining = [];
+    for (const item of queue) {
+      const recorded = await recordMyketPurchase({ ...item.purchase, signature: item.purchase?.signature || item.purchase?.dataSignature }, item.credits);
+      if (!recorded) remaining.push(item);
+    }
+    await AsyncStorage.setItem(MYKET_RECORD_QUEUE_KEY, JSON.stringify(remaining));
+  } catch (error) {
+    // Best-effort background bookkeeping; never surfaces to the user.
+  }
+}
+
+export async function registerMyketPurchase(purchase, options = {}) {
+  if (!purchase || typeof purchase.originalJson !== 'string' || typeof purchase.signature !== 'string') {
+    throw new Error('INVALID_MYKET_PURCHASE_PROOF');
+  }
+  const installId = await getInstallId();
+  return api('/api/payments/myket/purchases', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      installId,
+      purchaseData: purchase.originalJson,
+      dataSignature: purchase.signature,
+      clientCredited: options.clientCredited === true,
+    }),
+  });
 }
 
 export async function submitReceipt({ sku, transferDate, trackingCode, phone = '', receipt }) {

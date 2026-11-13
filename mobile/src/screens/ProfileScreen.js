@@ -7,6 +7,7 @@ import { colors, fonts, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { useAppState } from '../core/appState';
 import { isBazaarIabBuild } from '../core/bazaarBilling';
+import { isMyketIabBuild } from '../core/myketBilling';
 import { formatVerifiedDate, getDatasetFreshness, getMeta, getTotals } from '../core/data';
 import { num } from '../core/format';
 import { Button, Card, Divider, KeyValue, Pill, PressableScale, ScrollScreen, SectionTitle, Text, TrustBadge } from '../components/ui';
@@ -16,6 +17,7 @@ const appVersion = (Constants.expoConfig && Constants.expoConfig.version) || 'â€
 export default function ProfileScreen({ navigation }) {
   const { t, lang, pick, setLanguage } = useI18n();
   const bazaarIab = isBazaarIabBuild();
+  const myketIab = isMyketIabBuild();
   const dir = useDirection();
   const { resetAll, hasAssessment, datasetSync, refreshDataset } = useAppState();
   const totals = getTotals();
@@ -149,7 +151,7 @@ export default function ProfileScreen({ navigation }) {
         <Card>
           <SectionTitle title={t('profile.privacyTitle')} />
           <Text variant="small" color={colors.ink70} style={{ marginTop: spacing.xs, textAlign: dir.text }}>
-            {t(bazaarIab ? 'profile.privacyBodyBazaar' : 'profile.privacyBody')}
+            {t(myketIab ? 'profile.privacyBodyMyket' : bazaarIab ? 'profile.privacyBodyBazaar' : 'profile.privacyBody')}
           </Text>
           <Divider style={{ marginVertical: spacing.sm }} />
           <SectionTitle title={t('profile.disclaimerTitle')} />

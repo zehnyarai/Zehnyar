@@ -9,6 +9,7 @@ import { localiseNumber, money } from '../core/format';
 import { useDirection, useI18n } from '../i18n';
 import { useAppState } from '../core/appState';
 import { isBazaarIabBuild } from '../core/bazaarBilling';
+import { isMyketIabBuild } from '../core/myketBilling';
 import { findOccupation, getDataset } from '../core/data';
 import {
   Button, Card, Chip, Divider, Field, IconButton, MoneyField, OptionCard, Pill,
@@ -32,6 +33,7 @@ export default function WizardScreen({ navigation, route = {} }) {
   const dir = useDirection();
   const { profile, updateProfile, updateNested, setProfile, compute, hydrated, privacyConsent, acceptPrivacyConsent } = useAppState();
   const bazaarIab = isBazaarIabBuild();
+  const myketIab = isMyketIabBuild();
   const requestedGoal = GOAL_STEPS[route.params?.goal] ? route.params.goal : null;
   const [selectedGoal, setSelectedGoal] = useState(() => requestedGoal || profile.goal || 'work');
   const [choosingGoal, setChoosingGoal] = useState(!requestedGoal);
@@ -158,7 +160,7 @@ export default function WizardScreen({ navigation, route = {} }) {
             <Text variant="body" style={{ textAlign: dir.text }}>{t('profile.consentIntro')}</Text>
             <Divider style={{ marginVertical: spacing.md }} />
             <Text variant="small" color={colors.ink70} style={{ textAlign: dir.text }}>
-              {t(bazaarIab ? 'profile.privacyBodyBazaar' : 'profile.privacyBody')}
+              {t(myketIab ? 'profile.privacyBodyMyket' : bazaarIab ? 'profile.privacyBodyBazaar' : 'profile.privacyBody')}
             </Text>
           </Card>
           <Button label={t('profile.acceptAndContinue')} onPress={accept} />

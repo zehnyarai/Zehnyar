@@ -8,8 +8,9 @@ import { useDirection, useI18n } from '../i18n';
 import { useAppState } from '../core/appState';
 import { Button, Card, Pill, PressableScale, ScrollScreen, SectionTitle, Text } from '../components/ui';
 import { groupThousands, toPersianDigits } from '../core/format';
-import { checkRequest, flushBazaarPurchaseRecords, getApiBase, getInstallId, getOfflinePaymentConfig, grantBazaarPurchaseLocally, loadCreditBalance, loadPaymentPanel, localCreditBalance, queueBazaarPurchaseRecord, submitReceipt } from '../core/paymentApi';
+import { checkRequest, flushBazaarPurchaseRecords, flushMyketPurchaseRecords, getApiBase, getInstallId, getOfflinePaymentConfig, grantBazaarPurchaseLocally, grantMyketPurchaseLocally, loadCreditBalance, loadPaymentPanel, localCreditBalance, queueBazaarPurchaseRecord, queueMyketPurchaseRecord, submitReceipt } from '../core/paymentApi';
 import { getCafeBazaarBilling, isBazaarIabBuild, BAZAAR_RSA_PUBLIC_KEY } from '../core/bazaarBilling';
+import { getMyketBilling, getMyketRsaPublicKey, isMyketIabBuild } from '../core/myketBilling';
 
 const PACKAGES = [
   { sku: 'assessment_1', credits: 1, priceToman: 600000, discountPercent: 0, label: 'single' },
@@ -74,16 +75,20 @@ export default function PaymentsScreen({ navigation }) {
   const [bazaarPrices, setBazaarPrices] = useState({});
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [bazaarError, setBazaarError] = useState('');
+  const myketIab = isMyketIabBuild();
+  const [myketPrices, setMyketPrices] = useState({});
+  const [myketCatalogLoading, setMyketCatalogLoading] = useState(false);
+  const [myketError, setMyketError] = useState('');
 
   const refresh = useCallback(async () => {
-    if (bazaarIab && !privacyConsent) {
+    if ((bazaarIab || myketIab) && !privacyConsent) {
       setPanel(null);
       setRequest(null);
       setBalance(null);
       setLoading(false);
       return;
     }
-    if (bazaarIab) {
+    if (bazaarIab || myketIab) {
       setPanel(null);
       setRequest(null);
       setLoading(true);
@@ -93,7 +98,7 @@ export default function PaymentsScreen({ navigation }) {
       // The server merge is best-effort: the on-device ledger is the source of
       // truth for Bazaar credits, so a dead server must never block the screen.
       loadCreditBalance().then(setBalance).catch(() => { /* keep the local balance */ });
-      flushBazaarPurchaseRecords().catch(() => { /* best-effort record sync */ });
+      (bazaarIab ? flushBazaarPurchaseRecords() : flushMyketPurchaseRecords()).catch(() => { /* best-effort record sync */ });
       return;
     }
     const fallback = getOfflinePaymentConfig();
@@ -111,7 +116,7 @@ export default function PaymentsScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
-  }, [bazaarIab, privacyConsent]);
+  }, [bazaarIab, myketIab, privacyConsent]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
@@ -143,6 +148,42 @@ export default function PaymentsScreen({ navigation }) {
     loadBazaarCatalog();
     return () => { active = false; };
   }, [bazaarIab, privacyConsent, t]);
+
+  useEffect(() => {
+    if (!myketIab || !privacyConsent) return undefined;
+    let active = true;
+    const loadMyketCatalog = async () => {
+      const billing = getMyketBilling();
+      if (!billing) {
+        setMyketError(t('payments.myketUnavailable'));
+        return;
+      }
+      setMyketCatalogLoading(true);
+      setMyketError('');
+      try {
+        await billing.connect({ rsaPublicKey: getMyketRsaPublicKey() });
+        const details = await billing.getInAppSkuDetails(PACKAGES.map((item) => item.sku));
+        if (!active) return;
+        const prices = Object.fromEntries((details || []).map((item) => [item.sku, item.price]).filter(([sku, price]) => sku && price));
+        setMyketPrices(prices);
+        // Recover purchases on screen entry, not only before another purchase.
+        const pending = await billing.getPurchasedProducts();
+        for (const purchase of pending || []) {
+          if (!active) break;
+          await settleMyketPurchase(billing, purchase);
+        }
+        if (active) setBalance(await localCreditBalance());
+        if (Object.keys(prices).length < PACKAGES.length) setMyketError(t('payments.myketProductsUnavailable'));
+      } catch (error) {
+        if (active) setMyketError(t('payments.myketUnavailable'));
+      } finally {
+        try { await billing.disconnect(); } catch (error) { /* no active connection to release */ }
+        if (active) setMyketCatalogLoading(false);
+      }
+    };
+    loadMyketCatalog();
+    return () => { active = false; };
+  }, [myketIab, privacyConsent, t]);
 
   const applyCreditDelta = (creditsAdded) => {
     if (!(creditsAdded > 0)) return;
@@ -224,6 +265,80 @@ export default function PaymentsScreen({ navigation }) {
     }
   };
 
+  // Completes a Myket purchase per Myket's own guide: the SDK verifies the
+  // purchase signature client-side (RSA public key), so we grant credits
+  // on-device (idempotent per purchase token), consume the purchase through
+  // the Myket app, and only then record the order on our server in the
+  // background for support/refund bookkeeping. No step may depend on our server.
+  const settleMyketPurchase = async (billing, purchase) => {
+    if (!purchase?.token || !purchase?.originalJson || !purchase?.signature) {
+      throw new Error('INVALID_MYKET_PURCHASE_PROOF');
+    }
+    const sku = purchase.sku;
+    const pkg = PACKAGES.find((item) => item.sku === sku);
+    if (!pkg) return null;
+    const grant = await grantMyketPurchaseLocally(purchase, pkg.credits);
+    let consumed = false;
+    try {
+      await billing.consumePurchase(purchase.token);
+      consumed = true;
+    } catch (error) {
+      // Purchase remains pending; recovery retries without granting twice.
+    }
+    await queueMyketPurchaseRecord(purchase, pkg.credits);
+    return { creditsAdded: grant.creditsAdded, consumed };
+  };
+
+  const buyWithMyket = async () => {
+    if (myketIab && !privacyConsent) {
+      Alert.alert(t('common.dismiss'), t('profile.acceptForOnline'));
+      return;
+    }
+    const billing = getMyketBilling();
+    if (!billing) {
+      Alert.alert(t('common.dismiss'), t('payments.myketUnavailable'));
+      return;
+    }
+    if (!myketPrices[selected]) {
+      Alert.alert(t('common.dismiss'), t('payments.myketProductsUnavailable'));
+      return;
+    }
+    setSending(true);
+    setMyketError('');
+    try {
+      await billing.connect({ rsaPublicKey: getMyketRsaPublicKey() });
+      // Retry any purchase left unconsumed by an app close/interruption before
+      // starting a new order. Recovery is best-effort.
+      const pending = await billing.getPurchasedProducts().catch(() => []);
+      let recoveredCredits = 0;
+      for (const purchase of pending || []) {
+        const recovered = await settleMyketPurchase(billing, purchase);
+        if (recovered) {
+          recoveredCredits += recovered.creditsAdded;
+          applyCreditDelta(recovered.creditsAdded);
+        }
+      }
+      if (recoveredCredits > 0) {
+        Alert.alert(t('payments.myketPurchaseSuccess'));
+        return;
+      }
+      const installId = await getInstallId();
+      const purchase = await billing.purchaseProduct(selected, { developerPayload: installId });
+      const result = await settleMyketPurchase(billing, purchase);
+      if (!result) throw new Error('INVALID_MYKET_PRODUCT');
+      applyCreditDelta(result.creditsAdded);
+      if (!result.consumed) throw new Error('MYKET_CONSUME_PENDING');
+      Alert.alert(t('payments.myketPurchaseSuccess'));
+    } catch (error) {
+      const message = t('payments.myketPurchaseError');
+      setMyketError(message);
+      Alert.alert(t('common.dismiss'), message);
+    } finally {
+      try { await billing.disconnect(); } catch (error) { /* billing may already have disconnected */ }
+      setSending(false);
+    }
+  };
+
   const chooseReceipt = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -284,6 +399,10 @@ export default function PaymentsScreen({ navigation }) {
     ? localizedBazaarPrice(bazaarPrices[selected], lang, t)
     : null;
   const bazaarBuyLabel = `${t('payments.bazaarBuy')} · ${t(`payments.${activePackage.label}`)}${bazaarDisplayedPrice ? ` · ${bazaarDisplayedPrice}` : ''}`;
+  const myketDisplayedPrice = myketPrices[selected]
+    ? localizedBazaarPrice(myketPrices[selected], lang, t)
+    : null;
+  const myketBuyLabel = `${t('payments.myketBuy')} · ${t(`payments.${activePackage.label}`)}${myketDisplayedPrice ? ` · ${myketDisplayedPrice}` : ''}`;
 
   useEffect(() => {
     if (bazaarIab || !onlineMode || !request?.id || request.status !== 'pending') return undefined;
@@ -309,7 +428,7 @@ export default function PaymentsScreen({ navigation }) {
     if (!saved) Alert.alert(t('common.dismiss'), t('profile.consentSaveError'));
   };
 
-  if (bazaarIab && !privacyConsent) {
+  if ((bazaarIab || myketIab) && !privacyConsent) {
     return (
       <ScrollScreen contentStyle={{ paddingBottom: 36 }}>
         <LinearGradient colors={gradients.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
@@ -318,7 +437,7 @@ export default function PaymentsScreen({ navigation }) {
         <View style={{ padding: spacing.md, gap: spacing.md }}>
           <Card>
             <Text variant="small" color={colors.ink70} style={{ textAlign: dir.text }}>
-              {t(bazaarIab ? 'profile.privacyBodyBazaar' : 'profile.privacyBody')}
+              {t(myketIab ? 'profile.privacyBodyMyket' : bazaarIab ? 'profile.privacyBodyBazaar' : 'profile.privacyBody')}
             </Text>
           </Card>
           <Button label={t('profile.acceptForOnline')} onPress={acceptOnlinePrivacy} />
@@ -360,7 +479,7 @@ export default function PaymentsScreen({ navigation }) {
 
       <View style={{ padding: spacing.md, gap: spacing.md }}>
         <Card>
-          <SectionTitle title={t('payments.packages')} subtitle={t(bazaarIab ? 'payments.bazaarCatalogIntro' : 'payments.pricesIntro')} />
+          <SectionTitle title={t('payments.packages')} subtitle={t(bazaarIab ? 'payments.bazaarCatalogIntro' : myketIab ? 'payments.myketCatalogIntro' : 'payments.pricesIntro')} />
           <View style={{ gap: spacing.xs, marginTop: spacing.md }}>
             {PACKAGES.map((item) => {
               const active = selected === item.sku;
@@ -371,15 +490,15 @@ export default function PaymentsScreen({ navigation }) {
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: dir.row, alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                         <Text variant="bodyStrong" style={{ color: colors.ink }}>{t(`payments.${item.label}`)}</Text>
-                        {!bazaarIab && item.discountPercent > 0 ? <Pill label={discountLabel(item.discountPercent, lang, t)} tone="sky" /> : null}
+                        {!bazaarIab && !myketIab && item.discountPercent > 0 ? <Pill label={discountLabel(item.discountPercent, lang, t)} tone="sky" /> : null}
                       </View>
-                      {!bazaarIab ? (
+                      {!bazaarIab && !myketIab ? (
                         <Text variant="micro" color={colors.ink50} style={{ marginTop: 3, textAlign: dir.text }}>
                           {amount(Math.round(item.priceToman / item.credits), lang, t)} {t('payments.perAssessment')}
                         </Text>
                       ) : null}
                     </View>
-                    <Text variant="h3" style={{ color: active ? colors.teal700 : colors.ink70 }}>{bazaarIab ? (bazaarPrices[item.sku] ? localizedBazaarPrice(bazaarPrices[item.sku], lang, t) : (catalogLoading ? t('payments.priceLoading') : '—')) : amount(item.priceToman, lang, t)}</Text>
+                    <Text variant="h3" style={{ color: active ? colors.teal700 : colors.ink70 }}>{bazaarIab ? (bazaarPrices[item.sku] ? localizedBazaarPrice(bazaarPrices[item.sku], lang, t) : (catalogLoading ? t('payments.priceLoading') : '—')) : myketIab ? (myketPrices[item.sku] ? localizedBazaarPrice(myketPrices[item.sku], lang, t) : (myketCatalogLoading ? t('payments.priceLoading') : '—')) : amount(item.priceToman, lang, t)}</Text>
                   </View>
                 </PressableScale>
               );
@@ -387,7 +506,47 @@ export default function PaymentsScreen({ navigation }) {
           </View>
         </Card>
 
-        {!bazaarIab ? <>
+        {bazaarIab ? (
+          <Card>
+            <SectionTitle title={t('payments.bazaarPurchaseTitle')} subtitle={t('payments.bazaarPurchaseHint')} />
+            {bazaarError ? (
+              <View style={styles.notice}>
+                <Ionicons name="information-circle-outline" size={22} color={colors.warn} />
+                <Text variant="small" color={colors.ink70} style={{ flex: 1, textAlign: dir.text }}>{bazaarError}</Text>
+              </View>
+            ) : null}
+            <Button
+              label={sending ? t('payments.bazaarProcessing') : bazaarBuyLabel}
+              icon="cart-outline"
+              loading={sending || catalogLoading}
+              disabled={sending || catalogLoading || !bazaarPrices[selected] || !onlineMode}
+              onPress={buyWithBazaar}
+              style={{ marginTop: spacing.md }}
+            />
+            {!onlineMode ? <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('payments.bazaarNeedsServer')}</Text> : null}
+            <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('payments.bazaarPrivacy')}</Text>
+          </Card>
+        ) : myketIab ? (
+          <Card>
+            <SectionTitle title={t('payments.myketPurchaseTitle')} subtitle={t('payments.myketPurchaseHint')} />
+            {myketError ? (
+              <View style={styles.notice}>
+                <Ionicons name="information-circle-outline" size={22} color={colors.warn} />
+                <Text variant="small" color={colors.ink70} style={{ flex: 1, textAlign: dir.text }}>{myketError}</Text>
+              </View>
+            ) : null}
+            <Button
+              label={sending ? t('payments.myketProcessing') : myketBuyLabel}
+              icon="cart-outline"
+              loading={sending || myketCatalogLoading}
+              disabled={sending || myketCatalogLoading || !myketPrices[selected]}
+              onPress={buyWithMyket}
+              style={{ marginTop: spacing.md }}
+            />
+            <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('payments.myketPrivacy')}</Text>
+          </Card>
+        ) : (
+          <>
         <Card>
           <SectionTitle
             title={t('payments.transferTitle')}
@@ -450,26 +609,7 @@ export default function PaymentsScreen({ navigation }) {
         </Card>
 
 
-        </> : (
-          <Card>
-            <SectionTitle title={t('payments.bazaarPurchaseTitle')} subtitle={t('payments.bazaarPurchaseHint')} />
-            {bazaarError ? (
-              <View style={styles.notice}>
-                <Ionicons name="information-circle-outline" size={22} color={colors.warn} />
-                <Text variant="small" color={colors.ink70} style={{ flex: 1, textAlign: dir.text }}>{bazaarError}</Text>
-              </View>
-            ) : null}
-            <Button
-              label={sending ? t('payments.bazaarProcessing') : bazaarBuyLabel}
-              icon="cart-outline"
-              loading={sending || catalogLoading}
-              disabled={sending || catalogLoading || !bazaarPrices[selected] || !onlineMode}
-              onPress={buyWithBazaar}
-              style={{ marginTop: spacing.md }}
-            />
-            {!onlineMode ? <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('payments.bazaarNeedsServer')}</Text> : null}
-            <Text variant="micro" color={colors.ink50} style={{ marginTop: spacing.sm, textAlign: dir.text }}>{t('payments.bazaarPrivacy')}</Text>
-          </Card>
+        </>
         )}
 
         {!bazaarIab && request ? (
