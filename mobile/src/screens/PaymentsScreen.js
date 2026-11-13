@@ -10,7 +10,7 @@ import { Button, Card, Pill, PressableScale, ScrollScreen, SectionTitle, Text } 
 import { groupThousands, toPersianDigits } from '../core/format';
 import { checkRequest, flushBazaarPurchaseRecords, flushMyketPurchaseRecords, getApiBase, getInstallId, getOfflinePaymentConfig, grantBazaarPurchaseLocally, grantMyketPurchaseLocally, loadCreditBalance, loadPaymentPanel, localCreditBalance, queueBazaarPurchaseRecord, queueMyketPurchaseRecord, submitReceipt } from '../core/paymentApi';
 import { getCafeBazaarBilling, isBazaarIabBuild, BAZAAR_RSA_PUBLIC_KEY } from '../core/bazaarBilling';
-import { getMyketBilling, isMyketIabBuild } from '../core/myketBilling';
+import { getMyketBilling, getMyketRsaPublicKey, isMyketIabBuild } from '../core/myketBilling';
 
 const PACKAGES = [
   { sku: 'assessment_1', credits: 1, priceToman: 600000, discountPercent: 0, label: 'single' },
@@ -81,14 +81,14 @@ export default function PaymentsScreen({ navigation }) {
   const [myketError, setMyketError] = useState('');
 
   const refresh = useCallback(async () => {
-    if (bazaarIab && !privacyConsent) {
+    if ((bazaarIab || myketIab) && !privacyConsent) {
       setPanel(null);
       setRequest(null);
       setBalance(null);
       setLoading(false);
       return;
     }
-    if (bazaarIab) {
+    if (bazaarIab || myketIab) {
       setPanel(null);
       setRequest(null);
       setLoading(true);
@@ -98,7 +98,7 @@ export default function PaymentsScreen({ navigation }) {
       // The server merge is best-effort: the on-device ledger is the source of
       // truth for Bazaar credits, so a dead server must never block the screen.
       loadCreditBalance().then(setBalance).catch(() => { /* keep the local balance */ });
-      flushBazaarPurchaseRecords().catch(() => { /* best-effort record sync */ });
+      (bazaarIab ? flushBazaarPurchaseRecords() : flushMyketPurchaseRecords()).catch(() => { /* best-effort record sync */ });
       return;
     }
     const fallback = getOfflinePaymentConfig();
@@ -116,7 +116,7 @@ export default function PaymentsScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
-  }, [bazaarIab, privacyConsent]);
+  }, [bazaarIab, myketIab, privacyConsent]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
@@ -166,6 +166,13 @@ export default function PaymentsScreen({ navigation }) {
         if (!active) return;
         const prices = Object.fromEntries((details || []).map((item) => [item.sku, item.price]).filter(([sku, price]) => sku && price));
         setMyketPrices(prices);
+        // Recover purchases on screen entry, not only before another purchase.
+        const pending = await billing.getPurchasedProducts();
+        for (const purchase of pending || []) {
+          if (!active) break;
+          await settleMyketPurchase(billing, purchase);
+        }
+        if (active) setBalance(await localCreditBalance());
         if (Object.keys(prices).length < PACKAGES.length) setMyketError(t('payments.myketProductsUnavailable'));
       } catch (error) {
         if (active) setMyketError(t('payments.myketUnavailable'));
@@ -271,14 +278,15 @@ export default function PaymentsScreen({ navigation }) {
     const pkg = PACKAGES.find((item) => item.sku === sku);
     if (!pkg) return null;
     const grant = await grantMyketPurchaseLocally(purchase, pkg.credits);
+    let consumed = false;
     try {
       await billing.consumePurchase(purchase.token);
+      consumed = true;
     } catch (error) {
-      // Keep the purchase pending on Myket's side; the next settle retries the
-      // consume without granting the credits again.
+      // Purchase remains pending; recovery retries without granting twice.
     }
-    queueMyketPurchaseRecord(purchase, pkg.credits);
-    return { creditsAdded: grant.creditsAdded, consumed: true };
+    await queueMyketPurchaseRecord(purchase, pkg.credits);
+    return { creditsAdded: grant.creditsAdded, consumed };
   };
 
   const buyWithMyket = async () => {
@@ -319,6 +327,7 @@ export default function PaymentsScreen({ navigation }) {
       const result = await settleMyketPurchase(billing, purchase);
       if (!result) throw new Error('INVALID_MYKET_PRODUCT');
       applyCreditDelta(result.creditsAdded);
+      if (!result.consumed) throw new Error('MYKET_CONSUME_PENDING');
       Alert.alert(t('payments.myketPurchaseSuccess'));
     } catch (error) {
       const message = t('payments.myketPurchaseError');
@@ -419,7 +428,7 @@ export default function PaymentsScreen({ navigation }) {
     if (!saved) Alert.alert(t('common.dismiss'), t('profile.consentSaveError'));
   };
 
-  if (bazaarIab && !privacyConsent) {
+  if ((bazaarIab || myketIab) && !privacyConsent) {
     return (
       <ScrollScreen contentStyle={{ paddingBottom: 36 }}>
         <LinearGradient colors={gradients.hero} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
@@ -428,7 +437,7 @@ export default function PaymentsScreen({ navigation }) {
         <View style={{ padding: spacing.md, gap: spacing.md }}>
           <Card>
             <Text variant="small" color={colors.ink70} style={{ textAlign: dir.text }}>
-              {t(bazaarIab ? 'profile.privacyBodyBazaar' : 'profile.privacyBody')}
+              {t(myketIab ? 'profile.privacyBodyMyket' : bazaarIab ? 'profile.privacyBodyBazaar' : 'profile.privacyBody')}
             </Text>
           </Card>
           <Button label={t('profile.acceptForOnline')} onPress={acceptOnlinePrivacy} />
@@ -470,7 +479,7 @@ export default function PaymentsScreen({ navigation }) {
 
       <View style={{ padding: spacing.md, gap: spacing.md }}>
         <Card>
-          <SectionTitle title={t('payments.packages')} subtitle={t(bazaarIab ? 'payments.bazaarCatalogIntro' : 'payments.pricesIntro')} />
+          <SectionTitle title={t('payments.packages')} subtitle={t(bazaarIab ? 'payments.bazaarCatalogIntro' : myketIab ? 'payments.myketCatalogIntro' : 'payments.pricesIntro')} />
           <View style={{ gap: spacing.xs, marginTop: spacing.md }}>
             {PACKAGES.map((item) => {
               const active = selected === item.sku;
@@ -481,15 +490,15 @@ export default function PaymentsScreen({ navigation }) {
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: dir.row, alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                         <Text variant="bodyStrong" style={{ color: colors.ink }}>{t(`payments.${item.label}`)}</Text>
-                        {!bazaarIab && item.discountPercent > 0 ? <Pill label={discountLabel(item.discountPercent, lang, t)} tone="sky" /> : null}
+                        {!bazaarIab && !myketIab && item.discountPercent > 0 ? <Pill label={discountLabel(item.discountPercent, lang, t)} tone="sky" /> : null}
                       </View>
-                      {!bazaarIab ? (
+                      {!bazaarIab && !myketIab ? (
                         <Text variant="micro" color={colors.ink50} style={{ marginTop: 3, textAlign: dir.text }}>
                           {amount(Math.round(item.priceToman / item.credits), lang, t)} {t('payments.perAssessment')}
                         </Text>
                       ) : null}
                     </View>
-                    <Text variant="h3" style={{ color: active ? colors.teal700 : colors.ink70 }}>{bazaarIab ? (bazaarPrices[item.sku] ? localizedBazaarPrice(bazaarPrices[item.sku], lang, t) : (catalogLoading ? t('payments.priceLoading') : '—')) : amount(item.priceToman, lang, t)}</Text>
+                    <Text variant="h3" style={{ color: active ? colors.teal700 : colors.ink70 }}>{bazaarIab ? (bazaarPrices[item.sku] ? localizedBazaarPrice(bazaarPrices[item.sku], lang, t) : (catalogLoading ? t('payments.priceLoading') : '—')) : myketIab ? (myketPrices[item.sku] ? localizedBazaarPrice(myketPrices[item.sku], lang, t) : (myketCatalogLoading ? t('payments.priceLoading') : '—')) : amount(item.priceToman, lang, t)}</Text>
                   </View>
                 </PressableScale>
               );

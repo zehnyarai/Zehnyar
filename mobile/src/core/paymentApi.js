@@ -380,7 +380,15 @@ export async function flushBazaarPurchaseRecords() {
 
 // --- Myket In-App Billing (mirrors Bazaar ledger contract) ---
 
-export async function grantMyketPurchaseLocally(purchase, credits) {
+let myketGrantLock = Promise.resolve();
+
+export function grantMyketPurchaseLocally(purchase, credits) {
+  const result = myketGrantLock.then(() => grantMyketPurchaseUnlocked(purchase, credits));
+  myketGrantLock = result.catch(() => {});
+  return result;
+}
+
+async function grantMyketPurchaseUnlocked(purchase, credits) {
   const token = String(purchase?.token || purchase?.purchaseToken || '');
   const state = await readOfflinePaidState();
   if (!token || !(credits > 0)) return { creditsAdded: 0, paidCredits: state.credits };
@@ -430,7 +438,7 @@ export async function queueMyketPurchaseRecord(purchase, credits) {
         purchase: {
           purchaseToken: token,
           originalJson: purchase.originalJson || '',
-          dataSignature: purchase.signature || '',
+          signature: purchase.signature || '',
         },
       });
       await AsyncStorage.setItem(MYKET_RECORD_QUEUE_KEY, JSON.stringify(queue));
@@ -448,7 +456,7 @@ export async function flushMyketPurchaseRecords() {
     if (!queue.length) return;
     const remaining = [];
     for (const item of queue) {
-      const recorded = await recordMyketPurchase(item.purchase, item.credits);
+      const recorded = await recordMyketPurchase({ ...item.purchase, signature: item.purchase?.signature || item.purchase?.dataSignature }, item.credits);
       if (!recorded) remaining.push(item);
     }
     await AsyncStorage.setItem(MYKET_RECORD_QUEUE_KEY, JSON.stringify(remaining));
