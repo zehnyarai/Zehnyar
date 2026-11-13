@@ -287,6 +287,7 @@ jobs:
           npx expo prebuild -p android --clean --no-install
           grep -Fq 'maven.myket.ir' android/settings.gradle || { echo '::error::Myket Maven repository missing from settings.gradle'; exit 1; }
           grep -Fq 'maven.myket.ir' android/build.gradle || { echo '::error::Myket Maven repository missing from root build.gradle'; exit 1; }
+          grep -Fq "marketApplicationId: 'ir.mservices.market'" android/app/build.gradle || { echo '::error::Myket app manifest placeholders missing'; exit 1; }
 
       - name: Configure release signing
         run: node tools/android_prepare.js
@@ -331,12 +332,12 @@ jobs:
           chmod +x ./gradlew
           ./gradlew assembleRelease --no-daemon
 
-      - name: Validate Myket native module and APK dependency classpath
+      - name: Validate Myket native code, dependencies and manifest
         if: ${{ steps.resolve-release.outputs.myket_iab == 'true' }}
         working-directory: mobile/android
         run: |
           chmod +x ./gradlew
-          ./gradlew :expo-myket-billing:compileReleaseKotlin :app:checkReleaseDuplicateClasses --no-daemon
+          ./gradlew :expo-myket-billing:compileReleaseKotlin :app:checkReleaseDuplicateClasses :app:processReleaseMainManifest --no-daemon
 
       - name: Build Myket IAB APK
         if: ${{ steps.resolve-release.outputs.myket_iab == 'true' }}

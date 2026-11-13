@@ -1,4 +1,4 @@
-const { withSettingsGradle, withProjectBuildGradle } = require('@expo/config-plugins');
+const { withSettingsGradle, withProjectBuildGradle, withAppBuildGradle } = require('@expo/config-plugins');
 
 // Gradle resolves Android dependencies from settings.gradle's repository list.
 // Adding Maven only to an app/module build.gradle does not make it available
@@ -38,9 +38,27 @@ const withSettingsRepository = (config) => withSettingsGradle(config, (mod) => {
 
 // Expo/React Native versions that use project repositories also need the root
 // project repository list. Module-local repositories are not inherited by :app.
-module.exports = (config) => withProjectBuildGradle(withSettingsRepository(config), (mod) => {
+const withMyketRepositories = (config) => withProjectBuildGradle(withSettingsRepository(config), (mod) => {
   if (!mod.modResults.contents.includes('maven.myket.ir')) {
     mod.modResults.contents += `\nallprojects {\n  repositories {\n    maven { url 'https://maven.myket.ir' }\n  }\n}\n`;
   }
   return mod;
 });
+
+// Placeholders from the Myket SDK's AAR manifest must be supplied by the app;
+// setting them in the library module does not satisfy the app's manifest merge.
+const withMyketManifestPlaceholders = (config) => withAppBuildGradle(config, (mod) => {
+  const contents = mod.modResults.contents;
+  if (contents.includes("marketApplicationId: 'ir.mservices.market'")) return mod;
+  const defaultConfig = /defaultConfig\s*\{/;
+  if (!defaultConfig.test(contents)) throw new Error('Cannot find Android app defaultConfig for Myket manifest placeholders');
+  mod.modResults.contents = contents.replace(defaultConfig, `defaultConfig {
+        manifestPlaceholders = [
+          marketApplicationId: 'ir.mservices.market',
+          marketBindAddress: 'ir.mservices.market.InAppBillingService.BIND',
+          marketPermission: 'ir.mservices.market.BILLING'
+        ]`);
+  return mod;
+});
+
+module.exports = (config) => withMyketManifestPlaceholders(withMyketRepositories(config));

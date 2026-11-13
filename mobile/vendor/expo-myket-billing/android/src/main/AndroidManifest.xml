@@ -12,11 +12,5 @@
         </intent>
     </queries>
 
-    <application>
-        <activity
-            android:name="expo.modules.myketbilling.BillingActivity"
-            android:exported="true"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-    </application>
 
 </manifest>
