@@ -2,8 +2,8 @@
   "name": "expo-myket-billing",
   "version": "1.0.0",
   "description": "Myket In-App Billing v2.2 vendored module for Visayar",
-  "main": "build/index.js",
-  "types": "build/index.d.ts",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "scripts": {},
   "license": "MIT",
   "repository": {

@@ -283,7 +283,8 @@ jobs:
           ];
           fs.writeFileSync(file, JSON.stringify(pkg, null, 2) + '\n');
           NODE
-          npx expo-modules-autolinking resolve --platform android --json | node -e "let raw='';process.stdin.on('data',x=>raw+=x);process.stdin.on('end',()=>{const names=JSON.parse(raw).modules.map(m=>m.packageName);if(names.includes('expo-cafebazaar-billing')||!names.includes('expo-myket-billing')){console.error('Incorrect Myket native module selection');process.exit(1)}console.log('Only Myket billing native module selected')})"
+          npx expo-modules-autolinking resolve --platform android --json | node -e "let raw='';process.stdin.on('data',x=>raw+=x);process.stdin.on('end',()=>{const names=JSON.parse(raw).modules.map(m=>m.packageName);if(names.includes('expo-cafebazaar-billing')||!names.includes('expo-myket-billing')||!JSON.parse(raw).modules.some(m=>m.packageName==='expo-myket-billing'&&m.projects.some(p=>p.modules.includes('expo.modules.myketbilling.MyketBillingModule')))){console.error('Incorrect Myket native module selection');process.exit(1)}console.log('Only Myket billing native module selected')})"
+          node -e "const fs=require('fs');const path=require.resolve('expo-myket-billing');if(!fs.existsSync(path))throw Error('Myket JS entry point missing');console.log('Myket JS entry point:',path)"
           npx expo prebuild -p android --clean --no-install
           grep -Fq 'maven.myket.ir' android/settings.gradle || { echo '::error::Myket Maven repository missing from settings.gradle'; exit 1; }
           grep -Fq 'maven.myket.ir' android/build.gradle || { echo '::error::Myket Maven repository missing from root build.gradle'; exit 1; }
