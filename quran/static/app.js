@@ -914,6 +914,8 @@ function renderDetail() {
   $("#detail-evidence").innerHTML = evidencePills(verse.evidence);
   updateSaveButton();
   $$("#detail-screen [data-detail-tab]").forEach((button) => {
+    // فیلدِ «کاربست امروز» برای همهٔ آیاتِ سورهٔ حمد (۱:۱–۷) به درخواستِ بازبینی حذف شده است.
+    button.hidden = button.dataset.detailTab === "application" && verse.surah === 1;
     const active = button.dataset.detailTab === state.detailTab;
     button.classList.toggle("active", active);
     button.setAttribute("aria-selected", String(active));
@@ -1573,6 +1575,7 @@ function batchForVerse(id) {
 }
 
 function applicationPanel(verse) {
+  if (verse.surah === 1) return "";
   const meta = state.scholarApplicationMeta;
   const entry = state.scholarApplication ? state.scholarApplication[verse.id] : null;
   const head = `<p class="eyebrow">کاربست امروز · استنباط، نه متن</p><h3>از متن به میدان، با مرزِ روشن</h3>
@@ -1605,6 +1608,7 @@ function methodBlock(meta) {
 function renderDetailPanel() {
   const verse = state.selected;
   if (!verse) return;
+  if (state.detailTab === "application" && verse.surah === 1) state.detailTab = "all";
   const standard3Definitions = state.standard3Dossier?.fields?.length ? state.standard3Dossier.fields : STANDARD3_FIELD_FALLBACKS;
   const panels = {
     ...Object.fromEntries(standard3Definitions.map((field) => [`standard3_${field.id}`, (item) => standard3FieldPanel(item, field.id)])),
