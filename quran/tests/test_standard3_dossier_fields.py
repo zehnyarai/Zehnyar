@@ -478,8 +478,11 @@ def test_ui_opens_one_ayah_level_view_with_all_sixteen_fields():
     assert "extendedFields" in APP
     assert "verse-dossier-extended-fields.json" in APP
     assert "function standard3FieldPanel" in APP
+    # بخشِ پایانیِ «فیلدهای تکمیلی» از نوار حذف شد؛ «پروندهٔ کامل · همهٔ فیلدها»
+    # همهٔ فیلدها را یکجا می‌آورد و زبانهٔ جداگانهٔ هر فیلدِ تکمیلی تکرار است.
     for field_id in EXPECTED_FIELDS:
-        assert f'data-detail-tab="standard3_{field_id}"' in HTML, field_id
+        assert f'data-detail-tab="standard3_{field_id}"' not in HTML, field_id
+    assert "فیلدهای تکمیلی" not in HTML
 
 
 def test_tawbah_63_to_64_have_sourced_dossiers_and_explicit_gaps():
@@ -1138,8 +1141,9 @@ def test_previous_fields_are_kept_alongside_the_ten_new_fields():
     assert "هشت فیلدِ پیشین" in APP
     html = (ROOT / "static" / "index.html").read_text(encoding="utf-8")
     assert "هشت فیلدِ پیشین" in html
-    for tab in ("data-detail-tab=\"notes\"", "data-detail-tab=\"messages\"", "data-detail-tab=\"foundations\""):
-        assert tab in html, tab
+    assert "data-detail-tab=\"notes\"" in html
+    for tab in ("data-detail-tab=\"messages\"", "data-detail-tab=\"foundations\""):
+        assert tab not in html, tab
 
 
 def test_v2_records_take_precedence_without_deleting_the_old_dossier():
