@@ -1123,28 +1123,7 @@ function dossierItems(verse, field) {
   }).join("")}</ol>`;
 }
 
-function dossierCoverage() {
-  const written = Object.keys(state.verseDossiers || {}).length;
-  const total = (state.corpus && state.corpus.length) || 6236;
-  const batches = (state.verseDossierMeta && state.verseDossierMeta.batches) || [];
-  const current = batches[batches.length - 1];
-  const scope = current ? ` · آخرین بستهٔ پایه: ${escapeHTML(current.range)}` : "";
-  const versionTwo = Object.values(state.verseDossiers || {}).filter((entry) => entry.standard === 2).length;
-  const standard = versionTwo ? ` ${faNumber(versionTwo)} آیه در نسخهٔ ۲ با شمارِ فیلدهای متناسب با دامنه ثبت شده‌اند؛ هر بند همچنان نیازمند بازبینی تخصصی است.` : "";
-  const extendedVerses = Object.values(state.standard3Dossier?.verses || {});
-  const extendedTotal = extendedVerses.reduce((sum, entry) => sum + Object.keys(entry.extendedFields || {}).length, 0);
-  const extendedComplete = extendedVerses.reduce((sum, entry) => sum + Object.values(entry.extendedFields || {}).filter((field) => field.status === "complete").length, 0);
-  const extendedNote = extendedTotal ? ` فیلدهای افزوده برای ${faNumber(extendedVerses.length)} آیه فهرست شده‌اند؛ ${faNumber(extendedComplete)} از ${faNumber(extendedTotal)} فیلد به معیارِ تکمیل رسیده‌اند.` : "";
-  return `<p class="dossier-progress"><b>پیشرفتِ پرونده</b> ${faNumber(written)} آیه از ${faNumber(total)} آیه خوانشِ تحریریِ شش‌فیلدی دارند؛${standard} بقیه با لنگرهای پژوهشی و برچسبِ پیش‌نویس نمایش داده می‌شوند${scope}.${extendedNote}</p>`;
-}
-
-function dossierMethodNote() {
-  const meta = state.verseDossierMeta;
-  const progress = dossierCoverage();
-  if (!meta || !meta.method) return progress;
-  const notice = meta.notice ? `<p class="reading-notice">${escapeHTML(meta.notice)}</p>` : "";
-  return `<details class="dossier-method"><summary>روشِ این خوانش و قاعدهٔ ارجاع</summary><p>${escapeHTML(meta.method)}</p>${notice}${progress}</details>`;
-}
+const CRITICAL_READING_METHOD = "روشِ برنامه در خوانشِ انتقادی: بر اساس دیدگاه‌های مطرح‌شده در منابعِ تفسیری و پژوهش‌های علمی دربارهٔ همین آیه، پرسشِ انتقادی طرح می‌شود تا خواننده به تأمل واداشته شود و در پیِ پاسخ برآید؛ در پایان نیز به منابعِ مرتبط ارجاع داده می‌شود. این پرسش‌ها تحلیل و تفکرِ انتقادی را تقویت می‌کنند: هر پرسش یعنی آزمودنِ پیش‌فرض‌های خوانش، سنجیدنِ دلیل‌های موافق و مخالف و بازخوانیِ خودِ آیه؛ و پاسخِ نهایی بر عهدهٔ خواننده است تا از همان منابعِ ارجاع‌شده و فراتر از آن پیگیری شود.";
 
 function detailPanelDossier(verse, field) {
   const meta = DOSSIER_FIELDS[field];
@@ -1152,7 +1131,8 @@ function detailPanelDossier(verse, field) {
   if (!items) return "";
   const dossier = dossierFor(verse);
   const badge = dossier && dossier.standard === 2 ? `<span class="standard-badge">نسخهٔ ۲ · نیازمندِ بازبینی تخصصی</span>` : "";
-  return `<section class="detail-panel dossier-panel"><p class="eyebrow">${escapeHTML(meta.eyebrow)}</p><h3>${escapeHTML((dossier && dossier.title) || meta.title)}${badge}</h3>${items}${dossierMethodNote()}</section>`;
+  const method = field === "critical" ? `<p class="reading-notice critical-method">${escapeHTML(CRITICAL_READING_METHOD)}</p>` : "";
+  return `<section class="detail-panel dossier-panel"><p class="eyebrow">${escapeHTML(meta.eyebrow)}</p><h3>${escapeHTML((dossier && dossier.title) || meta.title)}${badge}</h3>${method}${items}</section>`;
 }
 
 function allLegacyFieldSection(verse, field) {
@@ -1215,9 +1195,9 @@ function standard3FieldSection(verse, definition, compact = false) {
   const lexical = definition.id === "linguistics" ? verseLexicalBlock(verse) : "";
   if (compact && !entries.length && !lexical) return "";
   if (compact) {
-    return `<article class="all-dossier-field standard3-field"><header><h4>${escapeHTML(definition.label)}</h4><span class="standard3-status ${statusClass}">${faNumber(entries.length)} از ${faNumber(required)} · ${statusLabel}</span></header>${lexical}${entryMarkup ? `<ol class="standard3-entry-list">${entryMarkup}</ol>` : ""}${record ? `<p class="standard3-source-coverage"><b>وضعیتِ مقابلهٔ منبع:</b> ${escapeHTML(coverageNote)}</p>` : ""}</article>`;
+    return `<article class="all-dossier-field standard3-field"><header><h4>${escapeHTML(definition.label)}</h4><span class="standard3-status ${statusClass}">${faNumber(entries.length)} از ${faNumber(required)} · ${statusLabel}</span></header>${lexical}${entryMarkup ? `<ol class="standard3-entry-list">${entryMarkup}</ol>` : ""}</article>`;
   }
-  return `<article class="all-dossier-field standard3-field"><header><h4>${escapeHTML(definition.label)}</h4><span class="standard3-status ${statusClass}">${faNumber(entries.length)} از ${faNumber(required)} · ${statusLabel}</span></header><p class="standard3-description">${escapeHTML(definition.description || "")}</p>${lexical}${entryMarkup ? `<ol class="standard3-entry-list">${entryMarkup}</ol>` : `<p class="field-gap-note">برای این آیه هنوز بندِ مستند در این فیلد ثبت نشده است. وضعیت: صفر از پنج؛ محتوای پژوهشی عمداً ساخته نشده.</p>`}<p class="standard3-source-coverage"><b>وضعیتِ مقابلهٔ منبع:</b> ${escapeHTML(coverageNote)}</p><p class="standard3-follow-up"><b>پیگیری:</b> ${escapeHTML(followUp)}</p></article>`;
+  return `<article class="all-dossier-field standard3-field"><header><h4>${escapeHTML(definition.label)}</h4><span class="standard3-status ${statusClass}">${faNumber(entries.length)} از ${faNumber(required)} · ${statusLabel}</span></header><p class="standard3-description">${escapeHTML(definition.description || "")}</p>${lexical}${entryMarkup ? `<ol class="standard3-entry-list">${entryMarkup}</ol>` : `<p class="field-gap-note">برای این آیه هنوز بندِ مستند در این فیلد ثبت نشده است. وضعیت: صفر از پنج؛ محتوای پژوهشی عمداً ساخته نشده.</p>`}</article>`;
 }
 
 const SOURCE_ROLE_LABELS = {
@@ -1273,7 +1253,7 @@ function legacyStudyGroups(verse) {
     return `<section class="all-dossier-group legacy-study-group" data-legacy-study="${fieldId}"><h3>${escapeHTML(label)}</h3>${body}</section>`;
   }).join("");
   if (!groups) return "";
-  return `<section class="detail-panel legacy-study-panel" data-legacy-study-panel="true"><p class="eyebrow">فیلدهای پیشینِ همین آیه</p><h3>هشت فیلدِ تحریری، در کنارِ شش فیلدِ پایه و ده فیلدِ افزوده</h3><p class="reading-notice">این بندها پیش از افزودنِ ده فیلدِ تازه نوشته شده‌اند و حذف نمی‌شوند؛ هر مدخل شاهد یا پرسشِ خود را دارد و پیش‌نویسِ نیازمندِ بازبینی است. برای دیدنِ هر فیلد در نمای کامل هم می‌توانید از زبانه‌های بالا استفاده کنید.</p><p class="dossier-review-status"><b>وضعیتِ لایهٔ پیشین:</b> ${escapeHTML(annotation.status || "ثبت نشده")}</p></section>${groups}`;
+  return `<section class="detail-panel legacy-study-panel" data-legacy-study-panel="true"><p class="eyebrow">فیلدهای پیشینِ همین آیه</p><h3>هشت فیلدِ تحریری، در کنارِ شش فیلدِ پایه و ده فیلدِ افزوده</h3><p class="reading-notice">این بندها پیش از افزودنِ ده فیلدِ تازه نوشته شده‌اند و حذف نمی‌شوند؛ هر مدخل شاهد یا پرسشِ خود را دارد و پیش‌نویسِ نیازمندِ بازبینی است. برای دیدنِ هر فیلد در نمای کامل هم می‌توانید از زبانه‌های بالا استفاده کنید.</p></section>${groups}`;
 }
 
 function fieldIndexItem(tab, label, count) {
@@ -1312,7 +1292,7 @@ function completeDossierPanel(verse) {
     if (definition.id === "linguistics") count += lexicalItemsForVerse(verse).length;
     return fieldIndexItem(`standard3_${definition.id}`, definition.label, count);
   }).join("");
-  return `<section class="complete-dossier"><section class="detail-panel complete-dossier-intro"><p class="eyebrow">پروندهٔ آیه</p><h3>فیلدهای ${escapeHTML(verse.reference)}؛ روی هر عنوان بزنید</h3><p class="reading-notice">متن و ترجمهٔ آیه در بالای همین صفحه است. هر عنوان، فیلدِ مستقلِ همین آیه است و فقط مطالبی را نشان می‌دهد که برگرفته از مضمون و محتوای همین آیه و با ارجاعِ منبع‌اند؛ فیلدِ بی‌ماده «نیازمند پژوهش» می‌ماند و با متنِ تکراری پر نمی‌شود.</p><p class="dossier-review-status"><b>وضعیتِ دادهٔ پایه:</b> ${escapeHTML(review)}</p>${sourceMixBlock(verse)}</section><section class="all-dossier-group"><h3>شش فیلدِ پایه</h3><div class="field-index-grid">${baseItems}</div></section><section class="all-dossier-group"><h3>هشت فیلدِ پیشین و کاربست</h3><div class="field-index-grid">${studyItems}${fieldIndexItem("application", "کاربست امروز", applicationCount)}</div></section><section class="all-dossier-group"><h3>ده فیلدِ افزودهٔ پژوهشی</h3><div class="field-index-grid">${extendedItems}</div></section></section>`;
+  return `<section class="complete-dossier"><section class="detail-panel complete-dossier-intro"><p class="eyebrow">پروندهٔ آیه</p><h3>فیلدهای ${escapeHTML(verse.reference)}؛ روی هر عنوان بزنید</h3><p class="reading-notice">متن و ترجمهٔ آیه در بالای همین صفحه است. هر عنوان، فیلدِ مستقلِ همین آیه است و فقط مطالبی را نشان می‌دهد که برگرفته از مضمون و محتوای همین آیه و با ارجاعِ منبع‌اند؛ فیلدِ بی‌ماده «نیازمند پژوهش» می‌ماند و با متنِ تکراری پر نمی‌شود.</p></section><section class="all-dossier-group"><h3>شش فیلدِ پایه</h3><div class="field-index-grid">${baseItems}</div></section><section class="all-dossier-group"><h3>هشت فیلدِ پیشین و کاربست</h3><div class="field-index-grid">${studyItems}${fieldIndexItem("application", "کاربست امروز", applicationCount)}</div></section><section class="all-dossier-group"><h3>ده فیلدِ افزودهٔ پژوهشی</h3><div class="field-index-grid">${extendedItems}</div></section></section>`;
 }
 
 function standard3FieldDefinitions() {
@@ -1343,7 +1323,7 @@ function standard3FieldPanel(verse, fieldId) {
   const definitions = state.standard3Dossier?.fields?.length ? state.standard3Dossier.fields : STANDARD3_FIELD_FALLBACKS;
   const definition = definitions.find((field) => field.id === fieldId) || STANDARD3_FIELD_FALLBACKS.find((field) => field.id === fieldId);
   if (!definition) return completeDossierPanel(verse);
-  return `<section class="detail-panel standard3-field-page"><p class="eyebrow">فیلدِ آیه‌محور · ${escapeHTML(verse.reference)}</p><h3>${escapeHTML(definition.label)}</h3><p class="reading-notice">محتوا باید به همین آیه مربوط، مستند و از ادعاهایِ بیرون از شاهد جدا باشد. وضعیتِ منبع، شمارِ بندها و پیگیریِ همین فیلد را ببینید.</p>${sourceMixBlock(verse)}${standard3FieldSection(verse, definition)}</section>`;
+  return `<section class="detail-panel standard3-field-page"><p class="eyebrow">فیلدِ آیه‌محور · ${escapeHTML(verse.reference)}</p><h3>${escapeHTML(definition.label)}</h3>${standard3FieldSection(verse, definition)}</section>`;
 }
 
 function dossierAnchors(verse, kind) {
@@ -1357,7 +1337,7 @@ function detailPanelModern(verse) {
   if (curated) return curated;
   const anchors = dossierAnchors(verse, "معاصر");
   const items = anchors.map((anchor) => `<li class="dossier-item"><b>${escapeHTML(anchor.field)}</b><span>${scholarCite(anchor.claim)}</span><small>${scholarCite(anchor.cite)}</small></li>`).join("");
-  return `<section class="detail-panel dossier-panel"><p class="eyebrow">مطالعات قرآنی و تفسیریِ معاصر</p><h3>مسیرِ پژوهشِ امروز برای این آیه</h3><p class="reading-notice draft-study-notice">برای این آیه هنوز خوانشِ تحریریِ معاصر نوشته نشده است. به‌جای متنِ ساختگی، پژوهش‌های معاصرِ هم‌موضوع و مرزِ استنباطشان نشان داده می‌شود؛ این بندها جانشینِ خوانشِ همین آیه نیستند.</p>${items ? `<ol class="dossier-list">${items}</ol>` : `<p class="dossier-empty">در بانکِ پژوهش، لنگرِ معاصری برای این آیه ثبت نشده است؛ نوشتنِ خوانشِ معاصر باید از پیکره و منابعِ داوری‌شده آغاز شود.</p>`}${dossierCoverage()}</section>`;
+  return `<section class="detail-panel dossier-panel"><p class="eyebrow">مطالعات قرآنی و تفسیریِ معاصر</p><h3>مسیرِ پژوهشِ امروز برای این آیه</h3><p class="reading-notice draft-study-notice">برای این آیه هنوز خوانشِ تحریریِ معاصر نوشته نشده است. به‌جای متنِ ساختگی، پژوهش‌های معاصرِ هم‌موضوع و مرزِ استنباطشان نشان داده می‌شود؛ این بندها جانشینِ خوانشِ همین آیه نیستند.</p>${items ? `<ol class="dossier-list">${items}</ol>` : `<p class="dossier-empty">در بانکِ پژوهش، لنگرِ معاصری برای این آیه ثبت نشده است؛ نوشتنِ خوانشِ معاصر باید از پیکره و منابعِ داوری‌شده آغاز شود.</p>`}</section>`;
 }
 
 function detailPanelCritical(verse) {
@@ -1365,7 +1345,7 @@ function detailPanelCritical(verse) {
   if (curated) return curated;
   const anchors = [...dossierAnchors(verse, "معاصر"), ...dossierAnchors(verse, "کهن")].slice(0, 3);
   const items = anchors.map((anchor) => `<li class="dossier-item"><b>${escapeHTML(anchor.field)} · ${escapeHTML(anchor.kind)}</b><span>${scholarCite(anchor.limit)}</span><small>${scholarCite(anchor.cite)} · پرسشِ باز: ${scholarCite(anchor.question)}</small></li>`).join("");
-  return `<section class="detail-panel dossier-panel"><p class="eyebrow">خوانش انتقادی · سنجشِ پیش‌فرض و مرز</p><h3>چه چیزی را می‌توان نقد کرد و چه چیزی را نه</h3><p class="reading-notice draft-study-notice">برای این آیه خوانشِ انتقادیِ تحریری نوشته نشده است. آنچه می‌بینید مرزِ استنباطِ لنگرهای پژوهشی است، نه نقدِ نهایی؛ خوانشِ انتقادی پیش از هر چیز پیش‌فرض‌ها و تبارِ تطبیق‌ها را می‌سنجد.</p>${items ? `<ol class="dossier-list">${items}</ol>` : `<p class="dossier-empty">لنگرِ پژوهشیِ ثبت‌شده‌ای برای سنجشِ انتقادیِ این آیه در بانک نیست.</p>`}${dossierCoverage()}</section>`;
+  return `<section class="detail-panel dossier-panel"><p class="eyebrow">خوانش انتقادی · سنجشِ پیش‌فرض و مرز</p><h3>چه چیزی را می‌توان نقد کرد و چه چیزی را نه</h3><p class="reading-notice draft-study-notice">برای این آیه خوانشِ انتقادیِ تحریری نوشته نشده است. آنچه می‌بینید مرزِ استنباطِ لنگرهای پژوهشی است، نه نقدِ نهایی؛ خوانشِ انتقادی پیش از هر چیز پیش‌فرض‌ها و تبارِ تطبیق‌ها را می‌سنجد.</p><p class="reading-notice critical-method">${escapeHTML(CRITICAL_READING_METHOD)}</p>${items ? `<ol class="dossier-list">${items}</ol>` : `<p class="dossier-empty">لنگرِ پژوهشیِ ثبت‌شده‌ای برای سنجشِ انتقادیِ این آیه در بانک نیست.</p>`}</section>`;
 }
 
 function detailPanelNotes(verse) {
