@@ -219,6 +219,27 @@ def test_baqarah_texts_name_no_exegete_and_critical_questions_cite_related_tafsi
             assert "منابعِ مرتبط با این پرسش" in item["cite"], (ayah, item["cite"][:80])
 
 
+def test_al_imran_texts_name_no_exegete_and_critical_questions_cite_related_tafsirs():
+    """مدلِ کاربر برای آل‌عمران: نامِ مفسر در متن نیاید؛ برچسبِ «پیش‌نویسِ نکته»
+    و دنبالهٔ مقابلهٔ داخلی حذف است و هر پرسشِ انتقادی ارجاعِ مرتبط دارد."""
+    import re
+
+    names = ("طبری", "قرطبی", "طبرسی", "طوسی", "رازی", "زمخشری", "بیضاوی",
+             "سیوطی", "ابن کثیر", "ابن‌کثیر", "ابن عاشور", "ابن‌عاشور",
+             "طباطبایی", "المیزان", "المیسر")
+    for ayah in range(1, 201):
+        entry = DOSSIER["verses"][f"3:{ayah}"]
+        for field in FIELDS:
+            for item in entry[field]:
+                prose = re.sub(r"«[^»]*»", "", item["text"])
+                assert not any(n in prose for n in names), (ayah, field, item["text"][:80])
+                assert "پیش‌نویسِ نکته" not in item["text"], (ayah, field)
+                assert "این یادداشت را با شاهد" not in item["text"], (ayah, field)
+                assert item["cite"].strip()
+        for item in entry["critical"]:
+            assert "منابعِ مرتبط با این پرسش" in item["cite"], (ayah, item["cite"][:80])
+
+
 def test_baqarah_2_4_keeps_the_imperfect_verb_analysis_accurate():
     text = DOSSIER["verses"]["2:4"]["notes"][2]["text"]
     assert "۲:۴ نیز دو فعلِ مضارع دارد" in text
