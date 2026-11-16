@@ -101,13 +101,15 @@ def main():
         for e in rec["classical"]:
             if ("طبری" in e["cite"] or "قرطبی" in e["cite"]) and e["cite"] not in refs:
                 refs.append(e["cite"])
-        _nb = _re.search(r"پس از «([^»]+)» و پیش از «([^»]+)»",
+        _nb = _re.search(r"پس از (?:عبارتِ )?«([^»]+)» و پیش از «([^»]+)»",
                          rec["context"][1]["text"]) if len(rec.get("context", [])) > 1 else None
         for field in ("notes", "context", "classical", "modern", "critical", "research"):
             for e in rec[field]:
                 old = e["text"]
                 # حذفِ برچسب و دنبالهٔ قالبیِ «پیش‌نویسِ نکته»؛ فقط محتوایِ آیه می‌ماند
                 old = _re.sub(r"^پیش‌نویسِ نکتهٔ \d+ برای [^:]+:\d+: ", "", old)
+                old = _re.sub(r"^یادداشتِ تحریریِ .+?، نکتهٔ \d+: ", "", old)
+                old = _re.sub(r"\s*این بند پیش‌نویس است؛[^.]*\.?\s*$", "", old)
                 old = _re.sub(r"\s*این یادداشت را با شاهدِ لفظی و موضعِ منبع مقابله کن؛[^.]*\.?\s*$", "", old)
                 if field == "context":
                     old = _re.sub(
