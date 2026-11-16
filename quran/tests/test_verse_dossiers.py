@@ -180,6 +180,7 @@ def test_fatiha_1_1_qualifies_the_report_about_al_rahman():
 def test_tabaris_preference_on_baqarah_disjoint_letters_is_reported():
     item = DOSSIER["verses"]["2:1"]["classical"][0]
     assert "طبری" in item["cite"]
+    assert "طبری" not in item["text"]
     assert "الصواب عندي" in item["text"]
     assert "بی‌طرفِ محض" in item["text"]
 
@@ -199,6 +200,25 @@ def test_plural_and_passive_forms_are_not_given_unstated_social_intent():
     assert "نمی‌توان" in passive and "قصدِ جلوگیری" in passive
 
 
+def test_baqarah_texts_name_no_exegete_and_critical_questions_cite_related_tafsirs():
+    """مدلِ کاربر برای بقره: نامِ مفسر در متن نیاید؛ ارجاع در cite بماند و
+    هر پرسشِ انتقادی در پایان به تفسیرِ مرتبطِ همان آیه ارجاع داشته باشد."""
+    import re
+
+    names = ("طبری", "قرطبی", "طبرسی", "طوسی", "رازی", "زمخشری", "بیضاوی",
+             "سیوطی", "ابن کثیر", "ابن‌کثیر", "ابن عاشور", "ابن‌عاشور",
+             "طباطبایی", "المیزان", "المیسر")
+    for ayah in range(1, 287):
+        entry = DOSSIER["verses"][f"2:{ayah}"]
+        for field in FIELDS:
+            for item in entry[field]:
+                prose = re.sub(r"«[^»]*»", "", item["text"])
+                assert not any(n in prose for n in names), (ayah, field, item["text"][:80])
+                assert item["cite"].strip()
+        for item in entry["critical"]:
+            assert "منابعِ مرتبط با این پرسش" in item["cite"], (ayah, item["cite"][:80])
+
+
 def test_baqarah_2_4_keeps_the_imperfect_verb_analysis_accurate():
     text = DOSSIER["verses"]["2:4"]["notes"][2]["text"]
     assert "۲:۴ نیز دو فعلِ مضارع دارد" in text
@@ -206,9 +226,11 @@ def test_baqarah_2_4_keeps_the_imperfect_verb_analysis_accurate():
 
 
 def test_tabari_2_7_preference_is_reported_with_its_scope():
-    text = DOSSIER["verses"]["2:7"]["classical"][0]["text"]
-    assert "طبری" in text
-    assert "ترجیح می‌دهد" in text
+    item = DOSSIER["verses"]["2:7"]["classical"][0]
+    text = item["text"]
+    assert "طبری" not in text
+    assert "طبری" in item["cite"]
+    assert "ترجیح داده شده است" in text
     assert "در هر مسئله جداگانه" in text
 
 
