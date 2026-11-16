@@ -261,6 +261,27 @@ def test_nisa_texts_name_no_exegete_and_critical_questions_cite_related_tafsirs(
             assert "منابعِ مرتبط با این پرسش" in item["cite"], (ayah, item["cite"][:80])
 
 
+def test_maida_texts_name_no_exegete_and_critical_questions_cite_related_tafsirs():
+    """مدلِ کاربر برای مائده: نامِ مفسر در متن نیاید؛ برچسبِ «یادداشتِ تحریری» و
+    دنبالهٔ «این بند پیش‌نویس است» حذف است و هر پرسشِ انتقادی ارجاعِ مرتبط دارد."""
+    import re
+
+    names = ("طبری", "قرطبی", "طبرسی", "طوسی", "رازی", "زمخشری", "بیضاوی",
+             "سیوطی", "ابن کثیر", "ابن‌کثیر", "ابن عاشور", "ابن‌عاشور",
+             "طباطبایی", "المیزان", "المیسر")
+    for ayah in range(1, 121):
+        entry = DOSSIER["verses"][f"5:{ayah}"]
+        for field in FIELDS:
+            for item in entry[field]:
+                prose = re.sub(r"«[^»]*»", "", item["text"])
+                assert not any(n in prose for n in names), (ayah, field, item["text"][:80])
+                assert "یادداشتِ تحریری" not in item["text"], (ayah, field)
+                assert "این بند پیش‌نویس است" not in item["text"], (ayah, field)
+                assert item["cite"].strip()
+        for item in entry["critical"]:
+            assert "منابعِ مرتبط با این پرسش" in item["cite"], (ayah, item["cite"][:80])
+
+
 def test_baqarah_2_4_keeps_the_imperfect_verb_analysis_accurate():
     text = DOSSIER["verses"]["2:4"]["notes"][2]["text"]
     assert "۲:۴ نیز دو فعلِ مضارع دارد" in text
@@ -379,7 +400,8 @@ def test_maida_5_1_to_120_has_five_cited_items_and_only_direct_mizan_quotes():
     assert mizan_count == 109
     missing = DOSSIER["verses"]["5:36"]["classical"][-1]
     assert "لا يوجد تفسير" in missing["text"]
-    assert "هیچ دیدگاهی از قرطبی به آیه نسبت نمی‌دهد" in missing["text"]
+    assert "قرطبی" not in missing["text"]
+    assert "هیچ دیدگاهی از آن تفسیر به آیه نسبت نمی‌دهد" in missing["text"]
     assert "قرطبی" in missing["cite"]
 
 

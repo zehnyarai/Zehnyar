@@ -51,6 +51,8 @@ def de_name(text):
     t = t.replace("التفسير الميسر", "تفسیرِ معاصرِ آسان").replace("تفسير الميسر", "تفسیرِ معاصرِ آسان")
     t = t.replace("مجمع البیان", "تفسیرِ کهنِ شیعی").replace("مفاتیح الغیب", "تفسیرِ کهن")
     t = t.replace("تفسیرِ نور", "تفسیرِ معاصرِ فارسی").replace("تفسیرِ نمونه", "تفسیرِ معاصرِ شیعی")
+    t = _re.sub(rf"از (?:{NAMES}) به", "از آن تفسیر به", t)
+    t = _re.sub(rf"نسخهٔ (?:{NAMES})", "نسخهٔ آن تفسیر", t)
     # زوجِ مشهورِ کهن
     t = t.replace("طبری و قرطبی", "تفاسیرِ کهن")
     t = t.replace("طبری، قرطبی و", "تفاسیرِ کهن و")
@@ -101,8 +103,9 @@ def main():
         for e in rec["classical"]:
             if ("طبری" in e["cite"] or "قرطبی" in e["cite"]) and e["cite"] not in refs:
                 refs.append(e["cite"])
-        _nb = _re.search(r"پس از (?:عبارتِ )?«([^»]+)» و پیش از «([^»]+)»",
-                         rec["context"][1]["text"]) if len(rec.get("context", [])) > 1 else None
+        _ctx1 = rec["context"][1]["text"] if len(rec.get("context", [])) > 1 else ""
+        _nb = _re.search(r"پس از (?:عبارتِ )?«([^»]+)» و پیش از «([^»]+)»", _ctx1) \
+            or _re.search(r"پس از (?:عبارتِ )?«([^»]+)»", _ctx1)
         for field in ("notes", "context", "classical", "modern", "critical", "research"):
             for e in rec[field]:
                 old = e["text"]
@@ -132,8 +135,9 @@ def main():
                     if _rng:
                         e["text"] = e["text"].rstrip(".") + f"؛ و در بازهٔ خواندنِ «{_rng.group(1)}» جای می‌گیرد."
                 if field == "notes" and _nb and len(e["text"].split()) < 14:
-                    _clauses = [f"در ترتیبِ مصحف پس از «{_nb.group(1)}» آمده است",
-                                f"در ترتیبِ مصحف پیش از «{_nb.group(2)}» آمده است"]
+                    _clauses = [f"در ترتیبِ مصحف پس از «{_nb.group(1)}» آمده است"]
+                    if _nb.lastindex and _nb.lastindex >= 2:
+                        _clauses.append(f"در ترتیبِ مصحف پیش از «{_nb.group(2)}» آمده است")
                     _k = 0
                     while len(e["text"].split()) < 14 and _k < 2:
                         e["text"] = e["text"].rstrip(".") + "؛ " + _clauses[_k] + "."
