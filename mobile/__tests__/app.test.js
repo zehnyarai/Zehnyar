@@ -19,7 +19,7 @@ import WizardScreen from '../src/screens/WizardScreen';
 import ResultsScreen from '../src/screens/ResultsScreen';
 import CountryDetailScreen from '../src/screens/CountryDetailScreen';
 import ResearchSourcesScreen from '../src/screens/ResearchSourcesScreen';
-import { Button, PressableScale } from '../src/components/ui';
+import { Button, PressableScale, Stepper } from '../src/components/ui';
 import { GoalTile } from '../src/components/cards';
 
 jest.mock('expo-font', () => ({
@@ -162,7 +162,7 @@ describe('Visayar app', () => {
     expect(text).toContain('ویزایار');
     expect(text).toContain('تاریخ بازبینی ثبت‌شدهٔ داده‌ها');
     expect(text).toContain('هدف شما چیست؟');
-    expect(text).toContain('ادامه ارزیابی من');
+    expect(text).toContain('ارزیابی من');
   });
 
   it('does not apply the Cafe Bazaar consent gate to the direct/Myket build', () => {
@@ -235,6 +235,25 @@ describe('Visayar app', () => {
     expect(text).not.toContain('پیگیری آزمایشی');
     expect(text).not.toContain('دیدن نمونه رسید');
     expect(text).toContain('ورود امن');
+  });
+
+  it('starts a fresh wizard draft without changing the saved assessment profile', async () => {
+    const tree = renderWithProviders(
+      <><AssessmentRestoreProbe /><WizardScreen navigation={navigation} route={{ params: { goal: 'work' } }} /></>,
+      { profile: baseProfile, result: assessed },
+    );
+    expect(JSON.stringify(tree.toJSON())).toContain('true:31');
+    const next = tree.root.findAllByType(Button).at(-1);
+    await act(async () => { await next.props.onPress(); });
+    const age = tree.root.findAllByType(Stepper).find((item) => item.props.value === engine.emptyProfile().age);
+    expect(age).toBeTruthy();
+    act(() => age.props.onChange(40));
+    expect(JSON.stringify(tree.toJSON())).toContain('true:31');
+    act(() => tree.unmount());
+    const another = renderWithProviders(<WizardScreen navigation={navigation} route={{ params: { goal: 'work' } }} />, { profile: baseProfile, result: assessed });
+    await act(async () => { await another.root.findAllByType(Button).at(-1).props.onPress(); });
+    expect(another.root.findAllByType(Stepper).some((item) => item.props.value === engine.emptyProfile().age)).toBe(true);
+    act(() => another.unmount());
   });
 
   it('walks through all eight wizard steps', () => {

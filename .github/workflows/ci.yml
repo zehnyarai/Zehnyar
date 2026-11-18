@@ -16,11 +16,11 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: pip install -r requirements-dev.txt
-      - name: Rebuild dataset
-        run: python3 tools/build_dataset.py
+      - name: Validate dataset
+        run: python3 tools/build_dataset.py --validate-existing
       - name: Report dataset review status
         run: python3 tools/check_dataset_freshness.py
-      - name: Fail if the committed dataset is stale
+      - name: Check committed dataset is unchanged
         run: git diff --exit-code shared/dataset.json
       - name: Run tests
         run: python -m pytest backend/tests -q
@@ -40,9 +40,9 @@ jobs:
           python-version: '3.11'
       - name: Install Python test dependencies
         run: pip install -r requirements-dev.txt
-      - name: Build dataset and sync bundle
+      - name: Validate dataset and sync bundle
         run: |
-          python3 tools/build_dataset.py
+          python3 tools/build_dataset.py --validate-existing
           node tools/sync_mobile_data.js
           python3 tools/make_fixtures.py
       - name: Persian copy purity check

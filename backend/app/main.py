@@ -280,16 +280,15 @@ def visa_costs(visa_id: str, family_size: int = Query(1, ge=1, le=10), currency:
                 employer_total = 0.0
                 lines = []
                 for item in visa["fees"]:
+                    # Family size alone does not identify adult/child counts.
+                    # Display one reference unit; conditional amounts are excluded below.
                     multiplier = 1
-                    if "spouse" in item["labelEn"].lower() or "adult" in item["labelEn"].lower():
-                        multiplier = max(1, family_size)
-                    elif "child" in item["labelEn"].lower():
-                        multiplier = 0
                     usd = to_usd(dataset, item["amount"], item["currency"]) * multiplier
-                    if item.get("payer") == "employer":
-                        employer_total += usd
-                    else:
-                        applicant_total += usd
+                    if item.get("includeInTotal") is not False:
+                        if item.get("payer") == "employer":
+                            employer_total += usd
+                        else:
+                            applicant_total += usd
                     lines.append({**item, "count": multiplier, "usd": round(usd, 0)})
                 settlement = settlement_usd(dataset, visa, family_size)
                 return {

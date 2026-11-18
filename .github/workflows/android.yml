@@ -132,9 +132,9 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Rebuild dataset and sync to the app bundle
+      - name: Validate dataset and sync to the app bundle
         run: |
-          python3 tools/build_dataset.py
+          python3 tools/build_dataset.py --validate-existing
           node tools/sync_mobile_data.js
           node tools/check_i18n.js
       - name: Block release when reference data is stale

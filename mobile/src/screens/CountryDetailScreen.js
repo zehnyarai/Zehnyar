@@ -287,7 +287,7 @@ export default function CountryDetailScreen({ route, navigation }) {
               <KeyValue label={t('country.totalForFamily')} value={money(costs.grandTotalUsd, lang, 'USD')} tone={colors.teal800} />
               <View style={{ marginTop: spacing.sm }}>
                 <Text variant="micro" color={colors.ink35} style={{ textAlign: dir.text }}>
-                  {t('results.disclaimer')}
+                  {t('profile.costCaution')}
                 </Text>
               </View>
             </Card>

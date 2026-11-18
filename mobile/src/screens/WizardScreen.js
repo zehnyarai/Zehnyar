@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -11,6 +11,7 @@ import { useAppState } from '../core/appState';
 import { isBazaarIabBuild } from '../core/bazaarBilling';
 import { isMyketIabBuild } from '../core/myketBilling';
 import { findOccupation, getDataset } from '../core/data';
+import engine from '../core/engine';
 import {
   Button, Card, Chip, Divider, Field, IconButton, MoneyField, OptionCard, Pill,
   PressableScale, ProgressBar, ScrollScreen, Sheet, Stepper, Text, ToggleRow,
@@ -31,7 +32,11 @@ export default function WizardScreen({ navigation, route = {} }) {
   const { t, lang, pick } = useI18n();
   const insets = useContext(SafeAreaInsetsContext);
   const dir = useDirection();
-  const { profile, updateProfile, updateNested, setProfile, compute, hydrated, privacyConsent, acceptPrivacyConsent } = useAppState();
+  const { compute, hydrated, privacyConsent, acceptPrivacyConsent } = useAppState();
+  // Each new wizard owns a fresh draft; the last completed assessment remains intact.
+  const [profile, setProfile] = useState(() => engine.emptyProfile());
+  const updateProfile = useCallback((patch) => setProfile((current) => ({ ...current, ...patch })), []);
+  const updateNested = useCallback((key, patch) => setProfile((current) => ({ ...current, [key]: { ...current[key], ...patch } })), []);
   const bazaarIab = isBazaarIabBuild();
   const myketIab = isMyketIabBuild();
   const requestedGoal = GOAL_STEPS[route.params?.goal] ? route.params.goal : null;
@@ -111,7 +116,7 @@ export default function WizardScreen({ navigation, route = {} }) {
     if (stepKey === 'review') {
       setComputing(true);
       try {
-        const computed = await compute(t);
+        const computed = await compute(t, profile);
         if (!computed) {
           navigation.navigate('Payments');
           return;

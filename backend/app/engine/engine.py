@@ -375,7 +375,9 @@ def evaluate_gates(dataset: dict, visa: dict, profile: Profile, flags: Dict[str,
         detail_fa = gate_rule.get("failFa", "")
         detail_en = gate_rule.get("failEn", "")
 
-        if kind == "age_gate":
+        if kind in ("program_closed", "manual_review"):
+            passed = False
+        elif kind == "age_gate":
             passed = profile.age <= gate_rule["max"]
         elif kind == "language_gate":
             lang = resolve_language(dataset, profile, gate_rule["group"])

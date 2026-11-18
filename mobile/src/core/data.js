@@ -13,7 +13,7 @@ const RULE_KINDS = new Set([
 const GATE_KINDS = new Set([
   'age_gate', 'language_gate', 'experience_gate', 'points_gate', 'funds_gate',
   'education_gate', 'flag_gate', 'salary_gate', 'investment_gate', 'remote_income_gate',
-  'custom_points',
+  'custom_points', 'program_closed', 'manual_review',
 ]);
 let syncStatus = {
   status: 'idle',

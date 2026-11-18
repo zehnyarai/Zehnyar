@@ -43,7 +43,7 @@ jobs:
 
       - name: Build and validate shared data
         run: |
-          python3 tools/build_dataset.py
+          python3 tools/build_dataset.py --validate-existing
           node tools/sync_mobile_data.js
           python3 tools/check_dataset_freshness.py --fail-when-stale
           node tools/check_i18n.js
@@ -72,6 +72,18 @@ jobs:
             throw new Error('Test builds must contain no API URL or payment account.');
           }
           console.log('Isolated test config validated; no API or payment values present.');
+          NODE
+
+      - name: Exclude store billing modules from the isolated test build
+        working-directory: mobile
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const p = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          p.expo = p.expo || {};
+          p.expo.autolinking = p.expo.autolinking || {};
+          p.expo.autolinking.exclude = [...new Set([...(p.expo.autolinking.exclude || []), 'expo-myket-billing', 'expo-cafebazaar-billing'])];
+          fs.writeFileSync('package.json', JSON.stringify(p, null, 2) + '\n');
           NODE
 
       - name: Generate isolated Android project

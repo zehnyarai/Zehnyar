@@ -60,7 +60,13 @@ function CustomTabBar({ state, navigation }) {
               accessibilityLabel={labels[route.name]}
               onPress={() => {
                 const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-                if (!focused && !event.defaultPrevented) navigation.navigate(route.name);
+                if (event.defaultPrevented) return;
+                // The advisor entry starts with the migration-goal selector.
+                if (route.name === 'Advisor') {
+                  navigation.navigate('Wizard', { from: 'advisor' });
+                  return;
+                }
+                if (!focused) navigation.navigate(route.name);
               }}
               style={{ flex: 1, alignItems: 'center' }}
             >
