@@ -582,3 +582,36 @@ jobs:
               --notes-file docs/release-body.md
             echo "Release $TAG published."
           fi
+
+  defender_scan:
+    name: Independent Windows Defender APK scan
+    needs: build
+    runs-on: windows-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: visayar-myket-iab-apk
+          path: candidate
+      - name: Verify checksum and scan APK
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $apk = Get-ChildItem candidate -Filter '*-Myket-IAB-universal.apk' -File
+          if (@($apk).Count -ne 1) { throw 'Expected one Myket APK' }
+          $record = (Get-Content candidate/SHA256SUMS.txt | Where-Object { $_ -match [regex]::Escape($apk.Name) })
+          if (@($record).Count -ne 1) { throw 'Missing or ambiguous checksum' }
+          $expected = ($record -split '\s+')[0]
+          $actual = (Get-FileHash $apk.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $expected.ToLowerInvariant()) { throw 'Checksum mismatch' }
+          Write-Host "APK SHA256: $actual"
+          $status = Get-MpComputerStatus
+          if (-not $status.AntivirusEnabled) { throw 'Defender antivirus is unavailable; scan cannot be trusted' }
+          Update-MpSignature -ErrorAction Stop
+          $scanStart = (Get-Date).AddMinutes(-1)
+          Start-MpScan -ScanType CustomScan -ScanPath $apk.FullName -ErrorAction Stop
+          $detections = @(Get-MpThreatDetection | Where-Object { $_.InitialDetectionTime -ge $scanStart })
+          if ($detections.Count -gt 0) { $detections | Format-List ThreatID,InitialDetectionTime,Resources; throw 'Defender reported threat detection during scan; inspect details.' }
+          Write-Host 'Defender scan completed with no new detections; this does not prove the file is safe.'
