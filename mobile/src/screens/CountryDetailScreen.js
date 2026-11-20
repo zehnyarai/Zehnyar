@@ -65,6 +65,9 @@ export default function CountryDetailScreen({ route, navigation }) {
 
   const selectedVisa = country.visas.find((visa) => visa.id === selectedVisaId) || country.visas[0];
   const costs = engine.visaCosts(currentDataset, selectedVisa, familySize, 'USD');
+  const includedApplicant = costs.lines.some((line) => line.includeInTotal !== false && line.payer !== 'employer');
+  const includedEmployer = costs.lines.some((line) => line.includeInTotal !== false && line.payer === 'employer');
+  const hasSettlement = !!selectedVisa.settlement && costs.settlementUsd > 0;
   const scoredSelected = assessed ? assessed.visas.find((visa) => visa.visaId === selectedVisa.id) : null;
 
   const documents = [
@@ -280,14 +283,14 @@ export default function CountryDetailScreen({ route, navigation }) {
             </Card>
 
             <Card>
-              <KeyValue label={t('country.applicant')} value={money(costs.applicantTotalUsd, lang, 'USD')} />
-              <KeyValue label={t('country.employer')} value={money(costs.employerTotalUsd, lang, 'USD')} />
-              <KeyValue label={t('country.settlement')} value={money(costs.settlementUsd, lang, 'USD')} />
+              <KeyValue label={t('country.applicant')} value={includedApplicant ? money(costs.applicantTotalUsd, lang, 'USD') : t('country.notSpecified')} />
+              <KeyValue label={t('country.employer')} value={includedEmployer ? money(costs.employerTotalUsd, lang, 'USD') : t('country.notSpecified')} />
+              <KeyValue label={t('country.settlement')} value={hasSettlement ? money(costs.settlementUsd, lang, 'USD') : t('country.notSpecified')} />
               <Divider style={{ marginVertical: spacing.xs }} />
-              <KeyValue label={t('country.totalForFamily')} value={money(costs.grandTotalUsd, lang, 'USD')} tone={colors.teal800} />
+              <KeyValue label={t('country.totalForFamily')} value={includedApplicant || hasSettlement ? money(costs.grandTotalUsd, lang, 'USD') : t('country.notSpecified')} tone={colors.teal800} />
               <View style={{ marginTop: spacing.sm }}>
                 <Text variant="micro" color={colors.ink35} style={{ textAlign: dir.text }}>
-                  {t('results.disclaimer')}
+                  {t('profile.costCaution')}
                 </Text>
               </View>
             </Card>

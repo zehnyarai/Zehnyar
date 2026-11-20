@@ -7,6 +7,7 @@ on:
 
 jobs:
   backend:
+    if: ${{ github.ref != 'refs/heads/visayar-myket-review-2325' }}
     name: Backend engine and API
     runs-on: ubuntu-latest
     steps:
@@ -26,6 +27,7 @@ jobs:
         run: python -m pytest backend/tests -q
 
   mobile:
+    if: ${{ github.ref != 'refs/heads/visayar-myket-review-2325' }}
     name: Mobile engine, parity and UI
     runs-on: ubuntu-latest
     steps:
@@ -58,3 +60,25 @@ jobs:
       - name: Bundle the Android JS build
         working-directory: mobile
         run: npx expo export --platform android --output-dir /tmp/export-check
+
+  myket_review:
+    if: ${{ github.ref == 'refs/heads/visayar-myket-review-2325' }}
+    name: Myket compatibility review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: pip install -r requirements-dev.txt
+      - name: Validate opt-in dataset
+        run: python -c "import json; from tools.build_dataset import validate; d=json.load(open('shared/dataset-v2.json', encoding='utf-8')); e=validate(d); print(e); assert not e"
+      - run: python -m pytest backend/tests -q
+      - run: node tools/check_i18n.js
+      - run: npm ci --no-audit --no-fund
+        working-directory: mobile
+      - run: npm test -- --runInBand
+        working-directory: mobile

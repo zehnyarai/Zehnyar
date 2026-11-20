@@ -22,22 +22,16 @@ on:
         required: false
         type: boolean
         default: false
+      data_updates:
+        description: 'Require the separate HTTPS dataset server in the Myket APK'
+        required: false
+        type: boolean
+        default: false
       publish_release:
         description: 'Publish a public GitHub release (leave off for a test build)'
         required: false
         type: boolean
         default: false
-  push:
-    branches:
-      - 'arena/4143af50-zehnyar'
-      - 'arena/96fa3fb8-zehnyar'
-      - 'arena/5ee93ac8-zehnyar'
-      - 'arena/fe5d970d-zehnyar'
-      - 'arena/44d5574b-zehnyar'
-      - 'arena/2e1bd3bb-zehnyar'
-      - 'main'
-    tags:
-      - 'v*'
 
 permissions:
   actions: read
@@ -114,6 +108,29 @@ jobs:
           if [ "$BAZAAR_DRAFT" = true ]; then echo 'Building non-public Cafe Bazaar registration draft; payments remain disabled.'; fi
           if [ "$BAZAAR_IAB" = true ]; then echo 'Building Cafe Bazaar in-app billing APK with signed purchase verification and server-side credit grants.'; fi
 
+      - name: Require Myket-only manual build
+        if: ${{ steps.resolve-release.outputs.myket_iab != 'true' || steps.resolve-release.outputs.bazaar_iab == 'true' || steps.resolve-release.outputs.bazaar_draft == 'true' || inputs.publish_release == true }}
+        run: |
+          echo '::error::Select Myket IAB only; disable Bazaar draft, Bazaar IAB and public release.'
+          exit 1
+
+      - name: Validate optional data update configuration
+        env:
+          DATA_URL: ${{ vars.VISAYAR_DATA_API_BASE_URL }}
+          UPDATES_REQUIRED: 'true'
+          MYKET_IAB: ${{ steps.resolve-release.outputs.myket_iab }}
+        run: |
+          set -euo pipefail
+          if [ "$UPDATES_REQUIRED" = true ]; then
+            if [ "$MYKET_IAB" != true ] || [ -z "$DATA_URL" ]; then
+              echo '::error::Data updates require a Myket build and repository variable VISAYAR_DATA_API_BASE_URL (HTTPS origin).'
+              exit 1
+            fi
+          fi
+          if [ -n "$DATA_URL" ]; then
+            node -e 'const u=new URL(process.env.DATA_URL); if(u.protocol!=="https:" || u.username || u.password || u.pathname!=="/" || u.search || u.hash) process.exit(1)'
+          fi
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -132,13 +149,14 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Rebuild dataset and sync to the app bundle
+      - name: Validate dataset and sync to the app bundle
         run: |
-          python3 tools/build_dataset.py
-          node tools/sync_mobile_data.js
+          python3 -c "import json; from tools.build_dataset import validate; d=json.load(open('shared/dataset-v2.json', encoding='utf-8')); e=validate(d); print('dataset errors:', e); assert not e"
+          cp shared/dataset-v2.json mobile/src/data/dataset.json
           node tools/check_i18n.js
       - name: Block release when reference data is stale
-        run: python3 tools/check_dataset_freshness.py --fail-when-stale
+        run: |
+          python3 -c "import json; from datetime import date; from tools.check_dataset_freshness import get_report; d=json.load(open('shared/dataset-v2.json', encoding='utf-8')); r=get_report(d,date.today()); print(r['status']); assert not r['stale'], 'dataset is stale'"
 
       - name: Install dependencies
         working-directory: mobile
@@ -260,6 +278,7 @@ jobs:
         env:
           VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
           EXPO_PUBLIC_VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
+          VISAYAR_DATA_API_BASE_URL: ${{ vars.VISAYAR_DATA_API_BASE_URL }}
           VISAYAR_PAYMENT_CARD_NUMBER: ''
           VISAYAR_PAYMENT_CARD_HOLDER: ''
           VISAYAR_PAYMENT_BANK_NAME: ''
@@ -283,7 +302,8 @@ jobs:
           ];
           fs.writeFileSync(file, JSON.stringify(pkg, null, 2) + '\n');
           NODE
-          npx expo-modules-autolinking resolve --platform android --json | node -e "let raw='';process.stdin.on('data',x=>raw+=x);process.stdin.on('end',()=>{const names=JSON.parse(raw).modules.map(m=>m.packageName);if(names.includes('expo-cafebazaar-billing')||!names.includes('expo-myket-billing')){console.error('Incorrect Myket native module selection');process.exit(1)}console.log('Only Myket billing native module selected')})"
+          npx expo-modules-autolinking resolve --platform android --json | node -e "let raw='';process.stdin.on('data',x=>raw+=x);process.stdin.on('end',()=>{const names=JSON.parse(raw).modules.map(m=>m.packageName);if(names.includes('expo-cafebazaar-billing')||!names.includes('expo-myket-billing')||!JSON.parse(raw).modules.some(m=>m.packageName==='expo-myket-billing'&&m.projects.some(p=>p.modules.includes('expo.modules.myketbilling.MyketBillingModule')))){console.error('Incorrect Myket native module selection');process.exit(1)}console.log('Only Myket billing native module selected')})"
+          node -e "const fs=require('fs');const path=require.resolve('expo-myket-billing');if(!fs.existsSync(path))throw Error('Myket JS entry point missing');console.log('Myket JS entry point:',path)"
           npx expo prebuild -p android --clean --no-install
           grep -Fq 'maven.myket.ir' android/settings.gradle || { echo '::error::Myket Maven repository missing from settings.gradle'; exit 1; }
           grep -Fq 'maven.myket.ir' android/build.gradle || { echo '::error::Myket Maven repository missing from root build.gradle'; exit 1; }
@@ -346,13 +366,16 @@ jobs:
         env:
           VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
           EXPO_PUBLIC_VISAYAR_API_BASE_URL: ${{ secrets.VISAYAR_API_BASE_URL }}
+          VISAYAR_DATA_API_BASE_URL: ${{ vars.VISAYAR_DATA_API_BASE_URL }}
           VISAYAR_PAYMENT_CARD_NUMBER: ''
           VISAYAR_PAYMENT_CARD_HOLDER: ''
           VISAYAR_PAYMENT_BANK_NAME: ''
           VISAYAR_STORE: myket
           VISAYAR_MYKET_IAB: '1'
+          VISAYAR_MYKET_RSA_PUBLIC_KEY: ${{ secrets.VISAYAR_MYKET_RSA_PUBLIC_KEY }}
           VISAYAR_CAFEBAZAAR_IAB: '0'
         run: |
+          test -n "$VISAYAR_MYKET_RSA_PUBLIC_KEY" || { echo '::error::Missing Myket public key during JS bundling'; exit 1; }
           chmod +x ./gradlew
           ./gradlew assembleRelease --no-daemon
 
@@ -468,14 +491,14 @@ jobs:
           ./gradlew assembleRelease --no-daemon
 
       - name: Verify Myket APK package, version, and permissions
-        if: ${{ steps.resolve-release.outputs.bazaar_draft == 'true' && steps.resolve-release.outputs.bazaar_iab != 'true' }}
+        if: ${{ steps.resolve-release.outputs.myket_iab == 'true' }}
         run: |
           set -euo pipefail
           APK=mobile/android/app/build/outputs/apk/release/app-release.apk
           AAPT="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name aapt | sort -V | tail -n 1)"
           APKSIGNER="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           BADGING="$($AAPT dump badging "$APK")"
-          printf '%s\n' "$BADGING" | grep -F "package: name='ai.visayar.app' versionCode='49' versionName='2.3.24'"
+          printf '%s\n' "$BADGING" | grep -F "package: name='ai.visayar.app' versionCode='50' versionName='2.3.25'"
           PERMISSIONS="$($AAPT dump permissions "$APK")"
           if printf '%s\n' "$PERMISSIONS" | grep -E 'com\.farsitel\.bazaar\.permission\.PAY_THROUGH_BAZAAR|android\.permission\.SYSTEM_ALERT_WINDOW|android\.permission\.USE_BIOMETRIC|android\.permission\.USE_FINGERPRINT'; then
             echo '::error::The Myket APK contains a prohibited Cafe Bazaar, overlay, or biometric permission.'
@@ -483,7 +506,7 @@ jobs:
           fi
           "$APKSIGNER" verify --verbose "$APK"
           python3 tools/verify_android_apk_signature.py "$APKSIGNER" "$APK"
-          echo 'Myket APK uses ai.visayar.app, version 2.3.24 (49), and contains neither prohibited permission.'
+          echo 'Myket APK uses ai.visayar.app, version 2.3.25 (50), and contains no prohibited permissions.'
 
       - name: Scan release APKs with ClamAV
         run: |

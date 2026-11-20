@@ -27,7 +27,7 @@ KNOWN_RULE_KINDS = {
 KNOWN_GATE_KINDS = {
     "age_gate", "language_gate", "experience_gate", "points_gate", "funds_gate",
     "education_gate", "flag_gate", "salary_gate", "investment_gate", "remote_income_gate",
-    "custom_points",
+    "custom_points", "program_closed", "manual_review",
 }
 FA_DIGITS = str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹")
 
@@ -107,6 +107,10 @@ def validate(dataset):
                 kind = crit["rule"]["kind"]
                 if kind not in KNOWN_RULE_KINDS:
                     errors.append(f"{vid}.{crit['id']}: unknown rule kind {kind}")
+                if "noReferencePoints" in crit["rule"]:
+                    val = crit["rule"]["noReferencePoints"]
+                    if kind != "funds_ratio" or type(val) is not int or val != 0:
+                        errors.append(f"{vid}.{crit['id']}: noReferencePoints must be numeric zero on funds_ratio")
             for g in visa["gates"]:
                 if g["kind"] not in KNOWN_GATE_KINDS:
                     errors.append(f"{vid}: unknown gate kind {g['kind']}")
@@ -127,6 +131,31 @@ def validate(dataset):
 
 
 def main():
+    # The curated JSON has moved on from the historical country packs. Never
+    # overwrite an existing dataset by accident when following old instructions.
+    if sys.argv[1:] == ["--validate-existing"]:
+        path = os.path.join(ROOT, "shared", "dataset.json")
+        with open(path, encoding="utf-8") as handle:
+            dataset = json.load(handle)
+        errors = validate(dataset)
+        if errors:
+            print("VALIDATION FAILED:")
+            for err in errors:
+                print(" -", err)
+            return 1
+        print(f"OK validated dataset version={dataset['meta']['version']} countries={len(dataset['countries'])} visas={sum(len(c['visas']) for c in dataset['countries'])}")
+        return 0
+    args = sys.argv[1:]
+    if args not in ([], ["--overwrite-from-legacy-packs"]):
+        print("Usage: build_dataset.py [--validate-existing | --overwrite-from-legacy-packs]", file=sys.stderr)
+        return 2
+    existing = os.path.join(ROOT, "shared", "dataset.json")
+    if os.path.exists(existing) and not args:
+        print("REFUSED: shared/dataset.json already exists and is the curated source of truth. "
+              "Legacy country packs may overwrite newer reviews. Use --validate-existing. "
+              "To intentionally replace it from historical packs, back up first and use "
+              "--overwrite-from-legacy-packs.", file=sys.stderr)
+        return 2
     countries = countries_a.COUNTRIES + countries_b.COUNTRIES + countries_c.COUNTRIES + countries_d.COUNTRIES
     countries.sort(key=lambda c: (c["priority"], c["nameEn"]))
     dataset = {

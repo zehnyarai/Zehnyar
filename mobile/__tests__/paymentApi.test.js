@@ -171,6 +171,7 @@ describe('Cafe Bazaar purchase registration', () => {
         installId: 'install-test-id',
         purchaseData: purchase.originalJson,
         dataSignature: purchase.dataSignature,
+        clientCredited: false,
       }),
     }));
   });

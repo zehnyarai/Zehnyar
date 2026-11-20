@@ -19,8 +19,8 @@ import WizardScreen from '../src/screens/WizardScreen';
 import ResultsScreen from '../src/screens/ResultsScreen';
 import CountryDetailScreen from '../src/screens/CountryDetailScreen';
 import ResearchSourcesScreen from '../src/screens/ResearchSourcesScreen';
-import { Button, PressableScale } from '../src/components/ui';
-import { GoalTile } from '../src/components/cards';
+import { Button, PressableScale, Stepper } from '../src/components/ui';
+import { FeeList, GoalTile } from '../src/components/cards';
 
 jest.mock('expo-font', () => ({
   useFonts: () => [true],
@@ -162,7 +162,7 @@ describe('Visayar app', () => {
     expect(text).toContain('ویزایار');
     expect(text).toContain('تاریخ بازبینی ثبت‌شدهٔ داده‌ها');
     expect(text).toContain('هدف شما چیست؟');
-    expect(text).toContain('ادامه ارزیابی من');
+    expect(text).toContain('ارزیابی من');
   });
 
   it('does not apply the Cafe Bazaar consent gate to the direct/Myket build', () => {
@@ -237,6 +237,25 @@ describe('Visayar app', () => {
     expect(text).toContain('ورود امن');
   });
 
+  it('starts a fresh wizard draft without changing the saved assessment profile', async () => {
+    const tree = renderWithProviders(
+      <><AssessmentRestoreProbe /><WizardScreen navigation={navigation} route={{ params: { goal: 'work' } }} /></>,
+      { profile: baseProfile, result: assessed },
+    );
+    expect(JSON.stringify(tree.toJSON())).toContain('true:31');
+    const next = tree.root.findAllByType(Button).at(-1);
+    await act(async () => { await next.props.onPress(); });
+    const age = tree.root.findAllByType(Stepper).find((item) => item.props.value === engine.emptyProfile().age);
+    expect(age).toBeTruthy();
+    act(() => age.props.onChange(40));
+    expect(JSON.stringify(tree.toJSON())).toContain('true:31');
+    act(() => tree.unmount());
+    const another = renderWithProviders(<WizardScreen navigation={navigation} route={{ params: { goal: 'work' } }} />, { profile: baseProfile, result: assessed });
+    await act(async () => { await another.root.findAllByType(Button).at(-1).props.onPress(); });
+    expect(another.root.findAllByType(Stepper).some((item) => item.props.value === engine.emptyProfile().age)).toBe(true);
+    act(() => another.unmount());
+  });
+
   it('walks through all eight wizard steps', () => {
     let tree;
     act(() => {
@@ -307,6 +326,31 @@ describe('Visayar app', () => {
       expect(tree.toJSON()).toBeTruthy();
       tree.unmount();
     });
+  });
+
+  it('does not display unknown Malaysian costs and funds as zero', async () => {
+    const tree = renderWithProviders(
+      <CountryDetailScreen navigation={navigation} route={{ params: { code: 'MY' } }} />,
+      { profile: baseProfile, result: null },
+    );
+    await act(async () => { await Promise.resolve(); });
+    act(() => tree.root.findAllByType(PressableScale)[2].props.onPress());
+    const text = JSON.stringify(tree.toJSON());
+    expect(text).toContain('هزینه قابل محاسبه‌ای ثبت نشده است');
+    expect(text).toContain('مشخص نشده؛ بررسی لازم است');
+    expect(text).toContain('جمع اقلام قابل محاسبه، ناقص');
+    await act(async () => tree.unmount());
+  });
+
+  it('displays conditions and exclusion from fee totals', () => {
+    const tree = renderWithProviders(<FeeList lang="fa" costs={{ lines: [{
+      labelFa: 'هزینه مشروط', labelEn: 'Conditional fee', noteFa: 'فقط در شرایط خاص',
+      amount: 30, usd: 30, currency: 'USD', count: 1, verified: true, includeInTotal: false,
+    }] }} />);
+    const text = JSON.stringify(tree.toJSON());
+    expect(text).toContain('در جمع محاسبه نشده');
+    expect(text).toContain('فقط در شرایط خاص');
+    act(() => tree.unmount());
   });
 
   it('shows an empty state before any assessment exists', () => {

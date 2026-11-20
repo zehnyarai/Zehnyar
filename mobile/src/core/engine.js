@@ -189,7 +189,7 @@ function evaluateRule(dataset, rule, profile, flags, salaryUsd, settlementUsdVal
     }
     case 'funds_ratio': {
       const points = Number(rule.points || 0);
-      if (settlementUsdValue <= 0) return points;
+      if (settlementUsdValue <= 0) return rule.noReferencePoints === 0 ? 0 : points;
       const ratio = (profile.funds.availableUsd || 0) / settlementUsdValue;
       return Math.min(points, points * Math.max(0, Math.min(1, ratio / (rule.scale || 1))));
     }
@@ -273,6 +273,10 @@ function evaluateGates(dataset, visa, profile, flags, totalPoints, salaryUsd, se
     let messageFa = rule.failFa || '';
     let messageEn = rule.failEn || '';
     switch (rule.kind) {
+      case 'manual_review':
+      case 'program_closed':
+        passed = false;
+        break;
       case 'age_gate':
         passed = profile.age <= rule.max;
         break;
@@ -536,13 +540,15 @@ function visaCosts(dataset, visa, familySize, currency) {
   let applicantTotal = 0;
   let employerTotal = 0;
   const lines = visa.fees.map((item) => {
-    let count = 1;
-    const label = (item.labelEn || '').toLowerCase();
-    if (label.includes('spouse') || label.includes('adult')) count = Math.max(1, familySize || 1);
-    else if (label.includes('child')) count = 0;
+    // Family size alone does not tell us the number of adults or children.
+    // Display each fee as one reference unit; explicitly conditional entries
+    // are excluded from totals via includeInTotal.
+    const count = 1;
     const usd = toUsd(dataset, item.amount, item.currency) * count;
-    if (item.payer === 'employer') employerTotal += usd;
-    else applicantTotal += usd;
+    if (item.includeInTotal !== false) {
+      if (item.payer === 'employer') employerTotal += usd;
+      else applicantTotal += usd;
+    }
     return { ...item, count, usd: Math.round(usd) };
   });
   const settlement = settlementUsd(dataset, visa, familySize);

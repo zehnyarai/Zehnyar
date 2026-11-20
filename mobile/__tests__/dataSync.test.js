@@ -12,6 +12,8 @@ import {
   syncDataset,
 } from '../src/core/data';
 
+const nextVersion = bundledDataset.meta.version.replace(/\d+$/, n => String(Number(n) + 1));
+
 beforeEach(async () => {
   await AsyncStorage.clear();
 });
@@ -95,10 +97,23 @@ describe('mobile reference-data delivery', () => {
     expect(isValidDataset(unsupportedRule)).toBe(false);
   });
 
+  it('rejects malformed no-reference funds scoring overrides', () => {
+    const clone = JSON.parse(JSON.stringify(bundledDataset));
+    const malaysia = clone.countries.find((country) => country.code === 'MY');
+    const student = malaysia.visas.find((visa) => visa.id === 'my_student_pass');
+    const funds = student.criteria.find((criterion) => criterion.id === 'funds');
+    expect(funds.rule.noReferencePoints).toBe(0);
+    expect(isValidDataset(clone)).toBe(true);
+    funds.rule.noReferencePoints = false;
+    expect(isValidDataset(clone)).toBe(false);
+    funds.rule.noReferencePoints = 1;
+    expect(isValidDataset(clone)).toBe(false);
+  });
+
   it('downloads, validates and persists a changed dataset', async () => {
     const updated = {
       ...bundledDataset,
-      meta: { ...bundledDataset.meta, version: '2.0.4' },
+      meta: { ...bundledDataset.meta, version: nextVersion },
     };
     const fetchImpl = jest.fn().mockResolvedValue({
       ok: true,
@@ -109,30 +124,30 @@ describe('mobile reference-data delivery', () => {
 
     const result = await syncDataset({ apiBase: 'https://api.example.test', fetchImpl });
     expect(fetchImpl).toHaveBeenCalledWith(
-      'https://api.example.test/api/dataset',
+      'https://api.example.test/api/v2/dataset',
       expect.objectContaining({ method: 'GET', headers: {} }),
     );
     expect(result.source).toBe('network');
-    expect(result.dataset.meta.version).toBe('2.0.4');
-    expect(getDataset().meta.version).toBe('2.0.4');
+    expect(result.dataset.meta.version).toBe(nextVersion);
+    expect(getDataset().meta.version).toBe(nextVersion);
 
     const cache = JSON.parse(await AsyncStorage.getItem('visayar.reference-data.v1'));
     expect(cache.etag).toBe('"revision-1"');
-    expect(cache.dataset.meta.version).toBe('2.0.4');
+    expect(cache.dataset.meta.version).toBe(nextVersion);
   });
 
   it('keeps the last valid cached dataset available without a network', async () => {
-    const saved = { ...bundledDataset, meta: { ...bundledDataset.meta, version: '2.0.4' } };
+    const saved = { ...bundledDataset, meta: { ...bundledDataset.meta, version: nextVersion } };
     await AsyncStorage.setItem('visayar.reference-data.v1', JSON.stringify({ etag: '"revision-2"', dataset: saved }));
     const result = await syncDataset({ apiBase: '', fetchImpl: jest.fn() });
 
     expect(result.source).toBe('cache');
-    expect(result.dataset.meta.version).toBe('2.0.4');
-    expect(getDataset().meta.version).toBe('2.0.4');
+    expect(result.dataset.meta.version).toBe(nextVersion);
+    expect(getDataset().meta.version).toBe(nextVersion);
   });
 
   it('never replaces a newer bundled dataset with an older saved cache or server response', async () => {
-    const newer = { ...bundledDataset, meta: { ...bundledDataset.meta, version: '2.0.4' } };
+    const newer = { ...bundledDataset, meta: { ...bundledDataset.meta, version: nextVersion } };
     const fetchNewer = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -144,7 +159,7 @@ describe('mobile reference-data delivery', () => {
 
     const offline = await syncDataset({ apiBase: '', fetchImpl: jest.fn() });
     expect(offline.source).toBe('bundle');
-    expect(offline.dataset.meta.version).toBe('2.0.4');
+    expect(offline.dataset.meta.version).toBe(nextVersion);
     expect(await AsyncStorage.getItem('visayar.reference-data.v1')).toBeNull();
 
     const olderResponse = { ...bundledDataset, meta: { ...bundledDataset.meta, version: '2.0.3' } };
@@ -157,12 +172,12 @@ describe('mobile reference-data delivery', () => {
         json: async () => olderResponse,
       }),
     });
-    expect(rollback.dataset.meta.version).toBe('2.0.4');
+    expect(rollback.dataset.meta.version).toBe(nextVersion);
     expect(getDatasetSyncStatus().status).toBe('offline');
   });
 
   it('sends a conditional request and reuses cache on HTTP 304', async () => {
-    const cachedDataset = { ...bundledDataset, meta: { ...bundledDataset.meta, version: '2.0.4' } };
+    const cachedDataset = { ...bundledDataset, meta: { ...bundledDataset.meta, version: nextVersion } };
     await AsyncStorage.setItem('visayar.reference-data.v1', JSON.stringify({ etag: '"revision-3"', dataset: cachedDataset }));
     const fetchImpl = jest.fn().mockResolvedValue({ status: 304, ok: false });
     const result = await syncDataset({ apiBase: 'https://api.example.test', fetchImpl });

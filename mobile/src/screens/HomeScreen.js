@@ -22,7 +22,7 @@ const REASONS = [
 export default function HomeScreen({ navigation }) {
   const { t, lang, pick, toggleLanguage } = useI18n();
   const dir = useDirection();
-  const { profile, updateProfile, hasAssessment, result, datasetSync } = useAppState();
+  const { profile, hasAssessment, result, datasetSync } = useAppState();
   const countries = getCountries();
   const totals = getTotals();
   const dataMeta = getMeta();
@@ -38,7 +38,6 @@ export default function HomeScreen({ navigation }) {
   const featured = [...countries].sort((a, b) => a.priority - b.priority).slice(0, 6);
 
   const startAssessment = (goal) => {
-    if (goal) updateProfile({ goal });
     navigation.navigate('Wizard', { from: 'home', ...(goal ? { goal } : {}) });
   };
 

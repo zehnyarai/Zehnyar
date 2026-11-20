@@ -102,14 +102,15 @@ export function AppStateProvider({ children, initialProfile, initialResult, init
     return saved;
   }, []);
 
-  const compute = useCallback(async (t) => {
+  const compute = useCallback(async (t, draftProfile = profile) => {
     const allowance = await consumeAssessmentCredit();
     if (!allowance) return false;
-    const next = engine.assess(getDataset(), profile, t);
+    const next = engine.assess(getDataset(), draftProfile, t);
+    setProfile(draftProfile);
     setResult(next);
-    saveResult(next, profile);
+    saveResult(next, draftProfile);
     return next;
-  }, [profile]);
+  }, [profile, setProfile]);
 
   const resetAll = useCallback(async () => {
     await clearAll();

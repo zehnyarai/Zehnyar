@@ -181,7 +181,7 @@ export function VisaCard({ visa, best, expanded, onToggle }) {
 
           <View style={{ marginTop: spacing.sm }}>
             <KeyValue label={t('country.processing')} value={pick(visa.processingTimeFa, visa.processingTimeEn) || '-'} />
-            <KeyValue label={t('country.settlement')} value={money(visa.settlementRequiredUsd, lang, 'USD')} />
+            <KeyValue label={t('country.settlement')} value={visa.settlementRequiredUsd > 0 ? money(visa.settlementRequiredUsd, lang, 'USD') : t('country.notSpecified')} />
           </View>
 
           <Button
@@ -203,6 +203,7 @@ export function FeeList({ costs, lang }) {
   const dir = useDirection();
   return (
     <View>
+      {costs.lines.length === 0 ? <Text variant="small" color={colors.ink50} style={{ textAlign: dir.text }}>{t('country.noFeeItems')}</Text> : null}
       {costs.lines.map((line, index) => (
         <View key={`${line.labelEn}-${index}`} style={{ paddingVertical: 9, borderBottomWidth: index === costs.lines.length - 1 ? 0 : 1, borderBottomColor: colors.border }}>
           <View style={{ flexDirection: dir.row, justifyContent: 'space-between', gap: spacing.sm }}>
@@ -220,8 +221,10 @@ export function FeeList({ costs, lang }) {
               icon={line.verified ? 'shield-checkmark' : 'information-circle'}
             />
             {line.payer === 'employer' ? <Pill label={t('country.employer')} tone="sky" /> : null}
+            {line.includeInTotal === false ? <Pill label={t('country.excludedFromTotal')} tone="neutral" /> : null}
             {line.count > 1 ? <Pill label={`${num(line.count, lang)}×`} tone="neutral" /> : null}
           </View>
+          {line.noteFa || line.noteEn ? <Text variant="micro" color={colors.ink50} style={{ marginTop: 4, textAlign: dir.text }}>{pick(line.noteFa || '', line.noteEn || '')}</Text> : null}
         </View>
       ))}
     </View>

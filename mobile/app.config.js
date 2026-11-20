@@ -6,6 +6,16 @@ const myketBuild = !testBuild && String(process.env.VISAYAR_STORE || '').toLower
 const myketIab = !testBuild && process.env.VISAYAR_MYKET_IAB === '1';
 const myketRsaPublicKey = String(process.env.VISAYAR_MYKET_RSA_PUBLIC_KEY || '').trim();
 const apiBaseUrl = testBuild ? '' : String(process.env.VISAYAR_API_BASE_URL || expo.extra.apiBaseUrl || '').trim().replace(/\/$/, '');
+// Dataset delivery is separate from the payment API: its configuration must not
+// silently change purchase or credit behaviour in the Myket build.
+const dataApiBaseUrl = testBuild ? '' : String(process.env.VISAYAR_DATA_API_BASE_URL || expo.extra.dataApiBaseUrl || '').trim().replace(/\/$/, '');
+if (dataApiBaseUrl) {
+  let dataUrl;
+  try { dataUrl = new URL(dataApiBaseUrl); } catch (error) { dataUrl = null; }
+  if (!dataUrl || dataUrl.protocol !== 'https:' || !dataUrl.hostname || dataUrl.username || dataUrl.password || dataUrl.search || dataUrl.hash || dataUrl.pathname !== '/') {
+    throw new Error('VISAYAR_DATA_API_BASE_URL must be a clean HTTPS origin.');
+  }
+}
 if (bazaarIab) {
   let apiUrl;
   try { apiUrl = new URL(apiBaseUrl); } catch (error) { apiUrl = null; }
@@ -42,11 +52,13 @@ module.exports = {
     ...expo.android,
     package: testBuild ? `${expo.android.package}.test` : expo.android.package,
     blockedPermissions: [...blockedPermissions],
+    permissions: dataApiBaseUrl ? [...new Set([...(expo.android.permissions || []), 'android.permission.INTERNET'])] : (expo.android.permissions || []),
     ...(testBuild ? { versionCode: 1 } : {}),
   },
   extra: {
     ...expo.extra,
     apiBaseUrl,
+    dataApiBaseUrl,
     paymentCard: testBuild ? { number: '', holder: '', bank: '' } : paymentCard,
     testBuild,
     bazaarIab,

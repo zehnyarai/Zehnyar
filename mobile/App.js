@@ -14,6 +14,7 @@ import { I18nProvider, useDirection, useI18n } from './src/i18n';
 import { AppStateProvider } from './src/core/appState';
 import { loadCachedDataset, syncDataset } from './src/core/data';
 import { isBazaarIabBuild } from './src/core/bazaarBilling';
+import { checkMyketUpdate } from './src/core/storeUpdates';
 import { Text } from './src/components/ui';
 
 import HomeScreen from './src/screens/HomeScreen';
@@ -60,7 +61,13 @@ function CustomTabBar({ state, navigation }) {
               accessibilityLabel={labels[route.name]}
               onPress={() => {
                 const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-                if (!focused && !event.defaultPrevented) navigation.navigate(route.name);
+                if (event.defaultPrevented) return;
+                // The advisor entry starts with the migration-goal selector.
+                if (route.name === 'Advisor') {
+                  navigation.navigate('Wizard', { from: 'advisor' });
+                  return;
+                }
+                if (!focused) navigation.navigate(route.name);
               }}
               style={{ flex: 1, alignItems: 'center' }}
             >
@@ -150,6 +157,10 @@ export default function App() {
       if (timer) clearTimeout(timer);
     };
   }, [fontsLoaded]);
+
+  useEffect(() => {
+    if (ready) checkMyketUpdate();
+  }, [ready]);
 
   if (!ready) return <View style={{ flex: 1, backgroundColor: colors.canvas }} />;
 

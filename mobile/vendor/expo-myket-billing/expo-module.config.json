@@ -1,7 +1,6 @@
 {
   "platforms": ["android"],
   "android": {
-    "package": "expo.modules.myketbilling",
-    "sourceDir": "android/src/main/java"
+    "modules": ["expo.modules.myketbilling.MyketBillingModule"]
   }
 }

@@ -224,6 +224,20 @@ def dataset_full(request: Request):
     return JSONResponse(content=dataset, headers=headers)
 
 
+@app.get("/api/v2/dataset")
+def dataset_v2(request: Request):
+    """Opt-in dataset for compatible clients; the legacy API remains unchanged."""
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "shared", "dataset-v2.json")
+    with open(path, encoding="utf-8") as handle:
+        dataset = json.load(handle)
+    etag = _dataset_etag(dataset)
+    headers = {"ETag": etag, "Cache-Control": "no-cache"}
+    supplied = {item.strip() for item in request.headers.get("if-none-match", "").split(",") if item.strip()}
+    if etag in supplied or "*" in supplied:
+        return Response(status_code=304, headers=headers)
+    return JSONResponse(content=dataset, headers=headers)
+
+
 @app.get("/api/countries")
 def countries():
     dataset = load_dataset()

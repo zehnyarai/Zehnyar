@@ -31,7 +31,8 @@ export default function ProfileScreen({ navigation }) {
     ? t('profile.dataSyncUpdated')
     : datasetSync.status === 'current' ? t('profile.dataSyncCurrent')
       : datasetSync.status === 'checking' ? t('profile.dataSyncChecking')
-        : t('profile.dataSyncOffline');
+        : datasetSync.status === 'unconfigured' ? t('profile.dataSyncUnconfigured')
+          : t('profile.dataSyncOffline');
   const syncTone = datasetSync.status === 'updated' || datasetSync.status === 'current' ? 'success' : 'warn';
 
   const confirmReset = () => {

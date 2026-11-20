@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import bundledDataset from '../data/dataset.json';
 import { getApiBase } from './paymentApi';
 
@@ -13,7 +14,7 @@ const RULE_KINDS = new Set([
 const GATE_KINDS = new Set([
   'age_gate', 'language_gate', 'experience_gate', 'points_gate', 'funds_gate',
   'education_gate', 'flag_gate', 'salary_gate', 'investment_gate', 'remote_income_gate',
-  'custom_points',
+  'custom_points', 'program_closed', 'manual_review',
 ]);
 let syncStatus = {
   status: 'idle',
@@ -110,6 +111,8 @@ function isValidRoute(visa, fx) {
     && isText(item.labelEn)
     && typeof item.max === 'number' && Number.isFinite(item.max) && item.max > 0
     && item.rule && RULE_KINDS.has(item.rule.kind)
+    && (!Object.prototype.hasOwnProperty.call(item.rule, 'noReferencePoints')
+      || (item.rule.kind === 'funds_ratio' && item.rule.noReferencePoints === 0))
   ))) return false;
   if (!Array.isArray(visa.gates) || visa.gates.length > 30
       || !visa.gates.every((gate) => gate && GATE_KINDS.has(gate.kind))) return false;
@@ -218,9 +221,17 @@ export async function loadCachedDataset() {
   return { source: cache ? 'cache' : 'bundle', dataset: active.dataset };
 }
 
+export function getDataApiBase() {
+  const extra = Constants.expoConfig?.extra || Constants.manifest2?.extra?.expoClient?.extra || Constants.manifest?.extra || {};
+  if (extra.testBuild === true) return '';
+  return String(extra.dataApiBaseUrl || getApiBase() || '').trim().replace(/\/$/, '');
+}
+
 function secureApiBase(base) {
   if (!base) return false;
-  if (/^https:\/\//i.test(base)) return true;
+  // Only a clean origin is accepted; do not send requests to a URL containing
+  // credentials, a path, a query or a fragment.
+  if (/^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(base)) return true;
   return /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(base);
 }
 
@@ -252,20 +263,22 @@ export async function syncDataset(options = {}) {
   if (cache) useDataset(cache.dataset);
   setDatasetSyncStatus({ status: 'checking', source: cache ? 'cache' : 'bundle', updated: false, version: active.dataset.meta.version });
 
-  const base = options.apiBase === undefined ? getApiBase() : options.apiBase;
+  const base = options.apiBase === undefined ? getDataApiBase() : options.apiBase;
   const fetcher = options.fetchImpl || (typeof fetch === 'function' ? fetch : null);
   if (!secureApiBase(base) || !fetcher) {
     const result = { source: cache ? 'cache' : 'bundle', updated: false, dataset: active.dataset };
-    setDatasetSyncStatus({ status: 'offline', source: result.source, updated: false, version: active.dataset.meta.version });
+    setDatasetSyncStatus({ status: !base ? 'unconfigured' : 'offline', source: result.source, updated: false, version: active.dataset.meta.version });
     return result;
   }
 
   const headers = {};
   if (cache && typeof cache.etag === 'string' && cache.etag) headers['If-None-Match'] = cache.etag;
   const controller = typeof AbortController === 'function' ? new AbortController() : null;
-  const timeout = controller ? setTimeout(() => controller.abort(), options.timeoutMs || 3500) : null;
+  // Render's free instance may need more than 50 seconds to wake; sync runs
+  // asynchronously and never holds the splash screen open.
+  const timeout = controller ? setTimeout(() => controller.abort(), options.timeoutMs || 65000) : null;
   try {
-    const response = await fetcher(`${base.replace(/\/$/, '')}/api/dataset`, {
+    const response = await fetcher(`${base.replace(/\/$/, '')}/api/v2/dataset`, {
       method: 'GET',
       headers,
       cache: 'no-cache',

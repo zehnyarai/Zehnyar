@@ -6,6 +6,8 @@ import { colors, fonts, gradients, radius, spacing } from '../theme';
 import { useDirection, useI18n } from '../i18n';
 import { useAppState } from '../core/appState';
 import { isBazaarIabBuild } from '../core/bazaarBilling';
+import { isMyketIabBuild } from '../core/myketBilling';
+import LocalExperiencesScreen from './LocalExperiencesScreen';
 import { getCountries } from '../core/data';
 import { deleteExperience, getApiBase, listExperiences, reportExperience, submitExperience } from '../core/paymentApi';
 import { Button, Card, Chip, Pill, PressableScale, ScrollScreen, SectionTitle, Text, ToggleRow } from '../components/ui';
@@ -19,7 +21,7 @@ function whenLabel(value, lang) {
   return date.toLocaleDateString(lang === 'fa' ? 'fa-IR' : 'en-GB', { dateStyle: 'medium' });
 }
 
-export default function ExperiencesScreen() {
+function RemoteExperiencesScreen() {
   const { t, lang, pick } = useI18n();
   const { privacyConsent, acceptPrivacyConsent } = useAppState();
   const bazaarIab = isBazaarIabBuild();
@@ -265,3 +267,7 @@ const styles = {
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(10,25,35,0.52)', alignItems: 'center', justifyContent: 'center', padding: spacing.md },
   modalCard: { width: '100%', maxWidth: 520 },
 };
+
+export default function ExperiencesScreen() {
+  return isMyketIabBuild() ? <LocalExperiencesScreen /> : <RemoteExperiencesScreen />;
+}
