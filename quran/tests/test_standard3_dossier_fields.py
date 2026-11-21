@@ -628,8 +628,8 @@ def test_tawbah_66_has_complete_sourced_dossier():
     qiraat_text = " ".join(item["text"] for item in extended.get("qiraat", {"entries": []})["entries"])
     assert "جَحدری" in qiraat_text and "مجهول" in qiraat_text
     assert all("qiraat-almawsoah/9/66" in item["cite"] for item in extended.get("qiraat", {"entries": []})["entries"])
-    assert "بغوی" in " ".join(item["text"] for item in extended["shubuhat"]["entries"])
-    assert "مخشی" in " ".join(item["text"] for item in extended["historicalContext"]["entries"])
+    assert "بغوی" not in " ".join(item["text"] for item in extended["shubuhat"]["entries"])
+    assert "زمخشری" not in " ".join(item["text"] for item in extended["historicalContext"]["entries"])
     assert "Sykes" in " ".join(item["cite"] for item in extended["modernSciences"]["entries"])
 
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
@@ -689,7 +689,7 @@ def test_tawbah_67_has_complete_sourced_dossier():
         assert token in bible, token
 
     historical = " ".join(entry["text"] for entry in extended["historicalContext"]["entries"])
-    assert "طبری" in historical and "نفاق" in historical
+    assert "طبری" not in historical and "نفاق" in historical
 
 
 def test_tawbah_68_and_69_have_sourced_dossiers_with_honest_gaps():
@@ -708,7 +708,7 @@ def test_tawbah_68_and_69_have_sourced_dossiers_with_honest_gaps():
             assert token in modern, token
 
     assert "لتتبعن" in " ".join(item["text"] for item in v69["classical"])
-    assert "را ضعیف می‌شمارد" in " ".join(item["text"] for item in v69["classical"])
+    assert "ضعیف شمرده شده است" in " ".join(item["text"] for item in v69["classical"])
 
 
 def test_tawbah_70_and_71_record_reviewed_sources_and_explicit_partial_coverage():
@@ -788,7 +788,7 @@ def test_tawbah_72_and_73_are_field_specific_and_sourced():
     critical72 = " ".join(item["text"] for item in v72["critical"])
     assert "عدن" in critical72
     critical73 = " ".join(item["text"] for item in v73["critical"])
-    assert "ابن العربی" in critical73 and "نسخ" in critical73
+    assert "ابن العربی" not in critical73 and "نسخ" in critical73
 
     scope = {item["range"]: item["status"] for item in DATA["scope"]}
     assert "توبه ۹:۷۲ ثبت شد" in scope["9:72"]
@@ -4099,128 +4099,128 @@ def test_yusuf_12_111_lesson_for_understanding():
 
 def test_tawbah_9_109_foundation_on_taqwa():
     verse = _check_verse("9:109")
-    assert 'طبری می\u200cگوید خواندن أسس در دو جا به ساخت مجهول نزد' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات گروه دیگری از منافقان' in _joined(verse, "modern")
+    assert 'گفته شده است خواندن أسس در دو جا به ساخت مجهول نزد' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که این آیات گروه دیگری از منافقان' in _joined(verse, "modern")
     assert '«أفمن أسس بنیانه على تقوى» آیا کسی که بنیانش را بر' in _joined(verse, "critical")
 
 def test_tawbah_9_110_building_remains_doubt():
     verse = _check_verse("9:110")
-    assert 'طبری می\u200cگوید ساختمان اینان که مسجدی برای زیان و کفر گرفتند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات وضع منافقان سازندهٔ مسجد' in _joined(verse, "modern")
+    assert 'گفته شده است ساختمان اینان که مسجدی برای زیان و کفر گرفتند' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که این آیات وضع منافقان سازندهٔ مسجد' in _joined(verse, "modern")
     assert '«لا یزال بنیانهم الذی بنوا ریبة» پیوسته ساختمانشان شک است و' in _joined(verse, "critical")
 
 def test_tawbah_9_111_god_buys_souls_and_wealth():
     verse = _check_verse("9:111")
-    assert 'طبری می\u200cگوید خدا از مؤمنان جان\u200cها و مال\u200cهایشان را به بهشت' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که خدا در این آیه به کسانی' in _joined(verse, "modern")
+    assert 'گفته شده است خدا از مؤمنان جان\u200cها و مال\u200cهایشان را به بهشت' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که خدا در این آیه به کسانی' in _joined(verse, "modern")
     assert '«إن الله اشترى من المؤمنین أنفسهم و أموالهم» خدا خریده است' in _joined(verse, "critical")
 
 def test_tawbah_9_112_the_nine_qualities():
     verse = _check_verse("9:112")
-    assert 'طبری می\u200cگوید خدا از مؤمنان توبه\u200cکننده و پرستنده جان\u200cها و مال\u200cهایشان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این جمله مؤمنین را به نیکوترین' in _joined(verse, "modern")
+    assert 'گفته شده است خدا از مؤمنان توبه\u200cکننده و پرستنده جان\u200cها و مال\u200cهایشان' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که این جمله مؤمنین را به نیکوترین' in _joined(verse, "modern")
     assert '«التائبون العابدون الحامدون السائحون» ردیف صفت\u200cها بی هیچ واوی پشت هم' in _joined(verse, "critical")
 
 def test_tawbah_9_113_no_intercession_for_polytheists():
     verse = _check_verse("9:113")
-    assert 'طبری می\u200cگوید پیامبر محمد و ایمان\u200cآوردگان را نسزد که برای مشرکان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات در پیرامون مطالب گوناگونی' in _joined(verse, "modern")
+    assert 'گفته شده است پیامبر محمد و ایمان\u200cآوردگان را نسزد که برای مشرکان' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که این آیات در پیرامون مطالب گوناگونی' in _joined(verse, "modern")
     assert '«ما کان للنبی و الذین آمنوا أن یستغفروا» نسزد پیامبر و' in _joined(verse, "critical")
 
 def test_tawbah_9_114_abraham_promise_and_disavowal():
     verse = _check_verse("9:114")
-    assert 'طبری می\u200cگوید آمرزش\u200cخواهی ابراهیم برای پدرش جز برای وعده\u200cای نبود که' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات از محبت و طلب' in _joined(verse, "modern")
+    assert 'گفته شده است آمرزش\u200cخواهی ابراهیم برای پدرش جز برای وعده\u200cای نبود که' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که این آیات از محبت و طلب' in _joined(verse, "modern")
     assert '«إلا عن موعدة وعدها إیاه» جز به سبب وعده\u200cای که به' in _joined(verse, "critical")
 
 def test_tawbah_9_115_no_misguidance_before_clarification():
     verse = _check_verse("9:115")
-    assert 'طبری می\u200cگوید خدا را نسزد که بر شما در آمرزش\u200cخواهی برای' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات در غرضی واحد در' in _joined(verse, "modern")
+    assert 'گفته شده است خدا را نسزد که بر شما در آمرزش\u200cخواهی برای' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که این آیات در غرضی واحد در' in _joined(verse, "modern")
     assert '«و ما کان الله لیضل قوما بعد إذ هداهم» خدا را' in _joined(verse, "critical")
 
 def test_tawbah_9_116_kingdom_of_heavens_and_earth():
     verse = _check_verse("9:116")
-    assert 'طبری می\u200cگوید همانا خدا ای مردم فرمانروایی آسمان\u200cها و زمین و' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات در پیرامون جنگ و' in _joined(verse, "modern")
+    assert 'گفته شده است همانا خدا ای مردم فرمانروایی آسمان\u200cها و زمین و' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که این آیات در پیرامون جنگ و' in _joined(verse, "modern")
     assert '«إن الله له ملک السماوات و الأرض» فرمانروایی آسمان\u200cها و زمین' in _joined(verse, "critical")
 
 def test_tawbah_9_117_forgiven_in_hour_of_hardship():
     verse = _check_verse("9:117")
-    assert 'طبری می\u200cگوید خدا بازگشت به فرمان و طاعتش را روزی پیامبرش' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات دلالت بر گذشت خدای' in _joined(verse, "modern")
+    assert 'گفته شده است خدا بازگشت به فرمان و طاعتش را روزی پیامبرش' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که این آیات دلالت بر گذشت خدای' in _joined(verse, "modern")
     assert '«لقد تاب الله على النبی و المهاجرین و الأنصار» خدا بر' in _joined(verse, "critical")
 
 def test_tawbah_9_118_the_three_left_behind():
     verse = _check_verse("9:118")
-    assert 'طبری می\u200cگوید و خدا بر آن سه تن نیز درگذشت که' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات دلالت بر گذشت خدای' in _joined(verse, "modern")
+    assert 'گفته شده است و خدا بر آن سه تن نیز درگذشت که' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که این آیات دلالت بر گذشت خدای' in _joined(verse, "modern")
     assert '«ضاقت علیهم الأرض بما رحبت» زمین با همهٔ فراخی بر آنان' in _joined(verse, "critical")
 
 def test_tawbah_9_119_be_with_the_truthful():
     verse = _check_verse("9:119")
-    assert 'طبری می\u200cگوید ای ایمان\u200cآوردگان به خدا و پیامبرش خدا را مراقب' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات غرضی واحد دارد و' in _joined(verse, "modern")
+    assert 'گفته شده است ای ایمان\u200cآوردگان به خدا و پیامبرش خدا را مراقب' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که این آیات غرضی واحد دارد و' in _joined(verse, "modern")
     assert '«یا أیها الذین آمنوا اتقوا الله و کونوا مع الصادقین» ای' in _joined(verse, "critical")
 
 def test_tawbah_9_120_no_thirst_unrecorded():
     verse = _check_verse("9:120")
-    assert 'طبری می\u200cگوید اهل مدینه شهر پیامبر خدا و بادیه\u200cنشینان پیرامون ساکنان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات اهل مدینه و اطراف' in _joined(verse, "modern")
+    assert 'گفته شده است اهل مدینه شهر پیامبر خدا و بادیه\u200cنشینان پیرامون ساکنان' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که این آیات اهل مدینه و اطراف' in _joined(verse, "modern")
     assert '«لا یصیبهم ظمأ و لا نصب و لا مخمصة» تشنگی و' in _joined(verse, "critical")
 
 def test_tawbah_9_121_small_and_large_expense_recorded():
     verse = _check_verse("9:121")
-    assert 'طبری می\u200cگوید و هزینهٔ کوچک و بزرگی در راه خدا نمی\u200cکنند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات در غرض واحد سوره' in _joined(verse, "modern")
+    assert 'گفته شده است و هزینهٔ کوچک و بزرگی در راه خدا نشده است' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که این آیات در غرض واحد سوره' in _joined(verse, "modern")
     assert '«و لا ینفقون نفقة صغیرة و لا کبیرة» و هزینهٔ کوچک' in _joined(verse, "critical")
 
 def test_tawbah_9_122_a_party_to_learn_religion():
     verse = _check_verse("9:122")
-    assert 'طبری می\u200cگوید مؤمنان را نسزد همگی کوچ کنند و معنای کافه' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات مردم را دستور می\u200cدهد' in _joined(verse, "modern")
+    assert 'گفته شده است مؤمنان را نسزد همگی کوچ کنند و معنای کافه' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که این آیات مردم را دستور می\u200cدهد' in _joined(verse, "modern")
     assert '«و ما کان المؤمنون لینفروا کافة» مؤمنان را نسزد همگی کوچ' in _joined(verse, "critical")
 
 def test_tawbah_9_123_fight_those_nearest():
     verse = _check_verse("9:123")
-    assert 'طبری می\u200cگوید ای باورکنندگان به خدا و پیامبرش با آنان که' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات حکم می\u200cکند باید با' in _joined(verse, "modern")
+    assert 'گفته شده است ای باورکنندگان به خدا و پیامبرش با آنان که' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که این آیات حکم شده است باید با' in _joined(verse, "modern")
     assert '«قاتلوا الذین یلونکم من الکفار» با کافرانی که نزدیک شمایند بجنگید' in _joined(verse, "critical")
 
 def test_tawbah_9_124_surah_increases_faith():
     verse = _check_verse("9:124")
-    assert 'طبری می\u200cگوید و چون خدا سوره\u200cای از سوره\u200cهای قرآن را بر' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات با چند آیهٔ پایانی' in _joined(verse, "modern")
+    assert 'گفته شده است و چون خدا سوره\u200cای از سوره\u200cهای قرآن را بر' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که این آیات با چند آیهٔ پایانی' in _joined(verse, "modern")
     assert '«أیکم زادته هذه إیمانا» کدام\u200cیک از شما را این بر ایمان' in _joined(verse, "critical")
 
 def test_tawbah_9_125_disease_increases_in_filth():
     verse = _check_verse("9:125")
-    assert 'طبری می\u200cگوید و اما آنان که در دل\u200cهایشان بیماری نفاق است' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که آیات پایانی سوره حال مؤمنین و' in _joined(verse, "modern")
+    assert 'گفته شده است و اما آنان که در دل\u200cهایشان بیماری نفاق است' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که آیات پایانی سوره حال مؤمنین و' in _joined(verse, "modern")
     assert '«فزادتهم رجسا إلى رجسهم» بر پلیدیشان پلیدی افزود و آن إلى' in _joined(verse, "critical")
 
 def test_tawbah_9_126_tested_every_year():
     verse = _check_verse("9:126")
-    assert 'طبری می\u200cگوید در خواندن نمی\u200cبینند اختلاف است بیشتر خوانندگان شهرها به' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که آیات پایانی سوره حال مؤمنین و' in _joined(verse, "modern")
+    assert 'گفته شده است در خواندن نمی\u200cبینند اختلاف است بیشتر خوانندگان شهرها به' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که آیات پایانی سوره حال مؤمنین و' in _joined(verse, "modern")
     assert '«أولا یرون أنهم یفتنون» آیا نمی\u200cبینند که آزموده می\u200cشوند و آن' in _joined(verse, "critical")
 
 def test_tawbah_9_127_looks_then_they_turn_away():
     verse = _check_verse("9:127")
-    assert 'طبری می\u200cگوید و چون سوره\u200cای از قرآن فرود آید که در' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که آیات سورهٔ برائت با این چند' in _joined(verse, "modern")
+    assert 'گفته شده است و چون سوره\u200cای از قرآن فرود آید که در' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که آیات سورهٔ برائت با این چند' in _joined(verse, "modern")
     assert '«نظر بعضهم إلى بعض» برخی به برخی نگریستند و آن نگاه\u200cها' in _joined(verse, "critical")
 
 def test_tawbah_9_128_messenger_from_yourselves():
     verse = _check_verse("9:128")
-    assert 'طبری می\u200cگوید ای این گروه پیامبر خدا از خودتان به سوی' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که آیات پایانی سوره حال مؤمنین و' in _joined(verse, "modern")
+    assert 'گفته شده است ای این گروه پیامبر خدا از خودتان به سوی' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که آیات پایانی سوره حال مؤمنین و' in _joined(verse, "modern")
     assert '«لقد جاءکم رسول من أنفسکم» به\u200cراستی پیامبری از خودتان به سوی' in _joined(verse, "critical")
 
 def test_tawbah_9_129_god_is_sufficient_for_me():
     verse = _check_verse("9:129")
-    assert 'طبری می\u200cگوید پس اگر اینان که ای محمد حق از نزد' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که آیات پایانی سوره رسول گرامی را' in _joined(verse, "modern")
+    assert 'گفته شده است پس اگر اینان که ای محمد حق از نزد' in _joined(verse, "notes")
+    assert 'تفسیرِ معاصرِ شیعی بر آن است که آیات پایانی سوره رسول گرامی را' in _joined(verse, "modern")
     assert '«فقول حسبی الله» بگو خدا مرا بس است و آن بس' in _joined(verse, "critical")
 
 

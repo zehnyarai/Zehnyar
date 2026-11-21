@@ -345,6 +345,25 @@ def test_anfal_texts_name_no_exegete_and_critical_questions_cite_related_tafsirs
             assert "منابعِ مرتبط با این پرسش" in item["cite"], (ayah, item["cite"][:80])
 
 
+def test_tawbah_texts_name_no_exegete_and_critical_questions_cite_related_tafsirs():
+    """مدلِ کاربر برای توبه: نامِ مفسر در متن نیاید و هر پرسشِ انتقادی
+    در پایان به تفسیرِ مرتبطِ همان آیه ارجاع داشته باشد."""
+    import re
+
+    names = ("طبری", "قرطبی", "طبرسی", "طوسی", "رازی", "زمخشری", "بیضاوی",
+             "سیوطی", "ابن کثیر", "ابن‌کثیر", "ابن عاشور", "ابن‌عاشور",
+             "طباطبایی", "المیزان", "المیسر")
+    for ayah in range(1, 130):
+        entry = DOSSIER["verses"][f"9:{ayah}"]
+        for field in FIELDS:
+            for item in entry[field]:
+                prose = re.sub(r"«[^»]*»", "", item["text"])
+                assert not any(n in prose for n in names), (ayah, field, item["text"][:80])
+                assert item["cite"].strip()
+        for item in entry["critical"]:
+            assert "منابعِ مرتبط با این پرسش" in item["cite"], (ayah, item["cite"][:80])
+
+
 def test_baqarah_2_4_keeps_the_imperfect_verb_analysis_accurate():
     text = DOSSIER["verses"]["2:4"]["notes"][2]["text"]
     assert "۲:۴ نیز دو فعلِ مضارع دارد" in text
