@@ -16,6 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DOSSIER_PATH = ROOT / "static" / "verse-dossiers.json"
 ANNOT_PATH = ROOT / "static" / "verse-study-annotations.json"
 APPL_PATH = ROOT / "static" / "scholar-application.json"
+EXT_PATHS = [ROOT / "static" / "verse-dossier-extended-fields.json",
+             ROOT / "static" / "verse-dossier-extended-fields-2.json"]
 
 NAMES = (
     "ابن کثیر|ابن‌کثیر|ابن عاشور|ابن‌عاشور|حسن بصری|سعید بن جبیر|"
@@ -51,6 +53,7 @@ def de_name(text):
     t = t.replace("التفسير الميسر", "تفسیرِ معاصرِ آسان").replace("تفسير الميسر", "تفسیرِ معاصرِ آسان")
     t = t.replace("مجمع البیان", "تفسیرِ کهنِ شیعی").replace("مفاتیح الغیب", "تفسیرِ کهن")
     t = t.replace("تفسیرِ نور", "تفسیرِ معاصرِ فارسی").replace("تفسیرِ نمونه", "تفسیرِ معاصرِ شیعی")
+    t = _re.sub(rf"نقلِ مستقیمِ عربیِ (?:{NAMES}) برای", "نقلِ مستقیمِ عربی از تفسیرِ کهن برای", t)
     t = _re.sub(rf"رکوردِ (?:{NAMES}) شرحِ جداگانه ندارد", "رکوردِ تفسیرِ کهن شرحِ جداگانه ندارد", t)
     t = _re.sub(rf"پس (?:{NAMES}) را فقط", "پس آن تفسیر را فقط", t)
     t = _re.sub(rf"نقلِ (?:{NAMES}) را", "نقلِ آن تفسیر را", t)
@@ -186,6 +189,48 @@ def main():
                             e[tf] = new
                             achanged += 1
     ANNOT_PATH.write_text(json.dumps(annot, ensure_ascii=False, indent=1), encoding="utf-8")
+
+    # رکوردهای منبع‌محورِ همان سوره در شاردهای استاندارد ۳ (اگر باشد)
+    xchanged = 0
+    for ext_path in EXT_PATHS:
+        if not ext_path.exists():
+            continue
+        ext = json.loads(ext_path.read_text(encoding="utf-8"))
+        ev = ext.get("verses", {})
+        touched = False
+        for i in range(1, args.last + 1):
+            rec = ev.get(f"{args.surah}:{i}")
+            if not rec:
+                continue
+            touched = True
+            refs = []
+            for e in rec.get("classical", []):
+                if ("طبری" in e["cite"] or "قرطبی" in e["cite"]) and e["cite"] not in refs:
+                    refs.append(e["cite"])
+            for field in ("notes", "context", "classical", "modern", "critical", "research"):
+                for e in rec.get(field, []):
+                    new = de_name(e["text"])
+                    if new != e["text"]:
+                        e["text"] = new
+                        xchanged += 1
+                    if field == "critical" and refs:
+                        missing = [c for c in refs if c not in e["cite"]]
+                        label = "منابعِ مرتبط با این پرسش: "
+                        if len(missing) == len(refs) and len(refs) >= 2:
+                            e["cite"] = e["cite"] + "؛ " + label + refs[0] + "؛ " + refs[1]
+                        elif missing:
+                            e["cite"] = e["cite"] + "؛ " + label + missing[0]
+                        elif len(refs) >= 2 and label not in e["cite"]:
+                            e["cite"] = e["cite"].replace(refs[1], label + refs[1], 1)
+            for fld in rec.get("extendedFields", {}).values():
+                for e in fld.get("entries", []):
+                    new = de_name(e["text"])
+                    if new != e["text"]:
+                        e["text"] = new
+                        xchanged += 1
+        if touched:
+            ext_path.write_text(json.dumps(ext, ensure_ascii=False), encoding="utf-8")
+    print(f"extended changed={xchanged}")
 
     appl = json.loads(APPL_PATH.read_text(encoding="utf-8"))
     sverses = appl["verses"]
