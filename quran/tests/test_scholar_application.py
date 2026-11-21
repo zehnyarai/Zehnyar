@@ -304,8 +304,9 @@ def test_araf_7_1_to_206_has_five_source_bound_applications():
             assert use["cite"].strip() and len(use["guard"].split()) >= 8, verse_id
     for ayah in (96, 97, 98, 120):
         uses = APP["verses"][f"7:{ayah}"]["uses"]
-        assert "رکوردِ طبری شرحِ جداگانه ندارد" in uses[0]["text"]
-        assert "رکوردِ طبری شرحِ جداگانه ندارد" in uses[2]["text"]
+        assert "طبری" not in uses[0]["text"] and "طبری" not in uses[2]["text"]
+        assert "رکوردِ تفسیرِ کهن شرحِ جداگانه ندارد" in uses[0]["text"]
+        assert "رکوردِ تفسیرِ کهن شرحِ جداگانه ندارد" in uses[2]["text"]
 
 
 def test_anfal_8_1_to_75_has_five_source_bound_applications():
