@@ -1330,7 +1330,7 @@ def test_yunus_10_2_qiraat_and_qudum_sidq_views():
     assert "أعمالًا صالحة عند الله" in notes
     classical = " ".join(item["text"] for item in verse["classical"])
     assert "لسحر مبين" in classical and "لساحر مبين" in classical
-    assert "مسروق" in classical and "سعید بن جبیر" in classical
+    assert "قاریانِ کوفه و تابعان" in classical
     assert "الذكر الأول" in classical
     critical = " ".join(item["text"] for item in verse["critical"])
     assert "زيد بن حباب" in critical and "إبراهيم بن يزيد الخوزي" in critical
@@ -1444,7 +1444,7 @@ def test_yunus_10_4_resurrection_argument_and_two_readings():
     modern = " ".join(item["text"] for item in verse["modern"])
     assert "فاقد العقل" in modern and "کاروان" in modern
     critical = " ".join(item["text"] for item in verse["critical"])
-    assert "ثم يحييه" in critical and "جعفر رازی" in critical
+    assert "ثم يحييه" in critical and "حدسی" in critical
     assert (verse.get("extendedFields") or {}).get("qiraat", {"entries": [], "status": "needs-research", "sourceCoverageNote": "", "followUp": ""})["entries"][0]["kind"] == "analysis"
     assert all(e.get("kind") != "source-coverage-note" for e in ((verse.get("extendedFields") or {}).get("modernSciences", {"entries": [], "status": "needs-research", "sourceCoverageNote": "", "followUp": ""}))["entries"])
     works = {item["work"] for item in verse["sourceMix"]}

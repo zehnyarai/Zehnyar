@@ -27,6 +27,13 @@ COMPLETIONS = {
     ("9:73", "research", 0): "تفاسیرِ کهن برای ۹:۷۳ مقابله شوند و اختلافِ آن‌ها در معنای «جهاد با منافقان» ثبت گردد.",
     ("9:73", "research", 2): "ادعای نسخ در این آیه را با منابعِ اصولِ فقه و بحثِ نسخ مقابله کنید و دلیلِ هر سو جداگانه ثبت شود.",
     ("9:74", "research", 0): "تفاسیرِ کهن برای ۹:۷۴ مقابله شوند و فهرستِ روایاتِ سببِ نزول با چهار قولِ موجود سنجیده شود.",
+    ("10:86", "modern", 1): "در تفسیرِ کهن، «بالأعمال الشاقة» بر ستم افزوده شده است؛ یعنی فشارِ کارِ طاقت‌فرسا بخشی از نظامِ ستم بود.",
+    ("10:2", "classical", 1): "ترجیحِ مفسر بر کاربردِ لغوی بنا شده است: عرب می‌گوید «هؤلاء أهلُ القدم في الإسلام» یعنی کسانی که در آن خیر پیش فرستاده‌اند، و «له عندي قدم صدق وقدم سوء»؛ سپس دو بیتِ حسان بن ثابت و ذی‌الرمه به‌عنوان شاهد آورده شده است.",
+    ("10:2", "classical", 2): "در قرائت، عامهٔ قاریانِ مدینه و بصره «إن هذا لسحر مبين» خوانده‌اند و گروهی از قاریانِ کوفه و تابعان «لساحر مبين»؛ هر دو خوانش جایز و هم‌معنا شمرده شده است.",
+    ("10:4", "critical", 0): "گزارش‌های منسوب به یکی از تابعان در تفسیرِ کهن یکسان نیستند: در یکی «يحييه ثم يميته» است و در دیگری «يحييه ثم يميته ثم يحييه»؛ مفسر خودِ افزودهٔ سوم را حدسی دانسته است، پس نباید آن را قولِ قطعیِ آن تابعی خواند.",
+    ("10:4", "critical", 1): "قرائتِ «أنه» با فتحه به یکی از قاریان نسبت داده شده و با تقدیرِ «حقًّا أنه» توجیه می‌شود؛ این وجه در برابرِ قرائتِ جمهور است و باید در فیلدِ قرائات جدا از قرائتِ مشهور ثبت شود.",
+    ("10:82", "classical", 0): "در تفسیرِ کهن مجرمان با «من آل فرعون» تعیین شده‌اند؛ پس کراهتِ یادشده از همان دربار است و این قید در متنِ آیه آمده است.",
+    ("10:86", "modern", 2): "مختصر نجات را «به رحمت خویش» می‌خواند؛ هم‌خوان با قیدِ خودِ آیه و با تفسیرِ کهنِ همین آیه.",
 }
 
 NAMES = (
@@ -42,8 +49,7 @@ VERB = [
     ("می‌خواند", "خوانده شده است"), ("می‌داند", "دانسته شده است"),
     ("می‌شمارد", "شمرده شده است"), ("می‌گیرد", "گرفته شده است"),
     ("می‌آورد", "آورده شده است"), ("می‌آورند", "آورده شده است"),
-    ("می‌گوید", "گفته شده است"), ("می‌کنند", "شده است"),
-    ("می‌کند", "شده است"), ("می‌نویسد", "نوشته شده است"),
+    ("می‌گوید", "گفته شده است"), ("می‌نویسد", "نوشته شده است"),
     ("می‌فهمد", "فهمیده شده است"), ("نشان می‌دهد", "نشان داده شده است"),
     ("نتیجه می‌گیرد", "نتیجه گرفته شده است"), ("گزارش می‌کند", "گزارش شده است"),
     ("ترجیح می‌دهد", "ترجیح داده شده است"), ("ثبت می‌کند", "ثبت شده است"),
@@ -51,7 +57,7 @@ VERB = [
 ]
 
 
-def de_name(text):
+def _de_name_core(text, verbs=True):
     t = str(text)
     # برچسب‌های نقلِ مستقیم و نامِ آثار در متن
     t = _re.sub(rf"نقلِ مستقیمِ (?:{NAMES})،", "نقلِ مستقیم از تفسیرِ کهن،", t)
@@ -95,10 +101,19 @@ def de_name(text):
     t = _re.sub(rf"^((?:{NAMES}))\s+", "", t)
     t = _re.sub(r"^را\s+", "", t)
     t = _re.sub(rf"([؛:،]\s*)(?:{NAMES})\s+", r"\1", t)
-    for a, b in VERB:
-        t = t.replace(a, b)
+    # نامِ مفسر پس از حرفِ اضافه جای خالی می‌گذارد؛ با اسمِ عام پر می‌شود.
+    _MUF = r"طبری|قرطبی|طبرسی|طوسی|رازی|زمخشری|بیضاوی|سیوطی|ابن کثیر|ابن‌کثیر|ابن عاشور|ابن‌عاشور|ابن العربی|ابن‌عربی|طباطبایی|بغوی|آلوسی"
+    t = _re.sub(rf"(?<=\bاز )(?:{_MUF})(?=[\s،؛:.)])", "تفسیرِ کهن", t)
+    t = _re.sub(rf"(?<=\bدر )(?:{_MUF})(?=[\s،؛:.)])", "تفسیرِ کهن", t)
+    t = _re.sub(rf"(?<=\bبا )(?:{_MUF})(?=[\s،؛:.)])", "تفسیرِ کهن", t)
+    _NARR = r"مجاهد|قتاده|عکرمه|ضحاک|حسن بصری|سعید بن جبیر"
+    t = _re.sub(rf"(?<=\bاز )(?:{_NARR})(?=[\s،؛:.)])", "یکی از راویان", t)
+    if verbs:
+        # فقط فعلِ بندی که نامِ مفسر داشته است؛ فعلِ منفی (نمی‌…) هرگز دست نمی‌خورد.
+        for a, b in VERB:
+            t = _re.sub(rf"(?<!ن){_re.escape(a)}", b, t)
     _ALL = NAMES
-    t = _re.sub(rf"(?: با| و)(?:\s+[^ ،؛.]{{1,14}}){{0,2}} (?:{_ALL})(?=[\s،؛:»)]|$)", "", t)
+    t = _re.sub(rf"(?: با| و)(?:\s+[^ ،؛.\ue000\ue001]{{1,14}}){{0,2}} (?:{_ALL})(?=[\s،؛:»)]|$)", "", t)
     t = _re.sub(rf"(?: با| و) (?:{_ALL})(?=[\s،؛:»)]|$)", "", t)
     t = _re.sub(rf"در (?:{_ALL}) نشان می‌دهد", "در تفسیرِ کهن نشان می‌دهد", t)
     t = _re.sub(rf"ِ (?:{_ALL})(?=\s+(?:را|به|از|در|با|که|است|و|بر|،|؛)|،|؛|$)", "", t)
@@ -108,9 +123,46 @@ def de_name(text):
     t = _re.sub(rf"(?<=[\s،؛:«(])(?:{_ALL})(?=[\s،؛:». )])", "", t)
     t = _re.sub(r"در\s+نشان داده شده است", "در تفسیرِ کهن نشان داده شده است", t)
     t = _re.sub(r"\([،\s]*\)", "", t)
+    t = _re.sub(r"\(\s*[،؛]\s*", "(", t)
     t = _re.sub(r"\s+(،|؛)", r"\1", t)
     t = _re.sub(r"\s+", " ", t).strip()
     return t
+
+
+_QUOTE = _re.compile(r"«[^»]*»")
+
+
+def de_name(text):
+    """نقلِ عینِ داخلِ «…» دست‌نخورده می‌ماند؛ فقط نثرِ پیرامون پاک‌سازی می‌شود."""
+    src = str(text)
+    # عنوانِ اثر نقلِ عین نیست؛ حتی اگر داخل «…» آمده باشد جایگزین می‌شود.
+    for _title, _generic in (
+        ("«تفسیر نمونه»", "تفسیرِ معاصرِ شیعی"), ("«تفسیر المیزان»", "تفسیرِ معاصرِ شیعی"),
+        ("«المیزان»", "تفسیرِ معاصرِ شیعی"), ("«المیسر»", "تفسیرِ معاصرِ آسان"),
+        ("«تفسیر نور»", "تفسیرِ معاصرِ فارسی"),
+    ):
+        src = src.replace(_title, _generic)
+    src = _re.sub(r"(?<![\u0621-\u06D3])تفسیر نور(?![\u0621-\u06D3])", "تفسیرِ معاصرِ فارسی", src)
+    quotes = []
+
+    def _mask(m):
+        quotes.append(m.group(0))
+        return f"\ue000{len(quotes) - 1}\ue001"
+
+    masked = _QUOTE.sub(_mask, src)
+    _hit = _re.compile(rf"(?<![\u0621-\u064A\u066E-\u06D3\u200c])(?:{NAMES})(?![\u0621-\u064A\u066E-\u06D3\u200c])")
+    chunks = _re.split(r"(?=[؛.]\s)", masked)
+    out = "".join(_de_name_core(c, verbs=bool(_hit.search(c))) for c in chunks)
+    for i, q in enumerate(quotes):
+        token = f"\ue000{i}\ue001"
+        if token not in out:
+            # قاعده‌ای توکنِ نقل را خورده است؛ خطا داده می‌شود تا قاعده اصلاح شود.
+            raise RuntimeError(f"quote token lost: {src[:80]}")
+        out = out.replace(token, q)
+    # برچسبِ داخلیِ قالب و عنوانِ تکراریِ مقایسهٔ کتاب مقدس
+    out = _re.sub(r"\[analysis\]\s*", "", out)
+    out = _re.sub(r"(مقایسهٔ )(.+?) و «\2»( با کتاب مقدس)", r"\1\2\3", out)
+    return out
 
 
 def main():
@@ -126,7 +178,10 @@ def main():
     verses = dossier["verses"]
     changed = 0
     for i in range(1, args.last + 1):
-        rec = verses[f"{args.surah}:{i}"]
+        rec = verses.get(f"{args.surah}:{i}")
+        if not rec:
+            # آیاتی که فقط در شاردِ رکوردهای منبع‌محورند، در بخشِ شارد پردازش می‌شوند.
+            continue
         # لنگرِ عبارتِ خودِ آیه برای بندِ قالبیِ «خطرِ خلط»
         phrase = ""
         if rec["notes"]:
@@ -199,7 +254,9 @@ def main():
     averses = annot["verses"]
     achanged = 0
     for i in range(1, args.last + 1):
-        rec = averses[f"{args.surah}:{i}"]
+        rec = averses.get(f"{args.surah}:{i}")
+        if not rec:
+            continue
         for key, val in rec.items():
             if not isinstance(val, list):
                 continue
@@ -229,19 +286,25 @@ def main():
             touched = True
             refs = []
             for e in rec.get("classical", []):
-                if ("طبری" in e["cite"] or "قرطبی" in e["cite"]) and e["cite"] not in refs:
+                if any(k in e["cite"] for k in ("طبری", "قرطبی", "الطبري", "القرطبي", "tabari", "qurtubi")) and e["cite"] not in refs:
                     refs.append(e["cite"])
+            if len(refs) < 2:
+                for e in rec.get("classical", []) + rec.get("modern", []):
+                    if e["cite"] not in refs:
+                        refs.append(e["cite"])
+                    if len(refs) >= 2:
+                        break
             for field in ("notes", "context", "classical", "modern", "critical", "research"):
                 for j, e in enumerate(rec.get(field, [])):
                     _comp = COMPLETIONS.get((f"{args.surah}:{i}", field, j))
                     if _comp:
                         e["text"] = _comp
                         xchanged += 1
-                        continue
-                    new = de_name(e["text"])
-                    if new != e["text"]:
-                        e["text"] = new
-                        xchanged += 1
+                    else:
+                        new = de_name(e["text"])
+                        if new != e["text"]:
+                            e["text"] = new
+                            xchanged += 1
                     if field == "critical" and refs:
                         missing = [c for c in refs if c not in e["cite"]]
                         label = "منابعِ مرتبط با این پرسش: "
@@ -249,8 +312,9 @@ def main():
                             e["cite"] = e["cite"] + "؛ " + label + refs[0] + "؛ " + refs[1]
                         elif missing:
                             e["cite"] = e["cite"] + "؛ " + label + missing[0]
-                        elif len(refs) >= 2 and label not in e["cite"]:
-                            e["cite"] = e["cite"].replace(refs[1], label + refs[1], 1)
+                        elif label not in e["cite"]:
+                            _last = refs[1] if len(refs) >= 2 else refs[0]
+                            e["cite"] = e["cite"].replace(_last, label + _last, 1)
             for _fid, fld in rec.get("extendedFields", {}).items():
                 if _fid == "qiraat":
                     # در فیلدِ قرائات، نامِ قاری/راوی خودِ دادهٔ قرائت است و می‌ماند.

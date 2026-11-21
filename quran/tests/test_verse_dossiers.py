@@ -364,6 +364,42 @@ def test_tawbah_texts_name_no_exegete_and_critical_questions_cite_related_tafsir
             assert "منابعِ مرتبط با این پرسش" in item["cite"], (ayah, item["cite"][:80])
 
 
+def test_yunus_texts_name_no_exegete_and_critical_questions_cite_related_tafsirs():
+    """مدلِ کاربر برای یونس: نامِ مفسر در متن نیاید و هر پرسشِ انتقادی
+    در پایان به تفسیرِ مرتبطِ همان آیه ارجاع داشته باشد؛ آیاتِ ۴۹ تا ۱۰۹
+    که فقط در شاردِ رکوردهای منبع‌محورند نیز دقیقاً همین‌گونه‌اند."""
+    import re
+
+    ext = json.loads(
+        (ROOT / "static" / "verse-dossier-extended-fields.json").read_text(encoding="utf-8")
+    )["verses"]
+    letter = r"[\u0621-\u064A\u066E-\u06D3‌]"
+    names = ("طبری", "قرطبی", "طبرسی", "طوسی", "زمخشری", "بیضاوی",
+             "سیوطی", "ابن کثیر", "ابن‌کثیر", "ابن عاشور", "ابن‌عاشور",
+             "طباطبایی", "المیزان", "المیسر")
+
+    def named(text):
+        prose = re.sub(r"«[^»]*»", "", text)
+        return [n for n in names
+                if re.search(rf"(?<!{letter}){re.escape(n)}(?!{letter})", prose)]
+
+    for ayah in range(1, 110):
+        records = []
+        if f"10:{ayah}" in DOSSIER["verses"]:
+            records.append(DOSSIER["verses"][f"10:{ayah}"])
+        records.append(ext[f"10:{ayah}"])
+        for entry in records:
+            groups = [(field, entry[field]) for field in FIELDS]
+            groups += [(fid, fld["entries"]) for fid, fld in
+                       entry.get("extendedFields", {}).items() if fid != "qiraat"]
+            for field, items in groups:
+                for item in items:
+                    assert not named(item["text"]), (ayah, field, item["text"][:80])
+                    assert item["cite"].strip(), (ayah, field)
+            for item in entry["critical"]:
+                assert "منابعِ مرتبط با این پرسش" in item["cite"], (ayah, item["cite"][:80])
+
+
 def test_baqarah_2_4_keeps_the_imperfect_verb_analysis_accurate():
     text = DOSSIER["verses"]["2:4"]["notes"][2]["text"]
     assert "۲:۴ نیز دو فعلِ مضارع دارد" in text
@@ -651,7 +687,7 @@ def test_yunus_10_1_to_48_has_four_draft_batches_and_verified_mizan_gaps():
                 direct_mizan_count += 1
                 assert mizan.get("sourceRecordId") and mizan.get("referenceRange"), verse_id
                 assert mizan.get("sourceExcerptTruncated") in (True, False), verse_id
-                assert "نقلِ مستقیمِ فارسیِ المیزان" in mizan["text"], verse_id
+                assert "نقلِ مستقیمِ فارسیِ تفسیرِ معاصرِ شیعی" in mizan["text"], verse_id
             else:
                 assert mizan.get("sourceId") is None, verse_id
                 assert "برشِ مستقیمِ قابلِ انتساب بازیابی نشد" in mizan["text"], verse_id
