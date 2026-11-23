@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EXT_PATHS = [ROOT / "static" / "verse-dossier-extended-fields.json",
              ROOT / "static" / "verse-dossier-extended-fields-2.json"]
 MIN_WORDS = 14
+HOLLOW_MIN = 18  # حاشیهٔ امن: بی‌نام‌سازیِ بعدی چند واژه می‌کاهد
 
 VERBS = (r"(?:دانست|دید|گرفت|آموخت|نگه داشت|خواند|جست|شناخت|حس کرد|شاد شد|"
          r"پرهیز کرد|به کار بست|ساخت|کرد|پرداخت|نوشت|فهمید|ماند|بست)")
@@ -51,11 +52,63 @@ def _cut_tail2(t):
     return head + "."
 
 
+# بندهای پایانیِ قالبی («و خواننده از او آن را می‌آموزد و این آیه نمونهٔ آن است»…)
+# که هیچ ادعای مربوط به همان آیه ندارند؛ فقط وقتی بریده می‌شوند که بندِ مستندِ
+# پیش از آن دست‌کم MIN_WORDS واژه بماند.
+_ST = r"[^.؛؟!]"
+HOLLOW = [
+    re.compile(rf"\s+و\s+(?:مفسر\s+آن\s+را\s+نگه\s+می‌دارد\s+و\s+)?خواننده\s+از\s+(?:او|آن)\s+{_ST}{{0,40}}?می‌آموزد(?:\s+که\s+{_ST}{{0,60}})?(?:\s+و\s+این\s+آیه\s+(?:نمونهٔ\s+آن\s+است|آن\s+را\s+(?:چنین\s+دارد|نشان\s+می‌دهد)))?(?=[.؛؟!]|$)"),
+    re.compile(rf"\s+و\s+مفسر\s+آن\s+را\s+نگه\s+می‌دارد(?:\s+و\s+خواننده\s+{_ST}{{0,80}})?(?=[.؛؟!]|$)"),
+    re.compile(rf"\s+و\s+خواننده\s+(?:آن\s+)?(?:را\s+)?(?:گرفته\s+شده\s+است|می‌گیرد|نگه\s+می‌دارد)(?:\s+و\s+(?:نگه\s+می‌دارد|می‌داند))?(?=[.؛؟!]|$)"),
+    re.compile(rf"\s+و\s+شنونده\s+{_ST}{{0,40}}?می‌شنود\s+و\s+این\s+شنیدن\s+{_ST}{{0,50}}(?=[.؛؟!]|$)"),
+    re.compile(rf"\s+و\s+مفسر\s+(?:آن\s+)?(?:نشان\s+داده\s+شده\s+است|را\s+نگه\s+می‌دارد)\s+و\s+خواننده\s+از\s+او\s+{_ST}{{0,80}}(?=[.؛؟!]|$)"),
+]
+
+
+HOLLOW_SENT = re.compile(
+    rf"\s+و\s+(?:(?:سنت|مفسر)\s+{_ST}{{0,45}}?(?:نگه\s+داشته\s+است|نگه\s+می‌دارد)\s+و\s+)?"
+    rf"(?:خواننده|شنونده|ما)\s+(?:از\s+\S+\s+)?{_ST}{{0,70}}?"
+    rf"(?:می‌آموز(?:د|یم)|گرفته\s+شده\s+است|می‌گیرد|می‌شنود|نگه\s+می‌دارد|فراموش\s+نمی‌کند|می‌بیند)"
+    rf"{_ST}*"
+)
+
+
+def _cut_hollow_sentences(t):
+    parts = re.split(r"(?<=[.؛])", t)
+    done = []
+    for i, seg in enumerate(parts):
+        m = HOLLOW_SENT.search(seg)
+        if m:
+            cand = seg[:m.start()]
+            tail = seg[m.end():]
+            rest = "".join(done) + cand + "".join(parts[i + 1:])
+            if len((rest).split()) >= HOLLOW_MIN and len((("".join(done)) + cand).split()) >= 8:
+                seg = cand.rstrip(" ،؛:") + ("." if not seg.rstrip().endswith("؛") else "؛") + tail
+        done.append(seg)
+    return "".join(done)
+
+
+def _cut_hollow(t):
+    out = _cut_hollow_sentences(t)
+    out = out.replace(".؛", ".").replace("..", ".")
+    for rx in HOLLOW:
+        cand = rx.sub("", out)
+        if cand != out and len(cand.split()) >= HOLLOW_MIN:
+            out = cand
+    out = re.sub(r"\s+(?:و|که|تا|را|با|از|در|به|این|آن)\s*([.؛؟!])", r"\1", out)
+    out = re.sub(r"\s+(?:و|که|تا|را|با|از|در|به|این|آن)\s*$", "", out)
+    out = out.rstrip(" ،؛:")
+    if out != t and not out.endswith((".", "؟", "!", "»", ")")):
+        out += "."
+    return out
+
+
 def strip_text(text):
     """بازمی‌گرداند (متنِ تازه، آیا تغییر کرد)."""
     t, ch = _strip_text1(text)
     t2 = _cut_tail2(t)
-    return t2, ch or t2 != t
+    t3 = _cut_hollow(t2)
+    return t3, ch or t3 != t
 
 
 def _strip_text1(text):

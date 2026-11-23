@@ -4488,1452 +4488,1452 @@ def test_rad_13_43_verse():
 
 def test_ibrahim_14_1_verse():
     verse = _check_verse("14:1")
-    assert 'طبری می\u200cگوید معنای الر پیش\u200cتر گفته شد و این کتابی است' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این سوره پیرامون اوصاف قرآن بحث' in _joined(verse, "modern")
+    assert "گفته شده است معنای الر پیش\u200cتر گفته شد و این کتابی است" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این سوره پیرامون اوصاف قرآن بحث" in _joined(verse, "modern")
     assert '«لتخرج الناس من الظلمات إلى النور» تا مردم را از تاریکی\u200cها' in _joined(verse, "critical")
 
 def test_ibrahim_14_2_verse():
     verse = _check_verse("14:2")
-    assert 'طبری می\u200cگوید خوانندگان در خواندن آن اختلاف کردند و بیشتر خوانندگان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات خدا را عزیز و' in _joined(verse, "modern")
+    assert "گفته شده است خوانندگان در خواندن آن اختلاف کردند و بیشتر خوانندگان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات خدا را عزیز و" in _joined(verse, "modern")
     assert '«لله ما في السماوات و ما في الأرض» از آن خداست' in _joined(verse, "critical")
 
 def test_ibrahim_14_3_verse():
     verse = _check_verse("14:3")
-    assert 'طبری می\u200cگوید آنان که زندگی دنیا و کالای آن و نافرمانی\u200cهای' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات دو راه پیشاروی انسان' in _joined(verse, "modern")
+    assert "گفته شده است آنان که زندگی دنیا و کالای آن و نافرمانی\u200cهای" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات دو راه پیشاروی انسان" in _joined(verse, "modern")
     assert '«يستحبون الحياة الدنيا على الآخرة» زندگی دنیا را بر آخرت برمی\u200cگزینند' in _joined(verse, "critical")
 
 def test_ibrahim_14_4_verse():
     verse = _check_verse("14:4")
-    assert 'طبری می\u200cگوید و به سوی هیچ امتی از امت\u200cها ای محمد' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات توضیح ارسال رسولان به' in _joined(verse, "modern")
+    assert "گفته شده است و به سوی هیچ امتی از امت\u200cها ای محمد" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات توضیح ارسال رسولان به" in _joined(verse, "modern")
     assert '«إلا بلسان قومه ليبين لهم» مگر به زبان قومش تا برای' in _joined(verse, "critical")
 
 def test_ibrahim_14_5_verse():
     verse = _check_verse("14:5")
-    assert 'طبری می\u200cگوید و موسی را پیش از تو ای محمد با' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات موسی را با آیات' in _joined(verse, "modern")
+    assert "گفته شده است و موسی را پیش از تو ای محمد با" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات موسی را با آیات" in _joined(verse, "modern")
     assert '«و ذكرهم بأيام الله» و روزهای خدا را به آنان یادآوری' in _joined(verse, "critical")
 
 
 def test_ibrahim_14_6_verse():
     verse = _check_verse("14:6")
-    assert 'طبری می\u200cگوید خدا به پیامبرش محمد می\u200cگوید و یاد کن ای' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات پاره\u200cای از نعمت\u200cها و' in _joined(verse, "modern")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است و یاد کن ای" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات پاره\u200cای از نعمت\u200cها و" in _joined(verse, "modern")
     assert '«اذكروا نعمة الله عليكم» نعمت خدا بر خود را یاد کنید' in _joined(verse, "critical")
 
 def test_ibrahim_14_7_verse():
     verse = _check_verse("14:7")
-    assert 'طبری می\u200cگوید و یاد کنید آن\u200cگاه را که پروردگارتان اعلام کرد' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات سخن موسی در یادآوری' in _joined(verse, "modern")
+    assert "گفته شده است و یاد کنید آن\u200cگاه را که پروردگارتان اعلام کرد" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات سخن موسی در یادآوری" in _joined(verse, "modern")
     assert '«لئن شكرتم لأزيدنكم» اگر سپاس گزارید بی\u200cگمان بر شما می\u200cافزایم و' in _joined(verse, "critical")
 
 def test_ibrahim_14_8_verse():
     verse = _check_verse("14:8")
-    assert 'طبری می\u200cگوید و موسی به قومش گفت اگر شما ای گروه' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات پس از اعلام قانون' in _joined(verse, "modern")
+    assert "گفته شده است و موسی به قومش گفت اگر شما ای گروه" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات پس از اعلام قانون" in _joined(verse, "modern")
     assert '«إن تكفروا أنتم و من في الأرض جميعا» اگر شما و' in _joined(verse, "critical")
 
 def test_ibrahim_14_9_verse():
     verse = _check_verse("14:9")
-    assert 'طبری می\u200cگوید خدا از سخن موسی به قومش خبر می\u200cدهد ای' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات داستان تکذیب پیامبران از' in _joined(verse, "modern")
+    assert "گفته شده است خدا از سخن موسی به قومش خبر می\u200cدهد ای" in _joined(verse, "notes")
+    assert "بر آن است که این آیات داستان تکذیب پیامبران از" in _joined(verse, "modern")
     assert '«فردوا أيديهم في أفواههم» و دست\u200cهاشان را در دهان\u200cهاشان کردند و' in _joined(verse, "critical")
 
 def test_ibrahim_14_10_verse():
     verse = _check_verse("14:10")
-    assert 'طبری می\u200cگوید فرستادگان امت\u200cهایی که فرستادگانشان به سوی آنان آمدند گفتند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات پاسخ فرستادگان را می\u200cآورد' in _joined(verse, "modern")
+    assert "گفته شده است فرستادگان امت\u200cهایی که فرستادگانشان به سوی آنان آمدند گفتند" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات پاسخ فرستادگان را می\u200cآورد" in _joined(verse, "modern")
     assert '«أفي الله شك فاطر السماوات و الأرض» آیا در خدا شکی' in _joined(verse, "critical")
 
 def test_ibrahim_14_11_verse():
     verse = _check_verse("14:11")
-    assert 'طبری می\u200cگوید امت\u200cهایی که فرستادگانشان به سوی آنان آمدند به فرستادگانشان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات پاسخ پیامبران به مکذبان' in _joined(verse, "modern")
+    assert "گفته شده است امت\u200cهایی که فرستادگانشان به سوی آنان آمدند به فرستادگانشان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات پاسخ پیامبران به مکذبان" in _joined(verse, "modern")
     assert '«إن نحن إلا بشر مثلكم» ما جز بشری چون شما نیستیم' in _joined(verse, "critical")
 
 def test_ibrahim_14_12_verse():
     verse = _check_verse("14:12")
-    assert 'طبری می\u200cگوید فرستادگان به امت\u200cهاشان گفتند و ما را چه شده' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات معنای توکل پیامبران در' in _joined(verse, "modern")
+    assert "گفته شده است فرستادگان به امت\u200cهاشان گفتند و ما را چه شده" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات معنای توکل پیامبران در" in _joined(verse, "modern")
     assert '«و ما لنا ألا نتوكل على الله» و ما را چه' in _joined(verse, "critical")
 
 def test_ibrahim_14_13_verse():
     verse = _check_verse("14:13")
-    assert 'طبری می\u200cگوید و آنان که به خدا کافر شدند به فرستادگانشان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات تهدید کفار به پیامبران' in _joined(verse, "modern")
+    assert "گفته شده است و آنان که به خدا کافر شدند به فرستادگانشان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات تهدید کفار به پیامبران" in _joined(verse, "modern")
     assert '«لنخرجنكم من أرضنا أو لتعودن في ملتنا» شما را از سرزمینمان' in _joined(verse, "critical")
 
 def test_ibrahim_14_14_verse():
     verse = _check_verse("14:14")
-    assert 'طبری می\u200cگوید و شما را پس از آنان در زمین ساکن' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات پاسخ خدا به تهدید' in _joined(verse, "modern")
+    assert "گفته شده است و شما را پس از آنان در زمین ساکن" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات پاسخ خدا به تهدید" in _joined(verse, "modern")
     assert '«و لنسكننكم الأرض من بعدهم» و شما را پس از آنان' in _joined(verse, "critical")
 
 def test_ibrahim_14_15_verse():
     verse = _check_verse("14:15")
-    assert 'طبری می\u200cگوید و فرستادگان بر قومشان گشایش خواستند یعنی از خدا' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات نتیجهٔ آن گفت\u200cوگو را' in _joined(verse, "modern")
+    assert "گفته شده است و فرستادگان بر قومشان گشایش خواستند یعنی از خدا" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات نتیجهٔ آن گفت\u200cوگو را" in _joined(verse, "modern")
     assert '«و خاب كل جبار عنيد» و هر زورگوی ستیزه\u200cجویی زیان دید' in _joined(verse, "critical")
 
 def test_ibrahim_14_16_verse():
     verse = _check_verse("14:16")
-    assert 'طبری می\u200cگوید از پیش هر زورگویی دوزخ است به آن درمی\u200cآیند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات فرجام جبار عنید را' in _joined(verse, "modern")
+    assert "گفته شده است از پیش هر زورگویی دوزخ است به آن درمی\u200cآیند" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات فرجام جبار عنید را" in _joined(verse, "modern")
     assert '«من ورائه جهنم» از پیش او دوزخ است و آن پیش' in _joined(verse, "critical")
 
 def test_ibrahim_14_17_verse():
     verse = _check_verse("14:17")
-    assert 'طبری می\u200cگوید آن را جرعه جرعه می\u200cنوشد یعنی آن را می\u200cچشد' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات نوشیدن جبار را شرح' in _joined(verse, "modern")
+    assert "گفته شده است آن را جرعه جرعه می\u200cنوشد یعنی آن را می\u200cچشد" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات نوشیدن جبار را شرح" in _joined(verse, "modern")
     assert '«يتجرعه و لا يكاد يسيغه» آن را جرعه جرعه می\u200cنوشد و' in _joined(verse, "critical")
 
 def test_ibrahim_14_18_verse():
     verse = _check_verse("14:18")
-    assert 'طبری می\u200cگوید زبان\u200cشناسان در بردارندهٔ مثل اختلاف کردند برخی نحویان بصره' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات مثل اعمال کافران را' in _joined(verse, "modern")
+    assert "گفته شده است زبان\u200cشناسان در بردارندهٔ مثل اختلاف کردند برخی نحویان بصره" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات مثل اعمال کافران را" in _joined(verse, "modern")
     assert '«كرماد اشتدت به الريح في يوم عاصف» چون خاکستری که باد' in _joined(verse, "critical")
 
 
 def test_ibrahim_14_19_verse():
     verse = _check_verse("14:19")
-    assert 'طبری می\u200cگوید خدا به پیامبرش محمد می\u200cگوید آیا ای محمد با' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات مردم را به خداشناسی' in _joined(verse, "modern")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است آیا ای محمد با" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات مردم را به خداشناسی" in _joined(verse, "modern")
     assert '«ألم تر أن الله خلق السماوات و الأرض بالحق» آیا ندیدی' in _joined(verse, "critical")
 
 def test_ibrahim_14_20_verse():
     verse = _check_verse("14:20")
-    assert 'طبری می\u200cگوید و آن بر خدا دشوار نیست می\u200cگوید و بردن' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید آن بردن شما' in _joined(verse, "modern")
+    assert "گفته شده است و آن بر خدا دشوار نیست گفته شده است و بردن" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید آن بردن شما" in _joined(verse, "modern")
     assert '«وَما ذلك على الله بعزيز» و آن بر خدا دشوار نیست' in _joined(verse, "critical")
 
 def test_ibrahim_14_21_verse():
     verse = _check_verse("14:21")
-    assert 'طبری می\u200cگوید و همه برای خدا آشکار شدند یعنی اینان که' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات آشکار شدن همه برای' in _joined(verse, "modern")
+    assert "گفته شده است و همه برای خدا آشکار شدند یعنی اینان که" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات آشکار شدن همه برای" in _joined(verse, "modern")
     assert '«إنا كنا لكم تبعا فهل أنتم مغنون عنا» ما پیرو شما' in _joined(verse, "critical")
 
 def test_ibrahim_14_22_verse():
     verse = _check_verse("14:22")
-    assert 'طبری می\u200cگوید و ابلیس گفت چون کار گذشت یعنی چون اهل' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات سخن شیطان با پیروانش' in _joined(verse, "modern")
+    assert "گفته شده است و ابلیس گفت چون کار گذشت یعنی چون اهل" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات سخن شیطان با پیروانش" in _joined(verse, "modern")
     assert '«فلا تلوموني و لوموا أنفسكم» مرا سرزنش نکنید و خود را' in _joined(verse, "critical")
 
 def test_ibrahim_14_23_verse():
     verse = _check_verse("14:23")
-    assert 'طبری می\u200cگوید و آنان که خدا و فرستاده\u200cاش را راست دانستند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات پس از صحنه\u200cهای داوری' in _joined(verse, "modern")
+    assert "گفته شده است و آنان که خدا و فرستاده\u200cاش را راست دانستند" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات پس از صحنه\u200cهای داوری" in _joined(verse, "modern")
     assert '«تحيتهم فيها سلام» درودشان در آن سلام است و آن یک' in _joined(verse, "critical")
 
 def test_ibrahim_14_24_verse():
     verse = _check_verse("14:24")
-    assert 'طبری می\u200cگوید خدا به پیامبرش محمد می\u200cگوید آیا ای محمد با' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات کلمهٔ طیبه را به' in _joined(verse, "modern")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است آیا ای محمد با" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات کلمهٔ طیبه را به" in _joined(verse, "modern")
     assert '«أصلها ثابت و فرعها في السماء» ریشه\u200cاش استوار و شاخه\u200cاش در' in _joined(verse, "critical")
 
 def test_ibrahim_14_25_verse():
     verse = _check_verse("14:25")
-    assert 'طبری می\u200cگوید اهل تأویل در معنای زمانی که خدا در این\u200cجا' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات میوه دادن درخت را' in _joined(verse, "modern")
+    assert "گفته شده است اهل تأویل در معنای زمانی که خدا در این\u200cجا" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات میوه دادن درخت را" in _joined(verse, "modern")
     assert '«تؤتي أكلها كل حين» میوه\u200cاش را هر زمان می\u200cدهد و آن' in _joined(verse, "critical")
 
 def test_ibrahim_14_26_verse():
     verse = _check_verse("14:26")
-    assert 'طبری در شرح این آیه در پیوند با آیهٔ پیشین می\u200cگوید' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات مقصود از کلمهٔ خبیثه' in _joined(verse, "modern")
+    assert "در شرح این آیه در پیوند با آیهٔ پیشین گفته شده است" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات مقصود از کلمهٔ خبیثه" in _joined(verse, "modern")
     assert '«اجتثت من فوق الأرض ما لها من قرار» از روی زمین' in _joined(verse, "critical")
 
 def test_ibrahim_14_27_verse():
     verse = _check_verse("14:27")
-    assert 'طبری می\u200cگوید خدا کارها و ایمان آنان را که ایمان آوردند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید آغاز و ادامهٔ' in _joined(verse, "modern")
+    assert "گفته شده است خدا کارها و ایمان آنان را که ایمان آوردند" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید آغاز و ادامهٔ" in _joined(verse, "modern")
     assert '«يثبت الله الذين آمنوا بالقول الثابت» خدا آنان را که ایمان' in _joined(verse, "critical")
 
 def test_ibrahim_14_28_verse():
     verse = _check_verse("14:28")
-    assert 'طبری می\u200cگوید آیا ای محمد ندیدی آنان را که نعمت خدا' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات حال سردمداران و بزرگان' in _joined(verse, "modern")
+    assert "آیا ای محمد ندیدی آنان که نعمت خدا" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات حال سردمداران و بزرگان" in _joined(verse, "modern")
     assert '«بدلوا نعمة الله كفرا» نعمت خدا را کفر بدل کردند و' in _joined(verse, "critical")
 
 def test_ibrahim_14_29_verse():
     verse = _check_verse("14:29")
-    assert 'طبری می\u200cگوید سپس از سرای هلاکت روشن کرد چیست گفته شد' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات دار البوار را جهنم' in _joined(verse, "modern")
+    assert "گفته شده است سپس از سرای هلاکت روشن کرد چیست گفته شد" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات دار البوار را جهنم" in _joined(verse, "modern")
     assert '«جهنم يصلونها و بئس القرار» دوزخ در آن درآیند و بد' in _joined(verse, "critical")
 
 def test_ibrahim_14_30_verse():
     verse = _check_verse("14:30")
-    assert 'طبری می\u200cگوید و اینان که نعمت خدا را کفر بدل کردند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید برای خدا اندادی' in _joined(verse, "modern")
+    assert "گفته شده است و اینان که نعمت خدا را کفر بدل کردند" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید برای خدا اندادی" in _joined(verse, "modern")
     assert '«قل تمتعوا فإن مصيركم إلى النار» بگو بهره برید که بازگشت' in _joined(verse, "critical")
 
 def test_ibrahim_14_31_verse():
     verse = _check_verse("14:31")
-    assert 'طبری می\u200cگوید خدا به پیامبرش می\u200cگوید بگو ای محمد به بندگانم' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات به بندگان مؤمن می\u200cگوید' in _joined(verse, "modern")
+    assert "گفته شده است خدا به پیامبرش گفته شده است بگو ای محمد به بندگانم" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات به بندگان مؤمن می\u200cگوید" in _joined(verse, "modern")
     assert '«سرا و علانية» پنهان و آشکار و آن دو قید انفاق' in _joined(verse, "critical")
 
 def test_ibrahim_14_32_verse():
     verse = _check_verse("14:32")
-    assert 'طبری می\u200cگوید خدا آن است که آسمان\u200cها و زمین را از' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات استدلال بر یگانگی ربوبیت' in _joined(verse, "modern")
+    assert "خدا آن است که آسمان\u200cها و زمین را از" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات استدلال بر یگانگی ربوبیت" in _joined(verse, "modern")
     assert '«الله الذي خلق السماوات و الأرض» خداست که آسمان\u200cها و زمین' in _joined(verse, "critical")
 
 def test_ibrahim_14_33_verse():
     verse = _check_verse("14:33")
-    assert 'طبری می\u200cگوید و خدا آن که آسمان\u200cها و زمین را آفرید' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات تسخیر خورشید و ماه' in _joined(verse, "modern")
+    assert "گفته شده است و خدا آن که آسمان\u200cها و زمین را آفرید" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات تسخیر خورشید و ماه" in _joined(verse, "modern")
     assert '«دائبين» کوشنده و آن یک واژه خورشید و ماه را به' in _joined(verse, "critical")
 
 def test_ibrahim_14_34_verse():
     verse = _check_verse("14:34")
-    assert 'طبری می\u200cگوید و به شما داد با بخشیدنش بر شما از' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید از هر چه' in _joined(verse, "modern")
+    assert "و به شما داد با بخشیدنش بر شما از" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید از هر چه" in _joined(verse, "modern")
     assert '«و إن تعدوا نعمت الله لا تحصوها» و اگر نعمت خدا' in _joined(verse, "critical")
 
 
 def test_ibrahim_14_35_verse():
     verse = _check_verse("14:35")
-    assert 'طبری می\u200cگوید و ای محمد یاد کن و چون ابراهیم گفت' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات انعام به فرزندان ابراهیم' in _joined(verse, "modern")
+    assert "گفته شده است و ای محمد یاد کن و چون ابراهیم گفت" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات انعام به فرزندان ابراهیم" in _joined(verse, "modern")
     assert '«رب اجعل هذا البلد آمنا» پروردگارا این شهر را امن کن' in _joined(verse, "critical")
 
 def test_ibrahim_14_36_verse():
     verse = _check_verse("14:36")
-    assert 'طبری در شرح این آیه حدیثی بزرگ می\u200cآورد مثنی از اصبغ' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید بت\u200cها بسیاری از' in _joined(verse, "modern")
+    assert "در شرح این آیه حدیثی بزرگ آورده شده است مثنی از اصبغ" in _joined(verse, "notes")
+    assert "بر آن است که این آیات می\u200cگوید بت\u200cها بسیاری از" in _joined(verse, "modern")
     assert '«فمن تبعني فإنه مني» پس هر که از من پیروی کند' in _joined(verse, "critical")
 
 def test_ibrahim_14_37_verse():
     verse = _check_verse("14:37")
-    assert 'طبری می\u200cگوید و ابراهیم خلیل رحمان این سخن را گفت چون' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات دعای ابراهیم را می\u200cگوید' in _joined(verse, "modern")
+    assert "گفته شده است و ابراهیم خلیل رحمان این سخن را گفت چون" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات دعای ابراهیم را می\u200cگوید" in _joined(verse, "modern")
     assert '«بواد غير ذي زرع عند بيتك المحرم» در دره\u200cای بی\u200cکشت نزد' in _joined(verse, "critical")
 
 def test_ibrahim_14_38_verse():
     verse = _check_verse("14:38")
-    assert 'طبری می\u200cگوید و این خبری از خدا دربارهٔ گواه گرفتن دوستش' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید پروردگارا تو آنچه' in _joined(verse, "modern")
+    assert "گفته شده است و این خبری از خدا دربارهٔ گواه گرفتن دوستش" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید پروردگارا تو آنچه" in _joined(verse, "modern")
     assert '«ربنا إنك تعلم ما نخفي و ما نعلن» پروردگارا تو می\u200cدانی' in _joined(verse, "critical")
 
 def test_ibrahim_14_39_verse():
     verse = _check_verse("14:39")
-    assert 'طبری می\u200cگوید سپاس خدا را که در بزرگی سن فرزندی اسماعیل' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات دعای ابراهیم را می\u200cگوید' in _joined(verse, "modern")
+    assert "گفته شده است سپاس خدا را که در بزرگی سن فرزندی اسماعیل" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات دعای ابراهیم را می\u200cگوید" in _joined(verse, "modern")
     assert '«الحمد لله الذي وهب لي على الكبر» سپاس خدایی را که' in _joined(verse, "critical")
 
 def test_ibrahim_14_40_verse():
     verse = _check_verse("14:40")
-    assert 'طبری می\u200cگوید پروردگارا مرا انجام\u200cدهندهٔ آنچه از فریضه\u200cات که بر من' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات دعای ابراهیم را تمام' in _joined(verse, "modern")
+    assert "گفته شده است پروردگارا مرا انجام\u200cدهندهٔ آنچه از فریضه\u200cات که بر من" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات دعای ابراهیم را تمام" in _joined(verse, "modern")
     assert '«رب اجعلني مقيم الصلاة و من ذريتي» پروردگارا مرا برپاکنندهٔ نماز' in _joined(verse, "critical")
 
 def test_ibrahim_14_41_verse():
     verse = _check_verse("14:41")
-    assert 'طبری می\u200cگوید و این دعای ابراهیم برای پدر و مادرش به' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات دعای ابراهیم را پایان' in _joined(verse, "modern")
+    assert "گفته شده است و این دعای ابراهیم برای پدر و مادرش به" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات دعای ابراهیم را پایان" in _joined(verse, "modern")
     assert '«ربنا اغفر لي و لوالدي و للمؤمنين» پروردگارا مرا و پدر' in _joined(verse, "critical")
 
 
 def test_ibrahim_14_42_verse():
     verse = _check_verse("14:42")
-    assert 'طبری می\u200cگوید خدا به پیامبرش محمد می\u200cگوید و خدا را ای' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات پاسخ توهمی است که' in _joined(verse, "modern")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است و خدا را ای" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات پاسخ توهمی است که" in _joined(verse, "modern")
     assert '«و لا تحسبن الله غافلا عما يعمل الظالمون» و خدا را' in _joined(verse, "critical")
 
 def test_ibrahim_14_43_verse():
     verse = _check_verse("14:43")
-    assert 'طبری می\u200cگوید و اما گفته\u200cاش شتابان اهل تأویل در معنایش اختلاف' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات چشم خیره و گردن' in _joined(verse, "modern")
+    assert "گفته شده است و اما گفته\u200cاش شتابان اهل تأویل در معنایش اختلاف" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات چشم خیره و گردن" in _joined(verse, "modern")
     assert '«و أفئدتهم هواء» و دل\u200cهایشان تهی است و آن هوا بودن' in _joined(verse, "critical")
 
 def test_ibrahim_14_44_verse():
     verse = _check_verse("14:44")
-    assert 'طبری می\u200cگوید و ای محمد مردم را که تو را به' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات انذار دوم است و' in _joined(verse, "modern")
+    assert "گفته شده است و ای محمد مردم را که تو را به" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات انذار دوم است و" in _joined(verse, "modern")
     assert '«ربنا أخرنا إلى أجل قريب نجب دعوتك و نتبع الرسل» پروردگارا' in _joined(verse, "critical")
 
 def test_ibrahim_14_45_verse():
     verse = _check_verse("14:45")
-    assert 'طبری می\u200cگوید و در دنیا در خانه\u200cهای آنان که به خدا' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید در مسکن\u200cهای ستمگران' in _joined(verse, "modern")
+    assert "گفته شده است و در دنیا در خانه\u200cهای آنان که به خدا" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید در مسکن\u200cهای ستمگران" in _joined(verse, "modern")
     assert '«و سكنتم في مساكن الذين ظلموا أنفسهم» و در خانه\u200cهای آنان' in _joined(verse, "critical")
 
 def test_ibrahim_14_46_verse():
     verse = _check_verse("14:46")
-    assert 'طبری در شرح این دسته می\u200cگوید آنان نیرنگ خود را کردند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات معنای مکر ظالمان نزد' in _joined(verse, "modern")
+    assert "در شرح این دسته گفته شده است آنان نیرنگ خود را کردند" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات معنای مکر ظالمان نزد" in _joined(verse, "modern")
     assert '«و عند الله مكرهم» و نیرنگشان نزد خداست و آن نزد' in _joined(verse, "critical")
 
 def test_ibrahim_14_47_verse():
     verse = _check_verse("14:47")
-    assert 'طبری در شرح این بخش می\u200cگوید خدا را خلف\u200cکنندهٔ وعده\u200cاش به' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید خدا را خلف' in _joined(verse, "modern")
+    assert "در شرح این بخش گفته شده است خدا را خلف\u200cکنندهٔ وعده\u200cاش به" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید خدا را خلف" in _joined(verse, "modern")
     assert '«فلا تحسبن الله مخلف وعده رسله» پس خدا را خلف\u200cکنندهٔ وعده\u200cاش' in _joined(verse, "critical")
 
 def test_ibrahim_14_48_verse():
     verse = _check_verse("14:48")
-    assert 'طبری در شرح این آیه بر آن است که روزی که' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات وجوه گفته شده در' in _joined(verse, "modern")
+    assert "در شرح این آیه بر آن است که روزی که" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات وجوه گفته شده در" in _joined(verse, "modern")
     assert '«يوم تبدل الأرض غير الأرض و السماوات» روزی که زمین به' in _joined(verse, "critical")
 
 def test_ibrahim_14_49_verse():
     verse = _check_verse("14:49")
-    assert 'طبری در شرح این آیه بر آن است که گناهکاران آن' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات گناهکاران را آن روز' in _joined(verse, "modern")
+    assert "در شرح این آیه بر آن است که گناهکاران آن" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات گناهکاران را آن روز" in _joined(verse, "modern")
     assert '«و ترى المجرمين يومئذ مقرنين في الأصفاد» و گناهکاران را آن' in _joined(verse, "critical")
 
 def test_ibrahim_14_50_verse():
     verse = _check_verse("14:50")
-    assert 'طبری می\u200cگوید و گناهکارانی را که به خدا کفر ورزیدند و' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید سرابیل آنان از' in _joined(verse, "modern")
+    assert "گفته شده است و گناهکارانی را که به خدا کفر ورزیدند و" in _joined(verse, "notes")
+    assert "بر آن است که این آیات می\u200cگوید سرابیل آنان از" in _joined(verse, "modern")
     assert '«سرابيلهم من قطران و تغشى وجوههم النار» جامه\u200cهاشان از قیر است' in _joined(verse, "critical")
 
 def test_ibrahim_14_51_verse():
     verse = _check_verse("14:51")
-    assert 'طبری در شرح غایت این صحنه می\u200cگوید تا خدا هر نفسی' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات غایت صحنه را می\u200cگوید' in _joined(verse, "modern")
+    assert "در شرح غایت این صحنه گفته شده است تا خدا هر نفسی" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات غایت صحنه را می\u200cگوید" in _joined(verse, "modern")
     assert '«ليجزي الله كل نفس ما كسبت» تا خدا هر کسی را' in _joined(verse, "critical")
 
 def test_ibrahim_14_52_verse():
     verse = _check_verse("14:52")
-    assert 'طبری می\u200cگوید این قرآن رسانیدنی برای مردم است خدا با آن' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که سوره به جامع\u200cترین آیه نسبت به' in _joined(verse, "modern")
+    assert "گفته شده است این قرآن رسانیدنی برای مردم است خدا با آن" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که سوره به جامع\u200cترین آیه نسبت به" in _joined(verse, "modern")
     assert '«هذا بلاغ للناس» این رسانیدنی برای مردم است و آن هذا' in _joined(verse, "critical")
 
 def test_hijr_15_1_verse():
     verse = _check_verse("15:1")
-    assert 'طبری می\u200cگوید گفته\u200cاش الر پیش\u200cتر روشن شده است و گفته\u200cاش این' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این سوره پیرامون استهزای کفار به' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش الر پیش\u200cتر روشن شده است و گفته\u200cاش این" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این سوره پیرامون استهزای کفار به" in _joined(verse, "modern")
     assert '«تلك آيات الكتاب و قرآن مبين» این آیات کتاب و قرآنی' in _joined(verse, "critical")
 
 def test_hijr_15_2_verse():
     verse = _check_verse("15:2")
-    assert 'طبری می\u200cگوید خوانندگان در خواندن گفته\u200cاش بسا اختلاف کردند بیشتر خوانندگان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات آرزوی ایمان کافران را' in _joined(verse, "modern")
+    assert "گفته شده است خوانندگان در خواندن گفته\u200cاش بسا اختلاف کردند بیشتر خوانندگان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات آرزوی ایمان کافران را" in _joined(verse, "modern")
     assert '«ربما يود الذين كفروا لو كانوا مسلمين» بسا آنان که کفر' in _joined(verse, "critical")
 
 def test_hijr_15_3_verse():
     verse = _check_verse("15:3")
-    assert 'طبری می\u200cگوید خدا به پیامبرش محمد می\u200cگوید ای محمد این مشرکان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید آنان را بگذار' in _joined(verse, "modern")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است ای محمد این مشرکان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید آنان را بگذار" in _joined(verse, "modern")
     assert '«ذرهم يأكلوا و يتمتعوا و يلههم الأمل» آنان را بگذار بخورند' in _joined(verse, "critical")
 
 def test_hijr_15_4_verse():
     verse = _check_verse("15:4")
-    assert 'طبری می\u200cگوید و هلاک نکردیم ای محمد از اهل شهری از' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید هیچ قریه\u200cای را' in _joined(verse, "modern")
+    assert "و هلاک نکردیم ای محمد از اهل شهری از" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید هیچ قریه\u200cای را" in _joined(verse, "modern")
     assert '«و ما أهلكنا من قرية إلا و لها كتاب معلوم» و' in _joined(verse, "critical")
 
 def test_hijr_15_5_verse():
     verse = _check_verse("15:5")
-    assert 'طبری می\u200cگوید هلاک هیچ امتی پیش از زمانی که خدا آن' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات قانون اجل امت\u200cها را' in _joined(verse, "modern")
+    assert "گفته شده است هلاک هیچ امتی پیش از زمانی که خدا آن" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات قانون اجل امت\u200cها را" in _joined(verse, "modern")
     assert '«ما تسبق من أمة أجلها و ما يستأخرون» هیچ امتی از' in _joined(verse, "critical")
 
 def test_hijr_15_6_verse():
     verse = _check_verse("15:6")
-    assert 'طبری می\u200cگوید و این مشرکان از قومت ای محمد گفتند ای' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این سوره پیرامون استهزای کفار به' in _joined(verse, "modern")
+    assert "گفته شده است و این مشرکان از قومت ای محمد گفتند ای" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این سوره پیرامون استهزای کفار به" in _joined(verse, "modern")
     assert '«يا أيها الذي نزل عليه الذكر إنك لمجنون» ای آن که' in _joined(verse, "critical")
 
 def test_hijr_15_7_verse():
     verse = _check_verse("15:7")
-    assert 'طبری می\u200cگوید چرا فرشتگان را برای ما نمی\u200cآوری گفتند چرا فرشتگان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات وجه و سبب خواستن' in _joined(verse, "modern")
+    assert "گفته شده است چرا فرشتگان را برای ما نمی\u200cآوری گفتند چرا فرشتگان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات وجه و سبب خواستن" in _joined(verse, "modern")
     assert '«لو ما تأتينا بالملائكة» چرا فرشتگان را برای ما نمی\u200cآوری و' in _joined(verse, "critical")
 
 def test_hijr_15_8_verse():
     verse = _check_verse("15:8")
-    assert 'طبری می\u200cگوید خوانندگان در خواندن گفته\u200cاش فرشتگان را فرو نمی\u200cفرستیم اختلاف' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات معنای فرشتگان را جز' in _joined(verse, "modern")
+    assert "گفته شده است خوانندگان در خواندن گفته\u200cاش فرشتگان را فرو نمی\u200cفرستیم اختلاف" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات معنای فرشتگان را جز" in _joined(verse, "modern")
     assert '«ما ننزل الملائكة إلا بالحق» فرشتگان را جز به حق فرو' in _joined(verse, "critical")
 
 def test_hijr_15_9_verse():
     verse = _check_verse("15:9")
-    assert 'طبری می\u200cگوید ما ذکر را فرو فرستادیم و آن قرآن است' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات معنای ما ذکر را' in _joined(verse, "modern")
+    assert "گفته شده است ما ذکر را فرو فرستادیم و آن قرآن است" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات معنای ما ذکر را" in _joined(verse, "modern")
     assert '«إنا نحن نزلنا الذكر و إنا له لحافظون» ما ذکر را' in _joined(verse, "critical")
 
 def test_hijr_15_10_verse():
     verse = _check_verse("15:10")
-    assert 'طبری می\u200cگوید خدا به پیامبرش محمد می\u200cگوید ما پیش از تو' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات تسلیت و دلگرمی دادن' in _joined(verse, "modern")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است ما پیش از تو" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات تسلیت و دلگرمی دادن" in _joined(verse, "modern")
     assert '«و لقد أرسلنا من قبلك في شيع الأولين» و به راستی' in _joined(verse, "critical")
 
 def test_hijr_15_11_verse():
     verse = _check_verse("15:11")
-    assert 'طبری می\u200cگوید و نزد گروه\u200cهای نخستین فرستاده\u200cای از خدا نمی\u200cآید که' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید هیچ فرستاده\u200cای نزدشان' in _joined(verse, "modern")
+    assert "گفته شده است و نزد گروه\u200cهای نخستین فرستاده\u200cای از خدا نمی\u200cآید که" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید هیچ فرستاده\u200cای نزدشان" in _joined(verse, "modern")
     assert '«و ما يأتيهم من رسول إلا كانوا به يستهزئون» و فرستاده\u200cای' in _joined(verse, "critical")
 
 def test_hijr_15_12_verse():
     verse = _check_verse("15:12")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید چنان که کفر را در دل\u200cهای گروه\u200cهای' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید این\u200cچنین آن را' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است چنان که کفر را در دل\u200cهای گروه\u200cهای" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید این\u200cچنین آن را" in _joined(verse, "modern")
     assert '«كذلك نسلكه في قلوب المجرمين» این\u200cچنین آن را در دل\u200cهای گناهکاران' in _joined(verse, "critical")
 
 def test_hijr_15_13_verse():
     verse = _check_verse("15:13")
-    assert 'طبری می\u200cگوید به این قرآن قومت که دروغ\u200cخواندن را در دلشان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید به آن ایمان' in _joined(verse, "modern")
+    assert "گفته شده است به این قرآن قومت که دروغ\u200cخواندن را در دلشان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید به آن ایمان" in _joined(verse, "modern")
     assert '«لا يؤمنون به و قد خلت سنة الأولين» به آن ایمان' in _joined(verse, "critical")
 
 def test_hijr_15_14_verse():
     verse = _check_verse("15:14")
-    assert 'طبری می\u200cگوید اهل تأویل در اهل گفته\u200cاش پس در آن بالا' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید اگر دری از' in _joined(verse, "modern")
+    assert "گفته شده است اهل تأویل در اهل گفته\u200cاش پس در آن بالا" in _joined(verse, "notes")
+    assert "بر آن است که این آیات می\u200cگوید اگر دری از" in _joined(verse, "modern")
     assert '«و لو فتحنا عليهم بابا من السماء فظلوا فيه يعرجون» و' in _joined(verse, "critical")
 
 def test_hijr_15_15_verse():
     verse = _check_verse("15:15")
-    assert 'طبری می\u200cگوید پس این مشرکان که خدا وصفشان را گفت می\u200cگفتند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید هر آینه گویند' in _joined(verse, "modern")
+    assert "گفته شده است پس این مشرکان که خدا وصفشان را گفت می\u200cگفتند" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید هر آینه گویند" in _joined(verse, "modern")
     assert '«لقالوا إنما سكرت أبصارنا بل نحن قوم مسحورون» خواهند گفت تنها' in _joined(verse, "critical")
 
 def test_hijr_15_16_verse():
     verse = _check_verse("15:16")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید و به راستی در آسمان دنیا جای\u200cهایی' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات زیبایی و زینت آسمان' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است و به راستی در آسمان دنیا جای\u200cهایی" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات زیبایی و زینت آسمان" in _joined(verse, "modern")
     assert '«و لقد جعلنا في السماء بروجا و زيناها للناظرين» و به' in _joined(verse, "critical")
 
 def test_hijr_15_17_verse():
     verse = _check_verse("15:17")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید و آسمان دنیا را از هر شیطان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید و آن را' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است و آسمان دنیا را از هر شیطان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید و آن را" in _joined(verse, "modern")
     assert '«و حفظناها من كل شيطان رجيم» و آن را از هر' in _joined(verse, "critical")
 
 def test_hijr_15_18_verse():
     verse = _check_verse("15:18")
-    assert 'طبری می\u200cگوید مگر آن که گوش بدزدد می\u200cگوید اما از شیطان\u200cها' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید مگر آن که' in _joined(verse, "modern")
+    assert "گفته شده است مگر آن که گوش بدزدد گفته شده است اما از شیطان\u200cها" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید مگر آن که" in _joined(verse, "modern")
     assert '«إلا من استرق السمع فأتبعه شهاب مبين» مگر آن که گوش' in _joined(verse, "critical")
 
 def test_hijr_15_19_verse():
     verse = _check_verse("15:19")
-    assert 'طبری می\u200cگوید خدا با گفته\u200cاش و زمین را گستردیم یعنی زمین' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید و زمین را' in _joined(verse, "modern")
+    assert "گفته شده است خدا با گفته\u200cاش و زمین را گستردیم یعنی زمین" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید و زمین را" in _joined(verse, "modern")
     assert '«و الأرض مددناها و ألقينا فيها رواسي و أنبتنا فيها من' in _joined(verse, "critical")
 
 def test_hijr_15_20_verse():
     verse = _check_verse("15:20")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید و برای شما ای مردم در زمین' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات مقصود از کسانی که' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است و برای شما ای مردم در زمین" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات مقصود از کسانی که" in _joined(verse, "modern")
     assert '«و جعلنا لكم فيها معايش و من لستم له برازقين» و' in _joined(verse, "critical")
 
 def test_hijr_15_21_verse():
     verse = _check_verse("15:21")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید و چیزی از باران\u200cها نیست مگر گنجینه\u200cهایش' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات وجوه و گفته\u200cهای گوناگون' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است و چیزی از باران\u200cها نیست مگر گنجینه\u200cهایش" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات وجوه و گفته\u200cهای گوناگون" in _joined(verse, "modern")
     assert '«و إن من شيء إلا عندنا خزائنه و ما ننزله إلا' in _joined(verse, "critical")
 
 def test_hijr_15_22_verse():
     verse = _check_verse("15:22")
-    assert 'طبری می\u200cگوید خوانندگان در خواندن آن اختلاف کردند بیشتر خوانندگان و' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات نظام خلقت را بدون' in _joined(verse, "modern")
+    assert "گفته شده است خوانندگان در خواندن آن اختلاف کردند بیشتر خوانندگان و" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات نظام خلقت را بدون" in _joined(verse, "modern")
     assert '«و أرسلنا الرياح لواقح فأنزلنا من السماء ماء فأسقيناكموه و ما' in _joined(verse, "critical")
 
 def test_hijr_15_23_verse():
     verse = _check_verse("15:23")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید و ما زنده می\u200cکنیم آن که مرده' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید ما زنده می\u200cکنیم' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است و ما زنده می\u200cکنیم آن که مرده" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید ما زنده می\u200cکنیم" in _joined(verse, "modern")
     assert '«و إنا لنحن نحيي و نميت و نحن الوارثون» و ما' in _joined(verse, "critical")
 
 def test_hijr_15_24_verse():
     verse = _check_verse("15:24")
-    assert 'طبری می\u200cگوید گفته\u200cاش و به راستی پیشینیان شما را دانستیم و' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید به راستی پیشینیان' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش و به راستی پیشینیان شما را دانستیم و" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید به راستی پیشینیان" in _joined(verse, "modern")
     assert '«و لقد علمنا المستقدمين منكم و لقد علمنا المستأخرين» و به' in _joined(verse, "critical")
 
 def test_hijr_15_25_verse():
     verse = _check_verse("15:25")
-    assert 'طبری می\u200cگوید گفته\u200cاش و به راستی پروردگارت آنان را گرد می\u200cآورد' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید و به راستی' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش و به راستی پروردگارت آنان گرد آورده شده است" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید و به راستی" in _joined(verse, "modern")
     assert '«و إن ربك هو يحشرهم إنه حكيم عليم» و به راستی' in _joined(verse, "critical")
 
 def test_hijr_15_26_verse():
     verse = _check_verse("15:26")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید و به راستی انسان که آدم است' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات معنای آفرینش انسان از' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است و به راستی انسان که آدم است" in _joined(verse, "notes")
+    assert "بر آن است که این آیات معنای آفرینش انسان از" in _joined(verse, "modern")
     assert '«و لقد خلقنا الإنسان من صلصال من حمإ مسنون» و به' in _joined(verse, "critical")
 
 def test_hijr_15_27_verse():
     verse = _check_verse("15:27")
-    assert 'طبری می\u200cگوید گفته\u200cاش و جان و معنای جان و چرا او' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات توضیحاتی دربارهٔ معنای لغوی' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش و جان و معنای جان و چرا او" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات توضیحاتی دربارهٔ معنای لغوی" in _joined(verse, "modern")
     assert '«و الجان خلقناه من قبل من نار السموم» و جان را' in _joined(verse, "critical")
 
 def test_hijr_15_28_verse():
     verse = _check_verse("15:28")
-    assert 'طبری می\u200cگوید خدا به پیامبرش محمد می\u200cگوید و ای محمد یاد' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات معنای واژهٔ بشر و' in _joined(verse, "modern")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است و ای محمد یاد" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات معنای واژهٔ بشر و" in _joined(verse, "modern")
     assert '«و إذ قال ربك للملائكة إني خالق بشرا» و آن\u200cگاه که' in _joined(verse, "critical")
 
 def test_hijr_15_29_verse():
     verse = _check_verse("15:29")
-    assert 'طبری می\u200cگوید پس چون او را صورت کردم و صورتش را' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات معنای او را راست' in _joined(verse, "modern")
+    assert "گفته شده است پس چون او را صورت کردم و صورتش را" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات معنای او را راست" in _joined(verse, "modern")
     assert '«فإذا سويته و نفخت فيه من روحي فقعوا له ساجدين» پس' in _joined(verse, "critical")
 
 def test_hijr_15_30_verse():
     verse = _check_verse("15:30")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید پس چون خدا آن انسان را آفرید' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید پس فرشتگان همه' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است پس چون خدا آن انسان را آفرید" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید پس فرشتگان همه" in _joined(verse, "modern")
     assert '«فسجد الملائكة كلهم أجمعون» پس فرشتگان همه با هم سجده کردند' in _joined(verse, "critical")
 
 def test_hijr_15_31_verse():
     verse = _check_verse("15:31")
-    assert 'طبری می\u200cگوید جز ابلیس که او سرباز زد از این که' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید جز ابلیس که' in _joined(verse, "modern")
+    assert "گفته شده است جز ابلیس که او سرباز زد از این که" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید جز ابلیس که" in _joined(verse, "modern")
     assert '«إلا إبليس أبى أن يكون مع الساجدين» جز ابلیس که سرباز' in _joined(verse, "critical")
 
 def test_hijr_15_32_verse():
     verse = _check_verse("15:32")
-    assert 'طبری می\u200cگوید پس خدا گفت ای ابلیس تو را چیست که' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید ای ابلیس تو' in _joined(verse, "modern")
+    assert "پس خدا گفت ای ابلیس تو چیست که" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید ای ابلیس تو" in _joined(verse, "modern")
     assert '«قال يا إبليس ما لك ألا تكون مع الساجدين» گفت ای' in _joined(verse, "critical")
 
 def test_hijr_15_33_verse():
     verse = _check_verse("15:33")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید ابلیس گفت من آن نیستم که برای' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید من آن نیستم' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است ابلیس گفت من آن نیستم که برای" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید من آن نیستم" in _joined(verse, "modern")
     assert '«قال لم أكن لأسجد لبشر خلقته من صلصال من حمإ مسنون»' in _joined(verse, "critical")
 
 def test_hijr_15_34_verse():
     verse = _check_verse("15:34")
-    assert 'طبری می\u200cگوید گفته\u200cاش پس از آن بیرون شو می\u200cگوید خدا به' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید پس از آن' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش پس از آن بیرون شو گفته شده است خدا به" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید پس از آن" in _joined(verse, "modern")
     assert '«قال فاخرج منها فإنك رجيم» گفت پس از آن بیرون شو' in _joined(verse, "critical")
 
 def test_hijr_15_35_verse():
     verse = _check_verse("15:35")
-    assert 'طبری می\u200cگوید گفته\u200cاش و به راستی لعنت تا روز جزا بر' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات وجه مقید کردن لعنت' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش و به راستی لعنت تا روز جزا بر" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات وجه مقید کردن لعنت" in _joined(verse, "modern")
     assert '«و إن عليك اللعنة إلى يوم الدين» و به راستی لعنت' in _joined(verse, "critical")
 
 def test_hijr_15_36_verse():
     verse = _check_verse("15:36")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید ابلیس گفت پروردگارا پس چون مرا از' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید پروردگارا مرا تا' in _joined(verse, "modern")
+    assert "ابلیس گفت پروردگارا پس چون مرا از" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید پروردگارا مرا تا" in _joined(verse, "modern")
     assert '«قال رب فأنظرني إلى يوم يبعثون» گفت پروردگارا مرا تا روزی' in _joined(verse, "critical")
 
 def test_hijr_15_37_verse():
     verse = _check_verse("15:37")
-    assert 'طبری می\u200cگوید خدا به او گفت پس تو از آنان هستی' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید پس تو از' in _joined(verse, "modern")
+    assert "گفته شده است خدا به او گفت پس تو از آنان هستی" in _joined(verse, "notes")
+    assert "بر آن است که این آیات می\u200cگوید پس تو از" in _joined(verse, "modern")
     assert '«قال فإنك من المنظرين» گفت پس تو از مهلت\u200cیافتگانی و آن' in _joined(verse, "critical")
 
 def test_hijr_15_38_verse():
     verse = _check_verse("15:38")
-    assert 'طبری می\u200cگوید تا روز وقت معلوم برای هلاک همهٔ آفریدگانم و' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید تا روز وقت' in _joined(verse, "modern")
+    assert "گفته شده است تا روز وقت معلوم برای هلاک همهٔ آفریدگانم و" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید تا روز وقت" in _joined(verse, "modern")
     assert '«إلى يوم الوقت المعلوم» تا روز وقت معلوم و آن چهار' in _joined(verse, "critical")
 
 def test_hijr_15_39_verse():
     verse = _check_verse("15:39")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید ابلیس گفت پروردگارا به گمراه کردنت مرا' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات معنای گفته\u200cاش پروردگارا به' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است ابلیس گفت پروردگارا به گمراه کردنت مرا" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات معنای گفته\u200cاش پروردگارا به" in _joined(verse, "modern")
     assert '«قال رب بما أغويتني لأزينن لهم في الأرض و لأغوينهم أجمعين»' in _joined(verse, "critical")
 
 def test_hijr_15_40_verse():
     verse = _check_verse("15:40")
-    assert 'طبری می\u200cگوید مگر بندگانت از آنان که خالص شدگان\u200cاند می\u200cگوید مگر' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات مراد از بندگان خالص' in _joined(verse, "modern")
+    assert "گفته شده است مگر بندگانت از آنان که خالص شدگان\u200cاند گفته شده است مگر" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات مراد از بندگان خالص" in _joined(verse, "modern")
     assert '«إلا عبادك منهم المخلصين» مگر بندگانت از آنان که خالص شده\u200cاند' in _joined(verse, "critical")
 
 def test_hijr_15_41_verse():
     verse = _check_verse("15:41")
-    assert 'طبری می\u200cگوید خوانندگان در خواندن گفته\u200cاش گفت این راهی راست بر' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات معنای بر خدا بودن' in _joined(verse, "modern")
+    assert "گفته شده است خوانندگان در خواندن گفته\u200cاش گفت این راهی راست بر" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات معنای بر خدا بودن" in _joined(verse, "modern")
     assert '«قال هذا صراط علي مستقيم» گفت این راهی راست بر من' in _joined(verse, "critical")
 
 def test_hijr_15_42_verse():
     verse = _check_verse("15:42")
-    assert 'طبری می\u200cگوید گفته\u200cاش به راستی بندگانم را بر آنان چیرگی نداری' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید به راستی بندگانم' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش به راستی بندگانم را بر آنان چیرگی نداری" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید به راستی بندگانم" in _joined(verse, "modern")
     assert '«إن عبادي ليس لك عليهم سلطان إلا من اتبعك من الغاوين»' in _joined(verse, "critical")
 
 def test_hijr_15_43_verse():
     verse = _check_verse("15:43")
-    assert 'طبری می\u200cگوید خدا به ابلیس می\u200cگوید و به راستی جهنم وعده\u200cگاه' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید و به راستی' in _joined(verse, "modern")
+    assert "گفته شده است خدا به ابلیس گفته شده است و به راستی جهنم وعده\u200cگاه" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید و به راستی" in _joined(verse, "modern")
     assert '«و إن جهنم لموعد هم أجمعين» و به راستی جهنم وعده\u200cگاه' in _joined(verse, "critical")
 
 def test_hijr_15_44_verse():
     verse = _check_verse("15:44")
-    assert 'طبری می\u200cگوید آن را هفت در است می\u200cگوید جهنم را هفت' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات معنای این که جهنم' in _joined(verse, "modern")
+    assert "گفته شده است آن هفت در تفسیرِ کهن است گفته شده است جهنم را هفت" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات معنای این که جهنم" in _joined(verse, "modern")
     assert '«لها سبعة أبواب لكل باب منهم جزء مقسوم» آن را هفت' in _joined(verse, "critical")
 
 def test_hijr_15_45_verse():
     verse = _check_verse("15:45")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید به راستی آنان که با فرمانبرداری از' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید به راستی پرهیزکاران' in _joined(verse, "modern")
+    assert "به راستی آنان که با فرمانبرداری از" in _joined(verse, "notes")
+    assert "که این آیات گفته شده است به راستی پرهیزکاران" in _joined(verse, "modern")
     assert '«إن المتقين في جنات و عيون» به راستی پرهیزکاران در باغ\u200cها' in _joined(verse, "critical")
 
 def test_hijr_15_46_verse():
     verse = _check_verse("15:46")
-    assert 'طبری می\u200cگوید به آنان گفته می\u200cشود با سلام ایمنان در آن' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید با سلام ایمنان' in _joined(verse, "modern")
+    assert "گفته شده است به آنان گفته می\u200cشود با سلام ایمنان در آن" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید با سلام ایمنان" in _joined(verse, "modern")
     assert '«ادخلوها بسلام آمنين» با سلام ایمنان در آن درآیید و آن' in _joined(verse, "critical")
 
 def test_hijr_15_47_verse():
     verse = _check_verse("15:47")
-    assert 'طبری می\u200cگوید گفته\u200cاش و آنچه در سینه\u200cهاشان از کینه بود برکندیم' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات چند روایت در بیان' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش و آنچه در سینه\u200cهاشان از کینه بود برکندیم" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات چند روایت در بیان" in _joined(verse, "modern")
     assert '«و نزعنا ما في صدورهم من غل إخوانا على سرر متقابلين»' in _joined(verse, "critical")
 
 def test_hijr_15_48_verse():
     verse = _check_verse("15:48")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید این پرهیزکاران را که وصفشان را گفت' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید در آن رنجی' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است این پرهیزکاران را که وصفشان را گفت" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید در آن رنجی" in _joined(verse, "modern")
     assert '«لا يمسهم فيها نصب و ما هم منها بمخرجين» در آن' in _joined(verse, "critical")
 
 def test_hijr_15_49_verse():
     verse = _check_verse("15:49")
-    assert 'طبری می\u200cگوید خدا به پیامبرش محمد می\u200cگوید محمد بندگانم را خبر' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید بندگان مرا خبر' in _joined(verse, "modern")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است محمد بندگانم را خبر" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید بندگان مرا خبر" in _joined(verse, "modern")
     assert '«نبئ عبادي أني أنا الغفور الرحيم» بندگانم را خبر ده که' in _joined(verse, "critical")
 
 def test_hijr_15_50_verse():
     verse = _check_verse("15:50")
-    assert 'طبری می\u200cگوید و خبرشان ده نیز که عذابم برای آن که' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید و عذابم همان' in _joined(verse, "modern")
+    assert "گفته شده است و خبرشان ده نیز که عذابم برای آن که" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید و عذابم همان" in _joined(verse, "modern")
     assert '«و أن عذابي هو العذاب الأليم» و عذابم همان عذاب دردناک' in _joined(verse, "critical")
 
 def test_hijr_15_51_verse():
     verse = _check_verse("15:51")
-    assert 'طبری می\u200cگوید خدا به پیامبرش محمد می\u200cگوید و محمد بندگانم را' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید و آنان را' in _joined(verse, "modern")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است و محمد بندگانم را" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید و آنان را" in _joined(verse, "modern")
     assert '«و نبئهم عن ضيف إبراهيم» و آنان را از مهمانان ابراهیم' in _joined(verse, "critical")
 
 def test_hijr_15_52_verse():
     verse = _check_verse("15:52")
-    assert 'طبری می\u200cگوید فرشتگانی که بر ابراهیم خلیل رحمان درآمدند چون پروردگارشان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید آن روز که' in _joined(verse, "modern")
+    assert "گفته شده است فرشتگانی که بر ابراهیم خلیل رحمان درآمدند چون پروردگارشان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید آن روز که" in _joined(verse, "modern")
     assert '«إذ دخلوا عليه فقالوا سلاما قال إنا منكم وجلون» چون بر' in _joined(verse, "critical")
 
 def test_hijr_15_53_verse():
     verse = _check_verse("15:53")
-    assert 'طبری می\u200cگوید مهمانان به ابراهیم گفتند مترس می\u200cگوید مهمانان به ابراهیم' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید گفتند مترس ما' in _joined(verse, "modern")
+    assert "گفته شده است مهمانان به ابراهیم گفتند مترس گفته شده است مهمانان به ابراهیم" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید گفتند مترس ما" in _joined(verse, "modern")
     assert '«قالوا لا توجل إنا نبشرك بغلام عليم» گفتند مترس ما تو' in _joined(verse, "critical")
 
 def test_hijr_15_54_verse():
     verse = _check_verse("15:54")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید ابراهیم به فرشتگانی که او را به' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید گفت آیا در' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است ابراهیم به فرشتگانی که او را به" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید گفت آیا در" in _joined(verse, "modern")
     assert '«قال أبشرتموني على أن مسني الكبر فبم تبشرون» گفت آیا در' in _joined(verse, "critical")
 
 def test_hijr_15_55_verse():
     verse = _check_verse("15:55")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید مهمانان ابراهیم به او گفتند تو را' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید گفتند تو را' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است مهمانان ابراهیم به او گفتند تو را" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید گفتند تو را" in _joined(verse, "modern")
     assert '«قالوا بشرناك بالحق فلا تكن من القانطين» گفتند تو را به' in _joined(verse, "critical")
 
 def test_hijr_15_56_verse():
     verse = _check_verse("15:56")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید ابراهیم به مهمانان گفت و چه کسی' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید گفت چه کسی' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است ابراهیم به مهمانان گفت و چه کسی" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید گفت چه کسی" in _joined(verse, "modern")
     assert '«قال و من يقنط من رحمة ربه إلا الضالون» گفت چه' in _joined(verse, "critical")
 
 def test_hijr_15_57_verse():
     verse = _check_verse("15:57")
-    assert 'طبری می\u200cگوید ابراهیم به فرشتگان گفت پس کارتان چیست کارتان چیست' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید گفت ای فرستادگان' in _joined(verse, "modern")
+    assert "گفته شده است ابراهیم به فرشتگان گفت پس کارتان چیست کارتان چیست" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید گفت ای فرستادگان" in _joined(verse, "modern")
     assert '«قال فما خطبكم أيها المرسلون» گفت پس کارتان چیست ای فرستادگان' in _joined(verse, "critical")
 
 def test_hijr_15_58_verse():
     verse = _check_verse("15:58")
-    assert 'طبری می\u200cگوید فرشتگان به او گفتند ما به سوی قومی گناهکار' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید گفتند ما به' in _joined(verse, "modern")
+    assert "گفته شده است فرشتگان به او گفتند ما به سوی قومی گناهکار" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید گفتند ما به" in _joined(verse, "modern")
     assert '«قالوا إنا أرسلنا إلى قوم مجرمين» گفتند ما به سوی قومی' in _joined(verse, "critical")
 
 def test_hijr_15_59_verse():
     verse = _check_verse("15:59")
-    assert 'طبری می\u200cگوید مگر خاندان لوط می\u200cگوید مگر پیروان لوط بر دینی' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید مگر خاندان لوط' in _joined(verse, "modern")
+    assert "گفته شده است مگر خاندان لوط گفته شده است مگر پیروان لوط بر دینی" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید مگر خاندان لوط" in _joined(verse, "modern")
     assert '«إلا آل لوط إنا لمنجوهم أجمعين» مگر خاندان لوط ما همه\u200cشان' in _joined(verse, "critical")
 
 def test_hijr_15_60_verse():
     verse = _check_verse("15:60")
-    assert 'طبری می\u200cگوید جز همسر لوط مقدر کردیم که او از بازماندگان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید مگر همسرش مقدر' in _joined(verse, "modern")
+    assert "گفته شده است جز همسر لوط مقدر کردیم که او از بازماندگان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید مگر همسرش مقدر" in _joined(verse, "modern")
     assert '«إلا امرأته قدرنا إنها لمن الغابرين» مگر همسرش مقدر کردیم که' in _joined(verse, "critical")
 
 def test_hijr_15_61_verse():
     verse = _check_verse("15:61")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید چون فرستادگان خدا نزد خاندان لوط آمدند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید پس چون فرستادگان' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است چون فرستادگان خدا نزد خاندان لوط آمدند" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید پس چون فرستادگان" in _joined(verse, "modern")
     assert '«فلما جاء آل لوط المرسلون» پس چون فرستادگان نزد خاندان لوط' in _joined(verse, "critical")
 
 def test_hijr_15_62_verse():
     verse = _check_verse("15:62")
-    assert 'طبری می\u200cگوید و به آنان گفت شما گروهی ناشناسید یعنی شما' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید لوط به فرشتگان' in _joined(verse, "modern")
+    assert "گفته شده است و به آنان گفت شما گروهی ناشناسید یعنی شما" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید لوط به فرشتگان" in _joined(verse, "modern")
     assert '«قال إنكم قوم منكرون» گفت شما گروهی ناشناسید و آن منکرون' in _joined(verse, "critical")
 
 def test_hijr_15_63_verse():
     verse = _check_verse("15:63")
-    assert 'طبری می\u200cگوید گفته\u200cاش با آنچه در آن شک می\u200cکردند گفت با' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید گفتند بلکه با' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش با آنچه در آن شک می\u200cکردند گفت با" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید گفتند بلکه با" in _joined(verse, "modern")
     assert '«قالوا بل جئناك بما كانوا فيه يمترون» گفتند بلکه با آنچه' in _joined(verse, "critical")
 
 def test_hijr_15_64_verse():
     verse = _check_verse("15:64")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید فرستادگان به لوط گفتند و حق یقین' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید و حق را' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است فرستادگان به لوط گفتند و حق یقین" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید و حق را" in _joined(verse, "modern")
     assert '«و أتيناك بالحق و إنا لصادقون» و حق را برایت آوردیم' in _joined(verse, "critical")
 
 def test_hijr_15_65_verse():
     verse = _check_verse("15:65")
-    assert 'طبری برای این آیه تنها از یونس از ابن\u200cوهب از ابن\u200cزید' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید پس خانواده\u200cات را' in _joined(verse, "modern")
+    assert "برای این آیه تنها از یونس از ابن\u200cوهب از ابن\u200cزید" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید پس خانواده\u200cات را" in _joined(verse, "modern")
     assert '«فأسر بأهلك بقطع من الليل و اتبع أدبارهم و لا يلتفت' in _joined(verse, "critical")
 
 def test_hijr_15_66_verse():
     verse = _check_verse("15:66")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید و به سوی لوط از آن کار' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید و به او' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است و به سوی لوط از آن کار" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید و به او" in _joined(verse, "modern")
     assert '«و قضينا إليه ذلك الأمر أن دابر هؤلاء مقطوع مصبحين» و' in _joined(verse, "critical")
 
 def test_hijr_15_67_verse():
     verse = _check_verse("15:67")
-    assert 'طبری می\u200cگوید گفته\u200cاش و مردم شهر شادمان آمدند می\u200cگوید و مردم' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید از آن سو' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش و مردم شهر شادمان آمدند گفته شده است و مردم" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید از آن سو" in _joined(verse, "modern")
     assert '«و جاء أهل المدينة يستبشرون» و مردم شهر شادمان آمدند و' in _joined(verse, "critical")
 
 def test_hijr_15_68_verse():
     verse = _check_verse("15:68")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید لوط به قومش گفت اینان که نزدشان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید لوط برای دفاع' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است لوط به قومش گفت اینان که نزدشان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید لوط برای دفاع" in _joined(verse, "modern")
     assert '«قال إن هؤلاء ضيفي فلا تفضحون» گفت اینان مهمانان منند مرا' in _joined(verse, "critical")
 
 def test_hijr_15_69_verse():
     verse = _check_verse("15:69")
-    assert 'طبری می\u200cگوید گفته\u200cاش و از خدا بترسید می\u200cگوید و از خدا' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید و از خدا' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش و از خدا بترسید گفته شده است و از خدا" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید و از خدا" in _joined(verse, "modern")
     assert '«و اتقوا الله و لا تخزون» و از خدا بترسید و' in _joined(verse, "critical")
 
 def test_hijr_15_70_verse():
     verse = _check_verse("15:70")
-    assert 'طبری می\u200cگوید گفتند آیا تو را از جهانیان بازنداشتیم خدا می\u200cگوید' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید مهاجمان اهل شهر' in _joined(verse, "modern")
+    assert "گفته شده است گفتند آیا تو از جهانیان بازنداشتیم خدا گفته شده است" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید مهاجمان اهل شهر" in _joined(verse, "modern")
     assert '«قالوا أو لم ننهك عن العالمين» گفتند آیا تو را از' in _joined(verse, "critical")
 
 def test_hijr_15_71_verse():
     verse = _check_verse("15:71")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید لوط به قومش گفت با زنان ازدواج' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید لوط چون از' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است لوط به قومش گفت با زنان ازدواج" in _joined(verse, "notes")
+    assert "بر آن است که این آیات می\u200cگوید لوط چون از" in _joined(verse, "modern")
     assert '«قال هؤلاء بناتي إن كنتم فاعلين» گفت اینان دختران منند اگر' in _joined(verse, "critical")
 
 def test_hijr_15_72_verse():
     verse = _check_verse("15:72")
-    assert 'طبری می\u200cگوید گفته\u200cاش به جان تو می\u200cگوید خدا به پیامبرش محمد' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید به جان تو' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش به جان تو گفته شده است خدا به پیامبرش محمد" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید به جان تو" in _joined(verse, "modern")
     assert '«لعمرك إنهم لفي سكرتهم يعمهون» به جان تو آنان در مستی' in _joined(verse, "critical")
 
 def test_hijr_15_73_verse():
     verse = _check_verse("15:73")
-    assert 'طبری می\u200cگوید گفته\u200cاش پس بانگ آنان را هنگام برآمدن خورشید گرفت' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید به زندگی و' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش پس بانگ آنان را هنگام برآمدن خورشید گرفت" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید به زندگی و" in _joined(verse, "modern")
     assert '«فأخذتهم الصيحة مشرقين» پس بانگ آنان را هنگام برآمدن خورشید گرفت' in _joined(verse, "critical")
 
 def test_hijr_15_74_verse():
     verse = _check_verse("15:74")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید پس بالای سرزمینشان را پایینش کردیم و' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید ناگهان بالای شهرشان' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است پس بالای سرزمینشان را پایینش کردیم و" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید ناگهان بالای شهرشان" in _joined(verse, "modern")
     assert '«فجعلنا عاليها سافلها و أمطرنا عليهم حجارة من سجيل» پس بالایش' in _joined(verse, "critical")
 
 def test_hijr_15_75_verse():
     verse = _check_verse("15:75")
-    assert 'طبری می\u200cگوید گفته\u200cاش به راستی در این نشانه\u200cهایی برای نشانه\u200cشناسان است' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید در این نشانه\u200cهایی' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش به راستی در این نشانه\u200cهایی برای نشانه\u200cشناسان است" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید در این نشانه\u200cهایی" in _joined(verse, "modern")
     assert '«إن في ذلك لآيات للمتوسمين» به راستی در این نشانه\u200cهایی برای' in _joined(verse, "critical")
 
 def test_hijr_15_76_verse():
     verse = _check_verse("15:76")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید و به راستی این شهر شهر سدوم' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید و آن بر' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است و به راستی این شهر شهر سدوم" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید و آن بر" in _joined(verse, "modern")
     assert '«و إنها لبسبيل مقيم» و آن بر راهی پایدار است و' in _joined(verse, "critical")
 
 def test_hijr_15_77_verse():
     verse = _check_verse("15:77")
-    assert 'طبری می\u200cگوید گفته\u200cاش به راستی در این نشانه\u200cای برای مؤمنان است' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید به راستی در' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش به راستی در این نشانه\u200cای برای مؤمنان است" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید به راستی در" in _joined(verse, "modern")
     assert '«إن في ذلك لآية للمؤمنين» به راستی در این نشانه\u200cای برای' in _joined(verse, "critical")
 
 def test_hijr_15_78_verse():
     verse = _check_verse("15:78")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید و صاحبان بیشه ستمکار بودند می\u200cگوید به' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات توضیحی در مورد صاحبان' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است و صاحبان بیشه ستمکار بودند گفته شده است به" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات توضیحی در مورد صاحبان" in _joined(verse, "modern")
     assert '«و إن كان أصحاب الأيكة لظالمين» و صاحبان بیشه ستمکار بودند' in _joined(verse, "critical")
 
 def test_hijr_15_79_verse():
     verse = _check_verse("15:79")
-    assert 'طبری می\u200cگوید گفته\u200cاش پس از آنان انتقام گرفتیم و آن دو' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید پس از آنان' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش پس از آنان انتقام گرفتیم و آن دو" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید پس از آنان" in _joined(verse, "modern")
     assert '«فانتقمنا منهم و إنهما لبإمام مبين» پس از آنان انتقام گرفتیم' in _joined(verse, "critical")
 
 def test_hijr_15_80_verse():
     verse = _check_verse("15:80")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید و ساکنان حجر تکذیب کردند و برای' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید و صاحبان حجر' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است و ساکنان حجر تکذیب کردند و برای" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید و صاحبان حجر" in _joined(verse, "modern")
     assert '«و لقد كذب أصحاب الحجر المرسلين» و به راستی صاحبان حجر' in _joined(verse, "critical")
 
 def test_hijr_15_81_verse():
     verse = _check_verse("15:81")
-    assert 'طبری می\u200cگوید گفته\u200cاش و آیاتمان را به آنان دادیم و از' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید و آیاتمان را' in _joined(verse, "modern")
+    assert "گفته\u200cاش و آیاتمان را به آنان دادیم و از" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید و آیاتمان را" in _joined(verse, "modern")
     assert '«و آتيناهم آياتنا فكانوا عنها معرضين» و آیاتمان را به آنان' in _joined(verse, "critical")
 
 def test_hijr_15_82_verse():
     verse = _check_verse("15:82")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید و صاحبان حجر که ثمود قوم صالح\u200cاند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید و از کوه\u200cها' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است و صاحبان حجر که ثمود قوم صالح\u200cاند" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید و از کوه\u200cها" in _joined(verse, "modern")
     assert '«و كانوا ينحتون من الجبال بيوتا آمنين» و از کوه\u200cها خانه\u200cهایی' in _joined(verse, "critical")
 
 def test_hijr_15_83_verse():
     verse = _check_verse("15:83")
-    assert 'طبری می\u200cگوید گفته\u200cاش پس بانگ آنان را صبحگاهان گرفت می\u200cگوید پس' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید پس بانگ آنان' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش پس بانگ آنان صبحگاهان گرفت گفته شده است پس" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید پس بانگ آنان" in _joined(verse, "modern")
     assert '«فأخذتهم الصيحة مصبحين» پس بانگ آنان را صبحگاهان گرفت و آن' in _joined(verse, "critical")
 
 def test_hijr_15_84_verse():
     verse = _check_verse("15:84")
-    assert 'طبری می\u200cگوید گفته\u200cاش پس آنچه به دست می\u200cآوردند آنان را بی\u200cنیاز' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات می\u200cگوید پس آنچه به' in _joined(verse, "modern")
+    assert "گفته\u200cاش پس آنچه به دست می\u200cآوردند آنان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات می\u200cگوید پس آنچه به" in _joined(verse, "modern")
     assert '«فما أغنى عنهم ما كانوا يكسبون» پس آنچه به دست می\u200cآوردند' in _joined(verse, "critical")
 
 def test_hijr_15_85_verse():
     verse = _check_verse("15:85")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید همهٔ آفریدگان آسمان و زمین و میان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که با در این آیه بای همراهی' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است همهٔ آفریدگان آسمان و زمین و میان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که با در این آیه بای همراهی" in _joined(verse, "modern")
     assert '«فاصفح الصفح الجميل» پس گذشت کن گذشتی زیبا و آن مفعول' in _joined(verse, "critical")
 
 def test_hijr_15_86_verse():
     verse = _check_verse("15:86")
-    assert 'طبری در پیوست آیهٔ پیش می\u200cگوید این\u200cکه پروردگارت همان آفرینندهٔ داناست' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که جملهٔ پروردگارت همان آفرینندهٔ داناست دلیل' in _joined(verse, "modern")
+    assert "در پیوست آیهٔ پیش گفته شده است این\u200cکه پروردگارت همان آفرینندهٔ داناست" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که جملهٔ پروردگارت همان آفرینندهٔ داناست دلیل" in _joined(verse, "modern")
     assert '«إن ربك هو الخلاق العليم» به راستی پروردگارت همان آفرینندهٔ داناست' in _joined(verse, "critical")
 
 def test_hijr_15_87_verse():
     verse = _check_verse("15:87")
-    assert 'طبری می\u200cگوید اهل تأویل در معنای هفت\u200cتایی که خدا به پیامبرش' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که هفت مثانی چنان که در روایت\u200cهای' in _joined(verse, "modern")
+    assert "گفته شده است اهل تأویل در معنای هفت\u200cتایی که خدا به پیامبرش" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که هفت مثانی چنان که در روایت\u200cهای" in _joined(verse, "modern")
     assert '«و لقد آتيناك سبعا من المثاني» و به تو هفت\u200cتایی از' in _joined(verse, "critical")
 
 def test_hijr_15_88_verse():
     verse = _check_verse("15:88")
-    assert 'طبری می\u200cگوید خدا به پیامبرش محمد می\u200cگوید ای محمد آرزو مکن' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این دو آیه در مقام بیان' in _joined(verse, "modern")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است ای محمد آرزو مکن" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این دو آیه در مقام بیان" in _joined(verse, "modern")
     assert '«لا تمدن عينيك» چشمت را مدوز و آن مد کشیدن چشم' in _joined(verse, "critical")
 
 def test_hijr_15_89_verse():
     verse = _check_verse("15:89")
-    assert 'طبری می\u200cگوید خدا به پیامبرش محمد می\u200cگوید ای محمد به مشرکان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که بگو من همان هشداردهندهٔ آشکارم یعنی' in _joined(verse, "modern")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است ای محمد به مشرکان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که بگو من همان هشداردهندهٔ آشکارم یعنی" in _joined(verse, "modern")
     assert '«إني أنا النذير المبين» من همان هشداردهندهٔ آشکارم و آن دو' in _joined(verse, "critical")
 
 def test_hijr_15_90_verse():
     verse = _check_verse("15:90")
-    assert 'طبری می\u200cگوید سپس اهل تأویل در آنان که با گفته\u200cاش بخش\u200cکنندگان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که سیاق سخن بی\u200cاشاره به این معنا' in _joined(verse, "modern")
+    assert "گفته شده است سپس اهل تأویل در آنان که با گفته\u200cاش بخش\u200cکنندگان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که سیاق سخن بی\u200cاشاره به این معنا" in _joined(verse, "modern")
     assert '«كما أنزلنا على المقتسمين» چنان که بر بخش\u200cکنندگان فرود آوردیم و' in _joined(verse, "critical")
 
 def test_hijr_15_91_verse():
     verse = _check_verse("15:91")
-    assert 'طبری می\u200cگوید اهل تأویل در معنای گفته\u200cاش آنان که قرآن را' in _joined(verse, "notes")
-    assert 'المیزان از مجمع البیان نقل می\u200cکند که عضین جمع عضه است' in _joined(verse, "modern")
+    assert "گفته شده است اهل تأویل در معنای گفته\u200cاش آنان که قرآن را" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی از تفسیرِ کهنِ شیعی نقل می\u200cکند که عضین جمع عضه است" in _joined(verse, "modern")
     assert '«جعلوا القرآن عضين» قرآن را پاره\u200cپاره کردند و آن عضین جمع' in _joined(verse, "critical")
 
 def test_hijr_15_92_verse():
     verse = _check_verse("15:92")
-    assert 'طبری می\u200cگوید خدا به پیامبرش محمد می\u200cگوید ای محمد به پروردگارت' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که آنگاه دربارهٔ سرانجام کار ایشان فرمود' in _joined(verse, "modern")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است ای محمد به پروردگارت" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که آنگاه دربارهٔ سرانجام کار ایشان فرمود" in _joined(verse, "modern")
     assert '«فوربك لنسألنهم أجمعين» به پروردگارت سوگند که از همه\u200cشان خواهیم پرسید' in _joined(verse, "critical")
 
 def test_hijr_15_93_verse():
     verse = _check_verse("15:93")
-    assert 'طبری می\u200cگوید حسن بن یحیی از عبدالرزاق از ثوری از لیث' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که پس از وصف آن پاره\u200cکنندگان فرمود' in _joined(verse, "modern")
+    assert "گفته شده است حسن بن یحیی از عبدالرزاق از ثوری از لیث" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که پس از وصف آن پاره\u200cکنندگان فرمود" in _joined(verse, "modern")
     assert '«عما كانوا يعملون» از آنچه می\u200cکردند و آن يعملون با فعل' in _joined(verse, "critical")
 
 def test_hijr_15_94_verse():
     verse = _check_verse("15:94")
-    assert 'طبری می\u200cگوید پس آشکارا بگو آنچه فرمان داده می\u200cشوی فرمان خدا' in _joined(verse, "notes")
-    assert 'المیزان از مجمع البیان نقل می\u200cکند که صدع و فرق و' in _joined(verse, "modern")
+    assert "گفته شده است پس آشکارا بگو آنچه فرمان داده می\u200cشوی فرمان خدا" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی از تفسیرِ کهنِ شیعی نقل می\u200cکند که صدع و فرق و" in _joined(verse, "modern")
     assert '«فاصدع بما تؤمر» پس آشکارا بگو آنچه فرمان داده می\u200cشوی و' in _joined(verse, "critical")
 
 def test_hijr_15_95_verse():
     verse = _check_verse("15:95")
-    assert 'طبری می\u200cگوید خدا به پیامبرش محمد می\u200cگوید ما تو را از' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که جملهٔ ما تو را از مسخره\u200cکنندگان' in _joined(verse, "modern")
+    assert "خدا به پیامبرش محمد گفته شده است ما تو را از" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که جملهٔ ما تو را از مسخره\u200cکنندگان" in _joined(verse, "modern")
     assert '«إنا كفيناك المستهزئين» ما تو را از مسخره\u200cکنندگان بسنده\u200cایم و آن' in _joined(verse, "critical")
 
 def test_hijr_15_96_verse():
     verse = _check_verse("15:96")
-    assert 'طبری می\u200cگوید گفته\u200cاش آنان که با خدا خدای دیگری می\u200cگیرند پس' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این مسخره\u200cکنندگان آنان\u200cاند که با خدا' in _joined(verse, "modern")
+    assert "گفته شده است گفته\u200cاش آنان که با خدا خدای دیگری می\u200cگیرند پس" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این مسخره\u200cکنندگان آنان\u200cاند که با خدا" in _joined(verse, "modern")
     assert '«فسوف يعلمون» پس به زودی خواهند دانست و آن سوف آن' in _joined(verse, "critical")
 
 def test_hijr_15_97_verse():
     verse = _check_verse("15:97")
-    assert 'طبری می\u200cگوید خدا به پیامبرش محمد می\u200cگوید ای محمد ما می\u200cدانیم' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این جمله برای دومین بار اندوه' in _joined(verse, "modern")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است ای محمد ما می\u200cدانیم" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این جمله برای دومین بار اندوه" in _joined(verse, "modern")
     assert '«و لقد نعلم أنك يضيق صدرك» و به راستی ما می\u200cدانیم' in _joined(verse, "critical")
 
 def test_hijr_15_98_verse():
     verse = _check_verse("15:98")
-    assert 'طبری می\u200cگوید پس به ستایش پروردگارت تسبیح گوی می\u200cگوید پس در' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که خدا به پیامبر گرامی خود سفارش' in _joined(verse, "modern")
+    assert "گفته شده است پس به ستایش پروردگارت تسبیح گوی گفته شده است پس در" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که خدا به پیامبر گرامی خود سفارش" in _joined(verse, "modern")
     assert '«فسبح بحمد ربك» پس به ستایش پروردگارت تسبیح گوی و آن' in _joined(verse, "critical")
 
 def test_hijr_15_99_verse():
     verse = _check_verse("15:99")
-    assert 'طبری می\u200cگوید خدا به پیامبرش محمد می\u200cگوید و پروردگارت را عبادت' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که مراد از آمدن یقین رسیدن اجل' in _joined(verse, "modern")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است و پروردگارت را عبادت" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که مراد از آمدن یقین رسیدن اجل" in _joined(verse, "modern")
     assert '«حتى يأتيك اليقين» تا یقین به سویت آید و آن مرگ' in _joined(verse, "critical")
 
 def test_nahl_16_1_verse():
     verse = _check_verse("16:1")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید فرمان خدا آمد پس نزدیک و فرود' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که صدر این سوره چهل آیهٔ نخست' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است فرمان خدا آمد پس نزدیک و فرود" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که صدر این سوره چهل آیهٔ نخست" in _joined(verse, "modern")
     assert '«أتى أمر الله» فرمان خدا آمد و آن گذشته برای آینده' in _joined(verse, "critical")
 
 def test_nahl_16_2_verse():
     verse = _check_verse("16:2")
-    assert 'طبری می\u200cگوید قاریان در خواندن گفته\u200cاش فرشتگان را فرود می\u200cآورد اختلاف' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که مردم در حقیقت روح اختلافی ندارند' in _joined(verse, "modern")
+    assert "گفته شده است قاریان در خواندن گفته\u200cاش فرشتگان فرود آورده شده است اختلاف" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که مردم در حقیقت روح اختلافی ندارند" in _joined(verse, "modern")
     assert '«ينزل الملائكة بالروح من أمره» فرشتگان را با روح از فرمانش' in _joined(verse, "critical")
 
 def test_nahl_16_3_verse():
     verse = _check_verse("16:3")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید آفریدگارتان ای مردم آسمان\u200cها و زمین را' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که معنای به حق بودن آفرینش آسمان\u200cها' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است آفریدگارتان ای مردم آسمان\u200cها و زمین را" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که معنای به حق بودن آفرینش آسمان\u200cها" in _joined(verse, "modern")
     assert '«خلق السماوات والأرض بالحق» آسمان\u200cها و زمین را به حق آفرید' in _joined(verse, "critical")
 
 def test_nahl_16_4_verse():
     verse = _check_verse("16:4")
-    assert 'طبری می\u200cگوید و از حجت\u200cهایش بر شما ای مردم نیز این' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که مقصود از آفرینش انسان آفرینشی است' in _joined(verse, "modern")
+    assert "گفته شده است و از حجت\u200cهایش بر شما ای مردم نیز این" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که مقصود از آفرینش انسان آفرینشی است" in _joined(verse, "modern")
     assert '«فإذا هو خصيم مبين» و او ستیزه\u200cگری آشکار است و آن' in _joined(verse, "critical")
 
 def test_nahl_16_5_verse():
     verse = _check_verse("16:5")
-    assert 'طبری می\u200cگوید و از حجت\u200cهایش بر شما ای مردم آنچه از' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که انعام جمع نعم است به معنای' in _joined(verse, "modern")
+    assert "و از حجت\u200cهایش بر شما ای مردم آنچه از" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که انعام جمع نعم است به معنای" in _joined(verse, "modern")
     assert '«لكم فيها دفء» برای شما در آن\u200cها گرماست و آن لكم' in _joined(verse, "critical")
 
 def test_nahl_16_6_verse():
     verse = _check_verse("16:6")
-    assert 'طبری می\u200cگوید و برای شما در این چارپایان و دام\u200cهایی که' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که جمال به معنای زینت و نیکویی' in _joined(verse, "modern")
+    assert "گفته شده است و برای شما در این چارپایان و دام\u200cهایی که" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که جمال به معنای زینت و نیکویی" in _joined(verse, "modern")
     assert '«جمال» زیبایی واژهٔ مستقل این آیه است و نعمت این\u200cجا نه' in _joined(verse, "critical")
 
 def test_nahl_16_7_verse():
     verse = _check_verse("16:7")
-    assert 'طبری در پیوست این بخش می\u200cگوید و بارهای سنگین شما را' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که اثقال جمع ثقل است به معنای' in _joined(verse, "modern")
+    assert "در پیوست این بخش گفته شده است و بارهای سنگین شما را" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که اثقال جمع ثقل است به معنای" in _joined(verse, "modern")
     assert '«إلا بشق الأنفس» جز با رنج جان\u200cها و آن شق از' in _joined(verse, "critical")
 
 def test_nahl_16_8_verse():
     verse = _check_verse("16:8")
-    assert 'طبری می\u200cگوید و اسب\u200cها و استرها و خران را نیز برای' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این جمله عطف است بر واژهٔ' in _joined(verse, "modern")
+    assert "گفته شده است و اسب\u200cها و استرها و خران را نیز برای" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این جمله عطف است بر واژهٔ" in _joined(verse, "modern")
     assert '«و يخلق ما لا تعلمون» و آنچه نمی\u200cدانید می\u200cآفریند و آن' in _joined(verse, "critical")
 
 def test_nahl_16_9_verse():
     verse = _check_verse("16:9")
-    assert 'طبری می\u200cگوید خدا می\u200cگوید و بر خداست ای مردم بیان راه' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که قصد چنان که راغب و جز' in _joined(verse, "modern")
+    assert "گفته شده است خدا گفته شده است و بر خداست ای مردم بیان راه" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که قصد چنان که راغب و جز" in _joined(verse, "modern")
     assert '«و على الله قصد السبيل» و بر خداست راه راست و' in _joined(verse, "critical")
 
 def test_nahl_16_10_verse():
     verse = _check_verse("16:10")
-    assert 'طبری می\u200cگوید و آن که این نعمت\u200cها را بر شما نعمت' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که از این\u200cجا به نوعی دیگر از' in _joined(verse, "modern")
+    assert "گفته شده است و آن که این نعمت\u200cها را بر شما نعمت" in _joined(verse, "notes")
+    assert "بر آن است که از این\u200cجا به نوعی دیگر از" in _joined(verse, "modern")
     assert '«هو الذي أنزل من السماء ماء» اوست که از آسمان آبی' in _joined(verse, "critical")
 
 def test_nahl_16_11_verse():
     verse = _check_verse("16:11")
-    assert 'طبری می\u200cگوید پروردگارتان با آبی که از آسمان برایتان فرود آورد' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این سه گونه احتجاج اولی به' in _joined(verse, "modern")
+    assert "گفته شده است پروردگارتان با آبی که از آسمان برایتان فرود آورد" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این سه گونه احتجاج اولی به" in _joined(verse, "modern")
     assert '«ينبت لكم به» با آن برای شما می\u200cرویاند و آن بِهِ' in _joined(verse, "critical")
 
 def test_nahl_16_12_verse():
     verse = _check_verse("16:12")
-    assert 'طبری می\u200cگوید و از نعمت\u200cهایش بر شما ای مردم با آن\u200cهایی' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که در این کتاب چند نوبت پیرامون' in _joined(verse, "modern")
+    assert "گفته شده است و از نعمت\u200cهایش بر شما ای مردم با آن\u200cهایی" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که در این کتاب چند نوبت پیرامون" in _joined(verse, "modern")
     assert '«مسخرات بأمره» رام\u200cشده به فرمانش و آن دو واژه جرم\u200cهای سرکش' in _joined(verse, "critical")
 
 def test_nahl_16_13_verse():
     verse = _check_verse("16:13")
-    assert 'طبری می\u200cگوید و رام شما کرد آنچه پدید آورد یعنی آنچه' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که ذرأ به معنای آفریدن است و' in _joined(verse, "modern")
+    assert "گفته شده است و رام شما کرد آنچه پدید آورد یعنی آنچه" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که ذرأ به معنای آفریدن است و" in _joined(verse, "modern")
     assert '«مختلفا ألوانه» رنگ\u200cهایش گوناگون و آن جمله زمین را به تابلویی' in _joined(verse, "critical")
 
 def test_nahl_16_14_verse():
     verse = _check_verse("16:14")
-    assert 'طبری می\u200cگوید و آن که این کارها را با شما کرد' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیه فصل دیگری از نعمت\u200cهای' in _joined(verse, "modern")
+    assert "گفته شده است و آن که این کارها را با شما کرد" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیه فصل دیگری از نعمت\u200cهای" in _joined(verse, "modern")
     assert '«لحما طريا» گوشت تازه آن دو واژه ماهی را با تازگی\u200cاش' in _joined(verse, "critical")
 
 def test_nahl_16_15_verse():
     verse = _check_verse("16:15")
-    assert 'طبری می\u200cگوید و از نعمت\u200cهایش بر شما ای مردم نیز این' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که در مجمع گفته شده است ميد' in _joined(verse, "modern")
+    assert "گفته شده است و از نعمت\u200cهایش بر شما ای مردم نیز این" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که در مجمع گفته شده است ميد" in _joined(verse, "modern")
     assert '«رواسي أن تميد بكم» کوه\u200cهای استوار تا شما را نجنباند و' in _joined(verse, "critical")
 
 def test_nahl_16_16_verse():
     verse = _check_verse("16:16")
-    assert 'طبری می\u200cگوید اهل تأویل در مراد از نشانه\u200cها اختلاف کردند بعضی' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که علامات جمع علامت است و علامت' in _joined(verse, "modern")
+    assert "گفته شده است اهل تأویل در مراد از نشانه\u200cها اختلاف کردند بعضی" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که علامات جمع علامت است و علامت" in _joined(verse, "modern")
     assert '«وعلامات» و نشانه\u200cها آن یک واژه چون تابلویی بر سر راه' in _joined(verse, "critical")
 
 def test_nahl_16_17_verse():
     verse = _check_verse("16:17")
-    assert 'طبری می\u200cگوید و خدا به پرستندگان بت\u200cها و صنم\u200cها می\u200cگوید آیا' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات حجت یادشده در پیش' in _joined(verse, "modern")
+    assert "گفته شده است و خدا به پرستندگان بت\u200cها و صنم\u200cها گفته شده است آیا" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات حجت یادشده در پیش" in _joined(verse, "modern")
     assert '«أفمن يخلق كمن لا يخلق» آیا آن که می\u200cآفریند چون آن' in _joined(verse, "critical")
 
 def test_nahl_16_18_verse():
     verse = _check_verse("16:18")
-    assert 'طبری می\u200cگوید و اگر نعمت خدا را بشمارید آن را نمی\u200cتوانید' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که در این گفته اشاره به فراوانی' in _joined(verse, "modern")
+    assert "گفته شده است و اگر نعمت خدا را بشمارید آن را نمی\u200cتوانید" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که در این گفته اشاره به فراوانی" in _joined(verse, "modern")
     assert '«لا تحصوها» نمی\u200cتوانید آن را بشمارید آن نفی در دل هر' in _joined(verse, "critical")
 
 def test_nahl_16_19_verse():
     verse = _check_verse("16:19")
-    assert 'طبری می\u200cگوید و خدایی که خدای شما ای مردم است آنچه' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که جملهٔ و خدا آنچه پنهان می\u200cکنید' in _joined(verse, "modern")
+    assert "گفته شده است و خدایی که خدای شما ای مردم است آنچه" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که جملهٔ و خدا آنچه پنهان می\u200cکنید" in _joined(verse, "modern")
     assert '«ما تسرون و ما تعلنون» آنچه پنهان می\u200cکنید و آنچه آشکار' in _joined(verse, "critical")
 
 def test_nahl_16_20_verse():
     verse = _check_verse("16:20")
-    assert 'طبری می\u200cگوید و بت\u200cهایتان که جز خدا ای مردم خدایان می\u200cخوانید' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که جملهٔ و آنانی که جز خدا' in _joined(verse, "modern")
+    assert "گفته شده است و بت\u200cهایتان که جز خدا ای مردم خدایان می\u200cخوانید" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که جملهٔ و آنانی که جز خدا" in _joined(verse, "modern")
     assert '«وهم يخلقون» و خود آفریده می\u200cشوند آن جملهٔ کوتاه وارونگی کامل' in _joined(verse, "critical")
 
 def test_nahl_16_21_verse():
     verse = _check_verse("16:21")
-    assert 'طبری می\u200cگوید خدا به این مشرکان از قریش می\u200cگوید و آنانی' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این که فرمود مردگانی\u200cاند زنده نیستان' in _joined(verse, "modern")
+    assert "گفته شده است خدا به این مشرکان از قریش گفته شده است و آنانی" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این که فرمود مردگانی\u200cاند زنده نیستان" in _joined(verse, "modern")
     assert '«أموات غير أحياء» مردگانی زنده نیستان آن دو نفی پشت سر' in _joined(verse, "critical")
 
 def test_nahl_16_22_verse():
     verse = _check_verse("16:22")
-    assert 'طبری می\u200cگوید معبودتان که عبادت بر شما برایش سزاوار است و' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات قسمت دوم از آیات' in _joined(verse, "modern")
+    assert "گفته شده است معبودتان که عبادت بر شما برایش سزاوار است و" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات قسمت دوم از آیات" in _joined(verse, "modern")
     assert '«إلهكم إله واحد» معبودتان معبودی یگانه است آن جملهٔ کوتاه نتیجهٔ' in _joined(verse, "critical")
 
 def test_nahl_16_23_verse():
     verse = _check_verse("16:23")
-    assert 'طبری می\u200cگوید مراد خدا لا جرم حقاً این است که خدا' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که لا جرم واژه\u200cای است مرکب از' in _joined(verse, "modern")
+    assert "گفته شده است مراد خدا لا جرم حقاً این است که خدا" in _joined(verse, "notes")
+    assert "بر آن است که لا جرم واژه\u200cای است مرکب از" in _joined(verse, "modern")
     assert '«لا جرم» بی\u200cگمان آن دو واژه چون سوگندی در آغاز می\u200cایستند' in _joined(verse, "critical")
 
 def test_nahl_16_24_verse():
     verse = _check_verse("16:24")
-    assert 'طبری می\u200cگوید و چون به اینان که به آخرت ایمان ندارند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که راغب در مفردات می\u200cگوید سطر هم' in _joined(verse, "modern")
+    assert "گفته شده است و چون به اینان که به آخرت ایمان ندارند" in _joined(verse, "notes")
+    assert "که راغب در مفردات گفته شده است سطر هم" in _joined(verse, "modern")
     assert '«أساطير الأولين» افسانه\u200cهای پیشینیان آن دو واژه پاسخ آن پرسش بزرگ' in _joined(verse, "critical")
 
 def test_nahl_16_25_verse():
     verse = _check_verse("16:25")
-    assert 'طبری می\u200cگوید این مشرکان به آن که از آنان می\u200cپرسد پروردگارتان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که راغب در مفردات گفته وزر به' in _joined(verse, "modern")
+    assert "گفته شده است این مشرکان به آن که از آنان می\u200cپرسد پروردگارتان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که راغب در مفردات گفته وزر به" in _joined(verse, "modern")
     assert '«أوزارهم كاملة» بارهایشان کامل آن کامل چون ترازویی بی\u200cکسری در برابر' in _joined(verse, "critical")
 
 def test_nahl_16_26_verse():
     verse = _check_verse("16:26")
-    assert 'طبری می\u200cگوید پیش از این مشرکان که از راه خدا بازمی\u200cدارند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که آمدن خدای تعالی بنیان ایشان را' in _joined(verse, "modern")
+    assert "گفته شده است پیش از این مشرکان که از راه خدا بازمی\u200cدارند" in _joined(verse, "notes")
+    assert "است که آمدن خدای تعالی بنیان ایشان را" in _joined(verse, "modern")
     assert '«فأتى الله بنيانهم من القواعد» پس خدا بنیانشان را از پایه\u200cها' in _joined(verse, "critical")
 
 def test_nahl_16_27_verse():
     verse = _check_verse("16:27")
-    assert 'طبری می\u200cگوید خدا با اینان که نیرنگ زدند و خدا کارشان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که خزى چنان که راغب گفته ذلت' in _joined(verse, "modern")
+    assert "گفته شده است خدا با اینان که نیرنگ زدند و خدا کارشان" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که خزى چنان که راغب گفته ذلت" in _joined(verse, "modern")
     assert '«أين شركائي» شریکانم کجایند آن پرسش با یای من گفته می\u200cشود' in _joined(verse, "critical")
 
 def test_nahl_16_28_verse():
     verse = _check_verse("16:28")
-    assert 'طبری می\u200cگوید آنان که علم داده شدند گفتند به راستی خواری' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که ظاهراً این جمله تفسیر واژهٔ کافران' in _joined(verse, "modern")
+    assert "گفته شده است آنان که علم داده شدند گفتند به راستی خواری" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که ظاهراً این جمله تفسیر واژهٔ کافران" in _joined(verse, "modern")
     assert '«فألقوا السلم» پس صلح را افکندند آن افکندن چون انداختن سلاح' in _joined(verse, "critical")
 
 def test_nahl_16_29_verse():
     verse = _check_verse("16:29")
-    assert 'طبری می\u200cگوید خدا به اینان که بر خود ستمکاران\u200cاند چون به' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که خطاب در این آیه هم مانند' in _joined(verse, "modern")
+    assert "گفته شده است خدا به اینان که بر خود ستمکاران\u200cاند چون به" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که خطاب در این آیه هم مانند" in _joined(verse, "modern")
     assert '«فادخلوا أبواب جهنم» پس از درهای جهنم درآیید آن فرمان کوتاه' in _joined(verse, "critical")
 
 def test_nahl_16_30_verse():
     verse = _check_verse("16:30")
-    assert 'طبری می\u200cگوید و به گروه دیگر که اهل ایمان و تقوای' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که در این جمله مردمان با تقوا' in _joined(verse, "modern")
+    assert "گفته شده است و به گروه دیگر که اهل ایمان و تقوای" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که در این جمله مردمان با تقوا" in _joined(verse, "modern")
     assert '«قالوا خيرا» گفتند نیکی آن یک واژه در برابر آن افسانه\u200cهای' in _joined(verse, "critical")
 
 def test_nahl_16_31_verse():
     verse = _check_verse("16:31")
-    assert 'طبری می\u200cگوید مراد خدا از گفته\u200cاش بهشت\u200cهای جاودانه بوستان\u200cهایی برای ماندن' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که آن گاه در آخر آنان را' in _joined(verse, "modern")
+    assert "گفته شده است مراد خدا از گفته\u200cاش بهشت\u200cهای جاودانه بوستان\u200cهایی برای ماندن" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که آن گاه در آخر آنان را" in _joined(verse, "modern")
     assert '«جنات عدن» بهشت\u200cهای جاودانه آن دو واژه نام آن سرا را' in _joined(verse, "critical")
 
 def test_nahl_16_32_verse():
     verse = _check_verse("16:32")
-    assert 'طبری می\u200cگوید چنان که خدا متقین را پاداش می\u200cدهد، همانان\u200cاند که' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات فصلِ دومِ سوره را' in _joined(verse, "modern")
+    assert "گفته شده است چنان که خدا متقین را پاداش می\u200cدهد، همانان\u200cاند که" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات فصلِ دومِ سوره را" in _joined(verse, "modern")
     assert '«ٱلَّذِينَ تَتَوَفَّىٰهُمُ ٱلْمَلَٰٓئِكَةُ طَيِّبِينَ يَقُولُونَ سَلَٰمٌ عَلَيْكُمُ» در برابرِ آیهٔ ۲۸' in _joined(verse, "critical")
 
 def test_nahl_16_33_verse():
     verse = _check_verse("16:33")
-    assert 'طبری می\u200cگوید آیا این مشرکان جز این را منتظرند که فرشتگان' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این فصل از سوره پس از' in _joined(verse, "modern")
+    assert "گفته شده است آیا این مشرکان جز این را منتظرند که فرشتگان" in _joined(verse, "notes")
+    assert "بر آن است که این فصل از سوره پس از" in _joined(verse, "modern")
     assert '«هَلْ يَنْظُرُونَ إِلَّا» استفهامِ انکاری است و نقدِ گفتمان نشان می\u200cدهد' in _joined(verse, "critical")
 
 def test_nahl_16_34_verse():
     verse = _check_verse("16:34")
-    assert 'طبری می\u200cگوید پس به اینان که کارِ مشرکانِ قریش را کردند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که در فرازِ پیشین از قیامِ طولیِ' in _joined(verse, "modern")
+    assert "گفته شده است پس به اینان که کارِ مشرکانِ قریش را کردند" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که در فرازِ پیشین از قیامِ طولیِ" in _joined(verse, "modern")
     assert '«وَحَاقَ بِهِمْ مَا كَانُوا بِهِ يَسْتَهْزِئُونَ» وارونگیِ کامل است: موضوعِ خنده' in _joined(verse, "critical")
 
 def test_nahl_16_35_verse():
     verse = _check_verse("16:35")
-    assert 'طبری می\u200cگوید کسانی که برای خدا شریک قرار دادند و بت\u200cها' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که مقصودِ مشرکان از «لو شاء الله' in _joined(verse, "modern")
-    assert 'المیزان در بحثِ سه آیهٔ ۳۵ تا ۳۷ نزاعِ بلندِ جبریان' in _joined(verse, "critical")
+    assert "گفته شده است کسانی که برای خدا شریک قرار دادند و بت\u200cها" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که مقصودِ مشرکان از «لو شاء الله" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی در بحثِ سه آیهٔ ۳۵ تا ۳۷ نزاعِ بلندِ جبریان" in _joined(verse, "critical")
 
 def test_nahl_16_36_verse():
     verse = _check_verse("16:36")
-    assert 'طبری می\u200cگوید در هر امتی که پیش از شما گذشته\u200cاند فرستاده\u200cای' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که جملهٔ «أن اعبدوا الله واجتنبوا الطاغوت»' in _joined(verse, "modern")
-    assert 'المیزان در این آیه آموزهٔ کلامیِ مرکزیِ خود را بنا می\u200cکند:' in _joined(verse, "critical")
+    assert "گفته شده است در هر امتی که پیش از شما گذشته\u200cاند فرستاده\u200cای" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که جملهٔ «أن اعبدوا الله واجتنبوا الطاغوت»" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی در این آیه آموزهٔ کلامیِ مرکزیِ خود را بنا می\u200cکند:" in _joined(verse, "critical")
 
 def test_nahl_16_37_verse():
     verse = _check_verse("16:37")
-    assert 'طبری می\u200cگوید اگر تو ای محمد بر هدایتِ این مشرکان به' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیه تسلیت و دلداریِ رسولِ' in _joined(verse, "modern")
-    assert 'المیزان از «وَمَا لَهُمْ مِنْ نَاصِرِينَ» با جمع آوردنِ «ناصرین» نتیجه\u200cای' in _joined(verse, "critical")
+    assert "گفته شده است اگر تو ای محمد بر هدایتِ این مشرکان به" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیه تسلیت و دلداریِ رسولِ" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی از «وَمَا لَهُمْ مِنْ نَاصِرِينَ» با جمع آوردنِ «ناصرین» نتیجه\u200cای" in _joined(verse, "critical")
 
 def test_nahl_16_38_verse():
     verse = _check_verse("16:38")
-    assert 'طبری می\u200cگوید این مشرکانِ قریش با سخت\u200cترین سوگندهایشان به خدا سوگند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که «وأقسموا بالله جهد أيمانهم» یعنی به' in _joined(verse, "modern")
-    assert 'المیزان می\u200cگوید جملهٔ «لا یبعث الله من یموت» انکارِ حشر و' in _joined(verse, "critical")
+    assert "گفته شده است این مشرکانِ قریش با سخت\u200cترین سوگندهایشان به خدا سوگند" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که «وأقسموا بالله جهد أيمانهم» یعنی به" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی می\u200cگوید جملهٔ «لا یبعث الله من یموت» انکارِ حشر و" in _joined(verse, "critical")
 
 def test_nahl_16_39_verse():
     verse = _check_verse("16:39")
-    assert 'طبری می\u200cگوید آری خدا هر که را بمیرد برمی\u200cانگیزد، وعده\u200cای بر' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که «لام» در آغازِ این آیه لامِ' in _joined(verse, "modern")
-    assert 'المیزان نتیجهٔ بزرگ می\u200cگیرد که در کلامِ خدا این تعبیر بارها' in _joined(verse, "critical")
+    assert "گفته شده است آری خدا هر که را بمیرد برمی\u200cانگیزد، وعده\u200cای بر" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که «لام» در آغازِ این آیه لامِ" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی نتیجهٔ بزرگ می\u200cگیرد که در کلامِ خدا این تعبیر بارها" in _joined(verse, "critical")
 
 def test_nahl_16_40_verse():
     verse = _check_verse("16:40")
-    assert 'طبری می\u200cگوید اگر ما برانگیختنِ کسی را که می\u200cمیرد اراده کنیم،' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیه همانندِ آیهٔ ۸۲ سورهٔ' in _joined(verse, "modern")
-    assert 'المیزان تخلف نکردنِ چیزها از امرِ خدا را چنین تعلیل می\u200cکند' in _joined(verse, "critical")
+    assert "گفته شده است اگر ما برانگیختنِ کسی را که می\u200cمیرد اراده کنیم،" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیه همانندِ آیهٔ ۸۲ سورهٔ" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی تخلف نکردنِ چیزها از امرِ خدا را چنین تعلیل می\u200cکند" in _joined(verse, "critical")
 
 def test_nahl_16_41_verse():
     verse = _check_verse("16:41")
-    assert 'طبری می\u200cگوید کسانی که از قوم و خانه و وطنشان به' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که حسین\u200cترین فهمِ «حسنة» در این آیه' in _joined(verse, "modern")
-    assert 'المیزان بر ساختارِ شرطیِ دو آیهٔ ۴۱ و ۴۲ انگشت می\u200cگذارد' in _joined(verse, "critical")
+    assert "گفته شده است کسانی که از قوم و خانه و وطنشان به" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که حسین\u200cترین فهمِ «حسنة» در این آیه" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی بر ساختارِ شرطیِ دو آیهٔ ۴۱ و ۴۲ انگشت می\u200cگذارد" in _joined(verse, "critical")
 
 def test_nahl_16_42_verse():
     verse = _check_verse("16:42")
-    assert 'طبری می\u200cگوید اینان همانانی\u200cاند که صفتشان را گفتیم و ثوابی را' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که توصیفِ مهاجران به دو صفتِ صبر' in _joined(verse, "modern")
-    assert 'المیزان توجه می\u200cکند که از سیاقِ دو آیه می\u200cتوان فهمید عنایت' in _joined(verse, "critical")
+    assert "گفته شده است اینان همانانی\u200cاند که صفتشان را گفتیم و ثوابی را" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که توصیفِ مهاجران به دو صفتِ صبر" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی توجه می\u200cکند که از سیاقِ دو آیه می\u200cتوان فهمید عنایت" in _joined(verse, "critical")
 
 def test_nahl_16_43_verse():
     verse = _check_verse("16:43")
-    assert 'طبری می\u200cگوید ای محمد، پیش از تو به سوی هیچ امتی' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که جملهٔ «وَمَا أَرْسَلْنَا مِنْ قَبْلِكَ إِلَّا' in _joined(verse, "modern")
-    assert 'المیزان سخنِ بیشترِ مفسران را که آیه را پاسخ به «بشر' in _joined(verse, "critical")
+    assert "گفته شده است ای محمد، پیش از تو به سوی هیچ امتی" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که جملهٔ «وَمَا أَرْسَلْنَا مِنْ قَبْلِكَ إِلَّا" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی سخنِ بیشترِ مفسران را که آیه را پاسخ به «بشر" in _joined(verse, "critical")
 
 def test_nahl_16_44_verse():
     verse = _check_verse("16:44")
-    assert 'طبری می\u200cگوید آنان را با بیّنات و زُبُر فرستادیم؛ و در' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که هیچ شکی نیست که نازل کردنِ' in _joined(verse, "modern")
-    assert 'المیزان در غایتِ دومِ انزال با بیشترِ مفسران جدا می\u200cشود و' in _joined(verse, "critical")
+    assert "گفته شده است آنان را با بیّنات و زُبُر فرستادیم؛ و در" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که هیچ شکی نیست که نازل کردنِ" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی در غایتِ دومِ انزال با بیشترِ مفسران جدا می\u200cشود و" in _joined(verse, "critical")
 
 def test_nahl_16_45_verse():
     verse = _check_verse("16:45")
-    assert 'طبری می\u200cگوید آیا ایمن شدند آنان که بر مؤمنانِ یارانِ رسولِ' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیه و دو آیهٔ پس' in _joined(verse, "modern")
-    assert 'المیزان «مکروا السیئات» را «عملوا السیئات مکرا» می\u200cخواند و می\u200cگوید «سیئات»' in _joined(verse, "critical")
+    assert "گفته شده است آیا ایمن شدند آنان که بر مؤمنانِ یارانِ رسولِ" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیه و دو آیهٔ پس" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی «مکروا السیئات» را «عملوا السیئات مکرا» می\u200cخواند و می\u200cگوید «سیئات»" in _joined(verse, "critical")
 
 def test_nahl_16_46_verse():
     verse = _check_verse("16:46")
-    assert 'طبری می\u200cگوید یا آنان را در گردش و رفت\u200cوآمدشان در سرزمین\u200cها' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که فاعلِ «یأخذهم» خدای سبحان است و' in _joined(verse, "modern")
-    assert 'المیزان احتمالِ دیگری را نیز می\u200cبیند که گرفتن در گردش یعنی' in _joined(verse, "critical")
+    assert "گفته شده است یا آنان را در گردش و رفت\u200cوآمدشان در سرزمین\u200cها" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که فاعلِ «یأخذهم» خدای سبحان است و" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی احتمالِ دیگری را نیز می\u200cبیند که گرفتن در گردش یعنی" in _joined(verse, "critical")
 
 def test_nahl_16_47_verse():
     verse = _check_verse("16:47")
-    assert 'طبری می\u200cگوید یا آنان را با تخوّف هلاک کند و آن' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که مراد از گرفتن بر تخوّف آن' in _joined(verse, "modern")
+    assert "گفته شده است یا آنان را با تخوّف هلاک کند و آن" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که مراد از گرفتن بر تخوّف آن" in _joined(verse, "modern")
     assert 'داستانِ عمر و واژهٔ «تخوّف» سندی است بر این\u200cکه فهمِ قرآن' in _joined(verse, "critical")
 
 def test_nahl_16_48_verse():
     verse = _check_verse("16:48")
-    assert 'طبری می\u200cگوید در خوانشِ این آیه اختلاف است: بیشترِ قرّای حجاز' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که معنای آیه این است که آیا' in _joined(verse, "modern")
+    assert "گفته شده است در خوانشِ این آیه اختلاف است: بیشترِ قرّای حجاز" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که معنای آیه این است که آیا" in _joined(verse, "modern")
     assert 'پرسشِ بنیادیِ این آیه آن است که سجدهٔ سایه استعاره است' in _joined(verse, "critical")
 
 def test_nahl_16_49_verse():
     verse = _check_verse("16:49")
-    assert 'طبری می\u200cگوید برای خدا خضوع می\u200cکند و در برابرِ فرمانش فروتن' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که سجدهٔ جنبندگانِ آسمان\u200cها و زمین برای' in _joined(verse, "modern")
-    assert 'المیزان در بحثِ استکبار می\u200cگوید نداشتنِ استکبارِ ذاتی یعنی هرگز از' in _joined(verse, "critical")
+    assert "گفته شده است برای خدا خضوع می\u200cکند و در برابرِ فرمانش فروتن" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که سجدهٔ جنبندگانِ آسمان\u200cها و زمین برای" in _joined(verse, "modern")
+    assert "در بحثِ استکبار می\u200cگوید نداشتنِ استکبارِ ذاتی یعنی هرگز از" in _joined(verse, "critical")
 
 def test_nahl_16_50_verse():
     verse = _check_verse("16:50")
-    assert 'طبری می\u200cگوید این فرشتگانِ در آسمان\u200cها و هر چه در زمین' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که ترسِ فرشتگان ترس از خودِ خداست' in _joined(verse, "modern")
-    assert 'المیزان استدلالِ برخی مفسران را که از این آیه تکلیفِ فرشتگان' in _joined(verse, "critical")
+    assert "گفته شده است این فرشتگانِ در آسمان\u200cها و هر چه در زمین" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که ترسِ فرشتگان ترس از خودِ خداست" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی استدلالِ برخی مفسران را که از این آیه تکلیفِ فرشتگان" in _joined(verse, "critical")
 
 def test_nahl_16_51_verse():
     verse = _check_verse("16:51")
-    assert 'طبری می\u200cگوید خدا به بندگانش گفت ای مردم برای من شریکی' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که مقصود از «لا تتخذوا إلهین اثنین»' in _joined(verse, "modern")
-    assert 'المیزان از تقدیمِ «إیّای» بر «فارهبون» حصر را می\u200cگیرد و آن' in _joined(verse, "critical")
+    assert "گفته شده است خدا به بندگانش گفت ای مردم برای من شریکی" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که مقصود از «لا تتخذوا إلهین اثنین»" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی از تقدیمِ «إیّای» بر «فارهبون» حصر را می\u200cگیرد و آن" in _joined(verse, "critical")
 
 def test_nahl_16_52_verse():
     verse = _check_verse("16:52")
-    assert 'طبری می\u200cگوید آنچه در آسمان\u200cها و زمین است از آنِ اوست' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که راغب در مفردات گفته «وصب» بیماریِ' in _joined(verse, "modern")
-    assert 'المیزان این آیه را دلیلِ جملهٔ پیش می\u200cخواند و می\u200cگوید این' in _joined(verse, "critical")
+    assert "گفته شده است آنچه در آسمان\u200cها و زمین است از آنِ اوست" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که راغب در مفردات گفته «وصب» بیماریِ" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی این آیه را دلیلِ جملهٔ پیش می\u200cخواند و می\u200cگوید این" in _joined(verse, "critical")
 
 def test_nahl_16_53_verse():
     verse = _check_verse("16:53")
-    assert 'طبری در وجهِ درآمدنِ فاء در «فمن الله» اختلافِ عرب\u200cها را' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیه بیانِ دیگری است برای' in _joined(verse, "modern")
-    assert 'المیزان استدلالِ فطریِ آیه را می\u200cگشاید و می\u200cگوید استغاثه به خدا' in _joined(verse, "critical")
+    assert "در وجهِ درآمدنِ فاء در «فمن الله» اختلافِ عرب\u200cها" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیه بیانِ دیگری است برای" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی استدلالِ فطریِ آیه را می\u200cگشاید و می\u200cگوید استغاثه به خدا" in _joined(verse, "critical")
 
 def test_nahl_16_54_verse():
     verse = _check_verse("16:54")
-    assert 'طبری می\u200cگوید سپس چون پروردگارتان تندرستی را به شما ارزانی دارد' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که از این\u200cجا نکوهش و توبيخِ مشرکان' in _joined(verse, "modern")
-    assert 'المیزان بازگشت به شرک را بازگشت به سبب\u200cهای ظاهری می\u200cخواند و' in _joined(verse, "critical")
+    assert "گفته شده است سپس چون پروردگارتان تندرستی را به شما ارزانی دارد" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که از این\u200cجا نکوهش و توبيخِ مشرکان" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی بازگشت به شرک را بازگشت به سبب\u200cهای ظاهری می\u200cخواند و" in _joined(verse, "critical")
 
 def test_nahl_16_55_verse():
     verse = _check_verse("16:55")
-    assert 'طبری می\u200cگوید «لیکفروا بما آتیناهم» یعنی تا نعمتِ خدا را در' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که لام در «لیکفروا بما آتیناهم» لامِ' in _joined(verse, "modern")
-    assert 'المیزان در «فتمتعوا فسوف تعلمون» از التفات سخن می\u200cگوید که روی' in _joined(verse, "critical")
+    assert "گفته شده است «لیکفروا بما آتیناهم» یعنی تا نعمتِ خدا را در" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که لام در «لیکفروا بما آتیناهم» لامِ" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی در «فتمتعوا فسوف تعلمون» از التفات سخن می\u200cگوید که روی" in _joined(verse, "critical")
 
 def test_nahl_16_56_verse():
     verse = _check_verse("16:56")
-    assert 'طبری می\u200cگوید این مشرکانِ بت\u200cپرست برای آنچه از آن زیان و' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که ظاهراً «ما» در «لما لا یعلمون»' in _joined(verse, "modern")
-    assert 'المیزان وجهِ دیگری را نیز پیش می\u200cنهد که «ویجعلون» عطف بر' in _joined(verse, "critical")
+    assert "گفته شده است این مشرکانِ بت\u200cپرست برای آنچه از آن زیان و" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که ظاهراً «ما» در «لما لا یعلمون»" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی وجهِ دیگری را نیز پیش می\u200cنهد که «ویجعلون» عطف بر" in _joined(verse, "critical")
 
 def test_nahl_16_57_verse():
     verse = _check_verse("16:57")
-    assert 'طبری می\u200cگوید از نادانیِ این مشرکان و زشتیِ کردارشان و بدیِ' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این سرزنشی دیگر است به مشرکان' in _joined(verse, "modern")
-    assert 'المیزان ریشهٔ این باور را در بت\u200cپرستیِ کهن می\u200cجوید و می\u200cگوید' in _joined(verse, "critical")
+    assert "گفته شده است از نادانیِ این مشرکان و زشتیِ کردارشان و بدیِ" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این سرزنشی دیگر است به مشرکان" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی ریشهٔ این باور را در بت\u200cپرستیِ کهن می\u200cجوید و می\u200cگوید" in _joined(verse, "critical")
 
 def test_nahl_16_58_verse():
     verse = _check_verse("16:58")
-    assert 'طبری می\u200cگوید چون یکی از اینان که برای خدا دختران قرار' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که مقصود از سیاه شدنِ چهره به' in _joined(verse, "modern")
+    assert "گفته شده است چون یکی از اینان که برای خدا دختران قرار" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که مقصود از سیاه شدنِ چهره به" in _joined(verse, "modern")
     assert 'تقابلِ دو کظیمِ قرآن از ژرف\u200cترین نکته\u200cهای این آیه است: یعقوب' in _joined(verse, "critical")
 
 def test_nahl_16_59_verse():
     verse = _check_verse("16:59")
-    assert 'طبری می\u200cگوید این مژده داده شده به ولادتِ دختر از قوم' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که «توارى» به معنای گشتن و نهان\u200cگاه' in _joined(verse, "modern")
-    assert 'المیزان مقصود از حکم در «ألا ساء ما یحکمون» را همان' in _joined(verse, "critical")
+    assert "گفته شده است این مژده داده شده به ولادتِ دختر از قوم" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که «توارى» به معنای گشتن و نهان\u200cگاه" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی مقصود از حکم در «ألا ساء ما یحکمون» را همان" in _joined(verse, "critical")
 
 def test_nahl_16_60_verse():
     verse = _check_verse("16:60")
-    assert 'طبری می\u200cگوید این خبر از خدای بزرگ است که گفتهٔ او' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که «مثل» به معنای صفت است و' in _joined(verse, "modern")
-    assert 'المیزان از این آیه نظریه\u200cای بزرگ می\u200cسازد و می\u200cگوید از این\u200cجا' in _joined(verse, "critical")
+    assert "گفته شده است این خبر از خدای بزرگ است که گفتهٔ او" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که «مثل» به معنای صفت است و" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی از این آیه نظریه\u200cای بزرگ می\u200cسازد و می\u200cگوید از این\u200cجا" in _joined(verse, "critical")
 
 def test_nahl_16_61_verse():
     verse = _check_verse("16:61")
-    assert 'طبری می\u200cگوید اگر خدا گناهکارانِ بنی\u200cآدم را به گناهانشان می\u200cگرفت بر' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که ضمیر در «علیها» به زمین بازمی\u200cگردد' in _joined(verse, "modern")
-    assert 'المیزان اشکالِ مشهورِ آیه را پیش می\u200cکشد که اگر جنبنده عموم' in _joined(verse, "critical")
+    assert "گفته شده است اگر خدا گناهکارانِ بنی\u200cآدم را به گناهانشان می\u200cگرفت بر" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که ضمیر در «علیها» به زمین بازمی\u200cگردد" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی اشکالِ مشهورِ آیه را پیش می\u200cکشد که اگر جنبنده عموم" in _joined(verse, "critical")
 
 def test_nahl_16_62_verse():
     verse = _check_verse("16:62")
-    assert 'طبری می\u200cگوید این مشرکان برای خدا آنچه را برای خود ناخوش' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیه دوباره به مسئلهٔ نسبت' in _joined(verse, "modern")
-    assert 'المیزان احتمالِ دیگری را در حسنى می\u200cبیند و می\u200cگوید برخی گفته\u200cاند' in _joined(verse, "critical")
+    assert "گفته شده است این مشرکان برای خدا آنچه را برای خود ناخوش" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیه دوباره به مسئلهٔ نسبت" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی احتمالِ دیگری را در حسنى می\u200cبیند و می\u200cگوید برخی گفته\u200cاند" in _joined(verse, "critical")
 
 def test_nahl_16_63_verse():
     verse = _check_verse("16:63")
-    assert 'طبری می\u200cگوید به خدا سوگند پیش از تو نیز به سوی' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این فراز از آیهٔ ۵۳ به' in _joined(verse, "modern")
+    assert "گفته شده است به خدا سوگند پیش از تو نیز به سوی" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این فراز از آیهٔ ۵۳ به" in _joined(verse, "modern")
     assert '«فَزَيَّنَ لَهُمُ الشَّيْطَانُ أَعْمَالَهُمْ» مسئولیت را میانِ آراینده و پذیرنده تقسیم' in _joined(verse, "critical")
 
 def test_nahl_16_64_verse():
     verse = _check_verse("16:64")
-    assert 'طبری می\u200cگوید کتاب را بر تو نازل نکردیم ای محمد مگر' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این فراز از نحل در بیانِ' in _joined(verse, "modern")
-    assert 'المیزان در بحثِ آیهٔ ۴۴ همین بلوک گفته بود آیه بر' in _joined(verse, "critical")
+    assert "گفته شده است کتاب را بر تو نازل نکردیم ای محمد مگر" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این فراز از نحل در بیانِ" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی در بحثِ آیهٔ ۴۴ همین بلوک گفته بود آیه بر" in _joined(verse, "critical")
 
 def test_nahl_16_65_verse():
     verse = _check_verse("16:65")
-    assert 'طبری می\u200cگوید خدا بندگانش را بر حجت\u200cهایش بر آنان در توحیدش' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات بازگشتی است پس از' in _joined(verse, "modern")
-    assert 'المیزان بر آن است که مراد از شنیدن پذیرفتنِ سخنانی است' in _joined(verse, "critical")
+    assert "گفته شده است خدا بندگانش را بر حجت\u200cهایش بر آنان در توحیدش" in _joined(verse, "notes")
+    assert "بر آن است که این آیات بازگشتی است پس از" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که مراد از شنیدن پذیرفتنِ سخنانی است" in _joined(verse, "critical")
 
 def test_nahl_16_66_verse():
     verse = _check_verse("16:66")
-    assert 'طبری می\u200cگوید برای شما ای مردم در چارپایان پندی است در' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که «فرث» کثافاتی است که در روده\u200cها' in _joined(verse, "modern")
-    assert 'المیزان معنای «من بین فرث و دم» را مجاورت می\u200cگیرد و' in _joined(verse, "critical")
+    assert "گفته شده است برای شما ای مردم در چارپایان پندی است در" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که «فرث» کثافاتی است که در روده\u200cها" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی معنای «من بین فرث و دم» را مجاورت می\u200cگیرد و" in _joined(verse, "critical")
 
 def test_nahl_16_67_verse():
     verse = _check_verse("16:67")
-    assert 'طبری می\u200cگوید برای شما ای مردم پندی نیز هست در آنچه' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیه نمی\u200cخواهد بفرماید مست\u200cکننده\u200cها حلال' in _joined(verse, "modern")
-    assert 'المیزان می\u200cگوید بنابر این آیه در بردارندهٔ حکمِ شرعی نیست تا' in _joined(verse, "critical")
+    assert "گفته شده است برای شما ای مردم پندی نیز هست در آنچه" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیه نمی\u200cخواهد بفرماید مست\u200cکننده\u200cها حلال" in _joined(verse, "modern")
+    assert "بنابر این آیه در بردارندهٔ حکمِ شرعی نیست تا" in _joined(verse, "critical")
 
 def test_nahl_16_68_verse():
     verse = _check_verse("16:68")
-    assert 'طبری می\u200cگوید پروردگارت ای محمد به زنبور وحی کرد وحی\u200cای به' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که کلمهٔ وحی در مواردِ گوناگونی به' in _joined(verse, "modern")
-    assert 'المیزان در بحثِ وحی می\u200cگوید خدا وحی به زنبور را از' in _joined(verse, "critical")
+    assert "گفته شده است پروردگارت ای محمد به زنبور وحی کرد وحی\u200cای به" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که کلمهٔ وحی در مواردِ گوناگونی به" in _joined(verse, "modern")
+    assert "در بحثِ وحی می\u200cگوید خدا وحی به زنبور را از" in _joined(verse, "critical")
 
 def test_nahl_16_69_verse():
     verse = _check_verse("16:69")
-    assert 'طبری می\u200cگوید سپس ای زنبور از میوه\u200cها بخور؛ «فاسلكی سبل ربك»' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که جملهٔ «یخرج من بطونها شراب مختلف' in _joined(verse, "modern")
-    assert 'المیزان تناسبِ پایان\u200cبندی\u200cها را می\u200cگشاید و می\u200cگوید شاید علتش این باشد' in _joined(verse, "critical")
+    assert "گفته شده است سپس ای زنبور از میوه\u200cها بخور؛ «فاسلكی سبل ربك»" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که جملهٔ «یخرج من بطونها شراب مختلف" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی تناسبِ پایان\u200cبندی\u200cها را می\u200cگشاید و می\u200cگوید شاید علتش این باشد" in _joined(verse, "critical")
 
 def test_nahl_16_70_verse():
     verse = _check_verse("16:70")
-    assert 'طبری می\u200cگوید خدا به شما خبر می\u200cدهد که بهره\u200cمندی و زندگی' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیه مسئلهٔ عمرِ انسانی را' in _joined(verse, "modern")
-    assert 'المیزان بر آن است که آیه از این\u200cرو با «إن الله' in _joined(verse, "critical")
+    assert "گفته شده است خدا به شما خبر می\u200cدهد که بهره\u200cمندی و زندگی" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیه مسئلهٔ عمرِ انسانی را" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که آیه از این\u200cرو با «إن الله" in _joined(verse, "critical")
 
 def test_nahl_16_71_verse():
     verse = _check_verse("16:71")
-    assert 'طبری می\u200cگوید خدا به شما خبر می\u200cدهد ای مردم که از' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که برتری دادنِ برخی بر برخی در' in _joined(verse, "modern")
-    assert 'المیزان می\u200cگوید توجه کن گفتهٔ بیشترِ مفسران این است که آیه' in _joined(verse, "critical")
+    assert "خدا به شما خبر می\u200cدهد ای مردم که از" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که برتری دادنِ برخی بر برخی در" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی می\u200cگوید توجه کن گفتهٔ بیشترِ مفسران این است که آیه" in _joined(verse, "critical")
 
 def test_nahl_16_72_verse():
     verse = _check_verse("16:72")
-    assert 'طبری می\u200cگوید ای مردم خداست که از جنسِ خودتان برایتان همسرانی' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که مراد از «حفدة» جمعِ حافد است' in _joined(verse, "modern")
-    assert 'المیزان در این آیات بر آن است که خدا در این' in _joined(verse, "critical")
+    assert "گفته شده است ای مردم خداست که از جنسِ خودتان برایتان همسرانی" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که مراد از «حفدة» جمعِ حافد است" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی در این آیات بر آن است که خدا در این" in _joined(verse, "critical")
 
 def test_nahl_16_73_verse():
     verse = _check_verse("16:73")
-    assert 'طبری می\u200cگوید این مشرکان از قومت ای محمد جز خدا بت\u200cها' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیات دنبالهٔ شمارشِ نعمت\u200cهاست و' in _joined(verse, "modern")
-    assert 'المیزان در شمارشِ این فصل بر آن است که پایان\u200cبندی\u200cهای نفی' in _joined(verse, "critical")
+    assert "گفته شده است این مشرکان از قومت ای محمد جز خدا بت\u200cها" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیات دنبالهٔ شمارشِ نعمت\u200cهاست و" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی در شمارشِ این فصل بر آن است که پایان\u200cبندی\u200cهای نفی" in _joined(verse, "critical")
 
 def test_nahl_16_74_verse():
     verse = _check_verse("16:74")
-    assert 'طبری می\u200cگوید برای خدا ای مردم همانندها را، که آن\u200cها برای' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیه خطاب به مشرکان است' in _joined(verse, "modern")
-    assert 'المیزان بر آن است که در این آیات خدا از مثل\u200cزدنِ' in _joined(verse, "critical")
+    assert "گفته شده است برای خدا ای مردم همانندها را، که آن\u200cها برای" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیه خطاب به مشرکان است" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که در این آیات خدا از مثل\u200cزدنِ" in _joined(verse, "critical")
 
 def test_nahl_16_75_verse():
     verse = _check_verse("16:75")
-    assert 'طبری می\u200cگوید خدا برای شما ای گروهِ گمراهان از راهِ درست' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این مثل و مثلِ پس از' in _joined(verse, "modern")
-    assert 'المیزان در بحثِ مثل\u200cها بر آن است که خدا این دو' in _joined(verse, "critical")
+    assert "گفته شده است خدا برای شما ای گروهِ گمراهان از راهِ درست" in _joined(verse, "notes")
+    assert "بر آن است که این مثل و مثلِ پس از" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی در بحثِ مثل\u200cها بر آن است که خدا این دو" in _joined(verse, "critical")
 
 def test_nahl_16_76_verse():
     verse = _check_verse("16:76")
-    assert 'طبری می\u200cگوید خدا مثلی زده است دو مرد را که یکی' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این مثل نیز برای خدا و' in _joined(verse, "modern")
-    assert 'المیزان بر آن است که این دو مثل را خدا پشتِ' in _joined(verse, "critical")
+    assert "گفته شده است خدا مثلی زده است دو مرد را که یکی" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این مثل نیز برای خدا و" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این دو مثل را خدا پشتِ" in _joined(verse, "critical")
 
 def test_nahl_16_77_verse():
     verse = _check_verse("16:77")
-    assert 'طبری می\u200cگوید برای خدا ای مردم دانشِ آن\u200cچه در آسمان\u200cها و' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیه برای اثباتِ خودِ مسئلهٔ' in _joined(verse, "modern")
-    assert 'المیزان بر آن است که قدرتِ انسان قدرتِ مقید و محدود' in _joined(verse, "critical")
+    assert "گفته شده است برای خدا ای مردم دانشِ آن\u200cچه در آسمان\u200cها و" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیه برای اثباتِ خودِ مسئلهٔ" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که قدرتِ انسان قدرتِ مقید و محدود" in _joined(verse, "critical")
 
 def test_nahl_16_78_verse():
     verse = _check_verse("16:78")
-    assert 'طبری می\u200cگوید خدا شما را آگاه کرد بر آنچه نمی\u200cدانستید پس' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این آیه نظریهٔ علمای نفس را' in _joined(verse, "modern")
-    assert 'المیزان بر آن است که گفتهٔ «وجعل لکم السمع والأبصار والأفئدة»' in _joined(verse, "critical")
+    assert "گفته شده است خدا شما را آگاه کرد بر آنچه نمی\u200cدانستید پس" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این آیه نظریهٔ علمای نفس را" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که گفتهٔ «وجعل لکم السمع والأبصار والأفئدة»" in _joined(verse, "critical")
 
 def test_nahl_16_79_verse():
     verse = _check_verse("16:79")
-    assert 'طبری می\u200cگوید ای مشرکانِ به خدا آیا ننگریسته\u200cاید به پرندگانِ رام' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که خدا در این\u200cجا سببِ نگهداریِ مرغان' in _joined(verse, "modern")
-    assert 'المیزان بر آن است که دلیل بر آنچه در معنای نفی' in _joined(verse, "critical")
+    assert "گفته شده است ای مشرکانِ به خدا آیا ننگریسته\u200cاید به پرندگانِ رام" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که خدا در این\u200cجا سببِ نگهداریِ مرغان" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که دلیل بر آنچه در معنای نفی" in _joined(verse, "critical")
 
 def test_nahl_16_80_verse():
     verse = _check_verse("16:80")
-    assert 'طبری می\u200cگوید خدا برای شما ای مردم از خانه\u200cهاتان که از' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که «وأثاثا» اثاثی است که در خانه\u200cهاتان' in _joined(verse, "modern")
-    assert 'المیزان در بحثِ خانه\u200cها می\u200cگوید معنای «والله جعل لکم من بیوتکم' in _joined(verse, "critical")
+    assert "خدا برای شما ای مردم از خانه\u200cهاتان که از" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که «وأثاثا» اثاثی است که در خانه\u200cهاتان" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی در بحثِ خانه\u200cها می\u200cگوید معنای «والله جعل لکم من بیوتکم" in _joined(verse, "critical")
 
 def test_nahl_16_81_verse():
     verse = _check_verse("16:81")
-    assert 'طبری می\u200cگوید از نعمتِ خدا بر شما ای مردم این است' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که این دو ظرف یعنی «لکم» و' in _joined(verse, "modern")
-    assert 'المیزان دربارهٔ ویژه کردنِ گرما می\u200cگوید در مجمع\u200cالبیان گفته شده است' in _joined(verse, "critical")
+    assert "گفته شده است از نعمتِ خدا بر شما ای مردم این است" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که این دو ظرف یعنی «لکم» و" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی دربارهٔ ویژه کردنِ گرما می\u200cگوید در مجمع\u200cالبیان گفته شده است" in _joined(verse, "critical")
 
 def test_nahl_16_82_verse():
     verse = _check_verse("16:82")
-    assert 'طبری می\u200cگوید خدا به پیامبرش محمد می\u200cگوید اگر این مشرکان ای' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که پس از آن\u200cکه خدا از شمردنِ' in _joined(verse, "modern")
-    assert 'المیزان «مبین» را تبلیغِ واضحی می\u200cداند که ابهام و خفایی در' in _joined(verse, "critical")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است اگر این مشرکان ای" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که پس از آن\u200cکه خدا از شمردنِ" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی «مبین» را تبلیغِ واضحی می\u200cداند که ابهام و خفایی در" in _joined(verse, "critical")
 
 def test_nahl_16_83_verse():
     verse = _check_verse("16:83")
-    assert 'طبری می\u200cگوید اهلِ تأویل در معنای آن نعمتی که خدا خبر' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که «معرفت» در برابرِ انکار است و' in _joined(verse, "modern")
-    assert 'المیزان بر آن است که آنان نعمتِ خدا را به عنوانِ' in _joined(verse, "critical")
+    assert "گفته شده است اهلِ تأویل در معنای آن نعمتی که خدا خبر" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که «معرفت» در برابرِ انکار است و" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که آنان نعمتِ خدا را به عنوانِ" in _joined(verse, "critical")
 
 def test_nahl_16_84_verse():
     verse = _check_verse("16:84")
-    assert 'طبری می\u200cگوید آنان نعمتِ خدا را امروز می\u200cشناسند و انکارش می\u200cکنند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که از سیاق به دست می\u200cآید مراد' in _joined(verse, "modern")
-    assert 'المیزان می\u200cگوید ذکرِ برانگیختنِ شهیدِ هر امت دلیل بر این است' in _joined(verse, "critical")
+    assert "گفته شده است آنان نعمتِ خدا را امروز می\u200cشناسند و انکارش می\u200cکنند" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که از سیاق به دست می\u200cآید مراد" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی می\u200cگوید ذکرِ برانگیختنِ شهیدِ هر امت دلیل بر این است" in _joined(verse, "critical")
 
 def test_nahl_16_85_verse():
     verse = _check_verse("16:85")
-    assert 'طبری می\u200cگوید چون آنان که تو را ای محمد تکذیب کردند' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که آیهٔ پیش در حقیقت در مقامِ' in _joined(verse, "modern")
-    assert 'المیزان فرقِ دو آیهٔ ۸۴ و ۸۵ را در این می\u200cداند' in _joined(verse, "critical")
+    assert "گفته شده است چون آنان که تو را ای محمد تکذیب کردند" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که آیهٔ پیش در حقیقت در مقامِ" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی فرقِ دو آیهٔ ۸۴ و ۸۵ را در این می\u200cداند" in _joined(verse, "critical")
 
 def test_nahl_16_86_verse():
     verse = _check_verse("16:86")
-    assert 'طبری می\u200cگوید چون مشرکانِ به خدا در روزِ قیامت آنچه را' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که مراد از «الذین أشرکوا» در عرفِ' in _joined(verse, "modern")
-    assert 'المیزان می\u200cگوید معنای «قالوا ربنا هؤلاء شرکاؤنا الذین کنا ندعوا من' in _joined(verse, "critical")
+    assert "گفته شده است چون مشرکانِ به خدا در روزِ قیامت آنچه را" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که مراد از «الذین أشرکوا» در عرفِ" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی می\u200cگوید معنای «قالوا ربنا هؤلاء شرکاؤنا الذین کنا ندعوا من" in _joined(verse, "critical")
 
 def test_nahl_16_87_verse():
     verse = _check_verse("16:87")
-    assert 'طبری می\u200cگوید مشرکان آن روز در برابرِ خدا تسلیم می\u200cشوند و' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که در قیامت مشرکان علاوه بر علم' in _joined(verse, "modern")
-    assert 'المیزان می\u200cگوید ضمیرِ «ألقوا» به قرینهٔ جملهٔ «وضل عنهم ما کانوا' in _joined(verse, "critical")
+    assert "گفته شده است مشرکان آن روز در برابرِ خدا تسلیم می\u200cشوند و" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که در قیامت مشرکان علاوه بر علم" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی می\u200cگوید ضمیرِ «ألقوا» به قرینهٔ جملهٔ «وضل عنهم ما کانوا" in _joined(verse, "critical")
 
 def test_nahl_16_88_verse():
     verse = _check_verse("16:88")
-    assert 'طبری می\u200cگوید آنان که نبوتت را ای محمد انکار کردند و' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که در این آیه از نو به' in _joined(verse, "modern")
-    assert 'المیزان می\u200cگوید «بما کانوا یفسدون» تعلیلِ افزوده بودنِ عذاب است و' in _joined(verse, "critical")
+    assert "گفته شده است آنان که نبوتت را ای محمد انکار کردند و" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که در این آیه از نو به" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی می\u200cگوید «بما کانوا یفسدون» تعلیلِ افزوده بودنِ عذاب است و" in _joined(verse, "critical")
 
 def test_nahl_16_89_verse():
     verse = _check_verse("16:89")
-    assert 'طبری می\u200cگوید «ویوم نبعث فی کل أمة شهیدا علیهم من أنفسهم»' in _joined(verse, "notes")
-    assert 'المیزان بر آن است که چون قرآن کتابِ هدایت برای عمومِ' in _joined(verse, "modern")
-    assert 'المیزان بحثی مفصل در شهادت می\u200cکند و می\u200cگوید واجب است شهادتی' in _joined(verse, "critical")
+    assert "گفته شده است «ویوم نبعث فی کل أمة شهیدا علیهم من أنفسهم»" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که چون قرآن کتابِ هدایت برای عمومِ" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی بحثی مفصل در شهادت می\u200cکند و می\u200cگوید واجب است شهادتی" in _joined(verse, "critical")
 
 def test_nahl_16_90_verse():
     verse = _check_verse("16:90")
     assert 'آیه سه فرمان مثبت ــ عدالت، احسان و بخشش به خویشاوند' in _joined(verse, "notes")
-    assert 'المیزان با تفکیک عدالت مطلق عقلی از عدالت شرعیِ قابل نسخ' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی با تفکیک عدالت مطلق عقلی از عدالت شرعیِ قابل نسخ" in _joined(verse, "modern")
     assert 'خوانش انتقادی یادآور می\u200cشود که روایت\u200cهای ستایش آیه ــ از خبر' in _joined(verse, "critical")
 
 def test_nahl_16_91_verse():
@@ -5951,109 +5951,109 @@ def test_nahl_16_92_verse():
 def test_nahl_16_93_verse():
     verse = _check_verse("16:93")
     assert 'اگر خدا می\u200cخواست همهٔ شما را امتی یگانه و متحد می\u200cکرد،' in _joined(verse, "notes")
-    assert 'المیزان جملهٔ «ولتسألنّ» را دفع توهم جبر می\u200cخواند: استناد هدایت و' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی جملهٔ «ولتسألنّ» را دفع توهم جبر می\u200cخواند: استناد هدایت و" in _joined(verse, "modern")
     assert 'خوانش انتقادی آیه را در قلب مجادلات کلامیِ جبر و اختیار' in _joined(verse, "critical")
 
 def test_nahl_16_94_verse():
     verse = _check_verse("16:94")
     assert 'آیهٔ نود و چهارم نهی را با تصویر «لغزیدن قدم پس' in _joined(verse, "notes")
-    assert 'المیزان «صدود از سبیل الله» را اعراض از سنت فطری می\u200cخواند' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان قرطبی و طبری دربارهٔ مخاطب آیه داوری می\u200cکند:' in _joined(verse, "critical")
+    assert "تفسیرِ معاصرِ شیعی «صدود از سبیل الله» را اعراض از سنت فطری می\u200cخواند" in _joined(verse, "modern")
+    assert "خوانش انتقادی میان دربارهٔ مخاطب آیه داوری می\u200cکند:" in _joined(verse, "critical")
 
 def test_nahl_16_95_verse():
     verse = _check_verse("16:95")
     assert 'فرمان روشن است: پیمان خدا را به بهای اندک ــ هر' in _joined(verse, "notes")
     assert 'پژوهش\u200cهای معاصر اخلاق اقتصادی این آیه را از قرآنی\u200cترین مواضع نکوهش' in _joined(verse, "modern")
-    assert 'خوانش انتقادی سبب نزولِ امرؤالقیس را بررسی می\u200cکند: شرح قرطبی آن' in _joined(verse, "critical")
+    assert "خوانش انتقادی سبب نزولِ امرؤالقیس بررسی شده است: شرح آن" in _joined(verse, "critical")
 
 def test_nahl_16_96_verse():
     verse = _check_verse("16:96")
     assert 'آیهٔ نود و ششم قاعدهٔ کلی بازار بقا و فنا را' in _joined(verse, "notes")
-    assert 'المیزان میان قرائت «لنجزین» و بن\u200cمایهٔ التفات فرق می\u200cگذارد: «و لنَجْزیَنَّ»' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی میان قرائت «لنجزین» و بن\u200cمایهٔ التفات فرق می\u200cگذارد: «و لنَجْزیَنَّ»" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان دو تفسیر از «أحسن» داوری می\u200cکند: تفسیر متعارف' in _joined(verse, "critical")
 
 def test_nahl_16_97_verse():
     verse = _check_verse("16:97")
     assert 'هر مرد یا زن مؤمنی که کار شایسته کند، خدا او' in _joined(verse, "notes")
-    assert 'المیزان توضیح می\u200cدهد این حیاتِ تازه جدای از حیات پیشین نیست' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی توضیح داده شده است این حیاتِ تازه جدای از حیات پیشین نیست" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان پنج قول حیات طیبه داوری می\u200cکند: ترجیح قناعت' in _joined(verse, "critical")
 
 def test_nahl_16_98_verse():
     verse = _check_verse("16:98")
     assert 'آیه به پیامبر و در پی او به هر قاری قرآن' in _joined(verse, "notes")
-    assert 'المیزان نتیجه می\u200cگیرد استعاذه با توکل هم\u200cریشه است و در آیهٔ' in _joined(verse, "modern")
-    assert 'خوانش انتقادی می\u200cپرسد اگر استعاذه به خوانش المیزان حالتی قلبی است،' in _joined(verse, "critical")
+    assert "تفسیرِ معاصرِ شیعی نتیجه می\u200cگیرد استعاذه با توکل هم\u200cریشه است و در آیهٔ" in _joined(verse, "modern")
+    assert "خوانش انتقادی می\u200cپرسد اگر استعاذه به خوانش تفسیرِ معاصرِ شیعی حالتی قلبی است،" in _joined(verse, "critical")
 
 def test_nahl_16_99_verse():
     verse = _check_verse("16:99")
     assert 'خداوند خبر می\u200cدهد که شیطان بر کسانی که ایمان آورده و' in _joined(verse, "notes")
-    assert 'المیزان می\u200cگوید این آیه همان معنای خطاب خدا به ابلیس در' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی می\u200cگوید این آیه همان معنای خطاب خدا به ابلیس در" in _joined(verse, "modern")
     assert 'خوانش انتقادی تعارض آدم و حوا را جدّی می\u200cگیرد: اگر شیطان' in _joined(verse, "critical")
 
 def test_nahl_16_100_verse():
     verse = _check_verse("16:100")
     assert 'آیه با حصر می\u200cگوید سلطهٔ شیطان فقط بر دو گروه است:' in _joined(verse, "notes")
-    assert 'المیزان قول بازگشت ضمیر «به» به خدا را مردود می\u200cداند، چون' in _joined(verse, "modern")
-    assert 'خوانش انتقادی منازعهٔ مرجع ضمیر را مرکز بحث می\u200cگذارد: طبری و' in _joined(verse, "critical")
+    assert "تفسیرِ معاصرِ شیعی قول بازگشت ضمیر «به» به خدا را مردود می\u200cداند، چون" in _joined(verse, "modern")
+    assert "خوانش انتقادی منازعهٔ مرجع ضمیر را مرکز بحث می\u200cگذارد: و" in _joined(verse, "critical")
 
 def test_nahl_16_101_verse():
     verse = _check_verse("16:101")
     assert 'چون خدا حکم آیه\u200cای را برمی\u200cدارد و حکم دیگری را جایش' in _joined(verse, "notes")
-    assert 'تحلیل بلاغی المیزان از اتهام مشرکان: آنان به جای اینکه بگویند' in _joined(verse, "modern")
+    assert "تحلیل بلاغی تفسیرِ معاصرِ شیعی از اتهام مشرکان: آنان به جای اینکه بگویند" in _joined(verse, "modern")
     assert 'خوانش انتقادی می\u200cپرسد «تبدیل آیه» در این آیه حتماً نسخِ اصطلاحیِ' in _joined(verse, "critical")
 
 def test_nahl_16_102_verse():
     verse = _check_verse("16:102")
     assert 'خدا به پیامبر فرمان می\u200cدهد که بگوید این قرآن را روح\u200cالقدس' in _joined(verse, "notes")
-    assert 'المیزان «تثبیت» بر اثر نسخ را با تمثیل راهنما و راهرو' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان دو تبیین «تثبیت» داوری می\u200cکند: المیزان آن را' in _joined(verse, "critical")
+    assert "تفسیرِ معاصرِ شیعی «تثبیت» بر اثر نسخ را با تمثیل راهنما و راهرو" in _joined(verse, "modern")
+    assert "خوانش انتقادی میان دو تبیین «تثبیت» داوری می\u200cکند:" in _joined(verse, "critical")
 
 def test_nahl_16_103_verse():
     verse = _check_verse("16:103")
     assert 'خدا می\u200cگوید ما می\u200cدانیم که آنان می\u200cگویند بشری این قرآن را' in _joined(verse, "notes")
-    assert 'قدر متیقن روایات نزد المیزان این است که مردی رومی، غلام' in _joined(verse, "modern")
+    assert "قدر متیقن روایات نزد تفسیرِ معاصرِ شیعی این است که مردی رومی، غلام" in _joined(verse, "modern")
     assert 'خوانش انتقادی اختلاف نام\u200cها ــ بلعام، جبر، یعیش، یسار، ابوفکیهه ــ' in _joined(verse, "critical")
 
 def test_nahl_16_104_verse():
     verse = _check_verse("16:104")
     assert 'کسانی که به آیات و حجت\u200cهای خدا ایمان نمی\u200cآورند، خدا آنان' in _joined(verse, "notes")
-    assert 'المیزان در بحث روایی این بخش حدیثی را می\u200cآورد که از' in _joined(verse, "modern")
-    assert 'خوانش انتقادی حلقهٔ برهان المیزان را می\u200cسنجد: از «بی\u200cایمانان هدایت نمی\u200cشوند»' in _joined(verse, "critical")
+    assert "در بحث روایی این بخش حدیثی را می\u200cآورد که از" in _joined(verse, "modern")
+    assert "خوانش انتقادی حلقهٔ برهان تفسیرِ معاصرِ شیعی را می\u200cسنجد: از «بی\u200cایمانان هدایت نمی\u200cشوند»" in _joined(verse, "critical")
 
 def test_nahl_16_105_verse():
     verse = _check_verse("16:105")
     assert 'در پایان جدل، آیه با حصر می\u200cگوید دروغ را فقط کسانی' in _joined(verse, "notes")
-    assert 'المیزان در بحث روایی از عیاشی نقل می\u200cکند که امام رضا' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی در بحث روایی از تفسیرِ کهن نقل شده است که امام رضا" in _joined(verse, "modern")
     assert 'خوانش انتقادی می\u200cپرسد آیا گزارهٔ «مؤمن دروغ نمی\u200cگوید» گزاره\u200cای تجربی است' in _joined(verse, "critical")
 
 def test_nahl_16_106_verse():
     verse = _check_verse("16:106")
     assert 'آیه میان دو کفر فرق می\u200cگذارد: کفر پس از ایمان با' in _joined(verse, "notes")
-    assert 'المیزان برداشت بدلی از «من کفر» را رد می\u200cکند و می\u200cگوید' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی برداشت بدلی از «من کفر» را رد می\u200cکند و می\u200cگوید" in _joined(verse, "modern")
     assert 'خوانش انتقادی گسترهٔ رخصت را می\u200cسنجد: آیا استثنا فقط در «قول»' in _joined(verse, "critical")
 
 def test_nahl_16_107_verse():
     verse = _check_verse("16:107")
     assert 'آن غضب و عذاب بدان سبب است که آنان زندگی دنیا' in _joined(verse, "notes")
-    assert 'المیزان «قوم کافرین» را کافرپیشگان می\u200cخواند؛ یعنی نفی هدایت ناظر به' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی «قوم کافرین» را کافرپیشگان می\u200cخواند؛ یعنی نفی هدایت ناظر به" in _joined(verse, "modern")
     assert 'خوانش انتقادی پرسش کهن خذلان را باز می\u200cگشاید: اگر علت سقوط،' in _joined(verse, "critical")
 
 def test_nahl_16_108_verse():
     verse = _check_verse("16:108")
     assert 'اینان همان کسانی\u200cاند که خدا بر دل\u200cهایشان مهر نهاده تا ایمان' in _joined(verse, "notes")
-    assert 'المیزان می\u200cگوید نفی هدایت در آیهٔ پیش خود معنای طبع و' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی می\u200cگوید نفی هدایت در آیهٔ پیش خود معنای طبع و" in _joined(verse, "modern")
     assert 'خوانش انتقادی مسئلهٔ انتساب مهر به خدا را مرکز می\u200cگذارد: اگر' in _joined(verse, "critical")
 
 def test_nahl_16_109_verse():
     verse = _check_verse("16:109")
     assert 'آیه با قاطعیت اعلام می\u200cکند که آنان در آخرت همان زیانکاران\u200cاند؛' in _joined(verse, "notes")
-    assert 'المیزان با خوانش سرمایه\u200cای، میان این آیه و «ما عندکم ینفد»' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی با خوانش سرمایه\u200cای، میان این آیه و «ما عندکم ینفد»" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان سه تحلیل «لا جرم» داوری می\u200cکند: کلمهٔ واحد' in _joined(verse, "critical")
 
 def test_nahl_16_110_verse():
     verse = _check_verse("16:110")
     assert 'پروردگار برای کسانی که پس از آنکه در دینشان به فتنه' in _joined(verse, "notes")
-    assert 'المیزان پیوند آیه با استثنای اکراه در آیهٔ صد و ششم' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی پیوند آیه با استثنای اکراه در آیهٔ صد و ششم" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان دو سبب نزول ــ عمار و یاران مستضعف،' in _joined(verse, "critical")
 
 def test_nahl_16_111_verse():
@@ -6065,103 +6065,103 @@ def test_nahl_16_111_verse():
 def test_nahl_16_112_verse():
     verse = _check_verse("16:112")
     assert 'خدا مثل قریه\u200cای را می\u200cزند که در امنیت و آرامش بود' in _joined(verse, "notes")
-    assert 'المیزان در برابر تطبیق صرف بر مکه می\u200cایستد و می\u200cگوید سیاق' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی در برابر تطبیق صرف بر مکه می\u200cایستد و می\u200cگوید سیاق" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان سه قرائت از قریه داوری می\u200cکند: مثل عام' in _joined(verse, "critical")
 
 def test_nahl_16_113_verse():
     verse = _check_verse("16:113")
     assert 'برای اهل آن قریه رسولی از خودشان آمد که او را' in _joined(verse, "notes")
-    assert 'المیزان نتیجه می\u200cگیرد که عذاب در برابر ظلم گرفته است نه' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی نتیجه می\u200cگیرد که عذاب در برابر ظلم گرفته است نه" in _joined(verse, "modern")
     assert 'خوانش انتقادی استدلال «این آیه دلیل مکه بودن قریه است» را' in _joined(verse, "critical")
 
 def test_nahl_16_114_verse():
     verse = _check_verse("16:114")
     assert 'پس از آنچه خدا روزی\u200cتان کرده است ــ از چهارپایان حلال' in _joined(verse, "notes")
-    assert 'المیزان خطاب را به مؤمنان می\u200cداند چون فقط آنان خدا را' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی خطاب را به مؤمنان می\u200cداند چون فقط آنان خدا را" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان سه خطاب ــ مؤمنان، مشرکان، یا عموم مردم' in _joined(verse, "critical")
 
 def test_nahl_16_115_verse():
     verse = _check_verse("16:115")
     assert 'خدا بر شما فقط مردار و خون و گوشت خوک و' in _joined(verse, "notes")
-    assert 'المیزان رخصت اضطرار را در ذیل همین حصر می\u200cفهمد: چون تحریم' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی رخصت اضطرار را در ذیل همین حصر می\u200cفهمد: چون تحریم" in _joined(verse, "modern")
     assert 'خوانش انتقادی مسئلهٔ حصر را مرکز می\u200cگذارد: «إنما» چهار چیز را' in _joined(verse, "critical")
 
 def test_nahl_16_116_verse():
     verse = _check_verse("16:116")
     assert 'برای وصف دروغی که زبان\u200cهایتان می\u200cکند نگویید در روزی\u200cهایی که خدا' in _joined(verse, "notes")
-    assert 'المیزان نظر بیشتر مفسران را که آیه را فقط نهی از' in _joined(verse, "modern")
+    assert "نظر بیشتر مفسران را که آیه را فقط نهی از" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان دو تفسیر آیه داوری می\u200cکند: نهی تاریخی از' in _joined(verse, "critical")
 
 def test_nahl_16_117_verse():
     verse = _check_verse("16:117")
     assert 'آنچه دروغ\u200cبندان بر خدا در این دنیا از آن بهره می\u200cبرند' in _joined(verse, "notes")
-    assert 'از منظر تحلیل المیزان، قلیل بودن متاع نسبت\u200cسنجی است نه کمیت\u200cسنجی:' in _joined(verse, "modern")
+    assert "از منظر تحلیل تفسیرِ معاصرِ شیعی، قلیل بودن متاع نسبت\u200cسنجی است نه کمیت\u200cسنجی:" in _joined(verse, "modern")
     assert 'خوانش انتقادی می\u200cپرسد بهرهٔ افترا دقیقاً چیست: سود مادی، ریاست آیینی،' in _joined(verse, "critical")
 
 def test_nahl_16_118_verse():
     verse = _check_verse("16:118")
     assert 'بر یهودیان پیش از تو آنچه را در سورهٔ انعام برایت' in _joined(verse, "notes")
-    assert 'المیزان نتیجه می\u200cگیرد که آیه متصل به ما قبل و به' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی نتیجه می\u200cگیرد که آیه متصل به ما قبل و به" in _joined(verse, "modern")
     assert 'خوانش انتقادی نظریهٔ تحریم کیفری را می\u200cسنجد: تحریم طیبات برای یک' in _joined(verse, "critical")
 
 def test_nahl_16_119_verse():
     verse = _check_verse("16:119")
     assert 'سپس پروردگارت برای کسانی که خدا را نافرمانی کردند و از' in _joined(verse, "notes")
-    assert 'نکتهٔ دقیق المیزان: مغفرت فقط اثر توبه است نه توبه و' in _joined(verse, "modern")
+    assert "نکتهٔ دقیق تفسیرِ معاصرِ شیعی: مغفرت فقط اثر توبه است نه توبه و" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان دو معنای جهالت داوری می\u200cکند: نادانی به حکم' in _joined(verse, "critical")
 
 def test_nahl_16_120_verse():
     verse = _check_verse("16:120")
     assert 'ابراهیم خلیل خدا آموزگار خیری بود که اهل هدایت بدو اقتدا' in _joined(verse, "notes")
-    assert 'المیزان می\u200cگوید وصف ابراهیم به این صفات اشاره دارد که این\u200cها' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی می\u200cگوید وصف ابراهیم به این صفات اشاره دارد که این\u200cها" in _joined(verse, "modern")
     assert 'خوانش انتقادی سه معنای امت را می\u200cسنجد: آموزگار خیر نزد ابن\u200cمسعود،' in _joined(verse, "critical")
 
 def test_nahl_16_121_verse():
     verse = _check_verse("16:121")
     assert 'ابراهیم شکر خدا را در نعمت\u200cهایی که بر او ارزانی داشت' in _joined(verse, "notes")
-    assert 'المیزان این صفات را آثار دین حنیف می\u200cداند: هر که به' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی این صفات را آثار دین حنیف می\u200cداند: هر که به" in _joined(verse, "modern")
     assert 'خوانش انتقادی تقدم شکر بر اجتبا را می\u200cسنجد: آیا ترتیب ذکر' in _joined(verse, "critical")
 
 def test_nahl_16_122_verse():
     verse = _check_verse("16:122")
     assert 'به ابراهیم در برابر فرمانبری و شکر و اخلاص عبادتش در' in _joined(verse, "notes")
-    assert 'المیزان در بحث حسنه به معنای هدایت و صراط مستقیم در' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی در بحث حسنه به معنای هدایت و صراط مستقیم در" in _joined(verse, "modern")
     assert 'خوانش انتقادی برای حسنهٔ دنیا دو تفسیر رقیب را می\u200cسنجد: نام' in _joined(verse, "critical")
 
 def test_nahl_16_123_verse():
     verse = _check_verse("16:123")
     assert 'سپس به تو ــ ای محمد ــ وحی کردیم و گفتیم' in _joined(verse, "notes")
-    assert 'از منظر المیزان، وحی فرمان پیروی نشان می\u200cدهد راه محمد ادامهٔ' in _joined(verse, "modern")
+    assert "از منظر تفسیرِ معاصرِ شیعی، وحی فرمان پیروی نشان می\u200cدهد راه محمد ادامهٔ" in _joined(verse, "modern")
     assert 'خوانش انتقادی دامنهٔ پیروی را مرکز می\u200cگذارد: مناسک حج، عقاید، یا' in _joined(verse, "critical")
 
 def test_nahl_16_124_verse():
     verse = _check_verse("16:124")
     assert 'بزرگداشت شنبه فقط بر یهودیانی فرض شد که در آن اختلاف' in _joined(verse, "notes")
-    assert 'معنای آیه نزد المیزان این است که یک روز تعطیل عبادت' in _joined(verse, "modern")
+    assert "معنای آیه نزد تفسیرِ معاصرِ شیعی این است که یک روز تعطیل عبادت" in _joined(verse, "modern")
     assert 'خوانش انتقادی اقوال اختلاف را دسته\u200cبندی می\u200cکند: اختلاف پیش از جعل' in _joined(verse, "critical")
 
 def test_nahl_16_125_verse():
     verse = _check_verse("16:125")
     assert 'ای محمد، کسانی را که پروردگارت تو را به سویشان فرستاده' in _joined(verse, "notes")
-    assert 'المیزان ترتیب سه طریق را به حسب افراد هر طریق می\u200cداند' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان نظریهٔ المیزان و نظریهٔ طبقات مخاطب داوری می\u200cکند؛' in _joined(verse, "critical")
+    assert "تفسیرِ معاصرِ شیعی ترتیب سه طریق را به حسب افراد هر طریق می\u200cداند" in _joined(verse, "modern")
+    assert "خوانش انتقادی میان نظریهٔ تفسیرِ معاصرِ شیعی و نظریهٔ طبقات مخاطب داوری می\u200cکند؛" in _joined(verse, "critical")
 
 def test_nahl_16_126_verse():
     verse = _check_verse("16:126")
     assert 'اگر کیفر می\u200cکنید ــ ای مؤمنان ــ کسی را که بر' in _joined(verse, "notes")
-    assert 'المیزان اتصال این آیات به ما قبل را قابل توجیه می\u200cداند' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی اتصال این آیات به ما قبل را قابل توجیه می\u200cداند" in _joined(verse, "modern")
     assert 'خوانش انتقادی مسئلهٔ مکی یا مدنی بودن سه آیهٔ پایانی را' in _joined(verse, "critical")
 
 def test_nahl_16_127_verse():
     verse = _check_verse("16:127")
     assert 'ای محمد بر آنچه از آزار در راه خدا بر تو' in _joined(verse, "notes")
-    assert 'آیهٔ پایانی از نظر المیزان تعلیل همین نهی است: تقوا و' in _joined(verse, "modern")
+    assert "آیهٔ پایانی از نظر تفسیرِ معاصرِ شیعی تعلیل همین نهی است: تقوا و" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان نسخ و احکام آیه داوری می\u200cکند: ابن\u200cزید آن' in _joined(verse, "critical")
 
 def test_nahl_16_128_verse():
     verse = _check_verse("16:128")
     assert 'به راستی خدا با کسانی است که از حرام\u200cهایش پرهیز و' in _joined(verse, "notes")
-    assert 'در خوانش المیزان این سه آیهٔ پایانی با همهٔ شباهتشان به' in _joined(verse, "modern")
+    assert "در خوانش تفسیرِ معاصرِ شیعی این سه آیهٔ پایانی با همهٔ شباهتشان به" in _joined(verse, "modern")
     assert 'خوانش انتقادی دو معیت عام و خاص را از هم جدا' in _joined(verse, "critical")
 
 def test_isra_17_1_verse():

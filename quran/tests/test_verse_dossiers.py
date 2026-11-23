@@ -400,8 +400,8 @@ def test_yunus_texts_name_no_exegete_and_critical_questions_cite_related_tafsirs
                 assert "منابعِ مرتبط با این پرسش" in item["cite"], (ayah, item["cite"][:80])
 
 
-def test_hud_yusuf_rad_texts_name_no_exegete_and_critical_questions_cite_related_tafsirs():
-    """مدلِ کاربر برای هود، یوسف و رعد: نامِ مفسر در متن نیاید، دنبالهٔ
+def test_hud_to_nahl_texts_name_no_exegete_and_critical_questions_cite_related_tafsirs():
+    """مدلِ کاربر برای هود تا نحل (۱۱ تا ۱۶): نامِ مفسر در متن نیاید، دنبالهٔ
     پرکننده و برچسبِ داخلی نباشد و هر پرسشِ انتقادی به تفسیرِ مرتبطِ همان
     آیه ارجاع دهد."""
     import re
@@ -419,7 +419,7 @@ def test_hud_yusuf_rad_texts_name_no_exegete_and_critical_questions_cite_related
         return [n for n in names
                 if re.search(rf"(?<!{letter}){re.escape(n)}(?!{letter})", prose)]
 
-    for surah, last in ((11, 123), (12, 111), (13, 43)):
+    for surah, last in ((11, 123), (12, 111), (13, 43), (14, 52), (15, 99), (16, 128)):
         for ayah in range(1, last + 1):
             entry = ext[f"{surah}:{ayah}"]
             groups = [(field, entry[field]) for field in FIELDS]
