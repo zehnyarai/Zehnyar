@@ -5483,7 +5483,7 @@ def test_nahl_16_14_verse():
 def test_nahl_16_15_verse():
     verse = _check_verse("16:15")
     assert "گفته شده است و از نعمت\u200cهایش بر شما ای مردم نیز این" in _joined(verse, "notes")
-    assert "تفسیرِ معاصرِ شیعی بر آن است که در مجمع گفته شده است ميد" in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی بر آن است که در تفسیرِ کهن گفته شده است ميد" in _joined(verse, "modern")
     assert '«رواسي أن تميد بكم» کوه\u200cهای استوار تا شما را نجنباند و' in _joined(verse, "critical")
 
 def test_nahl_16_16_verse():
@@ -5880,7 +5880,7 @@ def test_nahl_16_81_verse():
     verse = _check_verse("16:81")
     assert "گفته شده است از نعمتِ خدا بر شما ای مردم این است" in _joined(verse, "notes")
     assert "تفسیرِ معاصرِ شیعی بر آن است که این دو ظرف یعنی «لکم» و" in _joined(verse, "modern")
-    assert "تفسیرِ معاصرِ شیعی دربارهٔ ویژه کردنِ گرما می\u200cگوید در مجمع\u200cالبیان گفته شده است" in _joined(verse, "critical")
+    assert "تفسیرِ معاصرِ شیعی دربارهٔ ویژه کردنِ گرما" in _joined(verse, "critical")
 
 def test_nahl_16_82_verse():
     verse = _check_verse("16:82")
@@ -6167,91 +6167,91 @@ def test_nahl_16_128_verse():
 def test_isra_17_1_verse():
     verse = _check_verse("17:1")
     assert 'تنزیه و تبرئهٔ خداست از آنچه مشرکان بدو نسبت می\u200cدهند: شریک' in _joined(verse, "notes")
-    assert 'المیزان نکتهٔ التفات آیه را می\u200cگیرد: از غیبتِ «أسری بعبده» به' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی نکتهٔ التفات آیه را می\u200cگیرد: از غیبتِ «أسری بعبده» به" in _joined(verse, "modern")
     assert 'خوانش انتقادی بر سر «سبحان» می\u200cایستد: برخی آن را برای تعجب' in _joined(verse, "critical")
 
 def test_isra_17_2_verse():
     verse = _check_verse("17:2")
     assert 'به موسی کتاب یعنی تورات را دادیم و آن را بیان' in _joined(verse, "notes")
-    assert 'چرا وکیل گرفتن غیر خدا شرک است؟ المیزان پاسخ می\u200cدهد وکیل' in _joined(verse, "modern")
-    assert 'خوانش انتقادی به انتخاب «الکتاب» به جای «التوراة» می\u200cنگرد که المیزان' in _joined(verse, "critical")
+    assert "چرا وکیل گرفتن غیر خدا شرک است؟ تفسیرِ معاصرِ شیعی پاسخ می\u200cدهد وکیل" in _joined(verse, "modern")
+    assert "خوانش انتقادی به انتخاب «الکتاب» به جای «التوراة» می\u200cنگرد که تفسیرِ معاصرِ شیعی" in _joined(verse, "critical")
 
 def test_isra_17_3_verse():
     verse = _check_verse("17:3")
     assert 'مراد از ذریه همهٔ کسانی است که این قرآن بر آنان' in _joined(verse, "notes")
-    assert 'شکر حقیقی نزد المیزان ملازم اخلاص در عبودیت است و نوح' in _joined(verse, "modern")
-    assert 'خوانش انتقادی وجوه اعراب ذریه را می\u200cسنجد: المیزان وجوه نداء و' in _joined(verse, "critical")
+    assert "شکر حقیقی نزد تفسیرِ معاصرِ شیعی ملازم اخلاص در عبودیت است و نوح" in _joined(verse, "modern")
+    assert "خوانش انتقادی وجوه اعراب ذریه را می\u200cسنجد: تفسیرِ معاصرِ شیعی وجوه نداء و" in _joined(verse, "critical")
 
 def test_isra_17_4_verse():
     verse = _check_verse("17:4")
     assert 'قضاء در اصل به معنای فراغ از چیزی و فیصلهٔ آن' in _joined(verse, "notes")
-    assert 'المیزان کل هفت آیه را زمینه\u200cچینی جریان همین سنت در امّت' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی کل هفت آیه را زمینه\u200cچینی جریان همین سنت در امّت" in _joined(verse, "modern")
     assert 'خوانش انتقادی بر سر ماهیت «کتاب» می\u200cایستد: تورات موجود یا لوح' in _joined(verse, "critical")
 
 def test_isra_17_5_verse():
     verse = _check_verse("17:5")
     assert 'چون وعدهٔ نخستین از آن دو نوبت فساد فرارسید بندگانی نیرومند' in _joined(verse, "notes")
-    assert 'جملهٔ «و کان وعداً مفعولاً» نزد المیزان تأکید بر حتمی بودن' in _joined(verse, "modern")
+    assert "جملهٔ «و کان وعداً مفعولاً» نزد تفسیرِ معاصرِ شیعی تأکید بر حتمی بودن" in _joined(verse, "modern")
     assert 'خوانش انتقادی نامزدهای مبعوثان را کنار هم می\u200cگذارد: جالوت و بختنصر' in _joined(verse, "critical")
 
 def test_isra_17_6_verse():
     verse = _check_verse("17:6")
     assert 'سپس شما بنی\u200cاسرائیل را بر آن قومی که خدا بر شما' in _joined(verse, "notes")
-    assert 'از مقایسهٔ وعدهٔ نخست و این بازگشت نزد المیزان قانون بزرگ\u200cتر' in _joined(verse, "modern")
+    assert "از مقایسهٔ وعدهٔ نخست و این بازگشت نزد تفسیرِ معاصرِ شیعی قانون بزرگ\u200cتر" in _joined(verse, "modern")
     assert 'خوانش انتقادی بر سر عامل بازگشت می\u200cایستد: جنگ و بازپس\u200cگیری نزد' in _joined(verse, "critical")
 
 def test_isra_17_7_verse():
     verse = _check_verse("17:7")
     assert 'اگر نیکی کنید و خدا را فرمان برید و کارتان را' in _joined(verse, "notes")
-    assert '«تتبیر» نزد المیزان هلاک کردن از مادهٔ تبار به معنای هلاک' in _joined(verse, "modern")
+    assert "«تتبیر» نزد تفسیرِ معاصرِ شیعی هلاک کردن از مادهٔ تبار به معنای هلاک" in _joined(verse, "modern")
     assert 'خوانش انتقادی بر سر مصداق فساد دوم می\u200cایستد: کشتن یحیی مشهور' in _joined(verse, "critical")
 
 def test_isra_17_8_verse():
     verse = _check_verse("17:8")
     assert 'امید است پروردگارتان پس از انتقام از شما به دست آن' in _joined(verse, "notes")
-    assert 'المیزان کل این هفت آیه را زمینهٔ سنت امّت اسلام می\u200cداند' in _joined(verse, "modern")
-    assert 'خوانش انتقادی تطبیق قتاده را می\u200cسنجد که بازگشت نهایی را بعثت' in _joined(verse, "critical")
+    assert "تفسیرِ معاصرِ شیعی کل این هفت آیه را زمینهٔ سنت امّت اسلام می\u200cداند" in _joined(verse, "modern")
+    assert "خوانش انتقادی تطبیق را می\u200cسنجد که بازگشت نهایی را بعثت" in _joined(verse, "critical")
 
 def test_isra_17_9_verse():
     verse = _check_verse("17:9")
     assert 'این قرآنی که بر پیامبرمان محمد نازل کردیم هر که را' in _joined(verse, "notes")
-    assert 'المیزان می‌گوید در این آیه حقی برای مؤمنان بر خدا اثبات' in _joined(verse, "modern")
-    assert 'خوانش انتقادی مقایسهٔ پنهان آیه را آشکار می‌کند: المیزان می‌گوید اقوم' in _joined(verse, "critical")
+    assert "تفسیرِ معاصرِ شیعی می\u200cگوید در این آیه حقی برای مؤمنان بر خدا اثبات" in _joined(verse, "modern")
+    assert "خوانش انتقادی مقایسهٔ پنهان آیه را آشکار می\u200cکند: تفسیرِ معاصرِ شیعی می\u200cگوید اقوم" in _joined(verse, "critical")
 
 def test_isra_17_10_verse():
     verse = _check_verse("17:10")
     assert 'و کسانی که به بازگشت به سوی خدا و ثواب و' in _joined(verse, "notes")
-    assert 'المیزان مؤمن بی‌عمل صالح را در برابر این دو آیه بی‌وعدهٔ' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی مؤمن بی\u200cعمل صالح را در برابر این دو آیه بی\u200cوعدهٔ" in _joined(verse, "modern")
     assert 'خوانش انتقادی می‌پرسد چرا عذاب کافران «بشارت» مؤمنان شمرده شد؛ پاسخ' in _joined(verse, "critical")
 
 def test_isra_17_11_verse():
     verse = _check_verse("17:11")
     assert 'انسان در لحظهٔ تنگنا و خشم بر خود و فرزند و' in _joined(verse, "notes")
-    assert 'المیزان مراد از انسان را جنس آدمی می‌داند نه افراد معینی' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی مراد از انسان را جنس آدمی می\u200cداند نه افراد معینی" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان سه خوانش آیه داوری می‌کند: نفرین لحظهٔ خشم' in _joined(verse, "critical")
 
 def test_isra_17_12_verse():
     verse = _check_verse("17:12")
     assert 'از نعمت خدا بر شما این است که نشانهٔ شب را' in _joined(verse, "notes")
-    assert 'قول فخر رازی را نیز که محو را اختلاف شکل ماه' in _joined(verse, "modern")
+    assert "قول فخر را نیز که محو را اختلاف شکل ماه" in _joined(verse, "modern")
     assert 'خوانش انتقادی سه لایه را جدا می‌کند: متن آیه از نشانه' in _joined(verse, "critical")
 
 def test_isra_17_13_verse():
     verse = _check_verse("17:13")
     assert 'کارنامهٔ هر انسانی را که کارهای خیر و شرش در آن' in _joined(verse, "notes")
-    assert 'المیزان از موثقهٔ ابو بصیر از امام کاظم می‌آورد که مراد' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی از موثقهٔ ابو بصیر از امام کاظم می\u200cآورد که مراد" in _joined(verse, "modern")
     assert 'خوانش انتقادی سه خوانش طائر را می‌سنجد: سرنوشت ازلی مقدر نزد' in _joined(verse, "critical")
 
 def test_isra_17_14_verse():
     verse = _check_verse("17:14")
     assert 'به او گفته می‌شود نامهٔ عملت را بخوان که همهٔ کارهایی' in _joined(verse, "notes")
-    assert 'المیزان نتیجه می‌گیرد که اگر اعمال زشت آدمی چنین برملا شود' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی نتیجه می\u200cگیرد که اگر اعمال زشت آدمی چنین برملا شود" in _joined(verse, "modern")
     assert 'خوانش انتقادی دو تصویر کتاب را جدا می‌کند: دفتر مکتوب با' in _joined(verse, "critical")
 
 def test_isra_17_15_verse():
     verse = _check_verse("17:15")
     assert 'هر که راه راست را برود سود هدایتش به خودش برمی‌گردد' in _joined(verse, "notes")
-    assert 'در مسئلهٔ وزر پیشوایان المیزان می‌گوید گناه اضلال و سنت بد' in _joined(verse, "modern")
+    assert "در مسئلهٔ وزر پیشوایان تفسیرِ معاصرِ شیعی می\u200cگوید گناه اضلال و سنت بد" in _joined(verse, "modern")
     assert 'خوانش انتقادی مسئلهٔ اصحاب فتره را می‌کاود: میان کسانی که هیچ' in _joined(verse, "critical")
 
 def test_isra_17_16_verse():
@@ -6263,193 +6263,193 @@ def test_isra_17_16_verse():
 def test_isra_17_17_verse():
     verse = _check_verse("17:17")
     assert 'این سخن وعید خدا به تکذیب‌کنندگان پیامبرش از مشرکان قریش و' in _joined(verse, "notes")
-    assert 'خبیر و بصیر بودن خدا در پایان آیه نزد المیزان ضامن' in _joined(verse, "modern")
+    assert "خبیر و بصیر بودن خدا در پایان آیه نزد تفسیرِ معاصرِ شیعی ضامن" in _joined(verse, "modern")
     assert 'خوانش انتقادی مسئلهٔ اندازهٔ قرن را می‌سنجد که از چهل تا' in _joined(verse, "critical")
 
 def test_isra_17_18_verse():
     verse = _check_verse("17:18")
     assert 'هر که طلبش دنیای شتابان باشد و برای آن کار و' in _joined(verse, "notes")
-    assert 'اسباب اخروی نزد المیزان اعمال‌اند و هرگز از نتایجشان تخلف ندارند' in _joined(verse, "modern")
-    assert 'خوانش انتقادی اختلاف دو غرض را می‌سنجد: المیزان می‌گوید این آیه' in _joined(verse, "critical")
+    assert "اسباب اخروی نزد تفسیرِ معاصرِ شیعی اعمال\u200cاند و هرگز از نتایجشان تخلف ندارند" in _joined(verse, "modern")
+    assert "خوانش انتقادی اختلاف دو غرض را می\u200cسنجد: تفسیرِ معاصرِ شیعی می\u200cگوید این آیه" in _joined(verse, "critical")
 
 def test_isra_17_19_verse():
     verse = _check_verse("17:19")
     assert 'هر که آخرت و پاداش آن را بخواهد و برای آن' in _joined(verse, "notes")
-    assert 'سعی شایسته نزد المیزان حسن عمل را از عقل قطعی یا' in _joined(verse, "modern")
-    assert 'خوانش انتقادی اشکال المیزان به مفسری را می‌سنجد که ارادهٔ آخرت' in _joined(verse, "critical")
+    assert "سعی شایسته نزد تفسیرِ معاصرِ شیعی حسن عمل را از عقل قطعی یا" in _joined(verse, "modern")
+    assert "خوانش انتقادی اشکال تفسیرِ معاصرِ شیعی به مفسری را می\u200cسنجد که ارادهٔ آخرت" in _joined(verse, "critical")
 
 def test_isra_17_20_verse():
     verse = _check_verse("17:20")
     assert 'پروردگارت هر دو گروه خواهندگان عاجله و خواهندگان آخرت را در' in _joined(verse, "notes")
-    assert 'قول منسوب به حسن و قتاده که عطا فقط عطای دنیوی' in _joined(verse, "modern")
-    assert 'خوانش انتقادی پاسخ المیزان به آلوسى را می‌سنجد که تقسیم آیه' in _joined(verse, "critical")
+    assert "قول منسوب به حسن که عطا فقط عطای دنیوی" in _joined(verse, "modern")
+    assert "خوانش انتقادی پاسخ تفسیرِ معاصرِ شیعی به آلوسى را می\u200cسنجد که تقسیم آیه" in _joined(verse, "critical")
 
 def test_isra_17_21_verse():
     verse = _check_verse("17:21")
     assert 'ای محمد با چشم دلت به این دو گروه بنگر که' in _joined(verse, "notes")
-    assert 'اختلاف احوال قلب نزد المیزان از اختلاف احوال جسم وسیع‌تر است' in _joined(verse, "modern")
+    assert "اختلاف احوال قلب نزد تفسیرِ معاصرِ شیعی از اختلاف احوال جسم وسیع\u200cتر است" in _joined(verse, "modern")
     assert 'خوانش انتقادی دو خوانش «فضلنا» را می‌سنجد: برتری در روزی و' in _joined(verse, "critical")
 
 def test_isra_17_22_verse():
     verse = _check_verse("17:22")
     assert 'ای محمد با خدا شریکی در الوهیت و عبادتش قرار نده' in _joined(verse, "notes")
-    assert 'المیزان آیه را ثمرهٔ سنت‌های گفته‌شده می‌داند نه فرمانی جدا: چون' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی آیه را ثمرهٔ سنت\u200cهای گفته\u200cشده می\u200cداند نه فرمانی جدا: چون" in _joined(verse, "modern")
     assert 'خوانش انتقادی می‌پرسد چرا فرجام شرک «قعود» است نه واژه‌ای از' in _joined(verse, "critical")
 
 def test_isra_17_23_verse():
     verse = _check_verse("17:23")
     assert 'پروردگارت حکم کرده که جز خدا را نپرستید چون سزاوار نیست' in _joined(verse, "notes")
-    assert '«اف» نزد المیزان چون آخ در فارسی رسانندهٔ انزجار است و' in _joined(verse, "modern")
+    assert "«اف» نزد تفسیرِ معاصرِ شیعی چون آخ در فارسی رسانندهٔ انزجار است و" in _joined(verse, "modern")
     assert 'خوانش انتقادی مسئلهٔ «وصّی یا قضی» را می‌سنجد که به ابن‌عباس' in _joined(verse, "critical")
 
 def test_isra_17_24_verse():
     verse = _check_verse("17:24")
     assert 'برای آن دو از روی رحمتی که بدانان داری فروتن باش' in _joined(verse, "notes")
-    assert 'طبرسی دعا را به پس از مرگ والدین اختصاص داده بود' in _joined(verse, "modern")
+    assert "دعا را به پس از مرگ والدین اختصاص داده بود" in _joined(verse, "modern")
     assert 'خوانش انتقادی مسئلهٔ دعا برای والدین مشرک را می‌سنجد که میان' in _joined(verse, "critical")
 
 def test_isra_17_25_verse():
     verse = _check_verse("17:25")
     assert 'پروردگارتان از خودتان داناتر است به آنچه در دل‌هایتان از بزرگداشت' in _joined(verse, "notes")
-    assert 'صلاح در این آیه نزد المیزان صلاح نفس و روح است' in _joined(verse, "modern")
+    assert "صلاح در این آیه نزد تفسیرِ معاصرِ شیعی صلاح نفس و روح است" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان مصداق خاص بادرهٔ والدین نزد جمهور و قانون' in _joined(verse, "critical")
 
 def test_isra_17_26_verse():
     verse = _check_verse("17:26")
     assert 'در مراد از ذا القربی اختلاف است: گروهی خویشاوندان خود شخص' in _joined(verse, "notes")
-    assert 'المیزان در آیات بعد برادری مبذران با شیاطین را از سنخیت' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی در آیات بعد برادری مبذران با شیاطین را از سنخیت" in _joined(verse, "modern")
     assert 'خوانش انتقادی دو مصداق ذا القربی را می‌سنجد: خویشاوندان هر مؤمن' in _joined(verse, "critical")
 
 def test_isra_17_27_verse():
     verse = _check_verse("17:27")
     assert 'پراکنده‌کنندگان مال‌هایشان در گناهان خدا و خرج‌کنندگان آن در غیر طاعتش' in _joined(verse, "notes")
-    assert 'جمع و مفرد شیطان در آیه نزد المیزان نظریهٔ شیطان‌های بسیار' in _joined(verse, "modern")
+    assert "جمع و مفرد شیطان در آیه نزد تفسیرِ معاصرِ شیعی نظریهٔ شیطان\u200cهای بسیار" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان سه خوانش برادری داوری می‌کند: هم‌حکمی در افساد،' in _joined(verse, "critical")
 
 def test_isra_17_28_verse():
     verse = _check_verse("17:28")
     assert 'اگر از کسانی که به دادن حقشان فرمان یافته‌ای روی بگردانی' in _joined(verse, "notes")
-    assert 'المیزان قلمرو آیه را به هر اعراضی گسترش نمی‌دهد و آن' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی قلمرو آیه را به هر اعراضی گسترش نمی\u200cدهد و آن" in _joined(verse, "modern")
     assert 'خوانش انتقادی دو سبب نزول ناسازگار را می‌سنجد: ندادن عمدی به' in _joined(verse, "critical")
 
 def test_isra_17_29_verse():
     verse = _check_verse("17:29")
     assert 'این مثل برای بازدارنده از انفاق در حقوق واجب است که' in _joined(verse, "notes")
-    assert 'آیهٔ بعد نزد المیزان تعلیل این نهی است که راه خدا' in _joined(verse, "modern")
-    assert 'خوانش انتقادی سبب پیراهن پیامبر را می‌سنجد که با قاعدهٔ قرطبی' in _joined(verse, "critical")
+    assert "آیهٔ بعد نزد تفسیرِ معاصرِ شیعی تعلیل این نهی است که راه خدا" in _joined(verse, "modern")
+    assert "خوانش انتقادی سبب پیراهن پیامبر را می\u200cسنجد که" in _joined(verse, "critical")
 
 def test_isra_17_30_verse():
     verse = _check_verse("17:30")
     assert 'پروردگارت ای محمد روزی را برای هر یک از بندگانش که' in _joined(verse, "notes")
-    assert 'المیزان اخلاق خدا را الگوی اخلاق انسان می‌گیرد و این اصل' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی اخلاق خدا را الگوی اخلاق انسان می\u200cگیرد و این اصل" in _joined(verse, "modern")
     assert 'خوانش انتقادی مسئلهٔ جبر و تفاوت روزی را می‌سنجد: اگر قسمت' in _joined(verse, "critical")
 
 def test_isra_17_31_verse():
     verse = _check_verse("17:31")
     assert 'فرزندانتان را از ترس تنگدستی و فقر نکشید؛ عرب دخترانشان را' in _joined(verse, "notes")
-    assert 'خطای بزرگ نزد المیزان تصمیم و ارادهٔ کاری ناشایست است و' in _joined(verse, "modern")
-    assert 'خوانش انتقادی اختلاف طبری و کشاف و المیزان را در مصداق' in _joined(verse, "critical")
+    assert "خطای بزرگ نزد تفسیرِ معاصرِ شیعی تصمیم و ارادهٔ کاری ناشایست است و" in _joined(verse, "modern")
+    assert "خوانش انتقادی اختلاف و تفسیرِ معاصرِ شیعی را در مصداق" in _joined(verse, "critical")
 
 def test_isra_17_32_verse():
     verse = _check_verse("17:32")
     assert 'به زنا نزدیک نشوید که زنا فاحشه بوده است و راه' in _joined(verse, "notes")
-    assert 'ازدواج نزد المیزان شرکت تجاری زن و شوهر نیست که غرضش' in _joined(verse, "modern")
-    assert 'خوانش انتقادی گفتار اجتماعی المیزان را از متن کوتاه آیه جدا' in _joined(verse, "critical")
+    assert "ازدواج نزد تفسیرِ معاصرِ شیعی شرکت تجاری زن و شوهر نیست که غرضش" in _joined(verse, "modern")
+    assert "خوانش انتقادی گفتار اجتماعی تفسیرِ معاصرِ شیعی را از متن کوتاه آیه جدا" in _joined(verse, "critical")
 
 def test_isra_17_33_verse():
     verse = _check_verse("17:33")
     assert 'نفسی را که خدا کشتنش را حرام کرده جز به حق' in _joined(verse, "notes")
-    assert 'نظام قصاص در این آیه نزد المیزان سلطنت قانونی صاحب خون' in _joined(verse, "modern")
+    assert "نظام قصاص در این آیه نزد تفسیرِ معاصرِ شیعی سلطنت قانونی صاحب خون" in _joined(verse, "modern")
     assert 'خوانش انتقادی نزاع ولیّ زن و مرد را می‌سنجد که از' in _joined(verse, "critical")
 
 def test_isra_17_34_verse():
     verse = _check_verse("17:34")
     assert 'به مال یتیم با خوردن و شتاب برای بزرگ شدنش نزدیک' in _joined(verse, "notes")
-    assert 'شمول عهد نزد زجاج و شرح‌های پس از او همهٔ اوامر' in _joined(verse, "modern")
+    assert "شمول عهد در این خوانش و شرح\u200cهای پس از او همهٔ اوامر" in _joined(verse, "modern")
     assert 'خوانش انتقادی گذار دشواری اصحاب از پرهیز کامل تا رخصت آمیختن' in _joined(verse, "critical")
 
 def test_isra_17_35_verse():
     verse = _check_verse("17:35")
     assert 'پیمانهٔ مردم را چون برایشان پیمانه می‌کنید کامل دهید و از' in _joined(verse, "notes")
-    assert 'المیزان کم‌فروشی را پیش از آنکه زیان مالی باشد خیانت در' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی کم\u200cفروشی را پیش از آنکه زیان مالی باشد خیانت در" in _joined(verse, "modern")
     assert 'خوانش انتقادی واژهٔ قسطاس را می‌سنجد که رومی دخیل یا عربی' in _joined(verse, "critical")
 
 def test_isra_17_36_verse():
     verse = _check_verse("17:36")
     assert 'از آنچه بدان علم نداری پیروی مکن؛ ابن‌عباس آن را مگو' in _joined(verse, "notes")
-    assert 'گوش و چشم و فؤاد نزد المیزان نعمت‌هایی برای تمیز حق' in _joined(verse, "modern")
+    assert "گوش و چشم و فؤاد نزد تفسیرِ معاصرِ شیعی نعمت\u200cهایی برای تمیز حق" in _joined(verse, "modern")
     assert 'خوانش انتقادی تعلیل آیه را از شهادت اعضا در فصلت جدا' in _joined(verse, "critical")
 
 def test_isra_17_37_verse():
     verse = _check_verse("17:37")
     assert 'در زمین خودپسند و مستکبر راه مرو که با خودپسندی‌ات زمین' in _joined(verse, "notes")
-    assert 'مرح نزد المیزان مرض سبکی عقل است که در همهٔ رفتار' in _joined(verse, "modern")
-    assert 'خوانش انتقادی تفسیر موهوم بودن قدرت و عزت نزد المیزان را' in _joined(verse, "critical")
+    assert "مرح نزد تفسیرِ معاصرِ شیعی مرض سبکی عقل است که در همهٔ رفتار" in _joined(verse, "modern")
+    assert "خوانش انتقادی تفسیر موهوم بودن قدرت و عزت نزد تفسیرِ معاصرِ شیعی را" in _joined(verse, "critical")
 
 def test_isra_17_38_verse():
     verse = _check_verse("17:38")
     assert 'قرّاء در این آیه اختلاف کرده‌اند: برخی مدینه و عامّهٔ کوفه' in _joined(verse, "notes")
-    assert 'المیزان در آیهٔ بعد احکام فرعی دین را از آن رو' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی در آیهٔ بعد احکام فرعی دین را از آن رو" in _joined(verse, "modern")
     assert 'خوانش انتقادی اختلاف قرائت را از نادر اختلاف‌های معناگذار می‌داند که' in _joined(verse, "critical")
 
 def test_isra_17_39_verse():
     verse = _check_verse("17:39")
     assert 'این اخلاق نیکویی که تو را به نیکویش فرمان دادیم و' in _joined(verse, "notes")
-    assert 'فرجام «فتلقی فی جهنم» نزد المیزان صورت اخروی همان قعود آیهٔ' in _joined(verse, "modern")
+    assert "فرجام «فتلقی فی جهنم» نزد تفسیرِ معاصرِ شیعی صورت اخروی همان قعود آیهٔ" in _joined(verse, "modern")
     assert 'خوانش انتقادی علت تکرار نهی شرک را می‌سنجد که عظمت توحید' in _joined(verse, "critical")
 
 def test_isra_17_40_verse():
     verse = _check_verse("17:40")
     assert 'پروردگارتان شما مردم را به پسران از فرزندان اختصاص داد و' in _joined(verse, "notes")
-    assert 'در خوانش المیزان اصفاء به معنای ایثار دیگری بر خویش با' in _joined(verse, "modern")
+    assert "در خوانش تفسیرِ معاصرِ شیعی اصفاء به معنای ایثار دیگری بر خویش با" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان دو سطح انکار فرق می‌نهد: نسبت فرزند به' in _joined(verse, "critical")
 
 def test_isra_17_41_verse():
     verse = _check_verse("17:41")
     assert 'به این مشرکان افترازننده بر خدا در این قرآن عبرت‌ها و' in _joined(verse, "notes")
-    assert 'المیزان از سوی دیگر می‌گوید کفر و نفور از حق همان‌قدر' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی از سوی دیگر می\u200cگوید کفر و نفور از حق همان\u200cقدر" in _joined(verse, "modern")
     assert 'خوانش انتقادی پارادوکس آیه را برجسته می‌کند: نص هر چه متنوع‌تر' in _joined(verse, "critical")
 
 def test_isra_17_42_verse():
     verse = _check_verse("17:42")
-    assert 'طبری راه جستن را قربت و طلب نزدیکی و مرتبت نزد' in _joined(verse, "notes")
-    assert 'المیزان از خطاب اعراض‌شده می‌خواند که خدا در این آیه باز' in _joined(verse, "modern")
+    assert "راه جستن را قربت و طلب نزدیکی و مرتبت نزد" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی از خطاب اعراض\u200cشده می\u200cخواند که خدا در این آیه باز" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان دو سنت کهن داوری می‌طلبد: سنت نزاع برهان' in _joined(verse, "critical")
 
 def test_isra_17_43_verse():
     verse = _check_verse("17:43")
     assert 'این تنزیه خدا خویشتن را از آنچه مشرکان وصفش می‌کنند است' in _joined(verse, "notes")
-    assert 'المیزان ترتیب برهان و تنزیه را چنان می‌چیند که تسبیح هستی' in _joined(verse, "modern")
-    assert 'خوانش انتقادی خودتسبیحی خدا نزد قتاده را می‌سنجد که خدا گویندهٔ' in _joined(verse, "critical")
+    assert "تفسیرِ معاصرِ شیعی ترتیب برهان و تنزیه را چنان می\u200cچیند که تسبیح هستی" in _joined(verse, "modern")
+    assert "خوانش انتقادی خودتسبیحی خدا در این خوانش را می\u200cسنجد که خدا گویندهٔ" in _joined(verse, "critical")
 
 def test_isra_17_44_verse():
     verse = _check_verse("17:44")
     assert 'آسمان‌های هفت‌گانه و زمین و هر که از مؤمنان فرشتگان و' in _joined(verse, "notes")
-    assert 'وجود موجودات نزد المیزان هم حمد است و هم تسبیح چون' in _joined(verse, "modern")
+    assert "وجود موجودات نزد تفسیرِ معاصرِ شیعی هم حمد است و هم تسبیح چون" in _joined(verse, "modern")
     assert 'خوانش انتقادی این آیه را از مناقشه‌برانگیزترین آیات هستی‌شناسی قرآن می‌داند' in _joined(verse, "critical")
 
 def test_isra_17_45_verse():
     verse = _check_verse("17:45")
     assert 'ای محمد چون قرآن را بر این مشرکان بی‌باور به بعث' in _joined(verse, "notes")
-    assert 'در خوانش المیزان جرم این قوم انکار معاد است که ریشهٔ' in _joined(verse, "modern")
+    assert "در خوانش تفسیرِ معاصرِ شیعی جرم این قوم انکار معاد است که ریشهٔ" in _joined(verse, "modern")
     assert 'خوانش انتقادی دو کاربست حجاب را جدا می‌کند: حجاب چشم در' in _joined(verse, "critical")
 
 def test_isra_17_46_verse():
     verse = _check_verse("17:46")
     assert 'بر دل‌های این بی‌باوران به آخرت هنگام خواندن تو قرآن أکنه' in _joined(verse, "notes")
-    assert 'قرطبی از همین آیه رد بر قدریه ساخته که فهم قرآن' in _joined(verse, "modern")
-    assert 'خوانش انتقادی جدال قدریه و قرطبی را نشان می‌دهد که یک' in _joined(verse, "critical")
+    assert "از همین آیه رد بر قدریه ساخته که فهم قرآن" in _joined(verse, "modern")
+    assert "خوانش انتقادی جدال قدریه نشان داده شده است که یک" in _joined(verse, "critical")
 
 def test_isra_17_47_verse():
     verse = _check_verse("17:47")
     assert 'ما داناتر هستیم ای محمد به آنچه این مشرکان قوم تو' in _joined(verse, "notes")
-    assert 'در خوانش المیزان برچسب پایانی نجوا یعنی رجلاً مسحوراً خود سند' in _joined(verse, "modern")
+    assert "در خوانش تفسیرِ معاصرِ شیعی برچسب پایانی نجوا یعنی رجلاً مسحوراً خود سند" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان سه معنای مسحور یعنی جادوشده و فریفته و' in _joined(verse, "critical")
 
 def test_isra_17_48_verse():
     verse = _check_verse("17:48")
     assert 'ای محمد با چشم دل بنگر و عبرت بگیر که چگونه' in _joined(verse, "notes")
-    assert 'در خوانش المیزان فرمان «انظر» پیامبر و هر خواننده را به' in _joined(verse, "modern")
+    assert "در خوانش تفسیرِ معاصرِ شیعی فرمان «انظر» پیامبر و هر خواننده را به" in _joined(verse, "modern")
     assert 'خوانش انتقادی وصف «مثل» را برای برچسب انتخابی تعمدی می‌داند که' in _joined(verse, "critical")
 
 def test_isra_17_49_verse():
@@ -6467,1617 +6467,1617 @@ def test_isra_17_50_verse():
 def test_isra_17_51_verse():
     verse = _check_verse("17:51")
     assert 'اختلاف اهل تأویل در «مما یکبر فی صدورکم» این است که' in _joined(verse, "notes")
-    assert 'در خوانش المیزان جنبش سر پاسخی بدنی به حجت است: چون' in _joined(verse, "modern")
+    assert "در خوانش تفسیرِ معاصرِ شیعی جنبش سر پاسخی بدنی به حجت است: چون" in _joined(verse, "modern")
     assert 'خوانش انتقادی جدال مرگ یا آسمان را بر سر «یکبر فی' in _joined(verse, "critical")
 
 def test_isra_17_52_verse():
     verse = _check_verse("17:52")
     assert 'ای محمد بگو شاید برانگیخته شدنتان نزدیک باشد آن روز که' in _joined(verse, "notes")
-    assert 'المیزان «یوم» را از فعل مقدر و پاسخ را حال ستایش' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی «یوم» را از فعل مقدر و پاسخ را حال ستایش" in _joined(verse, "modern")
     assert 'خوانش انتقادی سه معنای بحمده یعنی به فرمان و به شناخت' in _joined(verse, "critical")
 
 def test_isra_17_53_verse():
     verse = _check_verse("17:53")
     assert 'خدا به پیامبرش می‌گوید ای محمد به بندگانم بگو برخی به' in _joined(verse, "notes")
-    assert 'در خوانش المیزان دشمنی شیطان تعلیل بر تعلیل است: بهترین سخن' in _joined(verse, "modern")
+    assert "در خوانش تفسیرِ معاصرِ شیعی دشمنی شیطان تعلیل بر تعلیل است: بهترین سخن" in _joined(verse, "modern")
     assert 'خوانش انتقادی جدال مخاطب را برجسته می‌کند: مسلمانان در برابر مشرکان' in _joined(verse, "critical")
 
 def test_isra_17_54_verse():
     verse = _check_verse("17:54")
     assert 'خدا به این مشرکان قریش که انکار بعث کردند می‌گوید پروردگارتان' in _joined(verse, "notes")
-    assert 'المیزان از تردید مشیت نکته می‌سازد که مشیت خدا یکسان بر' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی از تردید مشیت نکته می\u200cسازد که مشیت خدا یکسان بر" in _joined(verse, "modern")
     assert 'خوانش انتقادی دو مخاطب مشرک و مؤمن را نزد شرح‌ها جدی' in _joined(verse, "critical")
 
 def test_isra_17_55_verse():
     verse = _check_verse("17:55")
     assert 'پروردگارت ای محمد به هر که در آسمان‌ها و زمین است' in _joined(verse, "notes")
-    assert 'در خوانش المیزان حتی وحی تشریعی نیز با ادب ستایش سنجیده' in _joined(verse, "modern")
-    assert 'خوانش انتقادی پیوند تفضیل با اخلاق سخن را نوآوری سیاقی المیزان' in _joined(verse, "critical")
+    assert "در خوانش تفسیرِ معاصرِ شیعی حتی وحی تشریعی نیز با ادب ستایش سنجیده" in _joined(verse, "modern")
+    assert "خوانش انتقادی پیوند تفضیل با اخلاق سخن را نوآوری سیاقی تفسیرِ معاصرِ شیعی" in _joined(verse, "critical")
 
 def test_isra_17_56_verse():
     verse = _check_verse("17:56")
     assert 'خدا به پیامبرش می‌گوید ای محمد به مشرکان قومت که به' in _joined(verse, "notes")
-    assert 'المیزان معارضهٔ مشهور را که مسلمانان هم دست به دامان خدا' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی معارضهٔ مشهور را که مسلمانان هم دست به دامان خدا" in _joined(verse, "modern")
     assert 'خوانش انتقادی وصف «زعمتم» را بار داوری می‌داند که مخاطب هنوز' in _joined(verse, "critical")
 
 def test_isra_17_57_verse():
     verse = _check_verse("17:57")
     assert 'این خوانده‌شدگانی که مشرکان پروردگارشان می‌خوانند خود در جستجوی نزدیک شدن' in _joined(verse, "notes")
-    assert 'خلاصهٔ سخن مشرکان نزد المیزان این بود که ما با وسیلهٔ' in _joined(verse, "modern")
-    assert 'خوانش انتقادی مهم‌ترین تمایز المیزان را وسيله‌جویی درست و پرستش وسیله' in _joined(verse, "critical")
+    assert "خلاصهٔ سخن مشرکان نزد تفسیرِ معاصرِ شیعی این بود که ما با وسیلهٔ" in _joined(verse, "modern")
+    assert "خوانش انتقادی مهم\u200cترین تمایز تفسیرِ معاصرِ شیعی را وسيله\u200cجویی درست و پرستش وسیله" in _joined(verse, "critical")
 
 def test_isra_17_58_verse():
     verse = _check_verse("17:58")
     assert 'هیچ آبادی از آبادی‌ها نیست مگر ما مردمش را با نابودی' in _joined(verse, "notes")
-    assert 'حق مطلب نزد المیزان این است که کتاب مبین همان متن' in _joined(verse, "modern")
-    assert 'خوانش انتقادی تصویر مادی لوح را نزد المیزان نقدی معرفت‌شناختی می‌داند' in _joined(verse, "critical")
+    assert "حق مطلب نزد تفسیرِ معاصرِ شیعی این است که کتاب مبین همان متن" in _joined(verse, "modern")
+    assert "خوانش انتقادی تصویر مادی لوح را نزد تفسیرِ معاصرِ شیعی نقدی معرفت\u200cشناختی می\u200cداند" in _joined(verse, "critical")
 
 def test_isra_17_59_verse():
     verse = _check_verse("17:59")
     assert 'ما را ای محمد از فرستادن نشانه‌هایی که قومت خواستند بازنداشت' in _joined(verse, "notes")
-    assert 'تخویف نزد المیزان می‌تواند ایجاد ترس با عذابی کمتر از ریشه‌کنی' in _joined(verse, "modern")
+    assert "تخویف نزد تفسیرِ معاصرِ شیعی می\u200cتواند ایجاد ترس با عذابی کمتر از ریشه\u200cکنی" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان اقتراح نشانه و نشانهٔ نبوت فرق می‌گذارد که' in _joined(verse, "critical")
 
 def test_isra_17_60_verse():
     verse = _check_verse("17:60")
     assert 'خدا پیامبرش را بر رساندن پیامش برمی‌انگیزد و آگاهش می‌کند که' in _joined(verse, "notes")
-    assert 'المیزان نتیجه می‌گیرد که درخت لعنت‌شده یکی از گروه‌های لعنت‌شده در' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی نتیجه می\u200cگیرد که درخت لعنت\u200cشده یکی از گروه\u200cهای لعنت\u200cشده در" in _joined(verse, "modern")
     assert 'خوانش انتقادی این آیه را آزمون‌گاه روش می‌داند که متن دو' in _joined(verse, "critical")
 
 def test_isra_17_61_verse():
     verse = _check_verse("17:61")
     assert 'خدا به پیامبرش می‌گوید ای محمد سربیچی این مشرکان و برگشتنشان' in _joined(verse, "notes")
-    assert 'در خوانش المیزان سرکشی ابلیس از انکار کرامت آدم می‌آغازد و' in _joined(verse, "modern")
+    assert "در خوانش تفسیرِ معاصرِ شیعی سرکشی ابلیس از انکار کرامت آدم می\u200cآغازد و" in _joined(verse, "modern")
     assert 'خوانش انتقادی وصف «خلقت طیناً» را نخستین استدلال مادّه‌گرایانهٔ تاریخ در' in _joined(verse, "critical")
 
 def test_isra_17_62_verse():
     verse = _check_verse("17:62")
     assert 'دشمن خدا سوگند خورد و به پروردگارش گفت این را که' in _joined(verse, "notes")
-    assert 'المیزان استثنای اندک را بندگان مخلص می‌داند نه هر که گاه' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی استثنای اندک را بندگان مخلص می\u200cداند نه هر که گاه" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان دو ریشهٔ احتناک یعنی ریشه‌کنی و افسار داوری' in _joined(verse, "critical")
 
 def test_isra_17_63_verse():
     verse = _check_verse("17:63")
     assert 'خدا به ابلیس چون گفت اگر تا روز رستاخیز مهلتم دهی' in _joined(verse, "notes")
-    assert 'در خوانش المیزان این آیه پاسخ مستقیم به سوگند پیشین و' in _joined(verse, "modern")
+    assert "در خوانش تفسیرِ معاصرِ شیعی این آیه پاسخ مستقیم به سوگند پیشین و" in _joined(verse, "modern")
     assert 'خوانش انتقادی ماهیت «اذهب» را میان راندن حقیقی و رها کردن' in _joined(verse, "critical")
 
 def test_isra_17_64_verse():
     verse = _check_verse("17:64")
     assert '«واستفزز» یعنی سبک و نادان کن از این که می‌گویند فلانی' in _joined(verse, "notes")
-    assert '«و عدهم و ما یعدهم الشیطان إلا غروراً» نزد المیزان یعنی' in _joined(verse, "modern")
-    assert 'خوانش انتقادی تعمیم شرکت نزد المیزان را از قوی‌ترین نقاط شرح' in _joined(verse, "critical")
+    assert "«و عدهم و ما یعدهم الشیطان إلا غروراً» نزد تفسیرِ معاصرِ شیعی یعنی" in _joined(verse, "modern")
+    assert "خوانش انتقادی تعمیم شرکت نزد" in _joined(verse, "critical")
 
 def test_isra_17_65_verse():
     verse = _check_verse("17:65")
     assert 'خدا به ابلیس می‌گوید بندگانم که از من فرمان بردند و' in _joined(verse, "notes")
-    assert 'در نظام المیزان نفی سلطه به معنای نفی وسوسه نیست؛ ابلیس' in _joined(verse, "modern")
+    assert "در نظام تفسیرِ معاصرِ شیعی نفی سلطه به معنای نفی وسوسه نیست؛ ابلیس" in _joined(verse, "modern")
     assert 'خوانش انتقادی دامنهٔ عبادی را میان مؤمنان نزد ابن‌عباس و همهٔ' in _joined(verse, "critical")
 
 def test_isra_17_66_verse():
     verse = _check_verse("17:66")
     assert 'پروردگارتان ای مردم همان است که کشتی‌ها را در دریا برای' in _joined(verse, "notes")
-    assert 'در نظام المیزان این آیه و پنج آیهٔ بعد احتجاج واحدی' in _joined(verse, "modern")
+    assert "در نظام تفسیرِ معاصرِ شیعی این آیه و پنج آیهٔ بعد احتجاج واحدی" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان رانش الهی کشتی و ساخت انسانی آن فرق' in _joined(verse, "critical")
 
 def test_isra_17_67_verse():
     verse = _check_verse("17:67")
     assert 'و چون سختی و رنج در دریا به شما رسد آنان' in _joined(verse, "notes")
-    assert 'در آیه نزد المیزان دلیلی بر توحید ربوبیت نیز هست که' in _joined(verse, "modern")
+    assert "در آیه نزد تفسیرِ معاصرِ شیعی دلیلی بر توحید ربوبیت نیز هست که" in _joined(verse, "modern")
     assert 'خوانش انتقادی استثنای پیوسته یا گسسته را قلب بلاغی آیه می‌داند' in _joined(verse, "critical")
 
 def test_isra_17_68_verse():
     verse = _check_verse("17:68")
     assert 'ای مردم آیا از پروردگارتان ایمن شدید در حالی که نعمتش' in _joined(verse, "notes")
-    assert 'المیزان امنیت را امری الهی می‌داند نه خاصیت مکان و این' in _joined(verse, "modern")
+    assert "تفسیرِ معاصرِ شیعی امنیت را امری الهی می\u200cداند نه خاصیت مکان و این" in _joined(verse, "modern")
     assert 'خوانش انتقادی جدال سنگ آسمانی یا باد سنگ‌پاش را نشان می‌دهد' in _joined(verse, "critical")
 
 def test_isra_17_69_verse():
     verse = _check_verse("17:69")
     assert 'یا ای مردم از پروردگارتان ایمن شدید با این که پس' in _joined(verse, "notes")
-    assert '«بما کفرتم» نزد المیزان سبب غرق را خود ناسپاسی می‌خواند و' in _joined(verse, "modern")
+    assert "«بما کفرتم» نزد تفسیرِ معاصرِ شیعی سبب غرق را خود ناسپاسی می\u200cخواند و" in _joined(verse, "modern")
     assert 'خوانش انتقادی قرائت‌های پنج فعل را میان یاء غیبت و نون' in _joined(verse, "critical")
 
 def test_isra_17_70_verse():
     verse = _check_verse("17:70")
     assert 'فرزندان آدم را با چیره کردن ایشان بر دیگر آفریدگان و' in _joined(verse, "notes")
-    assert 'مراد از «کثیر ممن خلقنا» نزد المیزان چندان دور نیست که' in _joined(verse, "modern")
-    assert 'خوانش انتقادی این آیه را میدان نبرد دو الهیات می‌داند: فهرست' in _joined(verse, "critical")
+    assert "مراد از «کثیر ممن خلقنا» نزد تفسیرِ معاصرِ شیعی چندان دور نیست که" in _joined(verse, "modern")
+    assert "خوانش انتقادی این آیه" in _joined(verse, "critical")
 
 def test_isra_17_71_verse():
     verse = _check_verse("17:71")
-    assert 'اهل تأویل در معنای پیشوایی که خدا گفته هر گروهی را' in _joined(verse, "notes")
-    assert 'المیزان آن قول را که امام هر چه بدان اقتدا شود' in _joined(verse, "modern")
+    assert "اهل تأویل در معنای پیشوایی که خدا گفته هر گروهی" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی آن قول را که امام هر چه بدان اقتدا شود" in _joined(verse, "modern")
     assert 'خوانش انتقادی این آیه را از سیاسی‌ترین آیات آخرت می‌داند که' in _joined(verse, "critical")
 
 def test_isra_17_72_verse():
     verse = _check_verse("17:72")
     assert 'اهل تأویل در آنچه با «هذه» بدان اشاره شده اختلاف کرده‌اند' in _joined(verse, "notes")
-    assert 'در خوانش المیزان کیفر کوری از جنس خود جرم است و' in _joined(verse, "modern")
+    assert "در خوانش تفسیرِ معاصرِ شیعی کیفر کوری از جنس خود جرم است و" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان سه خوانش «هذه» یعنی دنیا و نعمت‌های پیشین' in _joined(verse, "critical")
 
 def test_isra_17_73_verse():
     verse = _check_verse("17:73")
-    assert 'سعيد نزد طبری گفته پیامبر سنگ سیاه را دست می‌کشید و' in _joined(verse, "notes")
-    assert 'المیزان همچنین روایت ثقیف و مهلت یک سال و روایت عیاشی' in _joined(verse, "modern")
+    assert "سعيد در این خوانش گفته پیامبر سنگ سیاه را دست می\u200cکشید و" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی همچنین روایت ثقیف و مهلت یک سال" in _joined(verse, "modern")
     assert 'خوانش انتقادی تعارض میان سبب‌های نزول را مسئله اصلی این آیه' in _joined(verse, "critical")
 
 def test_isra_17_74_verse():
     verse = _check_verse("17:74")
-    assert 'طبری می‌گوید اگر تو را ای محمد با عصمت خود از' in _joined(verse, "notes")
+    assert "اگر تو را ای محمد با عصمت خود از" in _joined(verse, "notes")
     assert 'در کلام شیعی و سنی این آیه و خطاب‌های توبیخی به' in _joined(verse, "modern")
     assert 'خوانش انتقادی سه تأویل «میل نکرد و نزدیک هم نشد» و' in _joined(verse, "critical")
 
 def test_isra_17_75_verse():
     verse = _check_verse("17:75")
-    assert 'ابن‌عباس نزد طبری «ضعف حیات و ضعف ممات» را دو برابر' in _joined(verse, "notes")
+    assert "ابن\u200cعباس در این خوانش «ضعف حیات و ضعف ممات» را دو برابر" in _joined(verse, "notes")
     assert 'در الهیات معاصر تناسب مسئولیت و مقام و قانون «هر که' in _joined(verse, "modern")
     assert 'خوانش انتقادی تهدید دو برابر را آینهٔ بزرگی خطر سازش می‌داند:' in _joined(verse, "critical")
 
 def test_isra_17_76_verse():
     verse = _check_verse("17:76")
-    assert 'طبری می‌گوید نزدیک بود این قوم تو را از سرزمینی که' in _joined(verse, "notes")
+    assert "گفته شده است نزدیک بود این قوم تو را از سرزمینی که" in _joined(verse, "notes")
     assert 'در مطالعات تاریخی معاصر هجرت و فشار قریش و این آیات' in _joined(verse, "modern")
-    assert 'خوانش انتقادی این آیه را میدان نبرد جغرافیای وحی می‌داند: مکه' in _joined(verse, "critical")
+    assert "میدان نبرد جغرافیای وحی" in _joined(verse, "critical")
 
 def test_isra_17_77_verse():
     verse = _check_verse("17:77")
-    assert 'طبری می‌گوید اگر بیرونت می‌کردند پس از تو جز اندکی نمی‌ماندند' in _joined(verse, "notes")
+    assert "گفته شده است اگر بیرونت می\u200cکردند پس از تو جز اندکی نمی\u200cماندند" in _joined(verse, "notes")
     assert 'در الهیات معاصر سنت‌های الهی در تاریخ و قانونمندی سرنوشت امت‌ها' in _joined(verse, "modern")
-    assert 'خوانش انتقادی نصب «سنة» را از پیچیده‌ترین نحوهای این بخش می‌داند' in _joined(verse, "critical")
+    assert "از پیچیده\u200cترین نحوهای این بخش" in _joined(verse, "critical")
 
 def test_isra_17_78_verse():
     verse = _check_verse("17:78")
-    assert 'راهن می‌گوید نماز را ای محمد از دلوک خورشید برپا دار' in _joined(verse, "notes")
-    assert 'المیزان می‌گوید تفسیر مشهود بودن قرآن فجر در روایات شیعه و' in _joined(verse, "modern")
+    assert "گفته شده است نماز را ای محمد از دلوک خورشید برپا دار" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی می\u200cگوید تفسیر مشهود بودن قرآن فجر در روایات شیعه و" in _joined(verse, "modern")
     assert 'خوانش انتقادی دلوک را میان زوال و غروب یکی از کهن‌ترین' in _joined(verse, "critical")
 
 def test_isra_17_79_verse():
     verse = _check_verse("17:79")
-    assert 'راهن می‌گوید پاسی از شب را ای محمد پس از خوابی' in _joined(verse, "notes")
-    assert 'المیزان از ابو هریره در ابن‌جریر و بیهقی در شعب الایمان' in _joined(verse, "modern")
+    assert "گفته شده است پاسی از شب را ای محمد پس از خوابی" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی از ابو هریره در ابن\u200cجریر و بیهقی در شعب الایمان" in _joined(verse, "modern")
     assert 'خوانش انتقادی واجب یا نافله بودن تهجد را نقطهٔ جدال فقه' in _joined(verse, "critical")
 
 def test_isra_17_80_verse():
     verse = _check_verse("17:80")
-    assert 'حسن و قتاده نزد راهن مدخل صدق را مدینه و مخرج' in _joined(verse, "notes")
-    assert 'در خوانش المیزان آیه فرمان عمومی پناه بردن به خدا در' in _joined(verse, "modern")
+    assert "حسن در این خوانش مدخل صدق را مدینه و مخرج" in _joined(verse, "notes")
+    assert "در خوانش تفسیرِ معاصرِ شیعی آیه فرمان عمومی پناه بردن به خدا در" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان تخصیص تاریخی هجرت و اطلاق وجودی صدق داوری' in _joined(verse, "critical")
 
 def test_isra_17_81_verse():
     verse = _check_verse("17:81")
-    assert 'قتاده نزد راهن حق را در این موضع قرآن و باطل' in _joined(verse, "notes")
+    assert "در این خوانش حق را در این موضع قرآن و باطل" in _joined(verse, "notes")
     assert 'در الهیات سیاسی و مطالعات جنبش‌های دینی معاصر شعار «جاء الحق' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان خوانش مکی اعلان و خوانش مدنی فتح داوری' in _joined(verse, "critical")
 
 def test_isra_17_82_verse():
     verse = _check_verse("17:82")
-    assert 'طبری می‌گوید ای محمد از قرآن آنچه شفایی است که با' in _joined(verse, "notes")
-    assert 'المیزان این قول را که شفا اعم از بیماری‌های روحی و' in _joined(verse, "modern")
-    assert 'خوانش انتقادی این آیه را دو داروی یک داروخانه می‌داند: شفا' in _joined(verse, "critical")
+    assert "گفته شده است ای محمد از قرآن آنچه شفایی است که با" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی این قول را که شفا اعم از بیماری\u200cهای روحی و" in _joined(verse, "modern")
+    assert "خوانش انتقادی این آیه" in _joined(verse, "critical")
 
 def test_isra_17_83_verse():
     verse = _check_verse("17:83")
-    assert 'طبری می‌گوید هرگاه به انسان نعمت دهیم و او را از' in _joined(verse, "notes")
-    assert 'المیزان نتیجهٔ حکما را می‌گیرد که امور پنج قسم‌اند و سه' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان حال عادی و فطری انسان نزد المیزان تفکیکی' in _joined(verse, "critical")
+    assert "هرگاه به انسان نعمت دهیم و او را از" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی نتیجهٔ حکما را می\u200cگیرد که امور پنج قسم\u200cاند و سه" in _joined(verse, "modern")
+    assert "خوانش انتقادی میان حال عادی و فطری انسان نزد تفسیرِ معاصرِ شیعی تفکیکی" in _joined(verse, "critical")
 
 def test_isra_17_84_verse():
     verse = _check_verse("17:84")
-    assert 'طبری می‌گوید ای محمد به مردم بگو همگی‌تان بر شاکلهٔ خود' in _joined(verse, "notes")
-    assert 'المیزان انسان را دارای شاکله‌ها می‌داند یکی زادهٔ نوع خلقت و' in _joined(verse, "modern")
+    assert "گفته شده است ای محمد به مردم بگو همگی\u200cتان بر شاکلهٔ خود" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی انسان را دارای شاکله\u200cها می\u200cداند یکی زادهٔ نوع خلقت و" in _joined(verse, "modern")
     assert 'خوانش انتقادی این آیه را میدان نبرد کهن‌ترین جدال انسان‌شناسی اسلامی' in _joined(verse, "critical")
 
 def test_isra_17_85_verse():
     verse = _check_verse("17:85")
-    assert 'راهن می‌گوید کافران اهل کتاب از تو دربارهٔ روح می‌پرسند که' in _joined(verse, "notes")
-    assert 'المیزان از این که جبرئیل آورندهٔ روح است و روح حامل' in _joined(verse, "modern")
+    assert "گفته شده است کافران اهل کتاب از تو دربارهٔ روح می\u200cپرسند که" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی از این که جبرئیل آورندهٔ روح است و روح حامل" in _joined(verse, "modern")
     assert 'خوانش انتقادی این آیه را مرز اعلام‌شدهٔ دانش می‌داند و هر' in _joined(verse, "critical")
 
 def test_isra_17_86_verse():
     verse = _check_verse("17:86")
-    assert 'طبری می‌گوید اگر بخواهیم با آنچه از علم این قرآن به' in _joined(verse, "notes")
+    assert "گفته شده است اگر بخواهیم با آنچه از علم این قرآن به" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ تاریخ متن قرآن و اخبار رفع آن، این' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان وحی چون متن محفوظ در مصحف و وحی' in _joined(verse, "critical")
 
 def test_isra_17_87_verse():
     verse = _check_verse("17:87")
-    assert 'طبری می‌گوید اگر می‌خواستیم آنچه به تو وحی کردیم می‌بردیم اما' in _joined(verse, "notes")
+    assert "گفته شده است اگر می\u200cخواستیم آنچه به تو وحی کردیم می\u200cبردیم اما" in _joined(verse, "notes")
     assert 'در الهیات معاصر نعمت و منت و برگزیدگی پیامبر، این آیه' in _joined(verse, "modern")
     assert 'خوانش انتقادی استثنای جدا را لحظهٔ چرخش از تهدید به منت' in _joined(verse, "critical")
 
 def test_isra_17_88_verse():
     verse = _check_verse("17:88")
-    assert 'طبری می‌گوید ای محمد به آنان که به تو گفتند ما' in _joined(verse, "notes")
+    assert "گفته شده است ای محمد به آنان که به تو گفتند ما" in _joined(verse, "notes")
     assert 'در مطالعات ادبی و الهیاتی معاصر اعجاز قرآن و نظریه‌های نظم' in _joined(verse, "modern")
     assert 'خوانش انتقادی ورود جن به میدان تحدی را گسترش هستی‌شناختی اعجاز' in _joined(verse, "critical")
 
 def test_isra_17_89_verse():
     verse = _check_verse("17:89")
-    assert 'طبری می‌گوید برای مردم در این قرآن از هر مثلی بیان' in _joined(verse, "notes")
+    assert "گفته شده است برای مردم در این قرآن از هر مثلی بیان" in _joined(verse, "notes")
     assert 'در مطالعات ادبی معاصر تصریف و تنوع بیان در قرآن از' in _joined(verse, "modern")
     assert 'خوانش انتقادی تناقض ظاهری را می‌بیند که کتابی بی‌مثل و پرمثل' in _joined(verse, "critical")
 
 def test_isra_17_90_verse():
     verse = _check_verse("17:90")
-    assert 'طبری می‌گوید مشرکان از قومت به تو گفتند تو را تصدیق' in _joined(verse, "notes")
+    assert "گفته شده است مشرکان از قومت به تو گفتند تو را تصدیق" in _joined(verse, "notes")
     assert 'در مطالعات تاریخی معاصر مجلس سران قریش و پیشنهادهای مال و' in _joined(verse, "modern")
     assert 'خوانش انتقادی فهرست خواسته‌ها را بازار ایمان می‌داند که نخست مال' in _joined(verse, "critical")
 
 def test_isra_17_91_verse():
     verse = _check_verse("17:91")
-    assert 'طبری می‌گوید مشرکان قومت به تو گفتند تو را تصدیق نمی‌کنیم' in _joined(verse, "notes")
+    assert "گفته شده است مشرکان قومت به تو گفتند تو را تصدیق نمی\u200cکنیم" in _joined(verse, "notes")
     assert 'در مطالعات تاریخی معاصر باغ و نهر در خیال حجازی و' in _joined(verse, "modern")
     assert 'خوانش انتقادی گذر خواسته‌ها را از شهر به شخص نشان می‌دهد' in _joined(verse, "critical")
 
 def test_isra_17_92_verse():
     verse = _check_verse("17:92")
-    assert 'طبری در قرائت کسف می‌گوید بیشتر خوانندگان کوفه و بصره با' in _joined(verse, "notes")
+    assert "در قرائت کسف گفته شده است بیشتر خوانندگان کوفه و بصره با" in _joined(verse, "notes")
     assert 'در الهیات معاصرِ معجزه و محال ذاتی، این خواسته‌ها در برابر' in _joined(verse, "modern")
     assert 'خوانش انتقادی جهش فهرست را از باغ به نابودی جهان نشان' in _joined(verse, "critical")
 
 def test_isra_17_93_verse():
     verse = _check_verse("17:93")
-    assert 'ابن‌عباس و مجاهد و قتاده نزد راهن خانه‌ای از زخرف را' in _joined(verse, "notes")
+    assert "ابن\u200cعباس در این خوانش خانه\u200cای از زخرف را" in _joined(verse, "notes")
     assert 'در الهیات معاصر نبوت و بشر بودن پیامبر، این آیه از' in _joined(verse, "modern")
     assert 'خوانش انتقادی پاسخ «بشر رسول» را انقلابی در تعریف نبوت می‌داند' in _joined(verse, "critical")
 
 def test_isra_17_94_verse():
     verse = _check_verse("17:94")
-    assert 'طبری می‌گوید ای محمد مشرکان قومت را از ایمان به خدا' in _joined(verse, "notes")
-    assert 'المیزان این آیه را تأیید روایاتی از ائمهٔ اهل‌بیت دربارهٔ فرق' in _joined(verse, "modern")
-    assert 'خوانش انتقادی تمایز انکار عرب از دیگر بت‌پرستان را نزد المیزان' in _joined(verse, "critical")
+    assert "گفته شده است ای محمد مشرکان قومت را از ایمان به خدا" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی این آیه را تأیید روایاتی از ائمهٔ اهل\u200cبیت دربارهٔ فرق" in _joined(verse, "modern")
+    assert "خوانش انتقادی تمایز انکار عرب از دیگر بت\u200cپرستان را نزد تفسیرِ معاصرِ شیعی" in _joined(verse, "critical")
 
 def test_isra_17_95_verse():
     verse = _check_verse("17:95")
-    assert 'طبری می‌گوید ای محمد به آنان که از این که خدا' in _joined(verse, "notes")
-    assert 'المیزان برهان عقلی نبوت را از سخن خدا گرفته و چگونگی' in _joined(verse, "modern")
+    assert "گفته شده است ای محمد به آنان که از این که خدا" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی برهان عقلی نبوت را از سخن خدا گرفته و چگونگی" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان هم‌جنس بودن فرستاده و نیاز زندگی زمینی به' in _joined(verse, "critical")
 
 def test_isra_17_96_verse():
     verse = _check_verse("17:96")
-    assert 'طبری می‌گوید ای محمد به آنان که به تو گفتند آیا' in _joined(verse, "notes")
+    assert "گفته شده است ای محمد به آنان که به تو گفتند آیا" in _joined(verse, "notes")
     assert 'در مطالعات سبک‌شناسی قرآن معاصر سجع و قافیهٔ آیات از این' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان گواه رسالت و داور دو سو داوری می‌طلبد' in _joined(verse, "critical")
 
 def test_isra_17_97_verse():
     verse = _check_verse("17:97")
-    assert 'طبری می‌گوید هر که را خدا ای محمد به ایمان به' in _joined(verse, "notes")
+    assert "گفته شده است هر که را خدا ای محمد به ایمان به" in _joined(verse, "notes")
     assert 'در کلام شیعی و سنی معاصرِ هدایت و اضلال الهی، این' in _joined(verse, "modern")
     assert 'خوانش انتقادی جمع میان کور بودن و دیدن آتش را مسئله' in _joined(verse, "critical")
 
 def test_isra_17_98_verse():
     verse = _check_verse("17:98")
-    assert 'طبری می‌گوید این را که از کردار خود روز قیامت با' in _joined(verse, "notes")
+    assert "گفته شده است این را که از کردار خود روز قیامت با" in _joined(verse, "notes")
     assert 'در فلسفهٔ دین معاصر مسئلهٔ این‌همانی شخص در رستاخیز از این' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان مثل و عین را قلب فلسفی این بخش' in _joined(verse, "critical")
 
 def test_isra_17_99_verse():
     verse = _check_verse("17:99")
-    assert 'طبری می‌گوید آیا این گویان مشرک آیا چون استخوان و خاک' in _joined(verse, "notes")
+    assert "گفته شده است آیا این گویان مشرک آیا چون استخوان و خاک" in _joined(verse, "notes")
     assert 'در فلسفهٔ دین معاصر برهان امکان بعث از خلقت نخستین و' in _joined(verse, "modern")
     assert 'خوانش انتقادی سه خوانش اجل مرگ و قیامت و هلاکت را' in _joined(verse, "critical")
 
 def test_isra_17_100_verse():
     verse = _check_verse("17:100")
-    assert 'طبری می‌گوید ای محمد به این مشرکان بگو اگر شما ای' in _joined(verse, "notes")
+    assert "گفته شده است ای محمد به این مشرکان بگو اگر شما ای" in _joined(verse, "notes")
     assert 'در اخلاق و اقتصاد دینی معاصرِ بخشش و بخل، این آیه' in _joined(verse, "modern")
-    assert 'خوانش انتقادی این آیه را آینهٔ تمام‌نمای خواستهٔ چشمه می‌داند که' in _joined(verse, "critical")
+    assert "آینهٔ تمام\u200cنمای خواستهٔ چشمه" in _joined(verse, "critical")
 
 def test_isra_17_101_verse():
     verse = _check_verse("17:101")
-    assert 'طبری می‌گوید به موسی بن عمران نه آیت روشن دادیم که' in _joined(verse, "notes")
+    assert "گفته شده است به موسی بن عمران نه آیت روشن دادیم که" in _joined(verse, "notes")
     assert 'در مطالعات تطبیقی تورات و قرآن معاصر فهرست بلاهای مصر و' in _joined(verse, "modern")
     assert 'خوانش انتقادی دو خوانش آیات چون بلا و آیات چون فرمان' in _joined(verse, "critical")
 
 def test_isra_17_102_verse():
     verse = _check_verse("17:102")
-    assert 'راهن می‌گوید خوانندگان در خواندن «تو خود می‌دانی» اختلاف کرده‌اند بیشتر' in _joined(verse, "notes")
+    assert "گفته شده است خوانندگان در خواندن «تو خود می\u200cدانی» اختلاف کرده\u200cاند بیشتر" in _joined(verse, "notes")
     assert 'در کلام و روان‌شناسی دین معاصر انکار آگاهانه و دانستن و' in _joined(verse, "modern")
     assert 'خوانش انتقادی یک حرکت تای قرائت را می‌بیند که دانش را' in _joined(verse, "critical")
 
 def test_isra_17_103_verse():
     verse = _check_verse("17:103")
-    assert 'طبری می‌گوید فرعون خواست موسی و بنی‌اسرائیل را از سرزمین براند' in _joined(verse, "notes")
+    assert "گفته شده است فرعون خواست موسی و بنی\u200cاسرائیل را از سرزمین براند" in _joined(verse, "notes")
     assert 'در الهیات سیاسی معاصر سقوط ستمگر راننده از این سنت خوانده' in _joined(verse, "modern")
     assert 'خوانش انتقادی کوتاهی آیه را خود یک سبک می‌داند که سرگذشت' in _joined(verse, "critical")
 
 def test_isra_17_104_verse():
     verse = _check_verse("17:104")
-    assert 'طبری می‌گوید پس از هلاک فرعون به آنان گفتیم در سرزمین' in _joined(verse, "notes")
+    assert "گفته شده است پس از هلاک فرعون به آنان گفتیم در سرزمین" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ وعده‌های سرزمین و جلای بابل، این آیه و' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان قیامت و وعدهٔ تاریخی صدر سوره داوری می‌طلبد' in _joined(verse, "critical")
 
 def test_isra_17_105_verse():
     verse = _check_verse("17:105")
-    assert 'طبری می‌گوید این قرآن را به حق فرو فرستادیم یعنی آن' in _joined(verse, "notes")
+    assert "گفته شده است این قرآن را به حق فرو فرستادیم یعنی آن" in _joined(verse, "notes")
     assert 'در الهیات معاصرِ متن و تحریف، این آیه از متون محوری' in _joined(verse, "modern")
-    assert 'خوانش انتقادی تکرار «به حق» را از تزئین به نظریه بدل' in _joined(verse, "critical")
+    assert "خوانش انتقادی تکرار «به حق»" in _joined(verse, "critical")
 
 def test_isra_17_106_verse():
     verse = _check_verse("17:106")
-    assert 'طبری می‌گوید خوانندگان در خواندن آن اختلاف کرده‌اند بیشتر خوانندگان شهرها' in _joined(verse, "notes")
-    assert 'المیزان در ترتیب سوره‌ها می‌گوید روایات در اثبات مجهول‌های مکی و' in _joined(verse, "modern")
+    assert "گفته شده است خوانندگان در خواندن آن اختلاف کرده\u200cاند بیشتر خوانندگان شهرها" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی در ترتیب سوره\u200cها می\u200cگوید روایات در اثبات مجهول\u200cهای مکی و" in _joined(verse, "modern")
     assert 'خوانش انتقادی دو معنای فرق را تفکیک معارف و تقطیع نزول' in _joined(verse, "critical")
 
 def test_isra_17_107_verse():
     verse = _check_verse("17:107")
-    assert 'طبری می‌گوید بگو ای محمد به این قرآن ایمان آورید یا' in _joined(verse, "notes")
-    assert 'المیزان چانه را نزدیک‌ترین عضو به زمین و کنایهٔ نهایت تذلل' in _joined(verse, "modern")
+    assert "گفته شده است بگو ای محمد به این قرآن ایمان آورید یا" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی چانه را نزدیک\u200cترین عضو به زمین و کنایهٔ نهایت تذلل" in _joined(verse, "modern")
     assert 'خوانش انتقادی می‌پرسد اگر قرآن به ایمان کسی نیاز ندارد پس' in _joined(verse, "critical")
 
 def test_isra_17_108_verse():
     verse = _check_verse("17:108")
-    assert 'طبری می‌گوید آن دانایان چون قرآن بر آنان خوانده شود می‌گویند' in _joined(verse, "notes")
+    assert "گفته شده است آن دانایان چون قرآن بر آنان خوانده شود می\u200cگویند" in _joined(verse, "notes")
     assert 'در کلام معاصرِ تحقق وعده‌های الهی، این آیه از متون وفاداری' in _joined(verse, "modern")
     assert 'خوانش انتقادی می‌پرسد وعده کدام است و پاسخ بسته به مرجع،' in _joined(verse, "critical")
 
 def test_isra_17_109_verse():
     verse = _check_verse("17:109")
-    assert 'طبری می‌گوید اینان برای پروردگارشان بار دیگر فرو می‌افتند و برایش' in _joined(verse, "notes")
+    assert "گفته شده است اینان برای پروردگارشان بار دیگر فرو می\u200cافتند و برایش" in _joined(verse, "notes")
     assert 'در مطالعات دانشگاهی هیجان‌های دینی، سجدهٔ گریان این آیه از متون' in _joined(verse, "modern")
     assert 'خوانش انتقادی تکرار سجده را از زائد بودن نجات می‌دهد که' in _joined(verse, "critical")
 
 def test_isra_17_110_verse():
     verse = _check_verse("17:110")
-    assert 'طبری می‌گوید به این گروه منکر ای محمد بگو خدا را' in _joined(verse, "notes")
-    assert 'المیزان در ذیل این آیه در بحث روایی احادیث توحید صدوق' in _joined(verse, "modern")
+    assert "گفته شده است به این گروه منکر ای محمد بگو خدا را" in _joined(verse, "notes")
+    assert "در ذیل این آیه در بحث روایی احادیث توحید" in _joined(verse, "modern")
     assert 'خوانش انتقادی می‌بیند آیه‌ای برای پاسخ گفتن دو خدا خود به' in _joined(verse, "critical")
 
 def test_isra_17_111_verse():
     verse = _check_verse("17:111")
-    assert 'طبری می‌گوید بگو ای محمد ستایش از آن خداست که نه' in _joined(verse, "notes")
-    assert 'المیزان در تفسیر قمی از امام آورده در ذیل «و یاوری' in _joined(verse, "modern")
+    assert "گفته شده است بگو ای محمد ستایش از آن خداست که نه" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی در تفسیرِ کهنِ شیعی از امام آورده در ذیل «و یاوری" in _joined(verse, "modern")
     assert 'خوانش انتقادی می‌بیند سوره‌ای با معراج آغاز شد با نفی فرزند' in _joined(verse, "critical")
 
 def test_kahf_18_1_verse():
     verse = _check_verse("18:1")
-    assert 'طبری می‌گوید ستایش برای خدایی است که محمد را به رسالتش' in _joined(verse, "notes")
-    assert 'المیزان می‌گوید ضمیر در «برای آن» به کتاب برمی‌گردد و جملهٔ' in _joined(verse, "modern")
+    assert "گفته شده است ستایش برای خدایی است که محمد را به رسالتش" in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی می\u200cگوید ضمیر در «برای آن» به کتاب برمی\u200cگردد و جملهٔ" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان سه خوانش قیم راست و قیم بر کتاب‌ها' in _joined(verse, "critical")
 
 def test_kahf_18_2_verse():
     verse = _check_verse("18:2")
-    assert 'طبری می‌گوید قرآن را معتدل و راست بی‌کژی بر بنده‌اش فرو' in _joined(verse, "notes")
+    assert "گفته شده است قرآن را معتدل و راست بی\u200cکژی بر بنده\u200cاش فرو" in _joined(verse, "notes")
     assert 'در کلام معاصرِ انذار و تبشیر، این آیه از متون تعریف' in _joined(verse, "modern")
     assert 'خوانش انتقادی حذف مفعول بیم را می‌سنجد که ناگفته ماندن بیم‌داده‌شدگان' in _joined(verse, "critical")
 
 def test_kahf_18_3_verse():
     verse = _check_verse("18:3")
-    assert 'طبری می‌گوید «همیشه در آن ماندگارند» جاودانه‌اند که از آن جابه‌جا' in _joined(verse, "notes")
+    assert "گفته شده است «همیشه در آن ماندگارند» جاودانه\u200cاند که از آن جابه\u200cجا" in _joined(verse, "notes")
     assert 'در مطالعات دانشگاهی زمان آخرتی در قرآن، «ابدا» در این آیه' in _joined(verse, "modern")
     assert 'خوانش انتقادی می‌بیند کوتاه‌ترین آیهٔ سوره سنگین‌ترین ادعای آن را می‌کند' in _joined(verse, "critical")
 
 def test_kahf_18_4_verse():
     verse = _check_verse("18:4")
-    assert 'طبری می‌گوید محمد نیز قومی را که گفتند خدا فرزندی گرفته' in _joined(verse, "notes")
+    assert "گفته شده است محمد نیز قومی را که گفتند خدا فرزندی گرفته" in _joined(verse, "notes")
     assert 'در گفت‌وگوی معاصر اسلام و مسیحیت، نفی فرزند از این آیه' in _joined(verse, "modern")
     assert 'خوانش انتقادی می‌پرسد چرا از میان همهٔ گروه‌های بیم‌داده‌شده تنها فرزندگویان' in _joined(verse, "critical")
 
 def test_kahf_18_5_verse():
     verse = _check_verse("18:5")
-    assert 'طبری می‌گوید «نه خودشان در این باره دانشی دارند» یعنی گویندگان' in _joined(verse, "notes")
+    assert "گفته شده است «نه خودشان در این باره دانشی دارند» یعنی گویندگان" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ تقلید و اقتدار سنت، این آیه از متون' in _joined(verse, "modern")
     assert 'خوانش انتقادی پاسخ دوگانهٔ نادانی و دروغ را می‌سنجد که یکی' in _joined(verse, "critical")
 
 def test_kahf_18_6_verse():
     verse = _check_verse("18:6")
-    assert 'طبری می‌گوید یعنی شاید تو ای محمد کشنده و هلاک‌کنندهٔ خود' in _joined(verse, "notes")
+    assert "گفته شده است یعنی شاید تو ای محمد کشنده و هلاک\u200cکنندهٔ خود" in _joined(verse, "notes")
     assert 'در روان‌شناسی دین معاصر اندوه مبلغ و فرسودگی دعوت‌گر از این' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان عتاب و تسلی داوری می‌طلبد که آیا خدا' in _joined(verse, "critical")
 
 def test_kahf_18_7_verse():
     verse = _check_verse("18:7")
-    assert 'طبری می‌گوید ما آنچه را بر زمین است زیور زمین قرار' in _joined(verse, "notes")
+    assert "گفته شده است ما آنچه را بر زمین است زیور زمین قرار" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ ابتلاء، این آیه از متون بنیادین آزمایش الهی' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان زینت عموم همهٔ زمین و زینت مردان و' in _joined(verse, "critical")
 
 def test_kahf_18_8_verse():
     verse = _check_verse("18:8")
-    assert 'طبری می‌گوید و ما پس از آبادانی‌اش آن را ویران خواهیم' in _joined(verse, "notes")
+    assert "گفته شده است و ما پس از آبادانی\u200cاش آن را ویران خواهیم" in _joined(verse, "notes")
     assert 'در مطالعات محیط‌زیستی معاصرِ قرآن، خاک بایر از این آیه در' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان حقیقت خاک بایر در قیامت و استعارهٔ بریدن' in _joined(verse, "critical")
 
 def test_kahf_18_9_verse():
     verse = _check_verse("18:9")
-    assert 'طبری می‌گوید ای محمد آیا پنداشتی اصحاب کهف و رقیم از' in _joined(verse, "notes")
-    assert 'برخی دیگر نزد المیزان گفته‌اند اصحاب رقیم مردمی غیر از اصحاب' in _joined(verse, "modern")
+    assert "ای محمد آیا پنداشتی اصحاب کهف و رقیم از" in _joined(verse, "notes")
+    assert "برخی دیگر نزد تفسیرِ معاصرِ شیعی گفته\u200cاند اصحاب رقیم مردمی غیر از اصحاب" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان رقیم لوح و روستا و صخره داوری می‌طلبد' in _joined(verse, "critical")
 
 def test_kahf_18_10_verse():
     verse = _check_verse("18:10")
-    assert 'طبری می‌گوید آنگاه که جوانان اصحاب کهف به غار کوه پناه' in _joined(verse, "notes")
+    assert "گفته شده است آنگاه که جوانان اصحاب کهف به غار کوه پناه" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ دعا، این آیه و قید از نزد تو' in _joined(verse, "modern")
     assert 'خوانش انتقادی فهرست بلند روایت‌های گریز را در برابر سکوت قرآن' in _joined(verse, "critical")
 
 def test_kahf_18_11_verse():
     verse = _check_verse("18:11")
-    assert 'طبری می‌گوید «پس در غار بر گوش‌هاشان زدیم» یعنی بر گوش‌هاشان' in _joined(verse, "notes")
+    assert "گفته شده است «پس در غار بر گوش\u200cهاشان زدیم» یعنی بر گوش\u200cهاشان" in _joined(verse, "notes")
     assert 'در مطالعات سبک‌شناسی قرآن معاصر، زدن بر گوش از نمونه‌های کنایهٔ' in _joined(verse, "modern")
     assert 'خوانش انتقادی سه تصویر پرده بر غار و چیرگی خواب و' in _joined(verse, "critical")
 
 def test_kahf_18_12_verse():
     verse = _check_verse("18:12")
-    assert 'طبری می‌گوید سپس این جوانان را که به غار پناه بردند' in _joined(verse, "notes")
+    assert "گفته شده است سپس این جوانان را که به غار پناه بردند" in _joined(verse, "notes")
     assert 'در کلام معاصرِ علم الهی، این آیه از متون محوری علم' in _joined(verse, "modern")
     assert 'خوانش انتقادی می‌پرسد دو گروه کیان‌اند و پاسخ بسته به مرجع،' in _joined(verse, "critical")
 
 def test_kahf_18_13_verse():
     verse = _check_verse("18:13")
-    assert 'طبری می‌گوید ما ای محمد خبر این جوانان را که به' in _joined(verse, "notes")
+    assert "گفته شده است ما ای محمد خبر این جوانان را که به" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ جوانی و دین، این آیه از متون بنیادین' in _joined(verse, "modern")
     assert 'خوانش انتقادی سگ سخنگوی سدی را می‌سنجد که چگونه کرامت در' in _joined(verse, "critical")
 
 def test_kahf_18_14_verse():
     verse = _check_verse("18:14")
-    assert 'طبری می‌گوید و صبر را به آنان الهام کردیم و دل‌هاشان' in _joined(verse, "notes")
+    assert "گفته شده است و صبر را به آنان الهام کردیم و دل\u200cهاشان" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ مقاومت دینی، برخاستن جوانان کهف از متون بنیادین' in _joined(verse, "modern")
     assert 'خوانش انتقادی سه معنای قیام را رو در رو می‌نشاند که' in _joined(verse, "critical")
 
 def test_kahf_18_15_verse():
     verse = _check_verse("18:15")
-    assert 'طبری می‌گوید اینان قوم مااند که جز خدا خدایانی گرفته‌اند که' in _joined(verse, "notes")
+    assert "گفته شده است اینان قوم مااند که جز خدا خدایانی گرفته\u200cاند که" in _joined(verse, "notes")
     assert 'در فلسفهٔ دین معاصر بار اثبات در ادعاهای دینی از این' in _joined(verse, "modern")
-    assert 'خوانش انتقادی مطالبهٔ برهان از پرستندگان و نه از بت‌ها را' in _joined(verse, "critical")
+    assert "خوانش انتقادی مطالبهٔ برهان از پرستندگان و نه از بت\u200cها" in _joined(verse, "critical")
 
 def test_kahf_18_16_verse():
     verse = _check_verse("18:16")
-    assert 'طبری می‌گوید خدا از گفتهٔ برخی از جوانان به برخی خبر' in _joined(verse, "notes")
+    assert "گفته شده است خدا از گفتهٔ برخی از جوانان به برخی خبر" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ هجرت دینی، کناره‌گیری اصحاب کهف از این آیه' in _joined(verse, "modern")
     assert 'خوانش انتقادی جدال استثنای منقطع و متصل را می‌سنجد که بسته' in _joined(verse, "critical")
 
 def test_kahf_18_17_verse():
     verse = _check_verse("18:17")
-    assert 'طبری می‌گوید و خورشید را ای محمد می‌بینی که چون برآید' in _joined(verse, "notes")
+    assert "گفته شده است و خورشید را ای محمد می\u200cبینی که چون برآید" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ مکان غار اصحاب کهف، این آیه از متون' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان غار شمالی مفسران و غار جنوبی المیزان داوری' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان غار شمالی مفسران و غار جنوبی تفسیرِ معاصرِ شیعی داوری" in _joined(verse, "critical")
 
 def test_kahf_18_18_verse():
     verse = _check_verse("18:18")
-    assert 'طبری می‌گوید و تو ای محمد این جوانان را که داستانشان' in _joined(verse, "notes")
+    assert "گفته شده است و تو ای محمد این جوانان را که داستانشان" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ حیوان در قرآن، سگ اصحاب کهف از پربحث‌ترین' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان سگ حقیقی و نگهبان انسانی داوری می‌طلبد که' in _joined(verse, "critical")
 
 def test_kahf_18_19_verse():
     verse = _check_verse("18:19")
-    assert 'طبری می‌گوید چنانکه این جوانان را در غار خواباندیم و از' in _joined(verse, "notes")
+    assert "چنانکه این جوانان را در غار خواباندیم و از" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ معرفت‌شناسی دینی، «پروردگارتان داناتر است» جوانان از متون' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان لام غایت و لام عاقبت داوری می‌طلبد که' in _joined(verse, "critical")
 
 def test_kahf_18_20_verse():
     verse = _check_verse("18:20")
-    assert 'طبری در تأویل گفتهٔ «اگر آنان بر شما دست یابند سنگسارتان' in _joined(verse, "notes")
+    assert "در تأویل گفتهٔ «اگر آنان بر شما دست یابند سنگسارتان" in _joined(verse, "notes")
     assert 'در حقوق اسلامی دانشگاهی، وکالت با تقیه در این آیه و' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان رجم با زبان و رجم با سنگ داوری' in _joined(verse, "critical")
 
 def test_kahf_18_21_verse():
     verse = _check_verse("18:21")
-    assert 'طبری می‌گوید و چنانکه آنان را پس از خواب درازشان به' in _joined(verse, "notes")
+    assert "گفته شده است و چنانکه آنان را پس از خواب درازشان به" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ زیارت و معماری مقدس، مسجد بر غار اصحاب' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان ساختمان مشرکان برای پنهان کردن و مسجد موحدان' in _joined(verse, "critical")
 
 def test_kahf_18_22_verse():
     verse = _check_verse("18:22")
-    assert 'طبری می‌گوید برخی از فروروندگان در کار جوانان اصحاب کهف خواهند' in _joined(verse, "notes")
-    assert 'در مجمع البیان نزد المیزان در ذیل خلاصه‌ای از سخن أبي' in _joined(verse, "modern")
+    assert "گفته شده است برخی از فروروندگان در کار جوانان اصحاب کهف خواهند" in _joined(verse, "notes")
+    assert "در تفسیرِ کهنِ شیعی نزد تفسیرِ معاصرِ شیعی در ذیل خلاصه\u200cای از سخن أبي" in _joined(verse, "modern")
     assert 'خوانش انتقادی میان واو عطف نحویان و واو هشتم ابن‌خالویه و' in _joined(verse, "critical")
 
 def test_kahf_18_23_verse():
     verse = _check_verse("18:23")
-    assert 'راهن در این آیه گفته‌ای جدا نیاورده و شرح فرمان را' in _joined(verse, "notes")
+    assert "در این آیه گفته\u200cای جدا نیاورده و شرح فرمان را" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ ان‌شاءالله و فرهنگ وعده، این آیه از متون' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان عتاب تاریخی و قاعدهٔ ابدی داوری می‌طلبد که' in _joined(verse, "critical")
 
 def test_kahf_18_24_verse():
     verse = _check_verse("18:24")
-    assert 'طبری می‌گوید و این ادب‌آموزی خدا به پیامبرش است که به' in _joined(verse, "notes")
+    assert "گفته شده است و این ادب\u200cآموزی خدا به پیامبرش است که به" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ ذکر و حضور، این آیه از متون بنیادین' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان آیهٔ سوگند و آیهٔ ادب سخن داوری می‌طلبد' in _joined(verse, "critical")
 
 def test_kahf_18_25_verse():
     verse = _check_verse("18:25")
-    assert 'طبری می‌گوید اهل تأویل در معنای گفتهٔ «و در غارشان سیصد' in _joined(verse, "notes")
+    assert "گفته شده است اهل تأویل در معنای گفتهٔ «و در غارشان سیصد" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ گاه‌شماری قرآن، سیصد و نه سال اصحاب کهف' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان خبر خدا و قول اهل کتاب داوری می‌طلبد' in _joined(verse, "critical")
 
 def test_kahf_18_26_verse():
     verse = _check_verse("18:26")
-    assert 'طبری در تأویل گفتهٔ «از آن اوست نهان آسمان‌ها و زمین»' in _joined(verse, "notes")
+    assert "در تأویل گفتهٔ «از آن اوست نهان آسمان\u200cها و زمین»" in _joined(verse, "notes")
     assert 'در کلام معاصرِ صفات خدا، أبصر به و أسمع از این' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان تعجب چه بینا و فرمان بدو بین داوری' in _joined(verse, "critical")
 
 def test_kahf_18_27_verse():
     verse = _check_verse("18:27")
-    assert 'طبری می‌گوید خدا به پیامبرش محمد می‌گوید ای محمد آنچه را' in _joined(verse, "notes")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است ای محمد آنچه را" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ وحی و مرجعیت متن، این آیه از متون' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان قرآن و لوح محفوظ در مراد کتاب داوری' in _joined(verse, "critical")
 
 def test_kahf_18_28_verse():
     verse = _check_verse("18:28")
-    assert 'طبری می‌گوید خدا به پیامبرش محمد می‌گوید ای محمد خود را' in _joined(verse, "notes")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است ای محمد خود را" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ فقر و دین، این آیه از متون بنیادین' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان نماز دو وقت عیاشی از امام باقر و' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان نماز دو وقت از امام باقر و" in _joined(verse, "critical")
 
 def test_kahf_18_29_verse():
     verse = _check_verse("18:29")
-    assert 'طبری می‌گوید خدا به پیامبرش محمد می‌گوید ای محمد به اینان' in _joined(verse, "notes")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است ای محمد به اینان" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ آزادی دینی، «هر که خواهد ایمان آورد» از' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان رخصت و تهدید داوری می‌طلبد که سنت با' in _joined(verse, "critical")
 
 def test_kahf_18_30_verse():
     verse = _check_verse("18:30")
-    assert 'طبری می‌گوید کسانی که خدا و رسولش را باور کردند و' in _joined(verse, "notes")
+    assert "گفته شده است کسانی که خدا و رسولش را باور کردند و" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ عمل و پاداش، این آیه از متون بنیادین' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان سه راه خبر إن داوری می‌طلبد که تکرار' in _joined(verse, "critical")
 
 def test_kahf_18_31_verse():
     verse = _check_verse("18:31")
-    assert 'طبری می‌گوید اینان که ایمان آوردند و کارهای شایسته کردند برایشان' in _joined(verse, "notes")
+    assert "گفته شده است اینان که ایمان آوردند و کارهای شایسته کردند برایشان" in _joined(verse, "notes")
     assert 'در پژوهش‌های دانشگاهی رنگ در قرآن، سبزی جامه‌های بهشت از این' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان سه دستبند سعید بن جبیر از سه سوره' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان سه دستبند از سه سوره" in _joined(verse, "critical")
 
 def test_kahf_18_32_verse():
     verse = _check_verse("18:32")
-    assert 'طبری می‌گوید خدا به پیامبرش محمد می‌گوید ای محمد برای' in _joined(verse, "notes")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است ای محمد برای" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ مثل در قرآن، مثل دو باغ از' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان مثل فرضی و رخداد واقعی داوری می‌طلبد' in _joined(verse, "critical")
 
 def test_kahf_18_33_verse():
     verse = _check_verse("18:33")
-    assert 'طبری می‌گوید هر دو بوستان میوه‌اش و آنچه در آن' in _joined(verse, "notes")
+    assert "گفته شده است هر دو بوستان میوه\u200cاش و آنچه در آن" in _joined(verse, "notes")
     assert 'در زبان‌شناسی دانشگاهی، کلتا و کلا از کهن‌ترین مسائل صرف' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان مفرد لفظی و دوگانهٔ معنایی داوری می‌طلبد' in _joined(verse, "critical")
 
 def test_kahf_18_34_verse():
     verse = _check_verse("18:34")
-    assert 'طبری می‌گوید خوانندگان در خواندن آن اختلاف کرده‌اند همگان خوانندگان' in _joined(verse, "notes")
+    assert "گفته شده است خوانندگان در خواندن آن اختلاف کرده\u200cاند همگان خوانندگان" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ قارون و ثروت، سخن أنا أکثر از' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان ثمر میوه و ثمر سرمایه داوری می‌طلبد' in _joined(verse, "critical")
 
 def test_kahf_18_35_verse():
     verse = _check_verse("18:35")
-    assert 'طبری می‌گوید این که برای او دو باغ انگور قرار' in _joined(verse, "notes")
+    assert "گفته شده است این که برای او دو باغ انگور قرار" in _joined(verse, "notes")
     assert 'در روان‌شناسی معاصرِ انکار مرگ، این آیه از متون کلاسیک' in _joined(verse, "modern")
-    assert 'خوانش انتقادی نکتهٔ کشاف را که المیزان لطیف می‌خواند برجسته' in _joined(verse, "critical")
+    assert "خوانش انتقادی نکتهٔ که تفسیرِ معاصرِ شیعی لطیف خوانده شده است برجسته" in _joined(verse, "critical")
 
 def test_kahf_18_36_verse():
     verse = _check_verse("18:36")
-    assert 'طبری در تأویل گفتهٔ «و گمان نمی‌کنم ساعت برپا باشد»' in _joined(verse, "notes")
+    assert "در تأویل گفتهٔ «و گمان نمی\u200cکنم ساعت برپا باشد»" in _joined(verse, "notes")
     assert 'در فلسفهٔ دین دانشگاهی، استدلال از نعمت بر استحقاق از' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان از آن و از آن دو در' in _joined(verse, "critical")
 
 def test_kahf_18_37_verse():
     verse = _check_verse("18:37")
-    assert 'طبری می‌گوید صاحب باغ‌ها به او صاحبش که از او' in _joined(verse, "notes")
+    assert "گفته شده است صاحب باغ\u200cها به او صاحبش که از او" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ استدلال آفرینش بر معاد، این آیه از' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان تکفیر به سبب شک معاد نزد زمخشری' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان تکفیر به سبب شک معاد در این خوانش" in _joined(verse, "critical")
 
 def test_kahf_18_38_verse():
     verse = _check_verse("18:38")
-    assert 'طبری در تأویل گفتهٔ «لیکن او خدا پروردگار من است»' in _joined(verse, "notes")
+    assert "در تأویل گفتهٔ «لیکن او خدا پروردگار من است»" in _joined(verse, "notes")
     assert 'در زبان‌شناسی دانشگاهی، ساخت لکنا از کهن‌ترین نمونه‌های ادغام در' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان سه احتمال شرک در جملهٔ پایانی داوری' in _joined(verse, "critical")
 
 def test_kahf_18_39_verse():
     verse = _check_verse("18:39")
-    assert 'طبری می‌گوید چرا چون به بوستانت درآمدی و آنچه را' in _joined(verse, "notes")
+    assert "گفته شده است چرا چون به بوستانت درآمدی و آنچه را" in _joined(verse, "notes")
     assert 'در الهیات دانشگاهی مشیت، لا قوة إلا بالله از این' in _joined(verse, "modern")
-    assert 'خوانش انتقادی می‌بیند قرطبی از یک جملهٔ رفیق در باغ' in _joined(verse, "critical")
+    assert "خوانش انتقادی می\u200cبیند از یک جملهٔ رفیق در باغ" in _joined(verse, "critical")
 
 def test_kahf_18_40_verse():
     verse = _check_verse("18:40")
-    assert 'طبری می‌گوید خدا از گفتهٔ مؤمن یقین‌دار به بازگشت به' in _joined(verse, "notes")
+    assert "گفته شده است خدا از گفتهٔ مؤمن یقین\u200cدار به بازگشت به" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ وارونگی سرنوشت در قرآن، این آیه از' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان حسبان تیر و حسبان حساب اعمال داوری' in _joined(verse, "critical")
 
 def test_kahf_18_41_verse():
     verse = _check_verse("18:41")
-    assert 'طبری می‌گوید یا آبش فرو رونده شود و غور مصدری' in _joined(verse, "notes")
+    assert "گفته شده است یا آبش فرو رونده شود و غور مصدری" in _joined(verse, "notes")
     assert 'در زبان‌شناسی دانشگاهی مصدر در جای اسم فاعل از این' in _joined(verse, "modern")
-    assert 'خوانش انتقادی می‌بیند راهن با دو شعر جاهلی و قرطبی' in _joined(verse, "critical")
+    assert "خوانش انتقادی می\u200cبیند با دو شعر جاهلی" in _joined(verse, "critical")
 
 def test_kahf_18_42_verse():
     verse = _check_verse("18:42")
-    assert 'طبری می‌گوید هلاک و بلاها میوه‌اش و گونه‌های میوه‌های باغش' in _joined(verse, "notes")
+    assert "گفته شده است هلاک و بلاها میوه\u200cاش و گونه\u200cهای میوه\u200cهای باغش" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ پشیمانی در قرآن، این آیه از متون' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان برگرداندن دست به معنای پشیمانی و برگرداندن' in _joined(verse, "critical")
 
 def test_kahf_18_43_verse():
     verse = _check_verse("18:43")
-    assert 'طبری می‌گوید برای صاحب دو باغ گروهی نبود و آنان' in _joined(verse, "notes")
+    assert "گفته شده است برای صاحب دو باغ گروهی نبود و آنان" in _joined(verse, "notes")
     assert 'در جامعه‌شناسی دانشگاهی قدرت، أعز نفرا و لم تکن له' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان عشیره و سپاه داوری می‌طلبد که در' in _joined(verse, "critical")
 
 def test_kahf_18_44_verse():
     verse = _check_verse("18:44")
-    assert 'طبری می‌گوید سپس و آن هنگام که عذاب خدا به' in _joined(verse, "notes")
+    assert "گفته شده است سپس و آن هنگام که عذاب خدا به" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ ولایت در قرآن، این آیه از متون' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان ولایت یاری و ولایت مالکیت تدبیر داوری' in _joined(verse, "critical")
 
 def test_kahf_18_45_verse():
     verse = _check_verse("18:45")
-    assert 'طبری می‌گوید خدا به پیامبرش محمد می‌گوید برای زندگی این' in _joined(verse, "notes")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است برای زندگی این" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ مثل آب در قرآن، این آیه کنار' in _joined(verse, "modern")
     assert 'خوانش انتقادی پنج همانندی حکما را برجسته می‌کند که آب' in _joined(verse, "critical")
 
 def test_kahf_18_46_verse():
     verse = _check_verse("18:46")
-    assert 'طبری می‌گوید مال و فرزندان ای مردم که عیینه و' in _joined(verse, "notes")
+    assert "گفته شده است مال و فرزندان ای مردم که عیینه و" in _joined(verse, "notes")
     assert 'در الهیات دانشگاهی امید، خیر أملا از این آیه خوانده' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان نماز و تسبیحات و هر عمل صالح' in _joined(verse, "critical")
 
 def test_kahf_18_47_verse():
     verse = _check_verse("18:47")
-    assert 'طبری می‌گوید روزی کوه‌ها را از زمین به راه می‌اندازیم' in _joined(verse, "notes")
+    assert "گفته شده است روزی کوه\u200cها را از زمین به راه می\u200cاندازیم" in _joined(verse, "notes")
     assert 'در کیهان‌شناسی دانشگاهی قرآن، جنبش کوه‌ها از این آیه خوانده' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان واذکر مقدر نزد المیزان و پیوند به' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان واذکر مقدر نزد تفسیرِ معاصرِ شیعی و پیوند به" in _joined(verse, "critical")
 
 def test_kahf_18_48_verse():
     verse = _check_verse("18:48")
-    assert 'طبری می‌گوید و آفریدگان ای محمد بر پروردگارت به صف' in _joined(verse, "notes")
+    assert "گفته شده است و آفریدگان ای محمد بر پروردگارت به صف" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ فراموشی قیامت و اخلاق، این آیه از' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان ظن قلبی و ظن حالی عملی داوری' in _joined(verse, "critical")
 
 def test_kahf_18_49_verse():
     verse = _check_verse("18:49")
-    assert 'طبری می‌گوید و خدا در آن روز کتاب اعمال بندگانش' in _joined(verse, "notes")
+    assert "گفته شده است و خدا در آن روز کتاب اعمال بندگانش" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ ثبت اعمال در قرآن، این آیه از' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان کتاب یگانهٔ همهٔ خلق نزد المیزان و' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان کتاب یگانهٔ همهٔ خلق نزد تفسیرِ معاصرِ شیعی و" in _joined(verse, "critical")
 
 def test_kahf_18_50_verse():
     verse = _check_verse("18:50")
-    assert 'طبری می‌گوید خدا به این مشرکان حسد ابلیس به پدرشان' in _joined(verse, "notes")
+    assert "گفته شده است خدا به این مشرکان حسد ابلیس به پدرشان" in _joined(verse, "notes")
     assert 'در الهیات دانشگاهی شر، دشمنی ذریه از این آیه خوانده' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان ولایت اطاعت نزد همهٔ مفسران و ولایت' in _joined(verse, "critical")
 
 def test_kahf_18_51_verse():
     verse = _check_verse("18:51")
-    assert 'طبری می‌گوید او ابلیس و نسلش را در «آفرینش آسمان‌ها' in _joined(verse, "notes")
+    assert "ابلیس و نسلش را در" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ علم و آفرینش در قرآن، این آیه' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان اشهاد حقیقی نزد المیزان و اشهاد مشورت' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان اشهاد حقیقی نزد تفسیرِ معاصرِ شیعی و اشهاد مشورت" in _joined(verse, "critical")
 
 def test_kahf_18_52_verse():
     verse = _check_verse("18:52")
-    assert 'طبری می‌گوید و روزی خدا عز و جل به مشرکان' in _joined(verse, "notes")
+    assert "گفته شده است و روزی خدا عز و جل به مشرکان" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ گسست بت و پرستنده در قرآن، این' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان موبق درهٔ جهنم نزد جمهور و موبق' in _joined(verse, "critical")
 
 def test_kahf_18_53_verse():
     verse = _check_verse("18:53")
-    assert 'طبری می‌گوید و مشرکان در آن روز آتش را به' in _joined(verse, "notes")
+    assert "و مشرکان در آن روز آتش" in _joined(verse, "notes")
     assert 'در روان‌شناسی دانشگاهی یقین به کیفر، ظن به معنای علم' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان ظن یقین و ظن توهم داوری می‌طلبد' in _joined(verse, "critical")
 
 def test_kahf_18_54_verse():
     verse = _check_verse("18:54")
-    assert 'طبری می‌گوید بی‌گمان در این قرآن برای مردم از هر' in _joined(verse, "notes")
+    assert "گفته شده است بی\u200cگمان در این قرآن برای مردم از هر" in _joined(verse, "notes")
     assert 'در روان‌شناسی دانشگاهی مناظره، اکثر شیء جدلا از این آیه' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان انسان عموم بشر و انسان کافر نزد' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان انسان عموم بشر و انسان کافر" in _joined(verse, "critical")
 
 def test_kahf_18_55_verse():
     verse = _check_verse("18:55")
-    assert 'طبری می‌گوید و این مشرکان ای محمد را از ایمان' in _joined(verse, "notes")
+    assert "گفته شده است و این مشرکان ای محمد را از ایمان" in _joined(verse, "notes")
     assert 'در الهیات دانشگاهی سنت‌های الهی، سنت نخستین از این آیه' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان حکم الهی بر کفر نزد یک وجه' in _joined(verse, "critical")
 
 def test_kahf_18_56_verse():
     verse = _check_verse("18:56")
-    assert 'طبری می‌گوید و رسولانمان را نمی‌فرستیم مگر تا اهل ایمان' in _joined(verse, "notes")
+    assert "گفته شده است و رسولانمان را نمی\u200cفرستیم مگر تا اهل ایمان" in _joined(verse, "notes")
     assert 'در الهیات دانشگاهی استهزا، هزوا گرفتن آیات از این آیه' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان جدال برای دانستن و جدال تعنیتی برای' in _joined(verse, "critical")
 
 def test_kahf_18_57_verse():
     verse = _check_verse("18:57")
-    assert 'طبری می‌گوید و کدام مردم بر نهادن اعراض و روی‌گردانی' in _joined(verse, "notes")
+    assert "گفته شده است و کدام مردم بر نهادن اعراض و روی\u200cگردانی" in _joined(verse, "notes")
     assert 'در روان‌شناسی دانشگاهی بی‌اعتنایی اخلاقی، نسیان پیش‌فرستاده‌ها از این آیه' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان کیفر بودن أکنة و علت بودن آن' in _joined(verse, "critical")
 
 def test_kahf_18_58_verse():
     verse = _check_verse("18:58")
-    assert 'طبری می‌گوید خدای تعالی به پیامبرش محمد می‌گوید و پروردگارت' in _joined(verse, "notes")
+    assert "گفته شده است خدای تعالی به پیامبرش محمد گفته شده است و پروردگارت" in _joined(verse, "notes")
     assert 'در الهیات دانشگاهی اسمای خدا، ذو الرحمة از این آیه' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان روز بدر نزد راهن و موعد نامعین' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان روز بدر در این خوانش و موعد نامعین" in _joined(verse, "critical")
 
 def test_kahf_18_59_verse():
     verse = _check_verse("18:59")
-    assert 'طبری می‌گوید و آن شهرها از عاد و ثمود و' in _joined(verse, "notes")
+    assert "گفته شده است و آن شهرها از عاد و ثمود و" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ سنت‌های هلاک در قرآن، این آیه از' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان مهلک مصدر هلاکت و مهلک اسم زمان' in _joined(verse, "critical")
 
 def test_kahf_18_60_verse():
     verse = _check_verse("18:60")
-    assert 'طبری می‌گوید خدا به پیامبرش می‌گوید و ای محمد به یاد آور چون موسی بن عمران به جوانش یوشع گ' in _joined(verse, "notes")
+    assert "گفته شده است خدا به پیامبرش گفته شده است و ای محمد به یاد آور چون موسی بن عمران به جوانش یوشع گ" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ سفر علمی در اسلام، این آیه از متون بنیادین خوانده می‌شود؛ این پرونده آن' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان موسی بن عمران و موسی بن منشا داوری می‌طلبد که ابن‌عباس در بخاری دومی را' in _joined(verse, "critical")
 
 def test_kahf_18_61_verse():
     verse = _check_verse("18:61")
-    assert 'طبری می‌گوید یعنی چون موسی و جوانش به مجمع دو دریا رسیدند چنانکه از ابن أبی نجیح از مجاهد' in _joined(verse, "notes")
+    assert "دو دریا رسیدند چنانکه از ابن أبی نجیح از" in _joined(verse, "notes")
     assert 'در ادبیات دانشگاهی سفر، نشانهٔ فقدان از این آیه خوانده می‌شود؛ این پرونده آن را نگه می‌دار' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان زنده شدن ماهی بریان نزد جمهور و افتادن آن به دریا نزد احتیاط المیزان دا' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان زنده شدن ماهی بریان نزد جمهور و افتادن آن به دریا نزد احتیاط تفسیرِ معاصرِ شیعی دا" in _joined(verse, "critical")
 
 def test_kahf_18_62_verse():
     verse = _check_verse("18:62")
-    assert 'طبری می‌گوید چون موسی و جوانش از مجمع دو دریا گذشتند موسی به جوانش یوشع گفت «چاشتمان را بی' in _joined(verse, "notes")
+    assert "گفته شده است چون موسی دو دریا گذشتند موسی به جوانش یوشع گفت «چاشتمان را بی" in _joined(verse, "notes")
     assert 'در فقه دانشگاهی توکل، توشهٔ موسی از این آیه خوانده می‌شود؛ این پرونده آن را نگه می‌دارد.' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان ماهی هم غذا هم نشانه و ماهی فقط نشانه داوری می‌طلبد که أبو عباس دومی و' in _joined(verse, "critical")
 
 def test_kahf_18_63_verse():
     verse = _check_verse("18:63")
-    assert 'طبری می‌گوید جوان موسی به موسی چون به او گفت چاشتمان را بیاور تا بخوریم گفت آیا دیدی چون ب' in _joined(verse, "notes")
+    assert "گفته شده است جوان موسی به موسی چون به او گفت چاشتمان را بیاور تا بخوریم گفت آیا دیدی چون ب" in _joined(verse, "notes")
     assert 'در روان‌شناسی دانشگاهی فراموشی، تذکر ماهی از این آیه خوانده می‌شود؛ این پرونده آن را نگه م' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان فراموشی خود ماهی و فراموشی گفتن آن داوری می‌طلبد که المیزان با تقدیر حا' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان فراموشی خود ماهی و فراموشی گفتن آن داوری می\u200cطلبد که تفسیرِ معاصرِ شیعی با تقدیر حا" in _joined(verse, "critical")
 
 def test_kahf_18_64_verse():
     verse = _check_verse("18:64")
-    assert 'طبری می‌گوید موسی به جوانش گفت «آن» یعنی با آن فراموش کردن تو ماهی را «همان است که می‌جستی' in _joined(verse, "notes")
+    assert "موسی به جوانش گفت «آن» یعنی با آن فراموش کردن تو ماهی" in _joined(verse, "notes")
     assert 'در ادبیات دانشگاهی جستجو، قص الأثر از این آیه خوانده می‌شود؛ این پرونده آن را نگه می‌دارد.' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان علامت دقیق زنده شدن و علامت مبهم گم شدن داوری می‌طلبد که المیزان دومی ر' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان علامت دقیق زنده شدن و علامت مبهم گم شدن داوری می\u200cطلبد که تفسیرِ معاصرِ شیعی دومی ر" in _joined(verse, "critical")
 
 def test_kahf_18_65_verse():
     verse = _check_verse("18:65")
-    assert 'طبری می‌گوید به او از نزد خود رحمتی بخشیدیم «و از نزد خود به او علمی آموختیم» می‌گوید و از' in _joined(verse, "notes")
+    assert "به او از نزد خود رحمتی بخشیدیم «و از نزد خود به او علمی آموختیم»" in _joined(verse, "notes")
     assert 'در مطالعات معاصرِ علم لدنی در قرآن، این آیه از متون بنیادین خوانده می‌شود؛ این پرونده آن ر' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان خضر نبی و خضر ولی و خضر فرشته داوری می‌طلبد که جمهور نخست و آیهٔ باطن ا' in _joined(verse, "critical")
 
 def test_kahf_18_66_verse():
     verse = _check_verse("18:66")
-    assert 'طبری می‌گوید موسی به عالم گفت «آیا تو را پیروی کنم بر اینکه به من بیاموزی» از علمی که خدا' in _joined(verse, "notes")
+    assert "گفته شده است موسی به عالم گفت «آیا تو را پیروی کنم بر اینکه به من بیاموزی» از علمی که خدا" in _joined(verse, "notes")
     assert 'در اخلاق دانشگاهی دانش، تواضع موسی از این آیه خوانده می‌شود؛ این پرونده آن را نگه می‌دارد.' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان شرط تعلیم در ترجمهٔ مختصر و نفی شرطیت نزد المیزان داوری می‌طلبد که موسی' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان شرط تعلیم در ترجمهٔ مختصر و نفی شرطیت نزد تفسیرِ معاصرِ شیعی داوری می\u200cطلبد که موسی" in _joined(verse, "critical")
 
 def test_kahf_18_67_verse():
     verse = _check_verse("18:67")
-    assert 'طبری می‌گوید عالم گفت تو توان شکیبایی با مرا نداری و آن از این روست که من به باطن علمی عمل' in _joined(verse, "notes")
+    assert "گفته شده است عالم گفت تو توان شکیبایی با مرا نداری و آن از این روست که من به باطن علمی عمل" in _joined(verse, "notes")
     assert 'در روان‌شناسی دانشگاهی تحمل ابهام، لن تستطیع از این آیه خوانده می‌شود؛ این پرونده آن را نگ' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان ناتوانی روش و ناتوانی علم داوری می‌طلبد که المیزان با مثال گوساله اولی' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان ناتوانی روش و ناتوانی علم داوری می\u200cطلبد که تفسیرِ معاصرِ شیعی با مثال گوساله اولی" in _joined(verse, "critical")
 
 def test_kahf_18_68_verse():
     verse = _check_verse("18:68")
-    assert 'طبری می‌گوید خدا از گفتهٔ عالم به موسی خبر می‌دهد و چگونه ای موسی بر آنچه از من از کارهایی' in _joined(verse, "notes")
+    assert "گفته شده است خدا از گفتهٔ عالم به موسی خبر می\u200cدهد و چگونه ای موسی بر آنچه از من از کارهایی" in _joined(verse, "notes")
     assert 'در فلسفهٔ دین دانشگاهی غیب، لم تحط به خبرا از این آیه خوانده می‌شود؛ این پرونده آن را نگه' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان حکم به ظاهر شریعت و علم به باطن تأویل نشان می‌دهد که صبر موسی به معنای' in _joined(verse, "critical")
 
 def test_kahf_18_69_verse():
     verse = _check_verse("18:69")
-    assert 'طبری می‌گوید ستجدنی بر آنچه از تو می‌بینم هر چند خلاف آنچه نزد من درست است باشد ' in _joined(verse, "notes")
+    assert "گفته شده است ستجدنی بر آنچه از تو می\u200cبینم هر چند خلاف آنچه نزد من درست است باشد" in _joined(verse, "notes")
     assert 'در اخلاق دانشگاهی تعهد، وعدهٔ مقید موسی از این آیه خوانده می‌شود؛ این پرونده آن ' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان شمول استثنا بر هر دو جمله و اختصاص آن به صبر داوری می‌طلبد که' in _joined(verse, "critical")
 
 def test_kahf_18_70_verse():
     verse = _check_verse("18:70")
-    assert 'طبری می‌گوید خدا می‌گوید عالم به موسی گفت اگر اکنون مرا پیروی کنی از چیزی که انج' in _joined(verse, "notes")
+    assert "گفته شده است خدا گفته شده است عالم به موسی گفت اگر اکنون مرا پیروی کنی از چیزی که انج" in _joined(verse, "notes")
     assert 'در روان‌شناسی دانشگاهی تأخیر داوری، فلا تسألنی از این آیه خوانده می‌شود؛ این پرو' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان نهی از پرسش به عنوان انضباط آموزشی و بستن باب چون و چرا داوری' in _joined(verse, "critical")
 
 def test_kahf_18_71_verse():
     verse = _check_verse("18:71")
-    assert 'طبری می‌گوید خدا می‌گوید پس موسی و عالم به راه افتادند کشتی‌ای می‌جستند که بر آن' in _joined(verse, "notes")
+    assert "گفته شده است خدا گفته شده است پس موسی و عالم به راه افتادند کشتی\u200cای می\u200cجستند که بر آن" in _joined(verse, "notes")
     assert 'در فقه دانشگاهی تصرف ولی در مال یتیم، خرق سفینه از این آیه خوانده می‌شود؛ این پر' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان غرق عمدی در صورت اعتراض و نجات از پادشاه غاصب در تأویل داوری ' in _joined(verse, "critical")
 
 def test_kahf_18_72_verse():
     verse = _check_verse("18:72")
-    assert 'طبری می‌گوید خدا می‌گوید عالم به موسی چون آنچه گفت گفت آیا به تو نگفتم که تو تاب' in _joined(verse, "notes")
+    assert "گفته شده است خدا گفته شده است عالم به موسی چون آنچه گفت گفت آیا به تو نگفتم که تو تاب" in _joined(verse, "notes")
     assert 'در روان‌شناسی دانشگاهی فراموشی تعهد، اعتراض نخست موسی از این آیه خوانده می‌شود؛ ' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان نسیان حقیقی و نسیان از باب معاريض داوری می‌طلبد که حدیث نبوی ' in _joined(verse, "critical")
 
 def test_kahf_18_73_verse():
     verse = _check_verse("18:73")
-    assert 'طبری می‌گوید از محمد بن اسحاق از حسن بن عماره از حکم از سعید بن جبیر از ابن‌عباس' in _joined(verse, "notes")
+    assert "گفته شده است از محمد بن اسحاق از حسن بن عماره از حکم از یکی از راویان از ابن\u200cعباس" in _joined(verse, "notes")
     assert 'در فقه دانشگاهی نسیان، لا تؤاخذنی از این آیه خوانده می‌شود؛ این پرونده آن را نگه' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان عذر صادق و معارضهٔ لفظی داوری می‌طلبد که أبی دومی و حدیث نبوی' in _joined(verse, "critical")
 
 def test_kahf_18_74_verse():
     verse = _check_verse("18:74")
-    assert 'طبری می‌گوید خدا می‌گوید پس به راه افتادند تا چون پسری را یافتند عالم او را کشت ' in _joined(verse, "notes")
+    assert "گفته شده است خدا گفته شده است پس به راه افتادند تا چون پسری را یافتند عالم او را کشت" in _joined(verse, "notes")
     assert 'در اخلاق دانشگاهی قصاص کودکان، نفس زکیه از این آیه خوانده می‌شود؛ این پرونده آن ' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان غلام نابالغ نزد جمهور و بالغ راهزن نزد کلبي و ابن‌جبیر داوری ' in _joined(verse, "critical")
 
 def test_kahf_18_75_verse():
     verse = _check_verse("18:75")
-    assert 'طبری می‌گوید خدا می‌گوید عالم به موسی گفت آیا به تو نگفتم که تو هرگز تاب همراهی ' in _joined(verse, "notes")
+    assert "گفته شده است خدا گفته شده است عالم به موسی گفت آیا به تو نگفتم که تو هرگز تاب همراهی" in _joined(verse, "notes")
     assert 'در روان‌شناسی دانشگاهی شرم، یادآوری دوم از این آیه خوانده می‌شود؛ این پرونده آن ' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان تکرار لفظی در قرطبی و تفاوت لک نزد المیزان نشان می‌دهد که خوا' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان تکرار لفظی در تفسیرِ کهن و تفاوت لک نزد تفسیرِ معاصرِ شیعی نشان داده شده است که خوا" in _joined(verse, "critical")
 
 def test_kahf_18_76_verse():
     verse = _check_verse("18:76")
-    assert 'طبری می‌گوید موسی به او گفت اگر پس از این از تو چیزی پرسیدم می‌گوید پس از این با' in _joined(verse, "notes")
+    assert "گفته شده است موسی به او گفت اگر پس از این از تو چیزی پرسیدم گفته شده است پس از این با" in _joined(verse, "notes")
     assert 'در روان‌شناسی دانشگاهی حیا، ذمامهٔ موسی از این آیه خوانده می‌شود؛ این پرونده آن ' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان شرم از تکرار مخالفت و ناتوانی واقعی از صبر داوری می‌طلبد که ح' in _joined(verse, "critical")
 
 def test_kahf_18_77_verse():
     verse = _check_verse("18:77")
-    assert 'طبری می‌گوید خدا می‌گوید پس موسی و عالم به راه افتادند تا چون نزد اهل روستایی آم' in _joined(verse, "notes")
+    assert "گفته شده است خدا گفته شده است پس موسی و عالم به راه افتادند تا چون نزد اهل روستایی آم" in _joined(verse, "notes")
     assert 'در جامعه‌شناسی دانشگاهی مهمان‌نوازی، روستای أبوا از این آیه خوانده می‌شود؛ این پ' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان اقامهٔ معجزه با مسح دست و بنای معمولی با مزد داوری می‌طلبد که' in _joined(verse, "critical")
 
 def test_kahf_18_78_verse():
     verse = _check_verse("18:78")
-    assert 'طبری می‌گوید خدا می‌گوید همراه موسی به موسی گفت این همان است که گفتی و آن گفته‌ا' in _joined(verse, "notes")
+    assert "گفته شده است خدا گفته شده است همراه موسی به موسی گفت این همان است که گفتی و آن گفته\u200cا" in _joined(verse, "notes")
     assert 'در روایت‌شناسی دانشگاهی فراق، هذا فراق از این آیه خوانده می‌شود؛ این پرونده آن ر' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان عرضهٔ مؤدبانه و اعتراض مشروط نشان می‌دهد که در مکتب خضر نیت ن' in _joined(verse, "critical")
 
 def test_kahf_18_79_verse():
     verse = _check_verse("18:79")
-    assert 'طبری می‌گوید اما آنچه با کشتی کردم برای این بود که آن از آن قومی بینوا بود که در' in _joined(verse, "notes")
+    assert "گفته شده است اما آنچه با کشتی کردم برای این بود که آن از آن قومی بینوا بود که در" in _joined(verse, "notes")
     assert 'در فقه دانشگاهی مصلحت، افساد بعض از این آیه خوانده می‌شود؛ این پرونده آن را نگه ' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان وراء به معنای خلف و أمام داوری می‌طلبد که قرائت أمامهم ابن‌عب' in _joined(verse, "critical")
 
 def test_kahf_18_80_verse():
     verse = _check_verse("18:80")
-    assert 'طبری می‌گوید خدا می‌گوید و اما پسر او کافر بود و پدر و مادرش مؤمن بودند پس دانست' in _joined(verse, "notes")
+    assert "گفته شده است خدا گفته شده است و اما پسر او کافر بود و پدر و مادرش مؤمن بودند پس دانست" in _joined(verse, "notes")
     assert 'در الهیات دانشگاهی شر کودکان، غلام خضر از این آیه خوانده می‌شود؛ این پرونده آن ر' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان خشیت خضر و خشیت خدا و علم به جای خوف نشان می‌دهد که یک فعل تر' in _joined(verse, "critical")
 
 def test_kahf_18_81_verse():
     verse = _check_verse("18:81")
-    assert 'طبری می‌گوید قاریان در خواندن فأردنا أن يبدلهما ربهما اختلاف کرده‌اند پس گروهی ا' in _joined(verse, "notes")
+    assert "گفته شده است قاریان در خواندن فأردنا أن يبدلهما ربهما اختلاف کرده\u200cاند پس گروهی ا" in _joined(verse, "notes")
     assert 'در روان‌شناسی دانشگاهی رضا به قضا، بدل خضر از این آیه خوانده می‌شود؛ این پرونده ' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان دختری مادر دوازده یا هفتاد پیامبر و پسری مسلمان در راه داوری ' in _joined(verse, "critical")
 
 def test_kahf_18_82_verse():
     verse = _check_verse("18:82")
-    assert 'طبری می‌گوید خدا از سخن همراه موسی خبر می‌دهد و اما دیواری که برپا کردم آن از آن' in _joined(verse, "notes")
+    assert "گفته شده است خدا از سخن همراه موسی خبر می\u200cدهد و اما دیواری که برپا کردم آن از آن" in _joined(verse, "notes")
     assert 'در الهیات دانشگاهی باطنی‌گری، رد أبو عباس از این آیه خوانده می‌شود؛ این پرونده آ' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان کنز مال و کنز علم داوری می‌طلبد که راهن با عرف عرب مال و ابن‌' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان کنز مال و کنز علم داوری می\u200cطلبد که با عرف عرب مال و ابن\u200c" in _joined(verse, "critical")
 
 def test_kahf_18_83_verse():
     verse = _check_verse("18:83")
-    assert 'طبری می‌گوید خدا به پیامبرش محمد می‌گوید و این مشرکان از تو ای محمد دربارهٔ ذو ا' in _joined(verse, "notes")
+    assert "گفته شده است خدا به پیامبرش محمد گفته شده است و این مشرکان از تو ای محمد دربارهٔ ذو ا" in _joined(verse, "notes")
     assert 'در تاریخ‌نگاری دانشگاهی اسکندر در قرآن، یسئلونک از این آیه خوانده می‌شود؛ این پر' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان اسکندر مقدونی و صعب حمیری و مرزبان مصری و افریدون نشان می‌دهد' in _joined(verse, "critical")
 
 def test_kahf_18_84_verse():
     verse = _check_verse("18:84")
-    assert 'طبری می‌گوید ما جای او را در زمین هموار کردیم و از هر چیز به او دادیم یعنی آنچه ' in _joined(verse, "notes")
+    assert "گفته شده است ما جای او را در زمین هموار کردیم و از هر چیز به او دادیم یعنی آنچه" in _joined(verse, "notes")
     assert 'در فلسفهٔ سیاست دانشگاهی، مکنا له از این آیه خوانده می‌شود؛ این پرونده آن را نگه' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان سبب به معنای علم نزد اجماع نخستین و سبب به معنای هر وسیله نزد' in _joined(verse, "critical")
 
 def test_kahf_18_85_verse():
     verse = _check_verse("18:85")
-    assert 'طبری می‌گوید قاریان در خواندن آن اختلاف کرده‌اند پس بیشتر قاریان مدینه و بصره پس' in _joined(verse, "notes")
+    assert "گفته شده است قاریان در خواندن آن اختلاف کرده\u200cاند پس بیشتر قاریان مدینه و بصره پس" in _joined(verse, "notes")
     assert 'در روایت‌شناسی دانشگاهی حرکت، سبب‌گیری از این آیه خوانده می‌شود؛ این پرونده آن ر' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان الحاق به سبب آماده و سلوک راه موجود نشان می‌دهد که در اولی قه' in _joined(verse, "critical")
 
 def test_kahf_18_86_verse():
     verse = _check_verse("18:86")
-    assert 'طبری می‌گوید خدا می‌گوید تا چون ذو القرنين به مغرب آفتاب رسید آن را یافت که در چ' in _joined(verse, "notes")
+    assert "گفته شده است خدا گفته شده است تا چون ذو القرنين به مغرب آفتاب رسید آن را یافت که در چ" in _joined(verse, "notes")
     assert 'در الهیات دانشگاهی نبوت ذو القرنين، قلنا از این آیه خوانده می‌شود؛ این پرونده آن' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان غروب واقعی در طینة سوداء کعب و غروب رأی العین نزد قفال و المی' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان غروب واقعی در طینة سوداء کعب و غروب رأی العین نزد قفال و" in _joined(verse, "critical")
 
 def test_kahf_18_87_verse():
     verse = _check_verse("18:87")
-    assert 'طبری می‌گوید خدا می‌گوید گفت اما کسی که ستم کرد پس به زودی او را عذاب می‌کنیم می' in _joined(verse, "notes")
+    assert "گفت اما کسی که ستم کرد پس به زودی او را عذاب می\u200cکنیم" in _joined(verse, "notes")
     assert 'در فلسفهٔ دین دانشگاهی کیفر اخروی، عذابا نکرا از این آیه خوانده می‌شود؛ این پرون' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان ظلم شرک نزد جمهور و ظلم فساد نزد المیزان نشان می‌دهد که در او' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان ظلم شرک نزد جمهور و ظلم فساد نزد تفسیرِ معاصرِ شیعی نشان می\u200cدهد که در او" in _joined(verse, "critical")
 
 def test_kahf_18_88_verse():
     verse = _check_verse("18:88")
-    assert 'طبری می‌گوید و اما کسی از آنان که خدا را باور کرد و او را یگانه دانست و به فرمان' in _joined(verse, "notes")
+    assert "گفته شده است و اما کسی از آنان که خدا را باور کرد و او را یگانه دانست و به فرمان" in _joined(verse, "notes")
     assert 'در اخلاق دانشگاهی پاداش، جزاء الحسنى از این آیه خوانده می‌شود؛ این پرونده آن را ' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان جزای خدا در آخرت و عطای شاه در دنیا نشان می‌دهد که قرائت نحوی' in _joined(verse, "critical")
 
 def test_kahf_18_89_verse():
     verse = _check_verse("18:89")
-    assert 'طبری می‌گوید خدا می‌گوید سپس ذو القرنين راه‌ها و منزل‌ها را رفت و پیمود چنانکه ا' in _joined(verse, "notes")
+    assert "گفته شده است خدا گفته شده است سپس ذو القرنين راه\u200cها و منزل\u200cها را رفت و پیمود چنانکه ا" in _joined(verse, "notes")
     assert 'در روایت‌شناسی دانشگاهی گذار، ثم أتبع از این آیه خوانده می‌شود؛ این پرونده آن را' in _joined(verse, "modern")
     assert 'خوانش انتقادی میان تکرار مکانیکی عبارت و تغییر جهت جغرافیایی نشان می‌دهد که قصه ' in _joined(verse, "critical")
 
 def test_kahf_18_90_verse():
     verse = _check_verse("18:90")
-    assert 'طبری می‌گوید خدا می‌گوید و ذو القرنين آفتاب را یافت که بر قومی طلوع می‌کند که بر' in _joined(verse, "notes")
+    assert "گفته شده است خدا گفته شده است و ذو القرنين آفتاب را یافت که بر قومی طلوع می\u200cکند که بر" in _joined(verse, "notes")
     assert 'در جغرافیای دانشگاهی مطلع شمس، این آیه خوانده می‌شود؛ این پرونده آن را نگه می‌دا' in _joined(verse, "modern")
-    assert 'خوانش انتقادی میان قوم بی خانه و برهنه نزد المیزان و قوم سرب‌نشین نزد قتاده و آب' in _joined(verse, "critical")
+    assert "خوانش انتقادی میان قوم بی خانه و برهنه نزد تفسیرِ معاصرِ شیعی و قوم سرب\u200cنشین در این خوانش و آب" in _joined(verse, "critical")
 
 def test_kahf_18_91_verse():
     verse = _check_verse("18:91")
-    assert 'المیزان «كَذَٰلِكَ» را تأکید وضع قوم مشرق می‌داند و احاطهٔ خدا را کنایه از آن می' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی «كَذَٰلِكَ» را تأکید وضع قوم مشرق می\u200cداند و احاطهٔ خدا را کنایه از آن می" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» جملهٔ كذلك را در الگوی سه‌منزلی' in _joined(verse, "modern")
-    assert 'المیزان خوانش كذلك را به تأکید و کنایه می‌برد و طبری آن را به ساختار سبب‌گیری، و' in _joined(verse, "critical")
+    assert "تفسیرِ معاصرِ شیعی خوانش كذلك را به تأکید و کنایه می\u200cبرد آن را به ساختار سبب\u200cگیری، و" in _joined(verse, "critical")
 
 def test_kahf_18_92_verse():
     verse = _check_verse("18:92")
-    assert 'المیزان سومین «سپس راهی پیمود» را دور تازه‌ای از مأموریت می‌داند که این بار نه ب' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی سومین «سپس راهی پیمود» را دور تازه\u200cای از مأموریت می\u200cداند که این بار نه ب" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» منزل سوم را آزمون متفاوت قدرت م' in _joined(verse, "modern")
-    assert 'دو واژهٔ آیه بار یک فصل را می‌کشد و میزان این ایجاز را با ساختار سه‌گانه پر می‌ک' in _joined(verse, "critical")
+    assert "دو واژهٔ آیه بار یک فصل را می\u200cکشد و تفسیرِ معاصرِ شیعی این ایجاز را با ساختار سه\u200cگانه پر می\u200cک" in _joined(verse, "critical")
 
 def test_kahf_18_93_verse():
     verse = _check_verse("18:93")
-    assert 'المیزان سد را کوه و هر بندآورندهٔ راه می‌داند و دو سد را دو کوه می‌خواند و «نزدی' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی سد را کوه و هر بندآورندهٔ راه می\u200cداند و دو سد را دو کوه می\u200cخواند و «نزدی" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» دو کوه و قوم ساده را در جغرافیا' in _joined(verse, "modern")
     assert 'میزان قول بیگانگی زبان را بعید می‌شمارد و این داوری او بر ترجیح کنایه استوار است' in _joined(verse, "critical")
 
 def test_kahf_18_94_verse():
     verse = _check_verse("18:94")
-    assert 'المیزان گویندگان را همان قوم کنار دو کوه می‌داند و یأجوج و مأجوج را دو طایفه می‌' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی گویندگان را همان قوم کنار دو کوه می\u200cداند و یأجوج و مأجوج را دو طایفه می\u200c" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» پیشنهاد خرج قوم را سند رابطهٔ م' in _joined(verse, "modern")
-    assert 'روایت‌های وصف یأجوج و مأجوج نزد طبری و قرطبی از سنخ اخبار آحاد و اسرائیلیات قصه‌' in _joined(verse, "critical")
+    assert "روایت\u200cهای وصف یأجوج و مأجوج نزد تفاسیرِ کهن از سنخ اخبار آحاد و اسرائیلیات قصه\u200c" in _joined(verse, "critical")
 
 def test_kahf_18_95_verse():
     verse = _check_verse("18:95")
-    assert 'المیزان «مكنى» را ادغام «مكننى» می‌داند و ردم را سد و به قولی سد نیرومند می‌خوان' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی «مكنى» را ادغام «مكننى» می\u200cداند و ردم را سد و به قولی سد نیرومند می\u200cخوان" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» مشارکت بدنی مردم را در برابر ما' in _joined(verse, "modern")
-    assert 'فقه قرطبی در سه شرط و ضابط مال این آیه را به قانون اساسی اخلاق مالی شاه بدل می‌ک' in _joined(verse, "critical")
+    assert "فقه در سه شرط و ضابط مال این آیه را به قانون اساسی اخلاق مالی شاه بدل می\u200cک" in _joined(verse, "critical")
 
 def test_kahf_18_96_verse():
     verse = _check_verse("18:96")
-    assert 'المیزان زبر را جمع زبره به معنای قطعه می‌داند و صدفین را دو سوی کوه و قطر را مس ' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی زبر را جمع زبره به معنای قطعه می\u200cداند و صدفین را دو سوی کوه و قطر را مس" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» لایه‌های آهن و مس را با دیوارها' in _joined(verse, "modern")
     assert 'میزان ایجازهای آیه را با تقدیر پر می‌کند و این تقدیرها در پرونده باید از خود متن' in _joined(verse, "critical")
 
 def test_kahf_18_97_verse():
     verse = _check_verse("18:97")
-    assert 'المیزان اسطاع و استطاع را یکی می‌داند و ظهور را چیرگی و بالا رفتن و نقب را سوراخ' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی اسطاع و استطاع را یکی می\u200cداند و ظهور را چیرگی و بالا رفتن و نقب را سوراخ" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» ماندگاری محدود سد تا وعده را از' in _joined(verse, "modern")
-    assert 'اندازه‌های وهب نزد قرطبی از سنخ اخبار قصه‌پردازند و دویست‌وپنجاه ذراع و صد فرسخ ' in _joined(verse, "critical")
+    assert "اندازه\u200cهای وهب در این خوانش از سنخ اخبار قصه\u200cپردازند و دویست\u200cوپنجاه ذراع و صد فرسخ" in _joined(verse, "critical")
 
 def test_kahf_18_98_verse():
     verse = _check_verse("18:98")
-    assert 'المیزان دکاء را از دک به معنای شدت کوبیدن و در اینجا مصدر به معنای اسم مفعول می‌' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی دکاء را از دک به معنای شدت کوبیدن و در اینجا مصدر به معنای اسم مفعول می\u200c" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» موقت بودن سد را درس قصه می‌داند' in _joined(verse, "modern")
-    assert 'روایت معراج نزد طبری از سنخ اخبار آخرالزمانی است و پیوندش با این آیه در پرونده ب' in _joined(verse, "critical")
+    assert "روایت معراج در این خوانش از سنخ اخبار آخرالزمانی است و پیوندش با این آیه در پرونده ب" in _joined(verse, "critical")
 
 def test_kahf_18_99_verse():
     verse = _check_verse("18:99")
-    assert 'المیزان «ترک» را همان معنای رها کردن در برابر گرفتن می‌داند و ضمیر را به ناس برم' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی «ترک» را همان معنای رها کردن در برابر گرفتن می\u200cداند و ضمیر را به ناس برم" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» موج مردم را صورت وارونهٔ نظم سد' in _joined(verse, "modern")
-    assert 'سه قول قرطبی برای موج‌زنندگان نشان می‌دهد که سنت کهن میان یأجوج و مردمان قیامت م' in _joined(verse, "critical")
+    assert "سه قول برای موج\u200cزنندگان نشان داده شده است که سنت کهن میان یأجوج و مردمان قیامت م" in _joined(verse, "critical")
 
 def test_kahf_18_100_verse():
     verse = _check_verse("18:100")
-    assert 'المیزان این آیه را در پی نفخ صور و گرد آوردن می‌نشاند و نمایاندن جهنم را برای کا' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی این آیه را در پی نفخ صور و گرد آوردن می\u200cنشاند و نمایاندن جهنم را برای کا" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» عرض جهنم را برابر ساخت سد می‌نش' in _joined(verse, "modern")
-    assert 'روایت سراب و پرسش از یهود و نصاری نزد طبری صحنه را به آزمون معبودها می‌برد و متن' in _joined(verse, "critical")
+    assert "روایت سراب و پرسش از یهود و نصاری در این خوانش صحنه را به آزمون معبودها می\u200cبرد و متن" in _joined(verse, "critical")
 
 def test_kahf_18_101_verse():
     verse = _check_verse("18:101")
-    assert 'المیزان این آیه را تفسیر کافرین آیهٔ پیش می‌داند و می‌گوید دیدگانشان در پرده‌ای ' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی این آیه را تفسیر کافرین آیهٔ پیش می\u200cداند و می\u200cگوید دیدگانشان در پرده\u200cای" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» ناشنوایی ارادی را در سراسر این ' in _joined(verse, "modern")
-    assert 'طبری ناتوانی را به خذلان و شقاوت الهی می‌بندد و میزان آن را بریدگی راه ذکر و این' in _joined(verse, "critical")
+    assert "ناتوانی را به خذلان و شقاوت الهی می\u200cبندد و تفسیرِ معاصرِ شیعی آن را بریدگی راه ذکر و این" in _joined(verse, "critical")
 
 def test_kahf_18_102_verse():
     verse = _check_verse("18:102")
-    assert 'المیزان پرسش را انکاری می‌داند و وجه نخست را برمی‌گزیند که پنداشتند اولیای غیر خ' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی پرسش را انکاری می\u200cداند و وجه نخست را برمی\u200cگزیند که پنداشتند اولیای غیر خ" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» پندار سودمندی واسطه‌ها را قلب ش' in _joined(verse, "modern")
     assert 'میزان تخصیص عبادی به مقربان را با دو دلیل می‌شکند که مقام تشریف نیست و قید «من د' in _joined(verse, "critical")
 
 def test_kahf_18_103_verse():
     verse = _check_verse("18:103")
-    assert 'المیزان خطاب را به مشرکان و با لحن کنایه می‌داند که بگو می‌خواهید بگوییم زیان‌کا' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی خطاب را به مشرکان و با لحن کنایه می\u200cداند که بگو می\u200cخواهید بگوییم زیان\u200cکا" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» زیان‌کارترین را کسانی می‌داند ک' in _joined(verse, "modern")
-    assert 'انبوه مصداق‌ها نزد طبری از راهبان تا خوارج نشان می‌دهد که سنت کهن این آیه را آین' in _joined(verse, "critical")
+    assert "انبوه مصداق\u200cها در این خوانش از راهبان تا خوارج نشان داده شده است که سنت کهن این آیه را آین" in _joined(verse, "critical")
 
 def test_kahf_18_104_verse():
     verse = _check_verse("18:104")
-    assert 'المیزان گم شدن کوشش را بی‌نتیجگی کار می‌داند و پندار نیکوکاری را تمام‌کنندهٔ زیا' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی گم شدن کوشش را بی\u200cنتیجگی کار می\u200cداند و پندار نیکوکاری را تمام\u200cکنندهٔ زیا" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» خودنیکوپنداری را در برابر خودشن' in _joined(verse, "modern")
-    assert 'استدلال کلامی طبری از این آیه در برابر نظریهٔ کفر دانسته نمونه‌ای است که آیه‌ای ' in _joined(verse, "critical")
+    assert "استدلال کلامی از این آیه در برابر نظریهٔ کفر دانسته نمونه\u200cای است که آیه\u200cای" in _joined(verse, "critical")
 
 def test_kahf_18_105_verse():
     verse = _check_verse("18:105")
-    assert 'المیزان این جمله را تعریف دوم زیان‌کارترین می‌داند و آیات را آیات آفاقی و انفسی ' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی این جمله را تعریف دوم زیان\u200cکارترین می\u200cداند و آیات را آیات آفاقی و انفسی" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» ترازو را برابر ترازوهای قصه‌های' in _joined(verse, "modern")
-    assert 'فقه چاقی قرطبی از حدیث این آیه تا نکوهش خوردن بسیار راه دوری است و در پرونده بای' in _joined(verse, "critical")
+    assert "فقه چاقی از حدیث این آیه تا نکوهش خوردن بسیار راه دوری است و در پرونده بای" in _joined(verse, "critical")
 
 def test_kahf_18_106_verse():
     verse = _check_verse("18:106")
-    assert 'المیزان «ذلك» را اشاره به وصف پیشین و خبر مبتدای حذف‌شده می‌داند که کار چنین است' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی «ذلك» را اشاره به وصف پیشین و خبر مبتدای حذف\u200cشده می\u200cداند که کار چنین است" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» جزای جهنم را از خود ساختار کفر ' in _joined(verse, "modern")
-    assert 'نحو قرطبی در مبتدا و بدل فنی و درست است اما میزان از همان اشاره بار تأکیدی می‌گی' in _joined(verse, "critical")
+    assert "در مبتدا و بدل فنی و درست است اما میزان از همان اشاره بار تأکیدی" in _joined(verse, "critical")
 
 def test_kahf_18_107_verse():
     verse = _check_verse("18:107")
-    assert 'المیزان فردوس را باغ می‌داند و در اصلش قول‌های رومی و سریانی و حبشی و عربی را می' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی فردوس را باغ می\u200cداند و در اصلش قول\u200cهای رومی و سریانی و حبشی و عربی را می" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» ایمان و عمل صالح را تنها سرمایه' in _joined(verse, "modern")
     assert 'واژهٔ بیگانهٔ فردوس که در فارسی نیز بهشت از همین خاندان آمده در سنت کهن موضوع زب' in _joined(verse, "critical")
 
 def test_kahf_18_108_verse():
     verse = _check_verse("18:108")
-    assert 'المیزان «یبغون» را طلبیدن و «حول» را تحول می‌داند و باقی آیه را روشن می‌خواند که' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی «یبغون» را طلبیدن و «حول» را تحول می\u200cداند و باقی آیه را روشن می\u200cخواند که" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» نخواستن رفتن را نشانهٔ کمال مطل' in _joined(verse, "modern")
-    assert 'سکوت طبری در این آیه در پرونده صادقانه ثبت می‌شود و نمونه‌ای است که پوشش منابع آ' in _joined(verse, "critical")
+    assert "سکوت در این آیه در پرونده صادقانه ثبت می\u200cشود و نمونه\u200cای است که پوشش منابع آ" in _joined(verse, "critical")
 
 def test_kahf_18_109_verse():
     verse = _check_verse("18:109")
-    assert 'المیزان این آیه را بیانی مستقل در وسعت کلمات خدا می‌داند که پایان نمی‌پذیرد و اگ' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی این آیه را بیانی مستقل در وسعت کلمات خدا می\u200cداند که پایان نمی\u200cپذیرد و اگ" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» دریای مرکب را تصویر بی‌کرانی مع' in _joined(verse, "modern")
     assert 'میزان در برابر مفسرانی که کلمات را معلومات و مقدورات گرفته‌اند موضع می‌گیرد و ای' in _joined(verse, "critical")
 
 def test_kahf_18_110_verse():
     verse = _check_verse("18:110")
-    assert 'المیزان این آیه را خلاصهٔ غرض سوره و جامع سه اصل توحید و نبوت و معاد می‌داند که ' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی این آیه را خلاصهٔ غرض سوره و جامع سه اصل توحید و نبوت و معاد می\u200cداند که" in _joined(verse, "notes")
     assert 'همان مقالهٔ فصلنامهٔ «مطالعات تطبیقی قرآن‌پژوهی» بشر بودن پیامبر را برابر الوهیت' in _joined(verse, "modern")
-    assert 'میان سبب‌های نزول متعدد در طبری و قرطبی از طاوس و مجاهد و جندب میزان راه انطباق ' in _joined(verse, "critical")
+    assert "میان سبب\u200cهای نزول متعدد در تفاسیرِ کهن از طاوس و جندب میزان راه انطباق" in _joined(verse, "critical")
 
 def test_maryam_19_1_verse():
     verse = _check_verse("19:1")
-    assert 'المیزان حروف مقطعه را بی‌ارتباط با مضمون سوره نمی‌داند و حروف مشترک میان سوره‌ها' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی حروف مقطعه را بی\u200cارتباط با مضمون سوره نمی\u200cداند و حروف مشترک میان سوره\u200cها" in _joined(verse, "notes")
     assert 'مقالهٔ «ضوابط علمی و کاربردی در روش تفسیر تطبیقی» پژوهش‌های قرآنی (۱۳۹۴) برای رو' in _joined(verse, "modern")
-    assert 'تأویل کربلا در صافی از سنخ تأویل روایی است و نه تفسیر ظاهری آیه و نمونه آن را گز' in _joined(verse, "critical")
+    assert "از سنخ تأویل روایی است و نه تفسیر ظاهری آیه و نمونه آن" in _joined(verse, "critical")
 
 def test_maryam_19_2_verse():
     verse = _check_verse("19:2")
-    assert 'المیزان «ذکر» را خبر مبتدای حذف‌شده و مصدر به معنای مفعول می‌داند که این خبر رحم' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی «ذکر» را خبر مبتدای حذف\u200cشده و مصدر به معنای مفعول می\u200cداند که این خبر رحم" in _joined(verse, "notes")
     assert 'همان مقالهٔ پژوهش‌های قرآنی عنوان‌های قصه در قرآن را آستانهٔ خوانش می‌گیرد و «ذک' in _joined(verse, "modern")
-    assert 'زجاج نزد قرطبی برافراشتن ذکر به کهیعص را محال می‌داند چون کهیعص از قصهٔ زکریا نی' in _joined(verse, "critical")
+    assert "در این خوانش برافراشتن ذکر به کهیعص محال دانسته شده است چون کهیعص از قصهٔ زکریا نی" in _joined(verse, "critical")
 
 def test_maryam_19_3_verse():
     verse = _check_verse("19:3")
-    assert 'المیزان «إذ» را وابسته به رحمت می‌داند و نداء را صدا زدن بلند و در برابر مناجات ' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی «إذ» را وابسته به رحمت می\u200cداند و نداء را صدا زدن بلند و در برابر مناجات" in _joined(verse, "notes")
     assert 'همان مقالهٔ پژوهش‌های قرآنی دعای پنهان را در روان‌شناسی دین امروز نیز سنجش‌پذیر ' in _joined(verse, "modern")
-    assert 'علت «تا بهتر اجابت شود» در مختصر افزوده‌ای بر متن است و طبری علت را گریز از ریا ' in _joined(verse, "critical")
+    assert "علت «تا بهتر اجابت شود» در مختصر افزوده\u200cای بر متن است علت را گریز از ریا" in _joined(verse, "critical")
 
 def test_maryam_19_4_verse():
     verse = _check_verse("19:4")
-    assert 'المیزان این آیه را زمینه‌چینی درخواست فرزند می‌داند و پیش آوردن «رب» را برای برا' in _joined(verse, "notes")
-    assert 'همان مقالهٔ پژوهش‌های قرآنی استعارهٔ شعله را در بلاغت قرآن نمونه‌ای می‌گیرد که م' in _joined(verse, "modern")
-    assert 'روایت ابراهیم و وقار سپیدی در صافی از سنخ روایات علل است و جای آن در پرونده روای' in _joined(verse, "critical")
+    assert "تفسیرِ معاصرِ شیعی این آیه را زمینه\u200cچینی درخواست فرزند می\u200cداند و پیش آوردن «رب» را برای برا" in _joined(verse, "notes")
+    assert "همان مقالهٔ پژوهش\u200cهای قرآنی استعارهٔ شعله" in _joined(verse, "modern")
+    assert "روایت ابراهیم و وقار سپیدی در از سنخ روایات علل است و جای آن در پرونده روای" in _joined(verse, "critical")
 
 def test_maryam_19_5_verse():
     verse = _check_verse("19:5")
-    assert 'المیزان موالی را عموها و پسرعموها و به اقوالی کلاله و عصبه و وارثان می‌داند و هم' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی موالی را عموها و پسرعموها و به اقوالی کلاله و عصبه و وارثان می\u200cداند و هم" in _joined(verse, "notes")
     assert 'همان مقالهٔ پژوهش‌های قرآنی ترس از موالی را در دو خوانش دینی و اجتماعی می‌سنجد و' in _joined(verse, "modern")
-    assert 'قرائت خفّت که در قرطبی از عثمان و دو امام شیعه و در صافی از سجاد و باقر(ع) آمده ' in _joined(verse, "critical")
+    assert "قرائت خفّت که در تفسیرِ کهن از عثمان و دو امام شیعه از سجاد و باقر(ع) آمده" in _joined(verse, "critical")
 
 def test_maryam_19_6_verse():
     verse = _check_verse("19:6")
-    assert 'المیزان مراد از ولی را فرزند صلبی می‌داند و ارث را ظاهر در ارث مال و اقوال ارث ن' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی مراد از ولی را فرزند صلبی می\u200cداند و ارث را ظاهر در ارث مال و اقوال ارث ن" in _joined(verse, "notes")
     assert 'همان مقالهٔ پژوهش‌های قرآنی استدلال نمونه را می‌سنجد که استناد فاطمه زهرا(س) برا' in _joined(verse, "modern")
     assert 'میزان ارث نبوت را از ریشه می‌شکند که نبوت از راه خویشاوندی ارث برده نمی‌شود و رض' in _joined(verse, "critical")
 
 def test_maryam_19_7_verse():
     verse = _check_verse("19:7")
-    assert 'المیزان آغاز آیه را حذف و ایجاز می‌داند که دعایش را اجابت کردیم و ندا دادیم و از' in _joined(verse, "notes")
+    assert "آغاز آیه را حذف و ایجاز می\u200cداند که دعایش را اجابت کردیم و ندا دادیم و از" in _joined(verse, "notes")
     assert 'همان مقالهٔ پژوهش‌های قرآنی نام‌گذاری آسمانی را در ادبیات پیامبران می‌سنجد که یح' in _joined(verse, "modern")
-    assert 'طبری قول نام را بر مثل ترجیح می‌دهد و میزان مثل را با اوصاف می‌سازد و هر دو در پ' in _joined(verse, "critical")
+    assert "قول نام بر مثل ترجیح داده شده است و میزان مثل را با اوصاف می\u200cسازد و هر دو در پ" in _joined(verse, "critical")
 
 def test_maryam_19_8_verse():
     verse = _check_verse("19:8")
-    assert 'المیزان این شگفتی را خاصیت بشریت و ناسازگار با ایمان به قدرت خدا نمی‌داند و آن ر' in _joined(verse, "notes")
+    assert "تفسیرِ معاصرِ شیعی این شگفتی را خاصیت بشریت و ناسازگار با ایمان به قدرت خدا نمی\u200cداند و آن ر" in _joined(verse, "notes")
     assert 'همان مقالهٔ پژوهش‌های قرآنی شگفتی پیامبران در قرآن را خانواده‌ای می‌گیرد که ابرا' in _joined(verse, "modern")
-    assert 'روایت سدی نزد طبری با استثبات او ناسازگار است و خود طبری عملاً آن را کنار می‌گذا' in _joined(verse, "critical")
+    assert "روایت سدی در این خوانش با استثبات او ناسازگار است عملاً آن را کنار می\u200cگذا" in _joined(verse, "critical")
 
 def test_maryam_19_9_verse():
     verse = _check_verse("19:9")
-    assert '«کَذٰلِکَ» نزد طبری خبرِ امر است: چنین است که می‌گویی، همسرت نازاست و به عِتِی ر' in _joined(verse, "notes")
+    assert "«کَذٰلِکَ» در این خوانش خبرِ امر است: چنین است که می\u200cگویی، همسرت نازاست و به عِتِی ر" in _joined(verse, "notes")
     assert 'نمونه خوانشِ تطبیقی دو سوره را پررنگ می‌کند: در آل عمران «الله یفعل ما یشاء» و د' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: تفاوتِ نقلِ قرطبی/صافی دربارهٔ گوینده، با ساختارِ کلیِ سوره جمع‌پذ' in _joined(verse, "critical")
+    assert "ی دربارهٔ گوینده، با ساختارِ کلیِ سوره جمع\u200cپذ" in _joined(verse, "critical")
 
 def test_maryam_19_10_verse():
     verse = _check_verse("19:10")
-    assert 'طبری از ابن زید و سدی نقل می‌کند که زکریا می‌خواهد بداند این صدا از خداست و نشان' in _joined(verse, "notes")
+    assert "از ابن زید و سدی نقل شده است که زکریا می\u200cخواهد بداند این صدا از خداست و نشان" in _joined(verse, "notes")
     assert 'نمونه همین نقطه را مرکز تفسیر می‌کند: نشانه آفریده‌ای دگرگون هستند که هم موجب طم' in _joined(verse, "modern")
     assert 'داوری تطبیقی میان دو مکتب: نظر علامه طباطبائی و نمونه در اینکه طلب نشانه تمیز و ' in _joined(verse, "critical")
 
 def test_maryam_19_11_verse():
     verse = _check_verse("19:11")
-    assert 'طبری وحی را در این آیه اشاره می‌داند که ممکن است با دست یا کتابت یا هر مایه فهمِ' in _joined(verse, "notes")
+    assert "وحی در این آیه اشاره دانسته شده است که ممکن است با دست یا کتابت یا هر مایه فهمِ" in _joined(verse, "notes")
     assert 'نمونه در نتیجه‌گیری اخلاقی می‌گوید تسبیح بامداد و شام به‌منزله ابزار شکر نعمت و ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: اختلاف روایی «دست یا کتاب» در طبری و قرطبی بنیاد پیام آیه را نمی‌ل' in _joined(verse, "critical")
+    assert "داوری تطبیقی: اختلاف روایی «دست یا کتاب» در تفاسیرِ کهن بنیاد پیام آیه را نمی\u200cل" in _joined(verse, "critical")
 
 def test_maryam_19_12_verse():
     verse = _check_verse("19:12")
-    assert 'طبری «بقوّه» را بجدّ می‌خواند به نقل قتاده و مجاهد، و ابن زید را می‌آورد که قوّه' in _joined(verse, "notes")
+    assert "«بقوّه» بجدّ خوانده شده است به نقل، و ابن زید آورده شده است که قوّه" in _joined(verse, "notes")
     assert 'نمونه در آرای جدید، سن کمِ یحیی را نشان کرامت الهی می‌داند که خواست او بر زیست ا' in _joined(verse, "modern")
     assert 'داوری تطبیقی: میزان از یک‌سو حکم را نبوت نمی‌داند تا استدلال دربارۀ امامت صغیر ر' in _joined(verse, "critical")
 
 def test_maryam_19_13_verse():
     verse = _check_verse("19:13")
-    assert 'طبری در روایات جرح و تعدیل «حنان» ابن عباس می‌گوید: «والله ما أدری ما حنانا»؛ ول' in _joined(verse, "notes")
+    assert "در روایات جرح و تعدیل «حنان» ابن عباس گفته شده است: «والله ما أدری ما حنانا»؛ ول" in _joined(verse, "notes")
     assert 'نمونه در تفسیرش، «زکات» را نیز پاکی از خطا و گناه و تربیت به صورت طیب و طهارت تف' in _joined(verse, "modern")
-    assert 'داوریِ تطبیقی: در صافی و نمونه، کلمهٔ حنان با روایات «لبیک یا یحیی» شرحی شده که ' in _joined(verse, "critical")
+    assert "داوریِ تطبیقی: در و نمونه، کلمهٔ حنان با روایات «لبیک یا یحیی» شرحی شده که" in _joined(verse, "critical")
 
 def test_maryam_19_14_verse():
     verse = _check_verse("19:14")
-    assert 'طبری برّ را مسارعت در طاعت و محبت والدین و جبار را مستکبر از طاعت خدا و والدین ت' in _joined(verse, "notes")
+    assert "برّ را مسارعت در طاعت و محبت والدین و جبار را مستکبر از طاعت خدا و والدین ت" in _joined(verse, "notes")
     assert 'نمونه در پیام اخلاقی تفسیر می‌گوید: برّ والدین در کنار تقوای خدا قرار گرفته و ای' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: صافی با چهار کودکِ برگزیده و امتیاز عصمت یحیی نتیجه می‌گیرد که او ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: با چهار کودکِ برگزیده و امتیاز عصمت یحیی نتیجه گرفته شده است که او" in _joined(verse, "critical")
 
 def test_maryam_19_15_verse():
     verse = _check_verse("19:15")
-    assert 'طبری سلام را أمان از خدا می‌داند: امان از اینکه شیطان او را مانند بنی‌آدم در روز' in _joined(verse, "notes")
+    assert "سلام أمان از خدا دانسته شده است: امان از اینکه شیطان او را مانند بنی\u200cآدم در روز" in _joined(verse, "notes")
     assert 'نمونه بر قید زمان‌ها تأکید می‌کند: در هر سه انتقال یعنی به دنیا آمدن، مردن و برا' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: دربارهٔ طبیعت سلام، تفسیر طبری و صافی آن را امان و روایات نمونه آن' in _joined(verse, "critical")
+    assert "داوری تطبیقی: دربارهٔ طبیعت سلام، تفسیر آن را امان و روایات نمونه آن" in _joined(verse, "critical")
 
 def test_maryam_19_16_verse():
     verse = _check_verse("19:16")
-    assert 'طبری انتباذ را اعتزال و انفکاک از اهل می‌داند و از قتاده «انفردت من أهلها» نقل م' in _joined(verse, "notes")
+    assert "اعتزال و انفکاک از اهل" in _joined(verse, "notes")
     assert 'نمونه انتباذ را جست‌وجوی مکانی خالی از دغدغه برای راز و نیاز می‌داند و شرق را از' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: علتِ انتباذ میان طهارت از حیض (سدی نزد طبری) و تعبد (ترجیح قرطبی) ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: علتِ انتباذ میان طهارت از حیض (سدی در این خوانش))" in _joined(verse, "critical")
 
 def test_maryam_19_17_verse():
     verse = _check_verse("19:17")
-    assert 'طبری حجاب را پرده‌ای می‌داند که او را از اهل و مردم می‌پوشاند و قول سدی آن را از' in _joined(verse, "notes")
+    assert "که او را از اهل و مردم می\u200cپوشاند و قول سدی آن" in _joined(verse, "notes")
     assert 'نمونه در نکته‌ها می‌گوید تقریباً همهٔ مفسران معروف روح را جبرئیل دانسته‌اند و اض' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: میزان با تحلیل سیاقی فاعل تمثل را روح می‌گیرد و تفسیر روح به عیسی ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: میزان با تحلیل سیاقی فاعل تمثل ر" in _joined(verse, "critical")
 
 def test_maryam_19_18_verse():
     verse = _check_verse("19:18")
-    assert 'طبری می‌گوید مریم پنداشت مردی است که او را بر نفسش می‌خواهد و به رحمان استجاره ک' in _joined(verse, "notes")
+    assert "گفته شده است مریم پنداشت مردی است که او را بر نفسش می\u200cخواهد و به رحمان استجاره ک" in _joined(verse, "notes")
     assert 'نمونه می‌گوید نام رحمان با رحمت عامه و تشویق به تقوا هر دو برای کنترل قصد سوء بو' in _joined(verse, "modern")
     assert 'داوری تطبیقی: قول «تقی نام مرد فاجر» در هر سه سنت کلاسیک و معاصر تضعیف شده است؛ ' in _joined(verse, "critical")
 
 def test_maryam_19_19_verse():
     verse = _check_verse("19:19")
-    assert 'طبری اختلاف قرائت را گزارش می‌کند: عامهٔ قراء حجاز و عراق «لأهب» خوانده‌اند بر ح' in _joined(verse, "notes")
+    assert "اختلاف قرائت گزارش شده است: عامهٔ قراء حجاز و عراق «لأهب» خوانده\u200cاند بر ح" in _joined(verse, "notes")
     assert 'نمونه بشارت را با صفت پاکیزگی از نظر خلق و خو و جسم و جان شرح می‌کند و غلام زکی ' in _joined(verse, "modern")
     assert 'داوری تطبیقی: قرائت «لیهب» ابوعمرو و ورش از نظر معنایی فاعلیت خدا را صریح‌تر می‌' in _joined(verse, "critical")
 
 def test_maryam_19_20_verse():
     verse = _check_verse("19:20")
-    assert 'طبری پرسش را از وجه و سبب می‌خواند: آیا از راه همسری که برگزینم یا خدا در من ابت' in _joined(verse, "notes")
+    assert "پرسش از وجه و سبب خوانده شده است: آیا از راه همسری که برگزینم یا خدا در من ابت" in _joined(verse, "notes")
     assert 'نمونه طوفان نگرانی مریم را باز می‌گوید که وجودش را لرزاند اما با سخن بعدی فرشته ' in _joined(verse, "modern")
     assert 'داوری تطبیقی: کلاسیک‌ها و میزان و نمونه هم‌صدایند که پرسش مریم استفهام از کیفیت ' in _joined(verse, "critical")
 
 def test_maryam_19_21_verse():
     verse = _check_verse("19:21")
-    assert 'طبری کذلک را تصدیق سخن مریم می‌خواند: آری چنان است که می‌گویی هیچ بشری تو را مس ' in _joined(verse, "notes")
+    assert "کذلک تصدیق سخن مریم خوانده شده است: آری چنان است که می\u200cگویی هیچ بشری تو را مس" in _joined(verse, "notes")
     assert 'نمونه گفت‌وگو را پایان‌یافته می‌خواند: این امری است پایان‌یافته و جای گفتگو ندار' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: در غایت کودک هم‌گرایی بزرگی است که طبری و قرطبی و صافی و میزان همگ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: در غایت کودک هم\u200cگرایی بزرگی است که تفاسیرِ کهن و میزان همگ" in _joined(verse, "critical")
 
 def test_maryam_19_22_verse():
     verse = _check_verse("19:22")
-    assert 'طبری می‌گوید در کلام متروکی هست که دلالتِ مذکور از آن بی‌نیاز کرده است یعنی نفخ ' in _joined(verse, "notes")
+    assert "گفته شده است در کلام متروکی هست که دلالتِ مذکور از آن بی\u200cنیاز کرده است یعنی نفخ" in _joined(verse, "notes")
     assert 'نمونه مکان قصی را نزد بسیاری ناصره می‌داند و حال مریم را میان بیم و امید وصف می‌' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: مدت حمل از نه ساعت در صافی و کافی تا نه ماه در برخی اقوال و وضع فو' in _joined(verse, "critical")
+    assert "داوری تطبیقی: مدت حمل از نه ساعت در و کافی تا نه ماه در برخی اقوال و وضع فو" in _joined(verse, "critical")
 
 def test_maryam_19_23_verse():
     verse = _check_verse("19:23")
-    assert 'طبری اجاء را از جاء به با حذف باء می‌داند یعنی او را آورد و مجبور کرد و از مجاهد' in _joined(verse, "notes")
+    assert "اجاء از جاء به با حذف باء دانسته شده است یعنی او را آورد و مجبور کرد" in _joined(verse, "notes")
     assert 'نمونه طوفان این لحظه را وصف می‌کند که مریم لحظهٔ آشکارشدن پنهان و رگبار تیرهای ت' in _joined(verse, "modern")
     assert 'داوری تطبیقی: در سبب سخن مریم هم‌گرایی است که شرم از مردم و ترس از تهمت محور است' in _joined(verse, "critical")
 
 def test_maryam_19_24_verse():
     verse = _check_verse("19:24")
-    assert 'طبری دو گروه قائل را با اسنادشان می‌آورد: جبرئیل به قول ابن‌عباس و ضحاک و قتاده ' in _joined(verse, "notes")
+    assert "دو گروه قائل با اسنادشان آورده شده است: جبرئیل به قول ابن\u200cعباس" in _joined(verse, "notes")
     assert 'نمونه ندای تسلی را ادامهٔ همان دفاع الهی می‌داند که مریم تمنای مرگ کرده بود و پا' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و میزان و مختصر نوزاد را گوینده می‌دانند و قرطبی قول جبرئیل ر' in _joined(verse, "critical")
+    assert "و میزان و مختصر نوزاد را گوینده می\u200cدانند" in _joined(verse, "critical")
 
 def test_maryam_19_25_verse():
     verse = _check_verse("19:25")
-    assert 'طبری باء در «بجذع» را از آن باءهایی می‌داند که در افعال گاه می‌آید و گاه می‌رود ' in _joined(verse, "notes")
-    assert 'نمونه در کنار قرطبی می‌گوید مریم پیش‌تر رزقش بی‌تکسب در محراب می‌رسید و اکنون که' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: در درس سعی و توکل قرطبی صریح‌ترین است و نمونه همان را با زبان روان' in _joined(verse, "critical")
+    assert "باء در «بجذع» از آن باءهایی دانسته شده است که در افعال گاه می\u200cآید و گاه می\u200cرود" in _joined(verse, "notes")
+    assert "نمونه در کنار گفته شده است مریم پیش\u200cتر رزقش بی\u200cتکسب در محراب می\u200cرسید و اکنون که" in _joined(verse, "modern")
+    assert "داوری تطبیقی: در درس سعی صریح\u200cترین است و نمونه همان را با زبان روان" in _joined(verse, "critical")
 
 def test_maryam_19_26_verse():
     verse = _check_verse("19:26")
-    assert 'طبری صوم را از انس و ابن‌عباس صمت می‌خواند و از قتاده می‌آورد که مریم از طعام و ' in _joined(verse, "notes")
+    assert "صوم از انس و ابن\u200cعباس صمت خوانده شده است و از یکی از راویان آورده شده است که مریم از طعام و" in _joined(verse, "notes")
     assert 'نمونه می‌گوید خدا مریم را بر زبان فرشته یا پسرش به امساک از مخاطبهٔ بشر فرمان دا' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: صمت‌بودن صوم نزد طبری و قرطبی و صافی و میزان هم‌گرای کامل است و اخ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: صمت\u200cبودن صوم نزد تفاسیرِ کهن و میزان هم\u200cگرای کامل است و اخ" in _joined(verse, "critical")
 
 
 def test_maryam_19_27_verse():
     verse = _check_verse("19:27")
-    assert 'طبری می‌گوید چون مریم سخن عیسی را شنید دلش آرام گرفت و تسلیم امر خ' in _joined(verse, "notes")
+    assert "گفته شده است چون مریم سخن عیسی را شنید دلش آرام گرفت و تسلیم امر خ" in _joined(verse, "notes")
     assert 'نمونه واکنش قوم را دو دسته می‌کند: برخی در قضاوت عجول بودند و ملام' in _joined(verse, "modern")
     assert 'داوری تطبیقی: در معنای فری هم‌گرایی است که عظیم و عجیب است و روایا' in _joined(verse, "critical")
 
 def test_maryam_19_28_verse():
     verse = _check_verse("19:28")
-    assert 'طبری اقوال را می‌شمارد: هارون مرد صالحی همنام در بنی‌اسرائیل بود و' in _joined(verse, "notes")
-    assert 'نمونه علاوه بر حدیث مجمع از سعد السعود نیز همان پاسخ پیامبر به نجر' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: حدیث مغیره در طبری و قرطبی و صافی و نمونه هم‌سوست و ' in _joined(verse, "critical")
+    assert "اقوال شمرده شده است: هارون مرد صالحی همنام در بنی\u200cاسرائیل بود و" in _joined(verse, "notes")
+    assert "نمونه علاوه بر حدیث از سعد السعود نیز همان پاسخ پیامبر به نجر" in _joined(verse, "modern")
+    assert "داوری تطبیقی: حدیث مغیره در تفاسیرِ کهن و نمونه هم\u200cسوست و" in _joined(verse, "critical")
 
 def test_maryam_19_29_verse():
     verse = _check_verse("19:29")
-    assert 'طبری می‌گوید مریم آنچه را عیسی به گفتنش فرمان داده بود گفت و سپس ب' in _joined(verse, "notes")
+    assert "گفته شده است مریم آنچه را عیسی به گفتنش فرمان داده بود گفت و سپس ب" in _joined(verse, "notes")
     assert 'نمونه خشم قوم از اشاره را برجسته می‌کند که پنداشتند مریم آنان را ب' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و میزان در اینکه «کان» پاسخ قوم را باطل' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن و میزان در اینکه «کان» پاسخ قوم را باطل" in _joined(verse, "critical")
 
 def test_maryam_19_30_verse():
     verse = _check_verse("19:30")
-    assert 'طبری می‌گوید قوم پنداشتند اشارهٔ مریم استهزاست و خشمگین شدند و عیس' in _joined(verse, "notes")
+    assert "گفته شده است قوم پنداشتند اشارهٔ مریم استهزاست و خشمگین شدند و عیس" in _joined(verse, "notes")
     assert 'نمونه بر عنصر شگفتی تأکید می‌کند که سخن از کتاب و نبوت در گهواره ا' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: قرطبی اعطای ازلی را اصح و میزان اعطای همان‌روزی را ظ' in _joined(verse, "critical")
+    assert "اعطای ازلی را اصح و میزان اعطای همان\u200cروزی" in _joined(verse, "critical")
 
 def test_maryam_19_31_verse():
     verse = _check_verse("19:31")
-    assert 'طبری در معنای مبارک سه قول می‌آورد: نفاع به قول مجاهد و امر به معر' in _joined(verse, "notes")
+    assert "در معنای مبارک سه قول آورده شده است: نفاع به قول و امر به معر" in _joined(verse, "notes")
     assert 'نمونه در برنامهٔ عیسی دو قطب نماز و زکات را عبادت خالق و احسان به ' in _joined(verse, "modern")
     assert 'داوری تطبیقی: در معنای مبارک هر چهار سنت بر سودرسانی اجتماعی متفق‌' in _joined(verse, "critical")
 
 def test_maryam_19_32_verse():
     verse = _check_verse("19:32")
-    assert 'طبری بر را نیکی به مادر می‌خواند و جبار شقی را مستکبر بر خدا در ام' in _joined(verse, "notes")
+    assert "بر نیکی به مادر خوانده شده است و جبار شقی را مستکبر بر خدا در ام" in _joined(verse, "notes")
     assert 'نمونه این آینه‌سازی با یحیی را برجسته می‌کند که هر دو پیامبر بر به' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: در اینکه سخن نوزاد فقط در همان مقطع بود قرطبی صریح‌ت' in _joined(verse, "critical")
+    assert "داوری تطبیقی: در اینکه سخن نوزاد فقط در همان مقطع بود صریح\u200cت" in _joined(verse, "critical")
 
 def test_maryam_19_33_verse():
     verse = _check_verse("19:33")
-    assert 'طبری سلام را امنیت از خدا می‌داند از شیطان و سپاهیانش روز تولد که ' in _joined(verse, "notes")
+    assert "سلام امنیت از خدا دانسته شده است از شیطان و سپاهیانش روز تولد که" in _joined(verse, "notes")
     assert 'نمونه امتیاز سلام یحیی را در گوینده‌بودن خدا و سلام عیسی را در گفت' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: در سه موطن و امنیت آن‌ها طبری و قرطبی و مختصر هم‌صدا' in _joined(verse, "critical")
+    assert "داوری تطبیقی: در سه موطن و امنیت آن\u200cها تفاسیرِ کهن و مختصر هم\u200cصدا" in _joined(verse, "critical")
 
 def test_maryam_19_34_verse():
     verse = _check_verse("19:34")
-    assert 'طبری می‌گوید این همان غلامی است که صفت و خبرش را برایتان گفتم و قو' in _joined(verse, "notes")
+    assert "گفته شده است این همان غلامی است که صفت و خبرش را برایتان گفتم و قو" in _joined(verse, "notes")
     assert 'نمونه شک و تردید را از دو سو می‌خواند: گروهی در پاکی مادرش شک کردن' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و نمونه در نقشهٔ گروه‌های چهارگانه از گ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن و نمونه در نقشهٔ گروه\u200cهای چهارگانه از گ" in _joined(verse, "critical")
 
 def test_maryam_19_35_verse():
     verse = _check_verse("19:35")
-    assert 'طبری می‌گوید سزاوار خدا نیست و روا نباشد که فرزندی بگیرد و سبحانه ' in _joined(verse, "notes")
+    assert "گفته شده است سزاوار خدا نیست و روا نباشد که فرزندی بگیرد و سبحانه" in _joined(verse, "notes")
     assert 'نمونه این آیه را آغاز بخش «مگر فرزند برای خدا ممکن است» می‌خواند و' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی آیه را تنزیه و نفی صفت می‌خوانند و صافی' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن آیه را تنزیه و نفی صفت می\u200cخوانند" in _joined(verse, "critical")
 
 def test_maryam_19_36_verse():
     verse = _check_verse("19:36")
-    assert 'طبری اختلاف قرائت وأن و إن را گزارش می‌کند و کسر را بر ابتدا برمی‌' in _joined(verse, "notes")
+    assert "اختلاف قرائت وأن و إن" in _joined(verse, "notes")
     assert 'نمونه احتمال سخن پیامبر بودن آیه را نقل می‌کند ولی آیات زخرف و آل‌' in _joined(verse, "modern")
     assert 'داوری تطبیقی: میزان و نمونه با دو شاهد قرآنی تتمه‌بودن سخن عیسی را' in _joined(verse, "critical")
 
 def test_maryam_19_37_verse():
     verse = _check_verse("19:37")
-    assert 'طبری احزاب را اهل کتاب می‌داند از قول مجاهد و داستان قتاده را می‌آ' in _joined(verse, "notes")
+    assert "اهل کتاب" in _joined(verse, "notes")
     assert 'نمونه نقشهٔ انحراف را از دو سو کامل می‌داند: دشمنان در پاکی مادر ش' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و صافی احزاب را اهل کتاب و فرقه‌هایشان ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن احزاب را اهل کتاب و فرقه\u200cهایشان" in _joined(verse, "critical")
 
 def test_maryam_19_38_verse():
     verse = _check_verse("19:38")
-    assert 'طبری می‌گوید آنان در دنیا از دیدن حق و حجت‌های وحدانیت کور و از شن' in _joined(verse, "notes")
+    assert "گفته شده است آنان در دنیا از دیدن حق و حجت\u200cهای وحدانیت کور و از شن" in _joined(verse, "notes")
     assert 'نمونه این تصویر را در مجموعهٔ آیات پایان قصهٔ عیسی می‌خواند که پس ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و صافی و میزان در تعجب‌بودن صیغه و بی‌س' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن و میزان در تعجب\u200cبودن صیغه و بی\u200cس" in _joined(verse, "critical")
 
 def test_maryam_19_39_verse():
     verse = _check_verse("19:39")
-    assert 'طبری می‌گوید پیامبر مشرکان را از روز حسرت و پشیمانی بر کوتاهی در ج' in _joined(verse, "notes")
+    assert "گفته شده است پیامبر مشرکان را از روز حسرت و پشیمانی بر کوتاهی در ج" in _joined(verse, "notes")
     assert 'نمونه روز حسرت را فرجام قصهٔ عیسی در سوره می‌خواند که پس از اختلاف' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: حدیث ذبح مرگ نقطهٔ اشتراک کم‌نظیر دو سنت است که طبری' in _joined(verse, "critical")
+    assert "داوری تطبیقی: حدیث ذبح مرگ نقطهٔ اشتراک کم\u200cنظیر دو سنت است که" in _joined(verse, "critical")
 
 def test_maryam_19_40_verse():
     verse = _check_verse("19:40")
-    assert 'طبری آیه را تسلیت پیامبر می‌خواند که از تکذیب مشرکان اندوهگین مباش' in _joined(verse, "notes")
+    assert "آیه تسلیت پیامبر خوانده شده است که از تکذیب مشرکان اندوهگین مباش" in _joined(verse, "notes")
     assert 'نمونه این پایان را با آغاز سوره قیاس می‌کند که خدا در قصهٔ زکریا و' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و صافی بر فنای اهل و بقای خدا و جزا هم‌' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن بر فنای اهل و بقای خدا و جزا هم\u200c" in _joined(verse, "critical")
 
 
 def test_maryam_19_41_verse():
     verse = _check_verse("19:41")
-    assert 'طبری می‌گوید خدا به پیامبرش فرمان می‌دهد قصهٔ ابراهیم خلیل الرحمن ' in _joined(verse, "notes")
+    assert "گفته شده است خدا به پیامبرش فرمان می\u200cدهد قصهٔ ابراهیم خلیل الرحمن" in _joined(verse, "notes")
     assert 'نمونه می‌گوید کلمهٔ صدیق صیغهٔ مبالغه از صدق است یا کسی که هرگز در' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و نمونه و میزان در معنای صدیق هم‌گرا هس' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن و نمونه و میزان در معنای صدیق هم\u200cگرا هس" in _joined(verse, "critical")
 
 def test_maryam_19_42_verse():
     verse = _check_verse("19:42")
-    assert 'طبری می‌گوید ابراهیم به پدرش گفت با پرستش بتی که نمی‌شنود و چیزی ن' in _joined(verse, "notes")
+    assert "گفته شده است ابراهیم به پدرش گفت با پرستش بتی که نمی\u200cشنود و چیزی ن" in _joined(verse, "notes")
     assert 'نمونه برهان را «منطق گيرا و کوبنده» می‌خواند و آغاز دعوت از پدر را' in _joined(verse, "modern")
     assert 'داوری تطبیقی: در اصل برهان همه هم‌گرا هستند و اختلاف در هویت مخاطب' in _joined(verse, "critical")
 
 def test_maryam_19_43_verse():
     verse = _check_verse("19:43")
-    assert 'طبری می‌گوید ابراهیم گفت خدا به من علمی داده که به تو نداده است پس' in _joined(verse, "notes")
+    assert "گفته شده است ابراهیم گفت خدا به من علمی داده که به تو نداده است پس" in _joined(verse, "notes")
     assert 'نمونه اطمینان ابراهیم را از وحی می‌داند و دعوتش را خیرخواهانه می‌خ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و مختصر علم را وحی و یقین می‌دانند و صا' in _joined(verse, "critical")
+    assert "و مختصر علم را وحی و یقین می\u200cدانند" in _joined(verse, "critical")
 
 def test_maryam_19_44_verse():
     verse = _check_verse("19:44")
-    assert 'طبری می‌گوید ابراهیم پدر را از عبادت شیطان یعنی نافرمانی‌نکردن از ' in _joined(verse, "notes")
+    assert "ابراهیم پدر را از عبادت شیطان یعنی نافرمانی\u200cنکردن از" in _joined(verse, "notes")
     assert 'نمونه معنای عبادت را گسترده می‌خواند که به رسمیت‌شناختن قانون کسی ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: قرطبی و صافی و میزان و نمونه در اطاعت‌بودن عبادت شیط' in _joined(verse, "critical")
+    assert "داوری تطبیقی: و میزان و نمونه در اطاعت\u200cبودن عبادت شیط" in _joined(verse, "critical")
 
 def test_maryam_19_45_verse():
     verse = _check_verse("19:45")
-    assert 'طبری می‌گوید ابراهیم گفت من می‌دانم اگر بر پرستش شیطان بمیری عذابی' in _joined(verse, "notes")
+    assert "گفته شده است ابراهیم گفت من می\u200cدانم اگر بر پرستش شیطان بمیری عذابی" in _joined(verse, "notes")
     assert 'نمونه لایهٔ عاطفی آیه را برجسته می‌کند که ابراهیم از رسیدن کوچک‌تر' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی خوف را علم یا ترس و عذاب را اخروی می‌دا' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن خوف را علم یا ترس و عذاب را اخروی می\u200cدا" in _joined(verse, "critical")
 
 def test_maryam_19_46_verse():
     verse = _check_verse("19:46")
-    assert 'طبری می‌گوید پدر ابراهیم در پاسخ دعوت او گفت آیا از پرستش خدایان م' in _joined(verse, "notes")
+    assert "گفته شده است پدر ابراهیم در پاسخ دعوت او گفت آیا از پرستش خدایان م" in _joined(verse, "notes")
     assert 'نمونه تعبیر اهجرنی ملیا را از توهین‌آمیزترین تعبیرهای خشونت می‌دان' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: در رجم طبری با سلفش رجم قول و میزان و نمونه سنگسار م' in _joined(verse, "critical")
+    assert "داوری تطبیقی: در رجم با سلفش رجم قول و میزان و نمونه سنگسار م" in _joined(verse, "critical")
 
 def test_maryam_19_47_verse():
     verse = _check_verse("19:47")
-    assert 'طبری می‌گوید ابراهیم به پدرش که او را به سخن بد و کیفر تهدید کرده ' in _joined(verse, "notes")
+    assert "گفته شده است ابراهیم به پدرش که او را به سخن بد و کیفر تهدید کرده" in _joined(verse, "notes")
     assert 'نمونه پرسش استغفار برای آزر بی‌ایمان را پیش می‌کشد و پاسخ مشروحش ر' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: جمهور سلام را متارکه و طبری امان و صافی مقابلهٔ بدی ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: جمهور سلام را متارکه امان مقابلهٔ بدی" in _joined(verse, "critical")
 
 def test_maryam_19_48_verse():
     verse = _check_verse("19:48")
-    assert 'طبری می‌گوید ابراهیم گفت از شما و آنچه جز خدا از بت‌ها می‌خوانید د' in _joined(verse, "notes")
+    assert "گفته شده است ابراهیم گفت از شما و آنچه جز خدا از بت\u200cها می\u200cخوانید د" in _joined(verse, "notes")
     assert 'نمونه دو روی آیه را ادب و قاطعیت می‌خواند و این دوگانگی را درس رهب' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: صافی و میزان در تواضع عسی و لطف‌بودن اجابت هم‌نظرند ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: و میزان در تواضع عسی و لطف\u200cبودن اجابت هم\u200cنظرند" in _joined(verse, "critical")
 
 def test_maryam_19_49_verse():
     verse = _check_verse("19:49")
-    assert 'طبری می‌گوید چون ابراهیم از قومش و پرستش بت‌هایشان کناره گرفت تنها' in _joined(verse, "notes")
+    assert "گفته شده است چون ابراهیم از قومش و پرستش بت\u200cهایشان کناره گرفت تنها" in _joined(verse, "notes")
     assert 'نمونه پرسش نبودن نام اسماعیل را پاسخ می‌دهد که نام او چند آیه بعد ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و صافی بر جبران وحشت و بدل‌بودن فرزندان' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن بر جبران وحشت و بدل\u200cبودن فرزندان" in _joined(verse, "critical")
 
 def test_maryam_19_50_verse():
     verse = _check_verse("19:50")
-    assert 'طبری می‌گوید به همهٔ آنان ابراهیم و اسحاق و یعقوب از رحمت خود روزی' in _joined(verse, "notes")
+    assert "گفته شده است به همهٔ آنان ابراهیم و اسحاق و یعقوب از رحمت خود روزی" in _joined(verse, "notes")
     assert 'نمونه می‌گوید ابراهیم با دعای لسان صدق خواهش دل خود را نمی‌خواست ب' in _joined(verse, "modern")
     assert 'داوری تطبیقی: در لسان صدق یعنی ثنای حسن همگانی همه هم‌گرا هستند و ' in _joined(verse, "critical")
 
 def test_maryam_19_51_verse():
     verse = _check_verse("19:51")
-    assert 'طبری اختلاف قرائت مخلص را گزارش می‌کند که بیشتر قاریان مدینه و بصر' in _joined(verse, "notes")
+    assert "اختلاف قرائت مخلص گزارش شده است که بیشتر قاریان مدینه و بصر" in _joined(verse, "notes")
     assert 'نمونه اخلاص را بیمهٔ الهی از لغزش و انحراف می‌خواند و از ص آیهٔ گف' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری هر دو قرائت را صواب و میزان و نمونه و مختصر فتح' in _joined(verse, "critical")
+    assert "داوری تطبیقی: هر دو قرائت را صواب و میزان و نمونه و مختصر فتح" in _joined(verse, "critical")
 
 def test_maryam_19_52_verse():
     verse = _check_verse("19:52")
-    assert 'طبری می‌گوید خدا موسی را از ناحیهٔ کوه ندا داد و ایمان یعنی سمت را' in _joined(verse, "notes")
+    assert "گفته شده است خدا موسی را از ناحیهٔ کوه ندا داد و ایمان یعنی سمت را" in _joined(verse, "notes")
     assert 'نمونه ندا را موهبتی و تکلم را موهبت دیگر می‌شمارد و می‌گوید خدا نخ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و صافی و میزان در رازگوینده‌بودن نجیا ه' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن و میزان در رازگوینده\u200cبودن نجیا ه" in _joined(verse, "critical")
 
 def test_maryam_19_53_verse():
     verse = _check_verse("19:53")
-    assert 'طبری می‌گوید از رحمت خود برادرش هارون را به موسی بخشیدیم یعنی او ر' in _joined(verse, "notes")
+    assert "گفته شده است از رحمت خود برادرش هارون را به موسی بخشیدیم یعنی او ر" in _joined(verse, "notes")
     assert 'نمونه هارون را پشتیبان و یار و همکار می‌خواند و نبوت او را موهبت پ' in _joined(verse, "modern")
     assert 'داوری تطبیقی: هر چهار سنت نبوت هارون را اجابت دعای موسی در طه می‌د' in _joined(verse, "critical")
 
 def test_maryam_19_54_verse():
     verse = _check_verse("19:54")
-    assert 'طبری می‌گوید خدا به پیامبرش می‌فرماید اسماعیل پسر ابراهیم را در کت' in _joined(verse, "notes")
+    assert "گفته شده است خدا به پیامبرش می\u200cفرماید اسماعیل پسر ابراهیم را در کت" in _joined(verse, "notes")
     assert 'نمونه می‌گوید تا انسان صادق نباشد به رسالت نمی‌رسد چون نخستین شرط ' in _joined(verse, "modern")
     assert 'داوری تطبیقی: جمهور و نمونه و مختصر او را پسر ابراهیم و میزان با م' in _joined(verse, "critical")
 
 def test_maryam_19_55_verse():
     verse = _check_verse("19:55")
-    assert 'طبری می‌گوید اسماعیل خانواده‌اش را به برپا داشتن نماز و دادن زکات ' in _joined(verse, "notes")
+    assert "گفته شده است اسماعیل خانواده\u200cاش را به برپا داشتن نماز و دادن زکات" in _joined(verse, "notes")
     assert 'نمونه نخستین مرحلهٔ تبلیغ را آغاز از خانواده می‌داند چنانکه پیامبر' in _joined(verse, "modern")
     assert 'داوری تطبیقی: در فرمان به نماز و زکات همه هم‌گرا هستند و اختلاف در' in _joined(verse, "critical")
 
 def test_maryam_19_56_verse():
     verse = _check_verse("19:56")
-    assert 'طبری می‌گوید خدا به پیامبرش می‌فرماید ادریس را در این کتاب یاد کن ' in _joined(verse, "notes")
+    assert "گفته شده است خدا به پیامبرش می\u200cفرماید ادریس را در این کتاب یاد کن" in _joined(verse, "notes")
     assert 'نمونه ادریس را از پیامبران بلندمقام می‌داند که شرح حالش را به نکته' in _joined(verse, "modern")
     assert 'داوری تطبیقی: در صدیق و نبی‌بودن او همه هم‌گرا هستند و در ریشهٔ نا' in _joined(verse, "critical")
 
 def test_maryam_19_57_verse():
     verse = _check_verse("19:57")
-    assert 'طبری می‌گوید او را به جایگاهی بلند و مرتفع بالا بردیم و برخی گفته‌' in _joined(verse, "notes")
+    assert "گفته شده است او را به جایگاهی بلند و مرتفع بالا بردیم و برخی گفته\u200c" in _joined(verse, "notes")
     assert 'نمونه با شاهد «أنتم شر مکاناً» در یوسف اطلاق مکان بر مقام را ثابت ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی با روایات آسمان چهارم و ششم خوانش مکانی' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن با روایات آسمان چهارم و ششم خوانش مکانی" in _joined(verse, "critical")
 def test_maryam_19_58_verse():
     verse = _check_verse("19:58")
-    assert 'طبری نامبردگان سوره را از زکریا تا ادریس می\u200cشمارد و ' in _joined(verse, "notes")
+    assert "نامبردگان سوره از زکریا تا ادریس شمرده شده است و" in _joined(verse, "notes")
     assert 'نمونه حدیث سجاد را که فرمود ما مقصود این آیه\u200cایم بیا' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و صافی در مصداق\u200cهای نسبی ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن در مصداق\u200cهای نسبی" in _joined(verse, "critical")
 
 def test_maryam_19_59_verse():
     verse = _check_verse("19:59")
-    assert 'طبری در معنای اضاعهٔ نماز اختلاف اهل تأویل را می\u200cچین' in _joined(verse, "notes")
+    assert "در معنای اضاعهٔ نماز اختلاف اهل تأویل را می\u200cچین" in _joined(verse, "notes")
     assert 'نمونه در پایان این بخش از دو طیف تاریخی سخن می\u200cگوید ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری ترک و قرطبی و صافی تأخیر از وقت و' in _joined(verse, "critical")
+    assert "داوری تطبیقی: ترک تأخیر از وقت و" in _joined(verse, "critical")
 
 def test_maryam_19_60_verse():
     verse = _check_verse("19:60")
-    assert 'طبری استثنا را به خلف سوء برمی\u200cگرداند که هر که از آن' in _joined(verse, "notes")
+    assert "استثنا را به خلف سوء برمی\u200cگرداند که هر که از آن" in _joined(verse, "notes")
     assert 'نمونه با همین استثنا بخش پیامبران را می\u200cبندد و به خو' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی بر عدم نقصان اجر هم\u200cگرا ه' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن بر عدم نقصان اجر هم\u200cگرا ه" in _joined(verse, "critical")
 
 def test_maryam_19_61_verse():
     verse = _check_verse("19:61")
-    assert 'طبری جنات عدن را ترجمه و بدل از الجنه می\u200cداند و عدن ' in _joined(verse, "notes")
+    assert "جنات عدن ترجمه و بدل از الجنه دانسته شده است و عدن" in _joined(verse, "notes")
     assert 'نمونه احتمال دوم بالغیب را نیز می\u200cآورد که نعمت\u200cهای ب' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی مأتی را از اتیان و رفت\u200cوآ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن مأتی را از اتیان و رفت\u200cوآ" in _joined(verse, "critical")
 
 def test_maryam_19_62_verse():
     verse = _check_verse("19:62")
-    assert 'طبری لغو را هذی و باطل از گفتار می\u200cداند و «الا سلاما' in _joined(verse, "notes")
+    assert "لغو هذی و باطل از گفتار دانسته شده است و «الا سلاما" in _joined(verse, "notes")
     assert 'نمونه پس از سلام به آرامش روانی بهشت می\u200cرسد و نبود ز' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی سلام را تحیت ملائکه و هم\u200c' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن سلام را تحیت ملائکه و هم\u200c" in _joined(verse, "critical")
 
 def test_maryam_19_63_verse():
     verse = _check_verse("19:63")
-    assert 'طبری تلك الجنه را همان بهشت وصف\u200cشده می\u200cداند و نورث ر' in _joined(verse, "notes")
+    assert "تلك الجنه همان بهشت وصف\u200cشده دانسته شده است و نورث ر" in _joined(verse, "notes")
     assert 'نمونه در پایان توصیف بهشت خواننده را به همان نتیجه م' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری ارث را مساکن اهل نار و میزان انتق' in _joined(verse, "critical")
+    assert "داوری تطبیقی: ارث را مساکن اهل نار و میزان انتق" in _joined(verse, "critical")
 
 def test_maryam_19_64_verse():
     verse = _check_verse("19:64")
-    assert 'طبری سبب نزول را دیرکردن جبرئیل می\u200cداند و از ابن\u200cعبا' in _joined(verse, "notes")
+    assert "سبب نزول دیرکردن جبرئیل دانسته شده است و از ابن\u200cعبا" in _joined(verse, "notes")
     assert 'نمونه از میان یازده تفسیر جملهٔ وسط، خوانش آینده و گ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و صافی سخن را قول جبرئیل ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن سخن را قول جبرئیل" in _joined(verse, "critical")
 
 def test_maryam_19_65_verse():
     verse = _check_verse("19:65")
-    assert 'طبری رب السماوات را رد بر ربک آیهٔ پیش می\u200cداند که اگ' in _joined(verse, "notes")
+    assert "رب السماوات رد بر ربک آیهٔ پیش دانسته شده است که اگ" in _joined(verse, "notes")
     assert 'نمونه عبادت را توأم با توحید و اخلاص می\u200cخواهد و اصطب' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی سمی را شبیه و مثل و صافی ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن سمی را شبیه" in _joined(verse, "critical")
 
 def test_maryam_19_66_verse():
     verse = _check_verse("19:66")
-    assert 'طبری انسان در آیه را کافری می\u200cداند که به بعث پس از م' in _joined(verse, "notes")
+    assert "انسان در آیه کافری دانسته شده است که به بعث پس از م" in _joined(verse, "notes")
     assert 'نمونه تعبیر به انسان با الف و لام جنس را از این رو م' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: قرطبی و صافی ابی بن خلف و میزان کافر م' in _joined(verse, "critical")
+    assert "داوری تطبیقی: ابی بن خلف و میزان کافر م" in _joined(verse, "critical")
 
 def test_maryam_19_67_verse():
     verse = _check_verse("19:67")
-    assert 'طبری پاسخ را چنین می\u200cخواند که خدا این منکر قدرت بر ا' in _joined(verse, "notes")
+    assert "پاسخ چنین خوانده شده است که خدا این منکر قدرت بر ا" in _joined(verse, "notes")
     assert 'نمونه با لحن تربیتی می\u200cگوید انسان باید خود پاسخ پرسش' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و مختصر برهان را امکان از' in _joined(verse, "critical")
+    assert "و مختصر برهان را امکان از" in _joined(verse, "critical")
 
 def test_maryam_19_68_verse():
     verse = _check_verse("19:68")
-    assert 'طبری سوگند را خطاب به پیامبر می\u200cداند که این گویندگان' in _joined(verse, "notes")
+    assert "سوگند خطاب به پیامبر دانسته شده است که این گویندگان" in _joined(verse, "notes")
     assert 'نمونه زانوزدن گرد جهنم را بخشی از توصیف دوزخیان می\u200cخ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و صافی و قرطبی جثی را زانوزدن و م' in _joined(verse, "critical")
+    assert "داوری تطبیقی: جثی را زانوزدن و م" in _joined(verse, "critical")
 
 def test_maryam_19_69_verse():
     verse = _check_verse("19:69")
-    assert 'طبری نزع را گرفتن از هر جماعت سرکش\u200cترین بر خدا می\u200cدا' in _joined(verse, "notes")
+    assert "نزع را گرفتن از هر جماعت سرکش\u200cترین بر خدا" in _joined(verse, "notes")
     assert 'نمونه جداکردن سرکش\u200cترین\u200cها را آغاز مجازات پیش از دیگ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و نمونه و مختصر آغاز از سران و می' in _joined(verse, "critical")
+    assert "داوری تطبیقی: و نمونه و مختصر آغاز از سران و می" in _joined(verse, "critical")
 
 def test_maryam_19_70_verse():
     verse = _check_verse("19:70")
-    assert 'طبری «لنحن أعلم» را داناتر بودن خدا به سزاوارترین\u200cها' in _joined(verse, "notes")
+    assert "«لنحن أعلم» را داناتر بودن خدا به سزاوارترین\u200cها" in _joined(verse, "notes")
     assert 'نمونه اولویت در سوختن را اولویت در نوبت مجازات می\u200cخو' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری اولی را به شدت عذاب یا طبقهٔ آتش ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: اولی را به شدت عذاب یا طبقهٔ آتش" in _joined(verse, "critical")
 
 def test_maryam_19_71_verse():
     verse = _check_verse("19:71")
-    assert 'طبری ورود را به اختلاف اهل علم می\u200cنشاند؛ گروهی دخول ' in _joined(verse, "notes")
+    assert "ورود را به اختلاف اهل علم می\u200cنشاند؛ گروهی دخول" in _joined(verse, "notes")
     assert 'نمونه گفت\u200cوگوی دامنه\u200cدار مفسران را گزارش می\u200cکند و ور' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و نمونه دخول و صافی به رو' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن و نمونه دخول به رو" in _joined(verse, "critical")
 
 def test_maryam_19_72_verse():
     verse = _check_verse("19:72")
-    assert 'طبری نجات را پس از ورود همه می\u200cداند که خدا پرهیزکنند' in _joined(verse, "notes")
+    assert "نجات پس از ورود همه دانسته شده است که خدا پرهیزکنند" in _joined(verse, "notes")
     assert 'نمونه در برابر دخول همگانی می\u200cگوید نیکان نجات می\u200cیاب' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی نذر را ماندن پس از دخول و' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن نذر را ماندن پس از دخول و" in _joined(verse, "critical")
 
 def test_maryam_19_73_verse():
     verse = _check_verse("19:73")
-    assert 'طبری مقام را موضع اقامت و مساکن و ندی را مجلس می\u200cدان' in _joined(verse, "notes")
+    assert "مقام را موضع اقامت و مساکن و ندی" in _joined(verse, "notes")
     assert 'نمونه می\u200cگوید این گروه اشرافی زیباترین لباس\u200cها را می' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و نمونه صحنه را فقر مؤمنا' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن و نمونه صحنه را فقر مؤمنا" in _joined(verse, "critical")
 
 def test_maryam_19_74_verse():
     verse = _check_verse("19:74")
-    assert 'طبری أثاث را متاع منازل و رئی را منظر و جمال صورت می' in _joined(verse, "notes")
+    assert "أثاث را متاع منازل و رئی" in _joined(verse, "notes")
     assert 'نمونه می\u200cگوید زرق و برق دنیا چنان ناپایدار است که با' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و میزان و نمونه در معنای ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن و میزان و نمونه در معنای" in _joined(verse, "critical")
 
 def test_maryam_19_75_verse():
     verse = _check_verse("19:75")
-    assert 'طبری «فلیمدد له الرحمن مدا» را فلیطول له الله فی ضلا' in _joined(verse, "notes")
+    assert "«فلیمدد له الرحمن مدا» را فلیطول له الله فی ضلا" in _joined(verse, "notes")
     assert 'نمونه ساعت و عذاب را دو سرنوشت می\u200cخواند که کافر یا د' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و صافی امهال در طغیان و م' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن امهال در طغیان و م" in _joined(verse, "critical")
 
 def test_maryam_19_76_verse():
     verse = _check_verse("19:76")
-    assert 'طبری ازدیاد هدایت را ایمان به فرائض تازه و عمل به آن' in _joined(verse, "notes")
+    assert "ازدیاد هدایت را ایمان به فرائض تازه و عمل به آن" in _joined(verse, "notes")
     assert 'نمونه باقیات صالحات را در برابر متاع فانی می\u200cنشاند و' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری ازدیاد هدایت را فرائض تازه و قرطب' in _joined(verse, "critical")
+    assert "ازدیاد هدایت را فرائض تازه" in _joined(verse, "critical")
 
 def test_maryam_19_77_verse():
     verse = _check_verse("19:77")
-    assert 'طبری سبب نزول را عاص بن وائل سهمی می\u200cداند و از خباب ' in _joined(verse, "notes")
+    assert "سبب نزول عاص بن وائل سهمی دانسته شده است و از خباب" in _joined(verse, "notes")
     assert 'نمونه خود نیز می\u200cگوید این شأن نزول تناسب چندانی با آ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و صافی و مختصر سبب عاص بن' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن و مختصر سبب عاص بن" in _joined(verse, "critical")
 
 def test_maryam_19_78_verse():
     verse = _check_verse("19:78")
-    assert 'طبری پرسش را انکاری می\u200cخواند که آیا این گوینده علم غ' in _joined(verse, "notes")
+    assert "پرسش انکاری خوانده شده است که آیا این گوینده علم غ" in _joined(verse, "notes")
     assert 'نمونه در نتیجه این بخش می\u200cگوید پندار ثروت از راه کفر' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و صافی و میزان پرسش را برهان دو ر' in _joined(verse, "critical")
+    assert "داوری تطبیقی: و میزان پرسش را برهان دو ر" in _joined(verse, "critical")
 
 def test_maryam_19_79_verse():
     verse = _check_verse("19:79")
-    assert 'طبری کلا را «لیس الأمر کذلک» می\u200cداند که نه غیب را دی' in _joined(verse, "notes")
+    assert "کلا «لیس الأمر کذلک» دانسته شده است که نه غیب را دی" in _joined(verse, "notes")
     assert 'نمونه استمرار عذاب را پایان پندار می\u200cداند که انسان ب' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی سنکتب را ثبت برای مجازات ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن سنکتب را ثبت برای مجازات" in _joined(verse, "critical")
 
 def test_maryam_19_80_verse():
     verse = _check_verse("19:80")
-    assert 'طبری نرثه ما یقول را سلب مال و فرزند او می\u200cداند که م' in _joined(verse, "notes")
+    assert "نرثه ما یقول سلب مال و فرزند او دانسته شده است که م" in _joined(verse, "notes")
     assert 'نمونه تک\u200cتنها آمدن را پایان\u200cبندی بخش می\u200cخواند که خدا' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و صافی و مختصر ارث را سلب' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن و مختصر ارث را سلب" in _joined(verse, "critical")
 
 def test_maryam_19_81_verse():
     verse = _check_verse("19:81")
-    assert 'طبری اتخاذ آلهه را از مشرکان قوم پیامبر می\u200cداند که آ' in _joined(verse, "notes")
+    assert "اتخاذ آلهه از مشرکان قوم پیامبر دانسته شده است که آ" in _joined(verse, "notes")
     assert 'نمونه پرسش «چه پندار خامی» را در ترجمهٔ آیه می\u200cنشاند' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و صافی عزت را شفاعت و تقرب و قرطب' in _joined(verse, "critical")
+    assert "داوری تطبیقی:" in _joined(verse, "critical")
 
 def test_maryam_19_82_verse():
     verse = _check_verse("19:82")
-    assert 'طبری کفر آلهه به عبادت را سخن آنان در قیامت می\u200cداند ' in _joined(verse, "notes")
+    assert "کفر آلهه به عبادت سخن آنان در قیامت دانسته شده است" in _joined(verse, "notes")
     assert 'نمونه ضدشدن را قیام معبودها بر ضد پرستندگان می\u200cخواند' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و مختصر کفر آلهه به عبادت' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن و مختصر کفر آلهه به عبادت" in _joined(verse, "critical")
 
 def test_maryam_19_83_verse():
     verse = _check_verse("19:83")
-    assert 'طبری أز را تحریک با اغوا و اضلال می\u200cداند که شیاطین ک' in _joined(verse, "notes")
+    assert "أز تحریک با اغوا و اضلال دانسته شده است که شیاطین ک" in _joined(verse, "notes")
     assert 'نمونه أز را از راغب جوشش دیگ و زیرو رو شدن محتوای آن' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی أز را اغوا و ازعاج و میزا' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن أز را اغوا و ازعاج و میزا" in _joined(verse, "critical")
 
 def test_maryam_19_84_verse():
     verse = _check_verse("19:84")
-    assert 'طبری نهی از عجله را طلب عذاب و هلاکت برای کافران می\u200c' in _joined(verse, "notes")
+    assert "طلب عذاب و هلاکت برای کافران" in _joined(verse, "notes")
     assert 'نمونه می\u200cگوید همهٔ اعمال برای آن روز که دادگاه عدل ا' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و صافی انفاس و ایام و میز' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن انفاس و ایام و میز" in _joined(verse, "critical")
 
 def test_maryam_19_85_verse():
     verse = _check_verse("19:85")
-    assert 'طبری وفد را ركبان می\u200cداند که بر کسی وارد شوند و از ع' in _joined(verse, "notes")
+    assert "وفد ركبان دانسته شده است که بر کسی وارد شوند و از ع" in _joined(verse, "notes")
     assert 'نمونه در برابر وفد، مجرمان را چون شتران تشنه\u200cای می\u200cخ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و صافی وفد را سواره\u200cبودن ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن وفد را سواره\u200cبودن" in _joined(verse, "critical")
 
 def test_maryam_19_86_verse():
     verse = _check_verse("19:86")
-    assert 'طبری ورد را عطشا می\u200cداند و ورد را مصدر وردت می\u200cخواند' in _joined(verse, "notes")
+    assert "ورد عطشا دانسته شده است و ورد مصدر وردت خوانده شده است" in _joined(verse, "notes")
     assert 'نمونه تشبیه شتران تشنه به آبگاه را برمی\u200cگزیند که مجر' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و صافی و میزان و مختصر ورد را عطش' in _joined(verse, "critical")
+    assert "داوری تطبیقی: و میزان و مختصر ورد را عطش" in _joined(verse, "critical")
 
 def test_maryam_19_87_verse():
     verse = _check_verse("19:87")
-    assert 'طبری لا یملکون را خبر از کافران می\u200cداند که شفاعت ندا' in _joined(verse, "notes")
+    assert "لا یملکون خبر از کافران دانسته شده است که شفاعت ندا" in _joined(verse, "notes")
     assert 'نمونه می\u200cگوید آن\u200cها هرگز مالک شفاعت نیستند مگر عهددا' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی عهد را ایمان و عمل و شهاد' in _joined(verse, "critical")
+    assert "عهد را ایمان و عمل و" in _joined(verse, "critical")
 
 def test_maryam_19_88_verse():
     verse = _check_verse("19:88")
-    assert 'طبری گویندگان را کافران به خدا می\u200cداند که گفتند رحما' in _joined(verse, "notes")
+    assert "گویندگان کافران به خدا دانسته شده است که گفتند رحما" in _joined(verse, "notes")
     assert 'نمونه این شاخهٔ شرک را پایان بخش شرک می\u200cداند و زشتی ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: قرطبی گویندگان را سه گروه و صافی قریش ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: گویندگان را سه گروه قریش" in _joined(verse, "critical")
 
 def test_maryam_19_89_verse():
     verse = _check_verse("19:89")
-    assert 'طبری إد را از ابن\u200cعباس و مجاهد و قتاده قول عظیم و من' in _joined(verse, "notes")
+    assert "إد را از ابن\u200cعباس قول عظیم و من" in _joined(verse, "notes")
     assert 'نمونه ریشهٔ صوتی إد را برمی\u200cگزیند که خود واژه نیز زش' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی إد را عظیم و منکر با شواه' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن إد را عظیم و منکر با شواه" in _joined(verse, "critical")
 
 def test_maryam_19_90_verse():
     verse = _check_verse("19:90")
-    assert 'طبری تفطر را تشقق قطعه\u200cقطعه می\u200cداند و از ابن\u200cعباس می' in _joined(verse, "notes")
+    assert "تشقق قطعه\u200cقطعه" in _joined(verse, "notes")
     assert 'نمونه وحشت عالم را از نشناختن خدا می\u200cداند که اگر خدا' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و صافی واکنش را با روایات' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن واکنش را با روایات" in _joined(verse, "critical")
 
 def test_maryam_19_91_verse():
     verse = _check_verse("19:91")
-    assert 'طبری «أن» را در موضع نصب نزد برخی عرب\u200cنحویان و در مو' in _joined(verse, "notes")
+    assert "«أن» را در موضع نصب نزد برخی عرب\u200cنحویان و در مو" in _joined(verse, "notes")
     assert 'نمونه تکرار «أن دعوا» را تأکید اهمیت می\u200cخواند و می\u200cگ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری معنای لغوی دعا و ابن\u200cعربی در قرطب' in _joined(verse, "critical")
+    assert "معنای لغوی دعا" in _joined(verse, "critical")
 
 def test_maryam_19_92_verse():
     verse = _check_verse("19:92")
-    assert 'طبری ینبغی را یصلح می\u200cداند که سزاوار خدا نیست فرزند ' in _joined(verse, "notes")
+    assert "ینبغی یصلح دانسته شده است که سزاوار خدا نیست فرزند" in _joined(verse, "notes")
     assert 'نمونه سه دلیل می\u200cچیند؛ نه شبیه دارد و نه نیاز و نه ع' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری نفی را از راه نیاز جسمانی و قرطبی' in _joined(verse, "critical")
+    assert "داوری تطبیقی: نفی را از راه نیاز جسمانی" in _joined(verse, "critical")
 
 def test_maryam_19_93_verse():
     verse = _check_verse("19:93")
-    assert 'طبری «ان» را نافیه می\u200cداند که هیچ یک از ملائکهٔ آسما' in _joined(verse, "notes")
+    assert "«ان» نافیه دانسته شده است که هیچ یک از ملائکهٔ آسما" in _joined(verse, "notes")
     assert 'نمونه بندگی همگان را دلیل کافی نفی فرزند می\u200cداند و آ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی آمدن را قیامتی و میزان حا' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن آمدن را قیامتی و میزان حا" in _joined(verse, "critical")
 
 def test_maryam_19_94_verse():
     verse = _check_verse("19:94")
-    assert 'طبری احصا را این می\u200cداند که رحمان همهٔ خلقش را احصا ' in _joined(verse, "notes")
+    assert "احصا این دانسته شده است که رحمان همهٔ خلقش را احصا" in _joined(verse, "notes")
     assert 'نمونه دقت شمارش را در برابر عظمت شمار می\u200cنشاند که با' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و مختصر احصا را علم کامل ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن و مختصر احصا را علم کامل" in _joined(verse, "critical")
 
 def test_maryam_19_95_verse():
     verse = _check_verse("19:95")
-    assert 'طبری فردا را این می\u200cداند که همهٔ خلق روز ساعت تنها ن' in _joined(verse, "notes")
+    assert "فردا این دانسته شده است که همهٔ خلق روز ساعت تنها ن" in _joined(verse, "notes")
     assert 'نمونه تنهایی قیامت را در برابر جمع ادعاهای دنیا می\u200cن' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و مختصر فردا را بی\u200cیار و ' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن و مختصر فردا را بی\u200cیار و" in _joined(verse, "critical")
 
 def test_maryam_19_96_verse():
     verse = _check_verse("19:96")
-    assert 'طبری ود را محبت در دنیا در سینه\u200cهای بندگان مؤمن می\u200cد' in _joined(verse, "notes")
+    assert "ود را محبت در دنیا در سینه\u200cهای بندگان مؤمن" in _joined(verse, "notes")
     assert 'نمونه محبوبیت را نخستین پاداش خدا به مؤمنان می\u200cداند ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی ود را محبت در دل\u200cهای مؤمن' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن ود را محبت در دل\u200cهای مؤمن" in _joined(verse, "critical")
 
 def test_maryam_19_97_verse():
     verse = _check_verse("19:97")
-    assert 'طبری یسرناه بلسانک را این می\u200cداند که قرآن را به زبان' in _joined(verse, "notes")
+    assert "یسرناه بلسانک این دانسته شده است که قرآن را به زبان" in _joined(verse, "notes")
     assert 'نمونه سه آیهٔ پایانی را عصارهٔ بحث\u200cهای پیشین با نکته' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و قرطبی و صافی و مختصر تیسیر را ا' in _joined(verse, "critical")
+    assert "داوری تطبیقی: تفاسیرِ کهن و مختصر تیسیر را ا" in _joined(verse, "critical")
 
 def test_maryam_19_98_verse():
     verse = _check_verse("19:98")
-    assert 'طبری قرن را جماعتی از مردم می\u200cداند که در مخالفت و مع' in _joined(verse, "notes")
+    assert "قرن جماعتی از مردم دانسته شده است که در مخالفت و مع" in _joined(verse, "notes")
     assert 'نمونه این آیه را پایانگر سوره می\u200cداند که باز سخن از ' in _joined(verse, "modern")
-    assert 'داوری تطبیقی: طبری و صافی و میزان و نمونه رکز را صوت' in _joined(verse, "critical")
+    assert "داوری تطبیقی: و میزان و نمونه رکز را صوت" in _joined(verse, "critical")
 
 
 def test_taha_20_1_verse():

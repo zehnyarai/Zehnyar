@@ -400,8 +400,8 @@ def test_yunus_texts_name_no_exegete_and_critical_questions_cite_related_tafsirs
                 assert "منابعِ مرتبط با این پرسش" in item["cite"], (ayah, item["cite"][:80])
 
 
-def test_hud_to_nahl_texts_name_no_exegete_and_critical_questions_cite_related_tafsirs():
-    """مدلِ کاربر برای هود تا نحل (۱۱ تا ۱۶): نامِ مفسر در متن نیاید، دنبالهٔ
+def test_hud_to_maryam_texts_name_no_exegete_and_critical_questions_cite_related_tafsirs():
+    """مدلِ کاربر برای هود تا مریم (۱۱ تا ۱۹): نامِ مفسر در متن نیاید، دنبالهٔ
     پرکننده و برچسبِ داخلی نباشد و هر پرسشِ انتقادی به تفسیرِ مرتبطِ همان
     آیه ارجاع دهد."""
     import re
@@ -412,14 +412,15 @@ def test_hud_to_nahl_texts_name_no_exegete_and_critical_questions_cite_related_t
     letter = r"[\u0621-\u064A\u066E-\u06D3‌]"
     names = ("طبری", "قرطبی", "طبرسی", "طوسی", "زمخشری", "بیضاوی",
              "سیوطی", "ابن کثیر", "ابن‌کثیر", "ابن عاشور", "ابن‌عاشور",
-             "طباطبایی", "المیزان", "المیسر")
+             "طباطبایی", "المیزان", "المیسر", "صافی", "ثعلبی", "ماوردی",
+             "جزائری", "راهن", "سعدی", "کاشانی")
 
     def named(text):
         prose = re.sub(r"«[^»]*»", "", text)
         return [n for n in names
                 if re.search(rf"(?<!{letter}){re.escape(n)}(?!{letter})", prose)]
 
-    for surah, last in ((11, 123), (12, 111), (13, 43), (14, 52), (15, 99), (16, 128)):
+    for surah, last in ((11, 123), (12, 111), (13, 43), (14, 52), (15, 99), (16, 128), (17, 111), (18, 110), (19, 98)):
         for ayah in range(1, last + 1):
             entry = ext[f"{surah}:{ayah}"]
             groups = [(field, entry[field]) for field in FIELDS]
