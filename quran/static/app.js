@@ -915,7 +915,7 @@ function renderDetail() {
   updateSaveButton();
   $$("#detail-screen [data-detail-tab]").forEach((button) => {
     // فیلدِ «کاربست امروز» برای همهٔ آیاتِ سورهٔ حمد (۱:۱–۷) به درخواستِ بازبینی حذف شده است.
-    button.hidden = button.dataset.detailTab === "application" && verse.surah === 1;
+    button.hidden = button.dataset.detailTab === "application";
     const active = button.dataset.detailTab === state.detailTab;
     button.classList.toggle("active", active);
     button.setAttribute("aria-selected", String(active));
@@ -1253,7 +1253,7 @@ function legacyStudyGroups(verse) {
     return `<section class="all-dossier-group legacy-study-group" data-legacy-study="${fieldId}"><h3>${escapeHTML(label)}</h3>${body}</section>`;
   }).join("");
   if (!groups) return "";
-  return `<section class="detail-panel legacy-study-panel" data-legacy-study-panel="true"><p class="eyebrow">فیلدهای پیشینِ همین آیه</p><h3>هشت فیلدِ تحریری، در کنارِ شش فیلدِ پایه و ده فیلدِ افزوده</h3><p class="reading-notice">این بندها پیش از افزودنِ ده فیلدِ تازه نوشته شده‌اند و حذف نمی‌شوند؛ هر مدخل شاهد یا پرسشِ خود را دارد و پیش‌نویسِ نیازمندِ بازبینی است. برای دیدنِ هر فیلد در نمای کامل هم می‌توانید از زبانه‌های بالا استفاده کنید.</p></section>${groups}`;
+  return `<section class="detail-panel legacy-study-panel" data-legacy-study-panel="true"><p class="eyebrow">هشت فیلدِ پیشینِ همین آیه</p><h3>هشت فیلدِ تحریری، در کنارِ شش فیلدِ پایه و ده فیلدِ افزوده</h3><p class="reading-notice">این بندها پیش از افزودنِ ده فیلدِ تازه نوشته شده‌اند و حذف نمی‌شوند؛ هر مدخل شاهد یا پرسشِ خود را دارد و پیش‌نویسِ نیازمندِ بازبینی است. برای دیدنِ هر فیلد در نمای کامل هم می‌توانید از زبانه‌های بالا استفاده کنید.</p></section>${groups}`;
 }
 
 function fieldIndexItem(tab, label, count) {
@@ -1285,14 +1285,13 @@ function completeDossierPanel(verse) {
     const count = Array.isArray(value) ? value.length : value ? 1 : 0;
     return fieldIndexItem(tab, label, count);
   }).join("");
-  const applicationCount = (state.scholarApplication?.[verse.id]?.uses || []).length;
   const extendedItems = definitions.map((definition) => {
     const entries = dossier?.extendedFields?.[definition.id]?.entries || [];
     let count = entries.length;
     if (definition.id === "linguistics") count += lexicalItemsForVerse(verse).length;
     return fieldIndexItem(`standard3_${definition.id}`, definition.label, count);
   }).join("");
-  return `<section class="complete-dossier"><section class="detail-panel complete-dossier-intro"><p class="eyebrow">پروندهٔ آیه</p><h3>فیلدهای ${escapeHTML(verse.reference)}؛ روی هر عنوان بزنید</h3><p class="reading-notice">متن و ترجمهٔ آیه در بالای همین صفحه است. هر عنوان، فیلدِ مستقلِ همین آیه است و فقط مطالبی را نشان می‌دهد که برگرفته از مضمون و محتوای همین آیه و با ارجاعِ منبع‌اند؛ فیلدِ بی‌ماده «نیازمند پژوهش» می‌ماند و با متنِ تکراری پر نمی‌شود.</p></section><section class="all-dossier-group"><h3>شش فیلدِ پایه</h3><div class="field-index-grid">${baseItems}</div></section><section class="all-dossier-group"><h3>هشت فیلدِ پیشین و کاربست</h3><div class="field-index-grid">${studyItems}${fieldIndexItem("application", "کاربست امروز", applicationCount)}</div></section><section class="all-dossier-group"><h3>ده فیلدِ افزودهٔ پژوهشی</h3><div class="field-index-grid">${extendedItems}</div></section></section>`;
+  return `<section class="complete-dossier"><section class="detail-panel complete-dossier-intro"><p class="eyebrow">پروندهٔ آیه</p><h3>فیلدهای ${escapeHTML(verse.reference)}؛ روی هر عنوان بزنید</h3><p class="reading-notice">متن و ترجمهٔ آیه در بالای همین صفحه است. هر عنوان، فیلدِ مستقلِ همین آیه است و فقط مطالبی را نشان می‌دهد که برگرفته از مضمون و محتوای همین آیه و با ارجاعِ منبع‌اند؛ فیلدِ بی‌ماده «نیازمند پژوهش» می‌ماند و با متنِ تکراری پر نمی‌شود.</p></section><section class="all-dossier-group"><h3>شش فیلدِ پایه</h3><div class="field-index-grid">${baseItems}</div></section><section class="all-dossier-group"><h3>هشت فیلدِ پیشین</h3><div class="field-index-grid">${studyItems}</div></section><section class="all-dossier-group"><h3>ده فیلدِ افزودهٔ پژوهشی</h3><div class="field-index-grid">${extendedItems}</div></section></section>`;
 }
 
 function standard3FieldDefinitions() {
@@ -1588,7 +1587,7 @@ function methodBlock(meta) {
 function renderDetailPanel() {
   const verse = state.selected;
   if (!verse) return;
-  if (state.detailTab === "application" && verse.surah === 1) state.detailTab = "all";
+  if (state.detailTab === "application") state.detailTab = "all";
   const standard3Definitions = state.standard3Dossier?.fields?.length ? state.standard3Dossier.fields : STANDARD3_FIELD_FALLBACKS;
   const panels = {
     ...Object.fromEntries(standard3Definitions.map((field) => [`standard3_${field.id}`, (item) => standard3FieldPanel(item, field.id)])),

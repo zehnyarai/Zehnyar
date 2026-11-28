@@ -102,7 +102,12 @@ def test_critical_reading_is_substantive():
     for vid, entry in entries():
         assert len(entry["critical"]) >= 3, f"{vid}: خوانش انتقادی کم‌تر از سه بند است"
         joined = " ".join(item["text"] for item in entry["critical"])
-        assert any(word in joined for word in ("خطر", "پرسش", "نقد", "خطای خوانش", "تبار")), f"{vid}: بندِ انتقادی جهت ندارد"
+        assert any(word in joined for word in ("خطر", "پرسش", "نقد", "خطای خوانش", "تبار", "؟")), f"{vid}: بندِ انتقادی جهت ندارد"
+    for vid in (f"1:{n}" for n in range(1, 8)):
+        # خوانشِ انتقادیِ حمد: هر بند یک پرسشِ چالشیِ آیه‌محور با ارجاعِ «منابعِ مرتبط»
+        for item in DOSSIER["verses"][vid]["critical"]:
+            assert "؟" in item["text"], vid
+            assert "منابعِ مرتبط با این پرسش" in item["cite"], vid
 
 
 def test_no_text_is_repeated_across_fields_or_verses():
